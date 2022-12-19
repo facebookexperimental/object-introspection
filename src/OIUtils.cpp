@@ -28,9 +28,9 @@ namespace OIUtils {
 
 using namespace std::literals;
 
-bool processConfigFileToml(const std::string& configFilePath,
-                           OICompiler::Config& compilerConfig,
-                           OICodeGen::Config& generatorConfig) {
+bool processConfigFile(const std::string& configFilePath,
+                       OICompiler::Config& compilerConfig,
+                       OICodeGen::Config& generatorConfig) {
   toml::table config;
   try {
     config = toml::parse_file(configFilePath);
@@ -107,51 +107,6 @@ bool processConfigFileToml(const std::string& configFilePath,
   }
 
   return true;
-}
-
-bool processConfigFileIni(const std::string& configFilePath,
-                          OICompiler::Config& compilerConfig,
-                          OICodeGen::Config& generatorConfig) {
-  boost::property_tree::ptree pt;
-
-  try {
-    boost::property_tree::ini_parser::read_ini(configFilePath, pt);
-  } catch (const boost::property_tree::ini_parser_error& ex) {
-    LOG(ERROR) << "processConfigFileIni: " << configFilePath << " : "
-               << ex.message();
-    return false;
-  }
-
-  // XXX Obviously we don't require the fields so handle non-existent entries
-  auto userHeaderPaths = pt.get<std::string>("headers.userPath", "");
-  boost::split(compilerConfig.userHeaderPaths, userHeaderPaths,
-               boost::is_any_of(":"));
-
-  auto systemHeaderPaths = pt.get<std::string>("headers.systemPath", "");
-  boost::split(compilerConfig.sysHeaderPaths, systemHeaderPaths,
-               boost::is_any_of(":"));
-
-  std::string configHeaders = pt.get<std::string>("codegen.defaultHeaders", "");
-  boost::algorithm::split(generatorConfig.defaultHeaders, configHeaders,
-                          boost::algorithm::is_any_of(":"));
-  generatorConfig.defaultHeaders.erase("");
-
-  std::string configNamespaces =
-      pt.get<std::string>("codegen.defaultNamespaces", "");
-  boost::algorithm::split(generatorConfig.defaultNamespaces, configNamespaces,
-                          boost::algorithm::is_any_of("+"));
-  generatorConfig.defaultNamespaces.erase("");
-
-  return true;
-}
-
-bool processConfigFile(const std::string& configFilePath,
-                       OICompiler::Config& compilerConfig,
-                       OICodeGen::Config& generatorConfig) {
-  // TODO: remove the option to parse as INI entirely
-  return processConfigFileToml(configFilePath, compilerConfig,
-                               generatorConfig) ||
-         processConfigFileIni(configFilePath, compilerConfig, generatorConfig);
 }
 
 }  // namespace OIUtils
