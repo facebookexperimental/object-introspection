@@ -23,6 +23,12 @@ sudo zypper in git ninja cmake llvm12-devel clang12-devel binutils-gold gcc gcc-
 sudo apt install libdw-dev libclang-dev llvm-dev libboost-all-dev libgtest-dev libbz2-dev libgflags-dev libzstd-dev libcurl4-gnutls-dev ninja-build python3-toml
 ```
 
+It seems like static versions of clang/llvm are not packaged in opensuse, but we default to looking for the static versions. To fix this, please add the following to your cmake generation command below.
+
+```
+-DFORCE_BOOST_STATIC=Off -DFORCE_LLVM_STATIC=Off
+```
+
 ### Fedora 37
 
 ```
