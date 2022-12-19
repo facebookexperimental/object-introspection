@@ -1,0 +1,96 @@
+includes = ["functional"]
+
+definitions = '''
+  void myFunction(int x) {
+    (void)x;
+  }
+
+  // Put this function pointer inside a struct since the test framework doesn't
+  // support the syntax required for passing raw function pointers as arguments
+  struct FuncPtrStruct {
+    void (*p)(int);
+  };
+'''
+
+[cases]
+  [cases.raw]
+    skip = "function pointers are not handled correctly"
+    param_types = ["const FuncPtrStruct&"]
+    setup = "return {{myFunction}};"
+    expect_json = '''[{
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "members": [{
+        "typeName": "void (*)(int)",
+        "staticSize": 8,
+        "dynamicSize": 0,
+        "NOT": {"pointer": 0},
+        "NOT": "members"
+      }]
+    }]'''
+  [cases.raw_chase] # We should never chase function pointers
+    skip = "function pointers are not handled correctly"
+    param_types = ["const FuncPtrStruct&"]
+    setup = "return {{myFunction}};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "members": [{
+        "typeName": "void (*)(int)",
+        "staticSize": 8,
+        "dynamicSize": 0,
+        "NOT": {"pointer": 0},
+        "NOT": "members"
+      }]
+    }]'''
+  [cases.raw_null]
+    skip = "function pointers are not handled correctly"
+    param_types = ["const FuncPtrStruct&"]
+    setup = "return {{nullptr}};"
+    expect_json = '''[{
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "members": [{
+        "typeName": "void (*)(int)",
+        "staticSize": 8,
+        "dynamicSize": 0,
+        "pointer": 0,
+        "NOT": "members"
+      }]
+    }]'''
+
+  [cases.std_function]
+    skip = "function pointers are not handled correctly"
+    param_types = ["std::function<void(int)> &"]
+    setup = "return myFunction;"
+    expect_json = '''[{
+      "typeName": "function<void (int)>",
+      "staticSize": 32,
+      "dynamicSize": 0,
+      "NOT": {"pointer": 0},
+      "NOT": "members"
+    }]'''
+  [cases.std_function_chase] # We should never chase function pointers
+    skip = "function pointers are not handled correctly"
+    param_types = ["std::function<void(int)> &"]
+    setup = "return myFunction;"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "typeName": "function<void (int)>",
+      "staticSize": 32,
+      "dynamicSize": 0,
+      "NOT": {"pointer": 0},
+      "NOT": "members"
+    }]'''
+  [cases.std_function_null]
+    skip = "function pointers are not handled correctly"
+    param_types = ["std::function<void(int)> &"]
+    setup = "return nullptr;"
+    expect_json = '''[{
+      "typeName": "function<void (int)>",
+      "staticSize": 32,
+      "dynamicSize": 0,
+      "pointer": 0,
+      "NOT": "members"
+    }]'''

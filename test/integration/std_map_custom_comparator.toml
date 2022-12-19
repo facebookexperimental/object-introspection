@@ -1,0 +1,69 @@
+definitions = '''
+  struct CustomComparator {
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  // static size of map only increases in multiples of 8. So including
+  // a single double would keep the static size of map the same
+  struct SmallSizedCustomComparator {
+    double a;
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct BigSizedCustomComparator {
+    double d[1000];
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct Foo {
+    std::map<int, int> m1;
+    std::map<int, int, CustomComparator> m2;
+    std::map<int, int, SmallSizedCustomComparator> m3;
+    std::map<int, int, BigSizedCustomComparator> m4;
+  };
+
+  struct Foo4 {
+    std::map<int, int, std::function<bool(const int&, const int&)>> m;
+  };
+'''
+includes = ["map", "functional"]
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+
+      for (int i = 0; i < 3; i++) {
+        foo.m1[i] = (i * 10);
+      }
+
+      for (int i = 0; i < 5; i++) {
+        foo.m2[i] = (i * 10);
+      }
+
+      for (int i = 0; i < 7; i++) {
+        foo.m3[i] = (i * 10);
+      }
+
+      for (int i = 0; i < 9; i++) {
+        foo.m4[i] = (i * 10);
+      }
+
+      return {foo};
+    '''
+    expect_json = '''[{
+      "staticSize":8184,
+      "dynamicSize":768,
+      "members":[
+        {"name":"m1", "staticSize":48, "dynamicSize":96, "length":3, "capacity":3, "elementStaticSize":32},
+        {"name":"m2", "staticSize":48, "dynamicSize":160, "length":5, "capacity":5, "elementStaticSize":32},
+        {"name":"m3", "staticSize":48, "dynamicSize":224, "length":7, "capacity":7, "elementStaticSize":32},
+        {"name":"m4", "staticSize":8040, "dynamicSize":288, "length":9, "capacity":9, "elementStaticSize":32}
+      ]}]'''

@@ -1,0 +1,134 @@
+includes = ["memory"]
+definitions = '''
+  struct RawNode {
+    uint64_t value;
+    struct RawNode* next;
+  };
+
+  struct UniqueNode {
+    uint64_t value;
+    std::unique_ptr<struct UniqueNode> next;
+  };
+
+  struct SharedNode {
+    uint64_t value;
+    std::shared_ptr<struct SharedNode> next;
+  };
+'''
+[cases]
+  [cases.raw_ptr]
+    oil_skip = "oil can't chase pointers safely"
+    param_types = ["RawNode*"]
+    setup = '''
+      RawNode *first  = new RawNode{1, nullptr};
+      RawNode *second = new RawNode{2, nullptr};
+      RawNode *third  = new RawNode{3, nullptr};
+      first->next = second;
+      second->next = third;
+      third->next = first;
+      return first;
+    '''
+	cli_options = ["--chase-raw-pointers"]
+    expect_json = '''
+	[{
+	  "typeName": "RawNode",
+	  "isTypedef": false,
+	  "staticSize": 16,
+	  "dynamicSize": 32,
+	  "members": [
+		{
+		  "name": "value",
+		  "typePath": "value",
+		  "typeName": "uint64_t",
+		  "staticSize": 8,
+		  "dynamicSize": 0
+		},
+		{
+		  "name": "next",
+		  "typePath": "next",
+		  "typeName": "struct RawNode *",
+		  "isTypedef": false,
+		  "staticSize": 8,
+		  "dynamicSize": 32,
+		  "members": [
+			{
+			  "name": "",
+			  "typePath": "",
+			  "typeName": "RawNode",
+			  "isTypedef": false,
+			  "staticSize": 16,
+			  "dynamicSize": 16,
+			  "members": [
+				{
+				  "name": "value",
+				  "typePath": "value",
+				  "typeName": "uint64_t",
+				  "staticSize": 8,
+				  "dynamicSize": 0
+				},
+				{
+				  "name": "next",
+				  "typePath": "next",
+				  "typeName": "struct RawNode *",
+				  "isTypedef": false,
+				  "staticSize": 8,
+				  "dynamicSize": 16,
+				  "members": [
+					{
+					  "name": "",
+					  "typePath": "",
+					  "typeName": "RawNode",
+					  "isTypedef": false,
+					  "staticSize": 16,
+					  "dynamicSize": 0,
+					  "members": [
+						{
+						  "name": "value",
+						  "typePath": "value",
+						  "typeName": "uint64_t",
+						  "staticSize": 8,
+						  "dynamicSize": 0
+						},
+						{
+						  "name": "next",
+						  "typePath": "next",
+						  "typeName": "struct RawNode *",
+						  "isTypedef": false,
+						  "staticSize": 8,
+						  "dynamicSize": 0
+						}
+					  ]
+					}
+				  ]
+				}
+			  ]
+			}
+		  ]
+		}
+	  ]
+	}]
+    '''
+
+  [cases.unique_ptr]
+    param_types = ["UniqueNode*"]
+    setup = '''
+      auto first = std::make_unique<UniqueNode>();
+      auto firstPtr = first.get();
+      first->next = std::make_unique<UniqueNode>();
+      first->next->next = std::make_unique<UniqueNode>();
+      first->next->next->next = std::move(first);
+      return firstPtr;
+    '''
+    # TODO check JSON
+
+  [cases.shared_ptr]
+    param_types = ["SharedNode*"]
+    setup = '''
+      auto first = std::make_shared<SharedNode>();
+      auto firstPtr = first.get();
+      first->next = std::make_shared<SharedNode>();
+      first->next->next = std::make_shared<SharedNode>();
+      first->next->next->next = first;
+      return firstPtr;
+    '''
+    # TODO check JSON

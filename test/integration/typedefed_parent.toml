@@ -1,0 +1,42 @@
+definitions = '''
+  struct Foo {
+    std::vector<int> a = {10, 20, 30};
+  };
+  typedef Foo Parent;
+  struct Bar: Parent {
+    std::vector<int> b = {1, 2, 3, 4, 5};
+  };
+
+  typedef Parent Parent_2;
+  struct Bar_2: Parent_2 {
+    std::vector<int> c = {1, 2, 3, 4, 5};
+  };
+'''
+
+[cases]
+  [cases.simple_typedef_parent]
+    param_types = ["const Bar&"]
+    setup = '''
+      Bar bar;
+      return {bar};
+    '''
+    expect_json = '''[{
+      "staticSize":48,
+      "dynamicSize":32,
+      "members":[
+        {"name":"a", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3},
+        {"name":"b", "staticSize":24, "dynamicSize":20, "length":5, "capacity":5}
+      ]}]'''
+  [cases.multilevel_typedef_parent]
+    param_types = ["const Bar_2&"]
+    setup = '''
+      Bar_2 bar;
+      return {bar};
+    '''
+    expect_json = '''[{
+      "staticSize":48,
+      "dynamicSize":32,
+      "members":[
+        {"name":"a", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3},
+        {"name":"c", "staticSize":24, "dynamicSize":20, "length":5, "capacity":5}
+      ]}]'''

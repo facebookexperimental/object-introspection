@@ -1,0 +1,123 @@
+version: 2.1
+
+workflows:
+  build-test:
+    jobs:
+      - lint
+      - build-test:
+          name: build-test-gcc
+          cc: /usr/bin/gcc
+          cxx: /usr/bin/g++
+      - build-test:
+          name: build-test-clang
+          cc: /usr/bin/clang-12
+          cxx: /usr/bin/clang++-12
+
+jobs:
+  lint:
+    docker:
+      - image: ubuntu:jammy
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update
+            apt-get install -y \
+              clang-format \
+              git \
+              python3-pip
+            # click broke semver with 8.1.0, causing issues for black
+            pip install click==8.0.0 black isort
+      - checkout
+      - run:
+          name: clang-format
+          command: |
+            git ls-files '*.cpp' '*.h' | xargs clang-format --fallback-style=Google -i
+            git ls-files '*.py' | xargs black
+            git ls-files '*.py' | xargs isort
+            git diff --exit-code
+      - run:
+          name: python linting
+          command: |
+            black --check --diff test/
+            isort --check --diff test/
+
+  build-test:
+    machine:
+      image: ubuntu-2204:2022.10.2
+    resource_class: 2xlarge
+    parameters:
+      cc:
+        type: string
+      cxx:
+        type: string
+    environment:
+      CC: << parameters.cc >>
+      CXX: << parameters.cxx >>
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+            sudo rm -f /etc/apt/sources.list.d/heroku.list
+            sudo apt-get update
+            sudo apt-get install -y \
+              bison \
+              build-essential \
+              clang-12 \
+              cmake \
+              flex \
+              gawk \
+              libboost-all-dev \
+              libbz2-dev \
+              libcap2-bin \
+              libclang-12-dev \
+              libcurl4-gnutls-dev \
+              libdouble-conversion-dev \
+              libdw-dev \
+              libfmt-dev \
+              libgflags-dev \
+              libgmock-dev \
+              libgoogle-glog-dev \
+              libgtest-dev \
+              libjemalloc-dev \
+              libmsgpack-dev \
+              libzstd-dev \
+              llvm-12-dev \
+              ninja-build \
+              pkg-config \
+              python3-setuptools \
+              sudo \
+              xsltproc
+            pip3 install toml
+          environment:
+            DEBIAN_FRONTEND: noninteractive
+
+      - run:
+          name: Build
+          command: |
+            cmake -G Ninja -B build/ -DWITH_TESTS=On
+            cmake --build build/ -j
+
+      - run:
+          name: Test
+          environment:
+            # disable drgn multithreading as tests are already run in parallel
+            OMP_NUM_THREADS: 1
+          command: |
+            echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+            cp test/ci.oid.toml build/testing.oid.toml
+            ctest --test-dir build/test/ --test-action Test -j$(nproc) \
+              --no-compress-output --output-on-failure \
+              --exclude-regex 'TestTypes\/ComparativeTest\..*' \
+              --schedule-random --timeout 30 --repeat until-pass:2
+
+      - run:
+          name: Convert test results
+          when: always
+          command: |
+            mkdir -p build/results/ctest
+            bash test/convert_to_junit.sh build/test
+
+      - store_test_results:
+          path: build/results

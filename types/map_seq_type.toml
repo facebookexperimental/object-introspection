@@ -1,0 +1,35 @@
+[info]
+typeName = "folly::sorted_vector_map<"
+numTemplateParams = 2
+ctype = "MAP_SEQ_TYPE"
+header = "folly/sorted_vector_types.h"
+ns = ["namespace std", "folly::sorted_vector_map"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <class Key, class Value, class Compare, class Allocator, class GrowthPolicy, class Container>
+void getSizeType(const %1%<Key, Value, Compare, Allocator, GrowthPolicy, Container> &container, size_t& returnArg);
+"""
+
+func = """
+template <class Key, class Value, class Compare, class Allocator, class GrowthPolicy, class Container>
+void getSizeType(const %1%<Key, Value, Compare, Allocator, GrowthPolicy, Container> &container, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%<Key,Value,Compare,Allocator,GrowthPolicy,Container>));
+
+    SAVE_DATA((uintptr_t)&container);
+    SAVE_DATA((uintptr_t)container.capacity());
+    SAVE_DATA((uintptr_t)container.size());
+
+    SAVE_SIZE((container.capacity() - container.size()) * (sizeof(Key) + sizeof(Value)));
+
+    for (auto const& it : container)
+    {
+        getSizeType(it.first, returnArg);
+        getSizeType(it.second, returnArg);
+    }
+}
+"""

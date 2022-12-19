@@ -1,0 +1,37 @@
+[info]
+typeName = "std::unordered_map<"
+numTemplateParams = 2
+ctype = "STD_UNORDERED_MAP_TYPE"
+header = "unordered_map"
+ns = ["namespace std"]
+replaceTemplateParamIndex = [2, 3]
+allocatorIndex = 4
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template<class K, class T, class H, class KE, class A>
+void getSizeType(const %1%<K, T, H, KE, A> &container, size_t& returnArg);
+"""
+
+func = """
+template<class K, class T, class H, class KE, class A>
+void getSizeType(const %1%<K, T, H, KE, A> &container, size_t& returnArg)
+{
+    constexpr size_t nodeSize = sizeof(typename %1%<K, T, H, KE, A>::node_type);
+    size_t bucketCount = container.bucket_count();
+    size_t numElems = container.size();
+
+    SAVE_SIZE(sizeof(%1%<K, T, H, KE, A>) + (nodeSize * numElems) + (bucketCount * sizeof(uintptr_t)));
+
+    SAVE_DATA((uintptr_t)nodeSize);
+    SAVE_DATA((uintptr_t)bucketCount);
+    SAVE_DATA((uintptr_t)numElems);
+
+    for (auto const& it : container)
+    {
+    getSizeType(it.first, returnArg);
+    getSizeType(it.second, returnArg);
+    }
+}
+"""

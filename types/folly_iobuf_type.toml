@@ -1,0 +1,39 @@
+[info]
+typeName = "folly::IOBuf"
+numTemplateParams = 0
+ctype = "FOLLY_IOBUF_TYPE"
+header = "folly/io/IOBuf.h"
+ns = ["folly::IOBuf"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+void getSizeType(const %1% &t, size_t& returnArg);
+"""
+
+func = """
+void getSizeType(const %1% &t, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%));
+
+    // We calculate the length of all IOBufs in the chain manually.
+    // IOBuf has built-in computeChainCapacity()/computeChainLength()
+    // functions which do this for us. But dead code optimization in TAO
+    // caused these functions to be removed which causes relocation
+    // errors.
+
+    std::size_t fullLength = t.length();
+    std::size_t fullCapacity = t.capacity();
+    for (const IOBuf* current = t.next(); current != &t;
+        current = current->next()) {
+    fullLength += current->length();
+    fullCapacity += current->capacity();
+    }
+    SAVE_DATA(fullCapacity);
+    SAVE_DATA(fullLength);
+
+    SAVE_SIZE(fullCapacity);
+}
+"""

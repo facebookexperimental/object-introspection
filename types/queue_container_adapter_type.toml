@@ -1,0 +1,31 @@
+[info]
+typeName = "std::queue<"
+# numTemplateParams = 1
+ctype = "CONTAINER_ADAPTER_TYPE"
+header = "queue"
+ns = ["namespace std"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+underlyingContainerIndex = 1
+
+[codegen]
+decl = """
+template<class T, class Container>
+void getSizeType(const %1%<T, Container> &container, size_t& returnArg);
+"""
+
+func = """
+template<class T, class Container>
+void getSizeType(const %1%<T, Container> &containerAdapter, size_t& returnArg)
+{
+    SAVE_DATA((uintptr_t)&containerAdapter);
+
+    // Only record the overhead of this container adapter - don't count the
+    // underlying container as that will be taken care of in its own
+    // getSizeType() function
+    SAVE_SIZE(sizeof(%1%<T, Container>) - sizeof(Container));
+
+    const Container &container = get_container(containerAdapter);
+    getSizeType(container, returnArg);
+}
+"""

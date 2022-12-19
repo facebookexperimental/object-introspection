@@ -1,0 +1,20 @@
+definitions = '''
+  struct Foo {
+    int a;
+    int b;
+    int c;
+  };
+'''
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":12,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":4, "dynamicSize":0},
+        {"name":"c", "staticSize":4, "dynamicSize":0}
+      ]}]'''

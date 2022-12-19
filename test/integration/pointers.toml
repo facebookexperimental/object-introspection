@@ -1,0 +1,238 @@
+includes = ["vector"]
+
+definitions = '''
+  struct PrimitivePtrs {
+    int a;
+    int *b;
+    void *c; // No dynamic size, we can't know what it points to!
+  };
+
+  struct VectorPtr {
+    std::vector<int> *vec;
+  };
+'''
+
+[cases]
+  [cases.int]
+    skip = "top-level pointers are skipped over"
+    oil_skip = "oil can't chase pointers safely"
+    param_types = ["int*"]
+    setup = "return new int(1);"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "typeName": "int *",
+      "staticSize": 8,
+      "dynamicSize": 4,
+      "NOT": {"pointer": 0},
+      "members": [
+        {
+          "typeName": "int",
+          "staticSize": 4,
+          "dynamicSize": 0
+        }
+      ]
+    }]'''
+  [cases.int_no_follow]
+    skip = "top-level pointers are skipped over"
+    param_types = ["int*"]
+    setup = "return new int(1);"
+    expect_json = '''[{
+      "typeName": "int *",
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "NOT": {"pointer": 0},
+      "NOT": "members"
+    }]'''
+  [cases.int_null]
+    skip = "top-level pointers are skipped over"
+    param_types = ["int*"]
+    setup = "return nullptr;"
+    expect_json = '''[{
+      "typeName": "int *",
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "pointer": 0,
+      "NOT": "members"
+    }]'''
+
+
+  [cases.void]
+    skip = "top-level pointers are skipped over"
+    param_types = ["void*"]
+    setup = "return new int(1);"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "typeName": "void *",
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "NOT": {"pointer": 0},
+      "NOT": "members"
+    }]'''
+  [cases.void_no_follow]
+    skip = "top-level pointers are skipped over"
+    param_types = ["void*"]
+    setup = "return new int(1);"
+    expect_json = '''[{
+      "typeName": "void *",
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "NOT": {"pointer": 0},
+      "NOT": "members"
+    }]'''
+  [cases.void_null]
+    skip = "top-level pointers are skipped over"
+    param_types = ["void*"]
+    setup = "return nullptr;"
+    expect_json = '''[{
+      "typeName": "void *",
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "pointer": 0,
+      "NOT": "members"
+    }]'''
+
+
+  [cases.vector]
+    skip = "top-level pointers are skipped over"
+    oil_skip = "oil can't chase pointers safely"
+    param_types = ["std::vector<int>*"]
+    setup = "return new std::vector<int>{1,2,3};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "typeName": "std::vector<int> *",
+      "staticSize": 8,
+      "dynamicSize": 36,
+      "NOT": {"pointer": 0},
+      "members": [
+        {
+          "typeName": "std::vector<int>",
+          "staticSize": 24,
+          "dynamicSize": 12
+        }
+      ]
+    }]'''
+  [cases.vector_no_follow]
+    skip = "top-level pointers are skipped over"
+    param_types = ["std::vector<int>*"]
+    setup = "return new std::vector<int>{1,2,3};"
+    expect_json = '''[{
+      "typeName": "std::vector<int> *",
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "NOT": {"pointer": 0},
+      "NOT": "members"
+    }]'''
+  [cases.vector_null]
+    skip = "BAD DATA SEGMENT!!! top-level pointers are skipped over"
+    param_types = ["std::vector<int>*"]
+    setup = "return nullptr;"
+    expect_json = '''[{
+      "typeName": "std::vector<int> *",
+      "staticSize": 8,
+      "dynamicSize": 0,
+      "pointer": 0,
+      "NOT": "members"
+    }]'''
+
+
+  [cases.struct_primitive_ptrs]
+    oil_skip = "oil can't chase pointers safely"
+    param_types = ["const PrimitivePtrs&"]
+    setup = "return PrimitivePtrs{0, new int(0), new int(0)};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":4,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":8, "dynamicSize":4},
+        {"name":"c", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+  [cases.struct_primitive_ptrs_no_follow]
+    param_types = ["const PrimitivePtrs&"]
+    setup = "return PrimitivePtrs{0, new int(0), new int(0)};"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":8, "dynamicSize":0},
+        {"name":"c", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+  [cases.struct_primitive_ptrs_null]
+    param_types = ["const PrimitivePtrs&"]
+    setup = "return PrimitivePtrs{0, nullptr, nullptr};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":8, "dynamicSize":0},
+        {"name":"c", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+
+
+  [cases.struct_vector_ptr]
+    oil_skip = "oil can't chase pointers safely"
+    param_types = ["const VectorPtr&"]
+    setup = "return VectorPtr{new std::vector<int>{1,2,3}};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":36,
+      "members":[
+        {"name":"vec", "staticSize":8, "dynamicSize":36}
+      ]}]'''
+  [cases.struct_vector_ptr_no_follow]
+    param_types = ["const VectorPtr&"]
+    setup = "return VectorPtr{new std::vector<int>{1,2,3}};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "members":[
+        {"name":"vec", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+  [cases.struct_vector_ptr_null]
+    param_types = ["const VectorPtr&"]
+    setup = "return VectorPtr{nullptr};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "members":[
+        {"name":"vec", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+
+
+  [cases.vector_of_pointers]
+    oil_skip = "oil can't chase pointers safely"
+    param_types = ["const std::vector<int*>&"]
+    setup = "return {{new int(1), nullptr, new int(3)}};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":32,
+      "length":3,
+      "capacity":3,
+      "elementStaticSize":8,
+      "members":[
+        {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}},
+        {"staticSize":8, "dynamicSize":0, "pointer":0},
+        {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}}
+      ]}]'''
+  [cases.vector_of_pointers_no_follow]
+    oid_skip = "pointer field is missing from results"
+    param_types = ["const std::vector<int*>&"]
+    setup = "return {{new int(1), nullptr, new int(3)}};"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":24,
+      "length":3,
+      "capacity":3,
+      "elementStaticSize":8,
+      "members":[
+        {"staticSize":8, "dynamicSize":0, "NOT": {"pointer":0}},
+        {"staticSize":8, "dynamicSize":0, "pointer":0},
+        {"staticSize":8, "dynamicSize":0, "NOT": {"pointer":0}}
+      ]}]'''

@@ -1,0 +1,35 @@
+[info]
+typeName = "folly::small_heap_vector_map"
+numTemplateParams = 2
+ctype = "FOLLY_SMALL_HEAP_VECTOR_MAP"
+header = "folly/container/heap_vector_types.h"
+ns = ["folly::small_heap_vector_map"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <typename Key, typename Value, typename SizeType, class Container, typename E>
+void getSizeType(const %1%<Key,Value,SizeType,Container,E> &container, size_t& returnArg);
+"""
+
+func = """
+template <typename Key, typename Value, typename SizeType, class Container, typename E>
+void getSizeType(const %1%<Key,Value,SizeType,Container,E> &container, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%<Key, Value, SizeType, Container, E>));
+
+    SAVE_DATA((uintptr_t)&container);
+    SAVE_DATA((uintptr_t)container.capacity());
+    SAVE_DATA((uintptr_t)container.size());
+
+    SAVE_SIZE((container.capacity() - container.size()) * (sizeof(Key) + sizeof(Value)));
+
+    for (auto const& it : container)
+    {
+    getSizeType(it.first, returnArg);
+    getSizeType(it.second, returnArg);
+    }
+}
+"""

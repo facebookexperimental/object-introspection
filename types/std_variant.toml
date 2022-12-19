@@ -1,0 +1,42 @@
+[info]
+typeName = "std::variant"
+ctype = "STD_VARIANT_TYPE"
+header = "variant"
+ns = ["namespace std"]
+
+[codegen]
+decl = """
+template<class... Types>
+void getSizeType(const %1%<Types...> &container, size_t& returnArg);
+"""
+
+func = """
+template <size_t I = 0, class... Types>
+void getSizeVariantContents(const %1%<Types...> &container, size_t& returnArg)
+{
+  if constexpr (I < sizeof...(Types))
+  {
+    if (I == container.index())
+    {
+      // Contents are stored inline - don't double count
+      SAVE_SIZE(-sizeof(std::get<I>(container)));
+
+      getSizeType(std::get<I>(container), returnArg);
+    }
+    else
+    {
+      getSizeVariantContents<I+1>(container, returnArg);
+    }
+  }
+  // else variant is valueless - save no data
+}
+
+template<class... Types>
+void getSizeType(const %1%<Types...> &container, size_t& returnArg)
+{
+  SAVE_SIZE(sizeof(%1%<Types...>));
+
+  SAVE_DATA(container.index());
+  getSizeVariantContents(container, returnArg);
+}
+"""

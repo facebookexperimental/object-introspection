@@ -1,0 +1,30 @@
+[info]
+typeName = "std::array<"
+numTemplateParams = 1
+ctype = "ARRAY_TYPE"
+header = "array"
+ns = ["namespace std"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template<typename T, long unsigned int N>
+void getSizeType(const %1%<T, N> &container, size_t& returnArg);
+"""
+
+func = """
+template<typename T, long unsigned int N>
+void getSizeType(const %1%<T,N> &container, size_t& returnArg)
+{
+    SAVE_DATA((uintptr_t)container.size());
+    SAVE_SIZE(sizeof(container));
+
+    for (auto & it: container) {
+        // undo the static size that has already been added per-element
+        SAVE_SIZE(-sizeof(it));
+        getSizeType(it, returnArg);
+    }
+}
+"""

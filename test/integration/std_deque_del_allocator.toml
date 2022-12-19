@@ -1,0 +1,56 @@
+definitions = '''
+  namespace nsA {
+    struct C {
+      int a;
+    };
+  }
+  namespace nsB {
+    struct C {
+      int b;
+    };
+  }
+
+  // TODO: Custom allocator for deque is generating a compiler error
+
+  // deque generates compiler errors with custom allocator. But because of
+  // name conflicts, OI would fail unless it deletes the allocator param.
+  struct Foo {
+    std::deque<nsA::C> v1;
+    std::deque<nsB::C> v2;
+  };
+
+'''
+includes = ["deque"]
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+      foo.v1.resize(1);
+      foo.v2.resize(2);
+      return {foo};
+    '''
+    expect_json = '''[{
+      "staticSize":160,
+      "dynamicSize":12,
+      "members":[
+        {"name":"v1", "staticSize":80, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4,
+          "members":[
+            {"name":"", "typeName": "C", "staticSize":4, "dynamicSize":0,
+              "members":[
+                {"name":"a", "typeName": "int", "staticSize":4, "dynamicSize":0}
+              ]}
+          ]},
+        {"name":"v2", "staticSize":80, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4,
+          "members":[
+            {"name":"", "typeName": "C", "staticSize":4, "dynamicSize":0,
+              "members":[
+                {"name":"b", "typeName": "int", "staticSize":4, "dynamicSize":0}
+              ]},
+            {"name":"", "typeName": "C", "staticSize":4, "dynamicSize":0,
+              "members":[
+                {"name":"b", "typeName": "int", "staticSize":4, "dynamicSize":0}
+              ]}
+          ]}
+      ]}]'''

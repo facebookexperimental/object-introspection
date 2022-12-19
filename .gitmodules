@@ -1,0 +1,9 @@
+[submodule "extern/drgn"]
+	path = extern/drgn
+  url = git@github.com:JakeHillion/drgn.git
+[submodule "extern/folly"]
+	path = extern/folly
+	url = git@github.com:jgkamat/folly.git
+[submodule "extern/rocksdb"]
+	path = extern/rocksdb
+	url = git@github.com:facebook/rocksdb.git

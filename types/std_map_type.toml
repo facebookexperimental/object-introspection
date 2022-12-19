@@ -1,0 +1,35 @@
+[info]
+typeName = "std::map<"
+numTemplateParams = 2
+ctype = "STD_MAP_TYPE"
+header = "map"
+ns = ["namespace std"]
+replaceTemplateParamIndex = [2]
+allocatorIndex = 3
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template<class K, class T, class C, class A>
+void getSizeType(const %1%<K, T, C, A> &container, size_t& returnArg);
+"""
+
+func = """
+template<class K, class T, class C, class A>
+void getSizeType(const %1%<K, T, C, A> &container, size_t& returnArg)
+{
+    constexpr size_t nodeSize = sizeof(typename %1%<K, T, C, A>::node_type);
+    size_t numElems = container.size();
+
+    SAVE_SIZE(sizeof(%1%<K, T, C, A>) + (nodeSize * numElems));
+
+    SAVE_DATA((uintptr_t)nodeSize);
+    SAVE_DATA((uintptr_t)numElems);
+
+    for (auto const& it : container)
+    {
+    getSizeType(it.first, returnArg);
+    getSizeType(it.second, returnArg);
+    }
+}
+"""

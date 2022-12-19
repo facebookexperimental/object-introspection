@@ -1,0 +1,49 @@
+definitions = '''
+  struct NodeA {
+    int x, y, z;
+  };
+
+  // Structure that mimic the inside of a std::string
+  // So we can create bogus std::string and test TreeBuilder failures
+  struct StringInner {
+    uintptr_t buffer, size, capacity, extra;
+  };
+'''
+
+[cases]
+  [cases.a]
+    param_types = ["int", "double"]
+    args = "arg0,arg1"
+    setup = "return {1,2.0};"
+    expect_json = '[{"staticSize":4, "dynamicSize":0},{"staticSize":8, "dynamicSize":0}]'
+    # TODO separate sizes for each argument?
+
+  # Test that TreeBuilder failing to run on the first arg doesn't impact the second arg
+  [cases.tb_fail_first_arg]
+    oil_skip = "oil doesn't handle invalid strings"
+    param_types = ["const std::string&", "const NodeA&"]
+    args = "arg0,arg1"
+    setup = """
+      // Create a string with an invalid size/capacity to trip TreeBuilder
+      StringInner strIn{0, (uintptr_t)-1, (uintptr_t)-1, 0};
+      std::string *str = (std::string*)&strIn;
+      return { std::move(*str), NodeA{4, 5, 6} };
+    """
+    expect_json = '[{},{"staticSize":12, "dynamicSize":0}]'
+
+  [cases.tb_all_fail_crashes]
+    oil_skip = "oil doesn't handle invalid strings"
+    param_types = ["const std::string&", "const std::string&"]
+    args = "arg0,arg1"
+    setup = """
+      // Create a string with an invalid size/capacity to trip TreeBuilder
+      StringInner strIn1{0, (uintptr_t)-1, (uintptr_t)-1, 0};
+      std::string *str1 = (std::string*)&strIn1;
+
+      StringInner strIn2{0, (uintptr_t)-1, (uintptr_t)-1, 0};
+      std::string *str2 = (std::string*)&strIn2;
+
+      return { std::move(*str1), std::move(*str2) };
+    """
+    expect_oid_exit_code = 6
+    expect_stderr = ".*Nothing to output: failed to run TreeBuilder on any argument.*"

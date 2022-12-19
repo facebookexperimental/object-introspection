@@ -1,0 +1,20 @@
+includes = ["functional"]
+[cases]
+  [cases.int]
+    param_types = ["const std::reference_wrapper<int>&"]
+    setup = "return std::ref(*new int(1));"
+    expect_json = '[{"staticSize":8, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4}]'
+  [cases.vector]
+    param_types = ["const std::vector<std::reference_wrapper<int>>&"]
+    setup = "return {{std::ref(*new int(1)), std::ref(*new int(2)), std::ref(*new int(3))}};"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":36,
+      "length":3,
+      "capacity":3,
+      "elementStaticSize":8,
+      "members":[
+        {"staticSize":8, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4},
+        {"staticSize":8, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4},
+        {"staticSize":8, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4}
+      ]}]'''

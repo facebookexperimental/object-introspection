@@ -1,0 +1,34 @@
+[info]
+typeName = "folly::sorted_vector_set<"
+numTemplateParams = 1
+ctype = "SORTED_VEC_SET_TYPE"
+header = "folly/sorted_vector_types.h"
+ns = ["namespace std", "folly::sorted_vector_set"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <class T, class Compare, class Allocator, class GrowthPolicy, class Container>
+void getSizeType(const %1%<T,Compare, Allocator, GrowthPolicy, Container> &container, size_t& returnArg);
+"""
+
+func = """
+template <class T, class Compare, class Allocator, class GrowthPolicy, class Container>
+void getSizeType(const %1%<T,Compare, Allocator, GrowthPolicy, Container> &container, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%<T,Compare, Allocator, GrowthPolicy, Container>));
+
+    SAVE_DATA((uintptr_t)&container);
+    SAVE_DATA((uintptr_t)container.capacity());
+    SAVE_DATA((uintptr_t)container.size());
+
+    SAVE_SIZE((container.capacity() - container.size()) * sizeof(T));
+
+    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
+    for (auto&& it: container) {
+        getSizeType(it, returnArg);
+    }
+}
+"""

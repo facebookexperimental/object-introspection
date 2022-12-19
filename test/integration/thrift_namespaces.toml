@@ -1,0 +1,26 @@
+thrift_definitions = '''
+  namespace cpp2 namespaceA.namespaceB
+
+  struct TTTTT {
+    1: i32 a;
+    2: i32 b;
+    3: i32 c;
+  }
+'''
+
+[cases]
+  [cases.a]
+    param_types = ["const namespaceA::namespaceB::TTTTT&"]
+    setup = '''
+      namespaceA::namespaceB::TTTTT ret;
+      return ret;
+    '''
+    expect_json = '''[{
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4},
+        {"name":"__fbthrift_field_b", "staticSize":4},
+        {"name":"__fbthrift_field_c", "staticSize":4},
+        {"name":"__isset", "staticSize":3}
+      ]}]'''

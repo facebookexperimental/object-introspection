@@ -1,0 +1,33 @@
+[info]
+typeName = "folly::F14VectorSet<"
+numTemplateParams = 1
+ctype = "F14_SET"
+header = "folly/container/F14Set.h"
+ns = ["folly::F14VectorSet"]
+replaceTemplateParamIndex = [1, 2]
+allocatorIndex = 3
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <typename Key, typename Hasher, typename KeyEqual, typename Alloc>
+void getSizeType(const %1%<Key, Hasher, KeyEqual, Alloc> &container, size_t& returnArg);
+"""
+
+func = """
+template <typename Key, typename Hasher, typename KeyEqual, typename Alloc>
+void getSizeType(const %1%<Key, Hasher, KeyEqual, Alloc> &container, size_t& returnArg)
+{
+    size_t memorySize = container.getAllocatedMemorySize();
+    SAVE_SIZE(sizeof(%1%<Key, Hasher, KeyEqual, Alloc>) + memorySize);
+
+    SAVE_DATA(memorySize);
+    SAVE_DATA(container.bucket_count());
+    SAVE_DATA(container.size());
+
+    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
+    for (auto&& it: container) {
+        getSizeType(it, returnArg);
+    }
+}
+"""

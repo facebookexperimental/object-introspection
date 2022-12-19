@@ -1,0 +1,29 @@
+[info]
+typeName = "google::protobuf::RepeatedField<"
+numTemplateParams = 1
+ctype = "REPEATED_FIELD_TYPE"
+header = "google/protobuf/repeated_field.h"
+ns = ["google::protobuf::RepeatedField"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template<typename Element>
+void getSizeType(const %1%<Element> &container, size_t& returnArg);
+"""
+
+func = """
+template<typename Element>
+void getSizeType(const %1%<Element> &container, size_t& returnArg)
+{
+    SAVE_DATA((uintptr_t)&container);
+    SAVE_DATA((uintptr_t)container.Capacity());
+    SAVE_DATA((uintptr_t)container.size());
+    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
+    for (const auto& it: container) {
+        getSizeType(it, returnArg);
+    }
+}
+"""

@@ -1,0 +1,29 @@
+[info]
+typeName = "folly::Try<"
+numTemplateParams = 1
+ctype = "TRY_TYPE"
+header = "folly/Try.h"
+ns = ["folly::Try"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template<typename T>
+void getSizeType(const %1%<T> &s_ptr, size_t& returnArg);
+"""
+
+func = """
+template<typename T>
+void getSizeType(const %1%<T> &s_ptr, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%<T>));
+    if (s_ptr.hasValue()) {
+        SAVE_DATA((uintptr_t)(&(s_ptr.value())));
+        getSizeType(s_ptr.value(), returnArg);
+    } else {
+        SAVE_DATA(0);
+    }
+}
+"""

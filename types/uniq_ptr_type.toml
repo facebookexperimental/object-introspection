@@ -1,0 +1,31 @@
+[info]
+typeName = "std::unique_ptr"
+numTemplateParams = 1
+ctype = "UNIQ_PTR_TYPE"
+header = "memory"
+ns = ["namespace std"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template<typename T, class Deleter>
+void getSizeType(const %1%<T,Deleter> &s_ptr, size_t& returnArg);
+"""
+
+func = """
+template<typename T, class Deleter>
+void getSizeType(const %1%<T,Deleter> &s_ptr, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%<T,Deleter>));
+
+    if constexpr (!std::is_void<T>::value) {
+    SAVE_DATA((uintptr_t)(s_ptr.get()));
+
+    if (s_ptr && pointers.add((uintptr_t)(s_ptr.get()))) {
+        getSizeType(*(s_ptr.get()), returnArg);
+    }
+    }
+}
+"""

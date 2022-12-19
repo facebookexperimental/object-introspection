@@ -1,0 +1,50 @@
+includes = ["vector"]
+definitions = '''
+  struct IntRef {
+    int &n;
+  };
+  struct VectorRef {
+    std::vector<int> &vec;
+  };
+'''
+[cases]
+  [cases.int_ref]
+    skip = "references are being treated as raw pointers"
+    param_types = ["const IntRef&"]
+    setup = "return {{*new int(1)}};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":4,
+      "members":[
+        {
+          "typeName": "int &",
+          "name": "n",
+          "staticSize": 8,
+          "dynamicSize": 4
+        }
+      ]}]'''
+  [cases.vector_ref]
+    skip = "references are being treated as raw pointers"
+    param_types = ["const VectorRef&"]
+    setup = "return {{*new std::vector<int>{1,2,3}}};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":36,
+      "members":[
+        {
+          "typeName": "std::vector<int> &",
+          "name": "vec",
+          "staticSize": 8,
+          "dynamicSize": 36,
+          "members": [
+            {
+              "typeName": "std::vector<int>",
+              "staticSize":24,
+              "dynamicSize":12,
+              "length":3,
+              "capacity":3,
+              "elementStaticSize":4
+            }
+          ]
+        }
+      ]}]'''

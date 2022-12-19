@@ -1,0 +1,142 @@
+# This file contains tests for capturing of Thrift's isset data when the
+# TStructDataStorage<T>::isset_indexes symbol is not present for every type.
+#
+# It is very dependent on the inner workings of CodeGen and Thrift so may be
+# brittle.
+#
+# The test case "present" does not do anything special and so acts as a canary
+# to determine whether other test failures are legitimate or due to some
+# internal Thrift details changing.
+
+includes = ["thrift/lib/cpp2/gen/module_types_h.h"]
+thrift_definitions = ""
+raw_definitions = '''
+  namespace ns_thrift_isset_missing {
+  class FakeThriftWithoutData final  {
+   public:
+    FakeThriftWithoutData() :
+        __fbthrift_field_a(),
+        __fbthrift_field_b(),
+        __fbthrift_field_c() {
+    }
+    ::std::int32_t __fbthrift_field_a;
+    ::std::int32_t __fbthrift_field_b;
+    ::std::int32_t __fbthrift_field_c;
+    ::apache::thrift::detail::isset_bitset<3, apache::thrift::detail::IssetBitsetOption::Unpacked> __isset;
+  };
+  class FakeThriftWithData final  {
+   public:
+    FakeThriftWithData() :
+        __fbthrift_field_a(),
+        __fbthrift_field_b(),
+        __fbthrift_field_c() {
+    }
+    ::std::int32_t __fbthrift_field_a;
+    ::std::int32_t __fbthrift_field_b;
+    ::std::int32_t __fbthrift_field_c;
+    ::apache::thrift::detail::isset_bitset<3, apache::thrift::detail::IssetBitsetOption::Unpacked> __isset;
+  };
+
+  struct Mixed {
+    FakeThriftWithData with_data;
+    FakeThriftWithoutData without_data;
+  };
+  } // namespace ns_thrift_isset_missing
+
+  namespace apache { namespace thrift {
+  template <> struct TStructDataStorage<::ns_thrift_isset_missing::FakeThriftWithData> {
+    static constexpr const std::size_t fields_size = 3;
+   private:
+    static const std::array<int, fields_size> isset_indexes;
+  };
+  const std::array<int, 3> TStructDataStorage<::ns_thrift_isset_missing::FakeThriftWithData>::isset_indexes = {{
+    0,
+    1,
+    2,
+  }};
+  }} // apache::thrift
+'''
+[cases]
+  [cases.present]
+    param_types = ["const FakeThriftWithData&"]
+    setup = '''
+      FakeThriftWithData ret;
+      ret.__fbthrift_field_a = 1;
+      ret.__isset.at(0) = true;
+      ret.__fbthrift_field_c = 1;
+      ret.__isset.at(2) = true;
+      return ret;
+    '''
+    cli_options = ["--capture-thrift-isset"]
+    expect_json = '''[{
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "isset":true},
+        {"name":"__fbthrift_field_b", "staticSize":4, "isset":false},
+        {"name":"__fbthrift_field_c", "staticSize":4, "isset":true},
+        {"name":"__isset", "staticSize":3}
+      ]}]'''
+  [cases.missing]
+    param_types = ["const FakeThriftWithoutData&"]
+    setup = '''
+      FakeThriftWithoutData ret;
+      ret.__fbthrift_field_a = 1;
+      ret.__isset.at(0) = true;
+      ret.__fbthrift_field_c = 1;
+      ret.__isset.at(2) = true;
+      return ret;
+    '''
+    cli_options = ["--capture-thrift-isset"]
+    expect_json = '''[{
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "NOT":"isset"},
+        {"name":"__fbthrift_field_b", "staticSize":4, "NOT":"isset"},
+        {"name":"__fbthrift_field_c", "staticSize":4, "NOT":"isset"},
+        {"name":"__isset", "staticSize":3}
+      ]}]'''
+  [cases.mixed]
+    param_types = ["const Mixed&"]
+    setup = '''
+      Mixed ret;
+
+      ret.with_data.__fbthrift_field_a = 1;
+      ret.with_data.__isset.at(0) = true;
+      ret.with_data.__fbthrift_field_c = 1;
+      ret.with_data.__isset.at(2) = true;
+
+      ret.without_data.__fbthrift_field_a = 1;
+      ret.without_data.__isset.at(0) = true;
+      ret.without_data.__fbthrift_field_c = 1;
+      ret.without_data.__isset.at(2) = true;
+
+      return ret;
+    '''
+    cli_options = ["--capture-thrift-isset"]
+    expect_json = '''[{
+      "staticSize":32,
+      "dynamicSize":0,
+      "members":[
+        {
+          "staticSize":16,
+          "dynamicSize":0,
+          "members":[
+            {"name":"__fbthrift_field_a", "staticSize":4, "isset":true},
+            {"name":"__fbthrift_field_b", "staticSize":4, "isset":false},
+            {"name":"__fbthrift_field_c", "staticSize":4, "isset":true},
+            {"name":"__isset", "staticSize":3}
+          ]
+        },
+        {
+          "staticSize":16,
+          "dynamicSize":0,
+          "members":[
+            {"name":"__fbthrift_field_a", "staticSize":4, "NOT":"isset"},
+            {"name":"__fbthrift_field_b", "staticSize":4, "NOT":"isset"},
+            {"name":"__fbthrift_field_c", "staticSize":4, "NOT":"isset"},
+            {"name":"__isset", "staticSize":3}
+          ]
+        }
+      ]}]'''

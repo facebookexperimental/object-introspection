@@ -1,0 +1,30 @@
+## OI specific
+build/
+test.o
+test/tester
+test/mttest?
+test/mttest2_inline
+test/integration_mttest
+test/integration_cycles
+test/integration_sleepy
+test/integration_packed
+test/mapiter
+test/userDef1
+test/vector
+test/inlined_test
+test/.autogen-*
+oi_preprocessed
+*_test.oid
+oid_out.json
+compile_commands.json
+oid_metrics.json
+Testing
+*.o
+PADDING
+failed
+fb_*_wrapper.sh
+website/node_modules
+
+## Vim
+*.swp
+*.swo

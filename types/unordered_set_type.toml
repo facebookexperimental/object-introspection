@@ -1,0 +1,35 @@
+[info]
+typeName = "std::unordered_set<"
+numTemplateParams = 1
+ctype = "UNORDERED_SET_TYPE"
+header = "unordered_set"
+ns = ["namespace std"]
+replaceTemplateParamIndex = [1, 2]
+allocatorIndex = 3
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <typename Key, typename Hasher, typename KeyEqual, typename Alloc>
+void getSizeType(const %1%<Key, Hasher, KeyEqual, Alloc> &container, size_t& returnArg);
+"""
+
+func = """
+template <typename Key, typename Hasher, typename KeyEqual, typename Alloc>
+void getSizeType(const %1%<Key, Hasher, KeyEqual, Alloc> &container, size_t& returnArg)
+{
+    constexpr size_t nodeSize = sizeof(typename %1%<Key, Hasher, KeyEqual, Alloc>::node_type);
+    size_t bucketCount = container.bucket_count();
+    size_t numElems = container.size();
+    SAVE_SIZE(sizeof(%1%<Key, Hasher, KeyEqual, Alloc>) + (numElems * nodeSize) + (bucketCount * sizeof(uintptr_t)));
+
+    SAVE_DATA((uintptr_t)nodeSize);
+    SAVE_DATA((uintptr_t)bucketCount);
+    SAVE_DATA((uintptr_t)numElems);
+
+    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
+    for (auto&& it: container) {
+    getSizeType(it, returnArg);
+    }
+}
+"""

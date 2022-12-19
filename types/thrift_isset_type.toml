@@ -1,0 +1,17 @@
+[info]
+typeName = "apache::thrift::detail::isset_bitset<"
+numTemplateParams = 2
+ctype = "THRIFT_ISSET_TYPE"
+header = "thrift/lib/cpp2/gen/module_types_h.h"
+ns = ["apache::thrift::detail::isset_bitset"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+// DummyDecl %1%
+"""
+func = """
+// DummyFunc %1%
+"""

@@ -1,0 +1,312 @@
+definitions = '''
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wnested-anon-types"
+
+  struct Node {
+    int a, b, c;
+  };
+
+  struct DynNode {
+    std::vector<Node> nodes;
+  };
+
+  typedef struct {
+    struct Node *node;
+  } AnonStruct;
+
+  struct AnonStructContainer {
+    struct { struct Node *node; } anon;
+  };
+
+  struct AnonStructPtrContainer {
+    struct { struct Node *node; } *anon;
+  };
+
+  struct AnonTypedefContainer {
+    AnonStruct anon;
+  };
+
+  struct AnonUnionContainer {
+    union {char c; short int d;};
+    union {int a; double b;};
+    int e;
+  };
+
+  struct NestedAnonContainer {
+    struct {
+      union {
+        char c;
+        struct {
+          int x;
+          double y;
+        } d;
+      };
+      struct {
+        int a, b, c;
+        union {
+          union { char x; int y; };
+          long z;
+        };
+        AnonStruct as;
+      } v;
+    } m;
+
+    union {
+      union { int x1; char y1; };
+      union { double z1; long w1; };
+      struct {
+        long a, b, c;
+      } s1;
+    };
+
+    union {
+      union { int x2; char y2; };
+      union { double z2; long w2; };
+      struct {
+        char a, b, c;
+      } s2;
+    };
+  };
+
+  /* This test is disable due to GCC not supporting it
+  struct AnonArrayContainer {
+    struct {
+      float *x;
+      DynNode ns[4];
+    };
+  };
+  */
+
+  #pragma clang diagnostic pop
+'''
+
+[cases]
+  [cases.regular_struct]
+    param_types = ["const Node&"]
+    setup = "return Node{1, 2, 3};"
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":12,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":4, "dynamicSize":0},
+        {"name":"c", "staticSize":4, "dynamicSize":0}
+      ]}]'''
+
+  [cases.anon_struct]
+    oil_skip = "oil can't chase raw pointers safely"
+    param_types = ["const AnonStructContainer&"]
+    setup = '''
+      return AnonStructContainer{
+        .anon = {
+          .node = new Node{1, 2, 3}
+        }
+      };
+    '''
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize": 8,
+      "dynamicSize": 12,
+      "members": [{
+        "name": "anon",
+        "typeName": "__anon_struct_0",
+        "staticSize": 8,
+        "dynamicSize": 12,
+        "members": [{
+          "name": "node",
+          "typeName": "struct Node *",
+          "staticSize": 8,
+          "dynamicSize": 12,
+          "members": [{
+            "typeName": "Node",
+            "staticSize": 12,
+            "dynamicSize": 0,
+            "members": [
+              { "name": "a", "staticSize": 4, "dynamicSize": 0 },
+              { "name": "b", "staticSize": 4, "dynamicSize": 0 },
+              { "name": "c", "staticSize": 4, "dynamicSize": 0 }
+            ]
+          }]
+        }]
+      }]
+    }]'''
+
+  [cases.anon_struct_ptr]
+    skip = "We don't support pointer to anon-structs yet"
+    param_types = ["const AnonStructPtrContainer&"]
+    setup = '''
+      return AnonStructPtrContainer{
+        .anon = (decltype(AnonStructPtrContainer::anon))new (Node*){
+          new Node{1, 2, 3}
+        }
+      };'''
+    cli_options = ["--chase-raw-pointers"]
+
+  [cases.anon_typedef]
+    oil_skip = "oil can't chase raw pointers safely"
+    param_types = ["const AnonTypedefContainer&"]
+    setup = '''
+      return AnonTypedefContainer{
+        .anon = {
+          .node = new Node{1, 2, 3}
+        }
+      };'''
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize": 8,
+      "dynamicSize": 12,
+      "members": [{
+        "name": "anon",
+        "typeName": "AnonStruct",
+        "isTypedef": true,
+        "staticSize": 8,
+        "dynamicSize": 12,
+        "members": [{
+          "name": "",
+          "typeName": "__anon_struct_0",
+          "isTypedef": false,
+          "staticSize": 8,
+          "dynamicSize": 12,
+          "members": [{
+            "name": "node",
+            "typeName": "struct Node *",
+            "staticSize": 8,
+            "dynamicSize": 12,
+            "members": [{
+              "typeName": "Node",
+              "staticSize": 12,
+              "members": [
+                { "name": "a", "staticSize": 4, "dynamicSize": 0 },
+                { "name": "b", "staticSize": 4, "dynamicSize": 0 },
+                { "name": "c", "staticSize": 4, "dynamicSize": 0 }
+              ]
+            }]
+          }]
+        }]
+      }]
+    }]'''
+
+  [cases.anon_union]
+    param_types = ["const AnonUnionContainer&"]
+    setup = 'return AnonUnionContainer{ .a = 3 };'
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize": 24,
+      "dynamicSize": 0,
+      "members": [
+        {"name":"__anon_member_0", "staticSize":2, "dynamicSize":0},
+        {"name":"__anon_member_1", "staticSize":8, "dynamicSize":0},
+        {"name":"e", "staticSize":4, "dynamicSize":0, "typeName":"int"}
+      ]
+    }]'''
+
+  [cases.nested_anon_struct]
+    oil_skip = "oil can't chase raw pointers safely"
+    param_types = ["const NestedAnonContainer&"]
+    setup = 'return NestedAnonContainer{.m = { .v = {.as = {new Node{1, 2, 3}}}}};'
+    cli_options = ["--chase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize": 80,
+      "dynamicSize": 12,
+      "members": [{
+        "name": "m",
+        "staticSize": 48,
+        "dynamicSize": 12,
+        "members": [
+        { "staticSize": 16, "dynamicSize": 0 },
+        { "name": "v",
+          "staticSize": 32,
+          "dynamicSize": 12,
+          "paddingSavingsSize": 4,
+          "members": [
+            { "name": "a", "staticSize": 4, "dynamicSize": 0 },
+            { "name": "b", "staticSize": 4, "dynamicSize": 0 },
+            { "name": "c", "staticSize": 4, "dynamicSize": 0 },
+            { "staticSize": 8, "dynamicSize": 0 },
+            { "name": "as",
+              "typeName": "AnonStruct",
+              "isTypedef": true,
+              "staticSize": 8,
+              "dynamicSize": 12,
+              "members": [{
+                "isTypedef": false,
+                "staticSize": 8,
+                "dynamicSize": 12,
+                "members": [{
+                  "name": "node",
+                  "staticSize": 8,
+                  "dynamicSize": 12,
+                  "members": [{
+                    "staticSize": 12,
+                    "dynamicSize": 0,
+                    "members": [
+                      { "name": "a", "staticSize": 4, "dynamicSize": 0 },
+                      { "name": "b", "staticSize": 4, "dynamicSize": 0 },
+                      { "name": "c", "staticSize": 4, "dynamicSize": 0 }
+                    ]
+                  }]
+                }]
+              }]
+          }]
+        }]
+      }, {
+        "staticSize": 24,
+        "dynamicSize": 0
+      }, {
+        "staticSize": 8,
+        "dynamicSize": 0
+      }]
+    }]'''
+
+  # This test is disabled due to GCC not supporting it
+  # [cases.anon_array]
+  #   param_types = ["const AnonArrayContainer&"]
+  #   setup = '''
+  #     auto result = AnonArrayContainer{
+  #       .x = new float{123.456},
+  #       .ns = {
+  #         DynNode{ .nodes = { Node{1, 2, 3}, Node{4, 5, 6}, Node{7, 8, 9} } },
+  #         DynNode{},
+  #         DynNode{ .nodes = std::vector<Node>(1, Node{0, 0, 0}) },
+  #         DynNode{ .nodes = std::vector<Node>(42, Node{1, 1, 1}) },
+  #       },
+  #     };
+  #     result.ns[3].nodes.resize(22);
+  #     return result;
+  #   '''
+  #   cli_options = ["--chase-raw-pointers"]
+  #   expect_json = '''[{
+  #     "staticSize": 104,
+  #     "dynamicSize": 556,
+  #     "members": [{
+  #       "staticSize": 104,
+  #       "dynamicSize": 556,
+  #       "members": [{
+  #         "name": "x",
+  #         "staticSize": 8,
+  #         "dynamicSize": 4,
+  #         "members": [{ "staticSize": 4, "dynamicSize": 0 }]
+  #       }, {
+  #         "name": "ns",
+  #         "staticSize": 96,
+  #         "dynamicSize": 552,
+  #         "length": 4,
+  #         "capacity": 4,
+  #         "elementStaticSize": 24,
+  #         "members": [{
+  #           "dynamicSize": 36,
+  #           "members": [{ "length": 3, "capacity": 3, "elementStaticSize": 12 }]
+  #         }, {
+  #           "dynamicSize": 0,
+  #           "members": [{ "length": 0, "capacity": 0, "elementStaticSize": 12 }]
+  #         }, {
+  #           "dynamicSize": 12,
+  #           "members": [{ "length": 1, "capacity": 1, "elementStaticSize": 12 }]
+  #         }, {
+  #           "dynamicSize": 504,
+  #           "members": [{ "length": 22, "capacity": 42, "elementStaticSize": 12 }]
+  #         }]
+  #       }]
+  #     }]
+  #   }]'''

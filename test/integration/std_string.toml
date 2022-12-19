@@ -1,0 +1,68 @@
+includes = ["string"]
+[cases]
+  [cases.empty]
+    param_types = ["std::string&"]
+    setup = "return {};"
+    expect_json = '''
+    [
+      {
+        "typeName": "string",
+        "isTypedef": true,
+        "staticSize": 32,
+        "dynamicSize": 0,
+        "members": [
+          {
+            "staticSize": 32,
+            "dynamicSize": 0,
+            "length": 0,
+            "capacity": 15,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+    '''
+  [cases.sso]
+    param_types = ["std::string&"]
+    setup = 'return {"012345"};'
+    expect_json = '''
+    [
+      {
+        "typeName": "string",
+        "isTypedef": true,
+        "staticSize": 32,
+        "dynamicSize": 0,
+        "members": [
+          {
+            "staticSize": 32,
+            "dynamicSize": 0,
+            "length": 6,
+            "capacity": 15,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+    '''
+  [cases.heap_allocated]
+    param_types = ["std::string&"]
+    setup = 'return {"abcdefghijklmnopqrstuvwxzy"};'
+    expect_json = '''
+    [
+      {
+        "typeName": "string",
+        "isTypedef": true,
+        "staticSize": 32,
+        "dynamicSize": 26,
+        "members": [
+          {
+            "staticSize": 32,
+            "dynamicSize": 26,
+            "length": 26,
+            "capacity": 26,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+    '''

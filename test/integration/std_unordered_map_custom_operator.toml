@@ -1,0 +1,66 @@
+definitions = '''
+
+	template <unsigned int N>
+	class CustomIntHasher
+	{
+		double d[N];
+		public:
+		size_t operator() (int const& key) const
+		{
+			return std::hash<int>{}(key);
+		}
+	};
+
+	template <unsigned int N>
+	class CustomEqualFnInt
+	{
+		double d[N];
+		public:
+		bool operator() (int const& t1, int const& t2) const
+		{
+			return t1 == t2;
+		}
+	};
+
+  struct Foo {
+    std::unordered_map<int, int> m1;
+    std::unordered_map<int, int, CustomIntHasher<8>> m2;
+    std::unordered_map<int, int, std::hash<int>, CustomEqualFnInt<8>> m3;
+    std::unordered_map<int, int, CustomIntHasher<8>, CustomEqualFnInt<8>> m4;
+  };
+'''
+includes = ["unordered_map"]
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+
+      for (int i = 0; i < 3; i++) {
+        foo.m1[i] = (i * 10);
+      }
+
+      for (int i = 0; i < 5; i++) {
+        foo.m2[i] = (i * 10);
+      }
+
+      for (int i = 0; i < 7; i++) {
+        foo.m3[i] = (i * 10);
+      }
+
+      for (int i = 0; i < 9; i++) {
+        foo.m4[i] = (i * 10);
+      }
+
+      return {foo};
+    '''
+    expect_json = '''[{
+      "staticSize":480,
+      "dynamicSize":1184,
+      "members":[
+        {"name":"m1", "staticSize":56, "dynamicSize":200, "length":3, "capacity":3, "elementStaticSize":32},
+        {"name":"m2", "staticSize":120, "dynamicSize":264, "length":5, "capacity":5, "elementStaticSize":32},
+        {"name":"m3", "staticSize":120, "dynamicSize":328, "length":7, "capacity":7, "elementStaticSize":32},
+        {"name":"m4", "staticSize":184, "dynamicSize":392, "length":9, "capacity":9, "elementStaticSize":32}
+      ]}]'''

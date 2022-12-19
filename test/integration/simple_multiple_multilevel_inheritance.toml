@@ -1,0 +1,39 @@
+definitions = '''
+  struct Base_1 {
+    int a;
+  };
+  struct Base_2 {
+    int b;
+  };
+  struct Base_3 {
+    int c;
+  };
+  struct Derived_1: Base_2, Base_3 {
+    int d;
+  };
+  struct Base_4 {
+    int e;
+  };
+  struct Derived_2: Base_1, Derived_1, Base_4 {
+    int f;
+  };
+'''
+
+[cases]
+  [cases.a]
+    param_types = ["const Derived_2&"]
+    setup = '''
+      Derived_2 d;
+      return {d};
+    '''
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"b", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"c", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"d", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"e", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"f", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+      ]}]'''

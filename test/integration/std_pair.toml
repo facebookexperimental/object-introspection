@@ -1,0 +1,56 @@
+includes = ["vector", "utility", "cstdint"]
+[cases]
+  [cases.uint64_uint64]
+    param_types = ["std::pair<std::uint64_t, std::uint64_t>&"]
+    setup = "return {{0, 1}};"
+    expect_json = '''
+    [
+      {
+        "staticSize": 16,
+        "dynamicSize": 0,
+        "length": 1,
+        "capacity": 1
+      }
+    ]
+    '''
+  [cases.uint64_uint32]
+    param_types = ["std::pair<std::uint64_t, std::uint32_t>&"]
+    setup = "return {{0, 1}};"
+    # Should still have static size of 16 due to padding
+    expect_json = '''
+    [
+      {
+        "staticSize": 16,
+        "dynamicSize": 0,
+        "length": 1,
+        "capacity": 1
+      }
+    ]
+    '''
+  [cases.vector_vector]
+    param_types = ["std::pair<std::vector<std::uint64_t>, std::vector<std::uint64_t>>&"]
+    setup = "return {{std::initializer_list<std::uint64_t>({0,1,2}), std::initializer_list<std::uint64_t>({3,4,5,6})}};"
+    expect_json = '''
+    [
+      {
+        "staticSize": 48,
+        "dynamicSize": 56,
+        "length": 1,
+        "capacity": 1,
+        "members": [
+          {
+            "staticSize": 24,
+            "dynamicSize": 24,
+            "length": 3,
+            "capacity": 3
+          },
+          {
+            "staticSize": 24,
+            "dynamicSize": 32,
+            "length": 4,
+            "capacity": 4
+          }
+        ]
+      }
+    ]
+    '''

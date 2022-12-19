@@ -1,0 +1,92 @@
+[info]
+typeName = "caffe2::Blob"
+numTemplateParams = 0
+ctype = "CAFFE2_BLOB_TYPE"
+header = "caffe2/core/blob.h"
+ns = ["caffe2::Blob", "caffe2::Tensor"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+void getSizeType(const %1% &container, size_t& returnArg);
+"""
+
+func = """
+size_t getTensorItemSize(const Tensor& t, size_t& returnArg) {
+  const caffe2::TypeMeta& tm = t.dtype();
+  if (!tm.isScalarType()) {
+    // For non-scalar types, the pre-defined static array is not accessed
+    return tm.itemsize();
+  } else {
+    // For scalar types, static array is accessed which does not undergo
+    // relocattion and causes segfaults. Would be nice to have a better
+    // way to do this.
+
+    if (tm.Match<uint8_t>()) {
+      return sizeof(uint8_t);
+    } else if (tm.Match<int8_t>()) {
+      return sizeof(int8_t);
+    } else if (tm.Match<uint16_t>()) {
+      return sizeof(uint16_t);
+    } else if (tm.Match<int>()) {
+      return sizeof(int);
+    } else if (tm.Match<int64_t>()) {
+      return sizeof(int64_t);
+    } else if (tm.Match<at::Half>()) {
+      return sizeof(at::Half);
+    } else if (tm.Match<float>()) {
+      return sizeof(float);
+    } else if (tm.Match<double>()) {
+      return sizeof(double);
+    } else if (tm.Match<c10::complex<c10::Half>>()) {
+      return sizeof(c10::complex<c10::Half>);
+    } else if (tm.Match<c10::complex<float>>()) {
+      return sizeof(c10::complex<float>);
+    } else if (tm.Match<c10::complex<double>>()) {
+      return sizeof(c10::complex<double>);
+    } else if (tm.Match<bool>()) {
+      return sizeof(bool);
+    } else if (tm.Match<c10::qint8>()) {
+      return sizeof(c10::qint8);
+    } else if (tm.Match<c10::quint8>()) {
+      return sizeof(c10::quint8);
+    } else if (tm.Match<c10::qint32>()) {
+      return sizeof(c10::qint32);
+    } else if (tm.Match<at::BFloat16>()) {
+      return sizeof(at::BFloat16);
+    } else if (tm.Match<c10::quint4x2>()) {
+      return sizeof(c10::quint4x2);
+    }
+  }
+  return 0;
+}
+
+size_t getTensorSize(const Tensor& t, size_t& returnArg) {
+  size_t p1 = t.numel();
+  size_t p2 = getTensorItemSize(t, returnArg);
+  return p1 * p2;
+}
+
+void getSizeType(const %1% &blob, size_t& returnArg) {
+  // TODO: We should have a way to assert at compile time if Blob struct changes
+  // TODO: Log the type of Blob i.e. Tensor/string
+  // TODO: Capture the capacity if blob is of string type
+  if (blob.IsType<Tensor>()) {
+    const auto& tensor = blob.Get<Tensor>();
+    // tensor.nbytes() cannot be directly called since it accesses a static
+    // array
+    SAVE_DATA((uintptr_t)getTensorSize(tensor));
+  } else if (blob.IsType<std::string>()) {
+    const auto& s = blob.Get<std::string>();
+    SAVE_DATA((uintptr_t)s.size());
+    /*
+    } else if (blob.IsType<caffe2::db::DBReader>()) {
+        SAVE_DATA((uintptr_t)sizeof(caffe2::db::DBReader));
+    */
+  } else {
+    SAVE_DATA((uintptr_t)0);
+  }
+}
+"""

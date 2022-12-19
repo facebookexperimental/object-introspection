@@ -1,0 +1,64 @@
+definitions = '''
+  struct CustomComparator {
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct SmallSizedCustomComparator {
+    double a;
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct BigSizedCustomComparator {
+    double d[1000];
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct Foo {
+    std::set<int> m1;
+    std::set<int, CustomComparator> m2;
+    std::set<int, SmallSizedCustomComparator> m3;
+    std::set<int, BigSizedCustomComparator> m4;
+  };
+
+'''
+includes = ["set", "functional"]
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+
+      for (int i = 0; i < 3; i++) {
+        foo.m1.insert(i);
+      }
+
+      for (int i = 0; i < 5; i++) {
+        foo.m2.insert(i);
+      }
+
+      for (int i = 0; i < 7; i++) {
+        foo.m3.insert(i);
+      }
+
+      for (int i = 0; i < 9; i++) {
+        foo.m4.insert(i);
+      }
+
+      return {foo};
+    '''
+    expect_json = '''[{
+      "staticSize":8184,
+      "dynamicSize":288,
+      "members":[
+        {"name":"m1", "staticSize":48, "dynamicSize":36, "length":3, "capacity":3, "elementStaticSize":12},
+        {"name":"m2", "staticSize":48, "dynamicSize":60, "length":5, "capacity":5, "elementStaticSize":12},
+        {"name":"m3", "staticSize":48, "dynamicSize":84, "length":7, "capacity":7, "elementStaticSize":12},
+        {"name":"m4", "staticSize":8040, "dynamicSize":108, "length":9, "capacity":9, "elementStaticSize":12}
+      ]}]'''

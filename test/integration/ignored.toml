@@ -1,0 +1,38 @@
+definitions = '''
+  struct Foo {
+    int a, b, c;
+  };
+
+  struct Bar {
+    std::string a, b, c;
+  };
+'''
+
+[cases]
+  [cases.a]
+    oil_skip = "OIL doesn't support the 'codegen.ignore' config yet"
+    param_types = ["const Bar&"]
+    setup = """
+      return Bar{
+        "The first member of the struct Bar",
+        "The second member of the struct Bar",
+        "The 3rd member of the struct Bar"
+      };
+    """
+    config = """
+    [[codegen.ignore]]
+    type = "Foo"
+    members = ["a"]
+
+    [[codegen.ignore]]
+    type = "Bar"
+    members = ["b"]
+    """
+    expect_json = '''[{
+      "staticSize":96,
+      "dynamicSize":66,
+      "members":[
+        {"name":"a", "staticSize":32, "dynamicSize":34},
+        {"name":"b", "staticSize":32, "dynamicSize":0},
+        {"name":"c", "staticSize":32, "dynamicSize":32}
+      ]}]'''

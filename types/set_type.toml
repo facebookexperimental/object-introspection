@@ -1,0 +1,34 @@
+[info]
+typeName = "std::set<"
+numTemplateParams = 1
+ctype = "SET_TYPE"
+header = "set"
+ns = ["namespace std"]
+replaceTemplateParamIndex = [1]
+allocatorIndex = 2
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template<typename Key, typename Compare, typename Alloc>
+void getSizeType(const %1%<Key, Compare, Alloc> &container, size_t& returnArg);
+"""
+
+func = """
+template<typename Key, typename Compare, typename Alloc>
+void getSizeType(const %1%<Key, Compare, Alloc> &container, size_t& returnArg)
+{
+    constexpr size_t nodeSize = sizeof(typename %1%<Key, Compare, Alloc>::node_type);
+    size_t numElems = container.size();
+
+    SAVE_SIZE(sizeof(%1%<Key, Compare, Alloc>) + (nodeSize * numElems));
+
+    SAVE_DATA((uintptr_t)nodeSize);
+    SAVE_DATA((uintptr_t)numElems);
+
+    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
+    for (auto&& it: container) {
+    getSizeType(it, returnArg);
+    }
+}
+"""

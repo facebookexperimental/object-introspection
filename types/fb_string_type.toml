@@ -1,0 +1,25 @@
+[info]
+typeName = "folly::basic_fbstring<"
+numTemplateParams = 1
+ctype = "FB_STRING_TYPE"
+header = "folly/FBString.h"
+ns = ["folly::basic_fbstring"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <typename E,class T,class A,class Storage>
+void getSizeType(const %1%<E, T, A, Storage> &t, size_t& returnArg);
+"""
+
+func = """
+template <typename E,class T,class A,class Storage>
+void getSizeType(const %1%<E, T, A, Storage> &t, size_t& returnArg)
+{
+    SAVE_DATA((uintptr_t)(t.data()));
+    SAVE_DATA((uintptr_t)t.capacity());
+    SAVE_DATA((uintptr_t)t.size());
+}
+"""

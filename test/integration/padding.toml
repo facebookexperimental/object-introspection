@@ -1,0 +1,102 @@
+definitions = '''
+  struct Foo {
+    int *a;
+    bool b;
+    long c;
+  };
+
+  struct Bar {
+    int *a;
+    bool b;
+    long c;
+    Foo  d;
+  };
+
+  /* The names generated for parent's padding use their own index,
+   * which can conflict with the child's generated name.
+   * We must ensure there are no such conflicts, even across multiple parents.
+   */
+  struct PaddedGrandParentA {
+    bool x;
+    short y;
+  };
+
+  struct PaddedGrandParentB {
+    bool x;
+    int y;
+  };
+
+  struct PaddedParentA : public PaddedGrandParentA {
+    bool a;
+    int b;
+    short c;
+  };
+
+  struct PaddedParentB : public PaddedGrandParentA, public PaddedGrandParentB {
+    bool a;
+    long b;
+  };
+
+  /* Create lots of padding holes so there is a colision between the child and
+   * its parent generated padding names.
+   */
+  struct PaddedChild : public PaddedParentA, public PaddedParentB {
+    bool a;
+    long long b;
+    bool c; short d;
+    bool e; short f;
+    bool g; short h;
+    bool i; short j;
+    bool k; short l;
+    bool m; short n;
+    bool o; short p;
+    bool q; short r;
+    bool s; short t;
+    bool u; short v;
+    bool w; short x;
+    bool y; short z;
+  };
+'''
+
+[cases]
+  [cases.bool_padding]
+    param_types = ["const Foo&"]
+    setup = "return Foo{0, false, 0};"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "members":[
+        { "name":"a", "staticSize":8, "dynamicSize":0 },
+        { "name":"b", "staticSize":1, "dynamicSize":0 },
+        { "name":"c", "staticSize":8, "dynamicSize":0 }
+      ]}]'''
+
+  [cases.nested_padding]
+    param_types = ["const Bar&"]
+    setup = "return Bar{0, false, 0, Foo { 0, false, 0 }};"
+    expect_json = '''[{
+      "staticSize":48,
+      "dynamicSize":0,
+      "members":[
+        { "name":"a", "staticSize":8, "dynamicSize":0 },
+        { "name":"b", "staticSize":1, "dynamicSize":0 },
+        { "name":"c", "staticSize":8, "dynamicSize":0 },
+        {
+          "name":"d",
+          "staticSize":24,
+          "dynamicSize":0,
+          "members": [
+            { "name":"a", "staticSize":8, "dynamicSize":0 },
+            { "name":"b", "staticSize":1, "dynamicSize":0 },
+            { "name":"c", "staticSize":8, "dynamicSize":0 }
+        ]}
+      ]}]'''
+
+  [cases.parent_padding]
+    param_types = ["const PaddedChild&"]
+    setup = "return PaddedChild{};"
+    expect_json = '''[{
+      "staticSize": 104,
+      "dynamicSize": 0,
+      "paddingSavingsSize": 19
+    }]'''

@@ -1,0 +1,26 @@
+[info]
+typeName = "folly::IOBufQueue"
+numTemplateParams = 0
+ctype = "FOLLY_IOBUFQUEUE_TYPE"
+header = "folly/io/IOBufQueue.h"
+ns = ["folly::IOBufQueue"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+void getSizeType(const %1% &t, size_t& returnArg);
+"""
+
+func = """
+void getSizeType(const %1% &t, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%));
+
+    const IOBuf *head = t.front();
+    SAVE_DATA((uintptr_t)head);
+    if (head)
+    getSizeType(*head, returnArg);
+}
+"""

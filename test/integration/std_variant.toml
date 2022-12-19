@@ -1,0 +1,153 @@
+includes = ["variant", "utility"]
+definitions = '''
+  struct Thrower {
+    explicit Thrower(int) {}
+    Thrower(const Thrower&) { throw std::domain_error("copy ctor"); }
+    Thrower& operator=(const Thrower&) = default;
+  };
+'''
+
+[cases]
+  [cases.char_int64_1]
+    param_types = ["const std::variant<char, int64_t>&"]
+    setup = "return 'a';"
+    expect_json = '''[{
+      "staticSize":16,
+      "dynamicSize":0,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":8,
+      "members":[
+        {"typeName":"char", "staticSize":1, "dynamicSize":0}
+      ]}]'''
+  [cases.char_int64_2]
+    param_types = ["const std::variant<char, int64_t>&"]
+    setup = "return 1234;"
+    expect_json = '''[{
+      "staticSize":16,
+      "dynamicSize":0,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":8,
+      "members":[
+        {"typeName":"long", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+
+  [cases.vector_int_1]
+    param_types = ["const std::variant<std::vector<int>, int>&"]
+    setup = "return std::vector<int>{1,2,3};"
+    expect_json = '''[{
+      "staticSize":32,
+      "dynamicSize":12,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":24,
+      "members":[
+        {
+          "typeName":"vector<int, std::allocator<int> >",
+          "staticSize":24,
+          "dynamicSize":12,
+          "length":3,
+          "capacity":3,
+          "elementStaticSize":4
+        }
+      ]}]'''
+  [cases.vector_int_2]
+    param_types = ["const std::variant<std::vector<int>, int>&"]
+    setup = "return 123;"
+    expect_json = '''[{
+      "staticSize":32,
+      "dynamicSize":0,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":24,
+      "members":[
+        {
+          "typeName":"int",
+          "staticSize":4,
+          "dynamicSize":0
+        }
+      ]}]'''
+
+  [cases.optional]
+    # This test case ensures that the alignment of std::variant is set
+    # correctly, as otherwise the size of the std::optional would be wrong
+    param_types = ["const std::optional<std::variant<char, int64_t>>&"]
+    setup = "return 123;"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":16,
+      "members":[
+        {
+          "staticSize":16,
+          "dynamicSize":0,
+          "length":1,
+          "capacity":1,
+          "elementStaticSize":8,
+          "members":[
+            {"typeName":"long", "staticSize":8, "dynamicSize":0}
+          ]
+        }
+      ]}]'''
+
+  [cases.empty]
+    # https://en.cppreference.com/w/cpp/utility/variant/valueless_by_exception
+    param_types = ["const std::variant<int, Thrower>&"]
+    setup = '''
+      std::variant<int, Thrower> var{123};
+      try {
+        var = Thrower(456);
+      }
+      catch (const std::domain_error &ex) {
+        // Ignore
+      }
+      return var;
+    '''
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":4,
+      "NOT":"members"
+      }]'''
+
+  # With less than 256 options, parameter indexes are stored in a uint8_t and
+  # the invalid index value is 0xff. These tests check that we regonise that
+  # 0xff can be a valid index if there are at least 256 parameters, and that
+  # the invalid index value is raised to 0xffff.
+  [cases.256_params_256]
+    param_types = ["const std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char>&"]
+    setup = "return 'a';"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":4,
+      "members":[
+        {"typeName":"char", "staticSize":1, "dynamicSize":0}
+      ]}]'''
+  [cases.256_params_empty]
+    param_types = ["const std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char>&"]
+    setup = '''
+      std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char> var{'a'};
+      try {
+        var = Thrower(456);
+      }
+      catch (const std::domain_error &ex) {
+        // Ignore
+      }
+      return var;
+    '''
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "length":1,
+      "capacity":1,
+      "elementStaticSize":4,
+      "NOT":"members"
+      }]'''

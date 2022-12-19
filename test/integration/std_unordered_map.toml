@@ -1,0 +1,8 @@
+includes = ["unordered_map"]
+[cases]
+  [cases.int_int]
+    skip = true
+    param_types = ["const std::unordered_map<int, int>&"]
+    setup = "return {{{1,2},{3,4}}};"
+    # TODO confirm this JSON is correct
+    expect_json = '[{"staticSize":56, "dynamicSize":0, "length":2, "capacity":2, "elementStaticSize":0}]'

@@ -1,0 +1,34 @@
+[info]
+typeName = "folly::F14FastMap<"
+numTemplateParams = 2
+ctype = "F14_MAP"
+header = "folly/container/F14Map.h"
+ns = ["folly::F14FastMap"]
+replaceTemplateParamIndex = [2, 3]
+allocatorIndex = 4
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <typename Key, typename Mapped, typename Hasher, typename KeyEqual, typename Alloc>
+void getSizeType(const %1%<Key, Mapped, Hasher, KeyEqual, Alloc> &container, size_t& dataSegOffset);
+"""
+
+func = """
+template <typename Key, typename Mapped, typename Hasher, typename KeyEqual, typename Alloc>
+void getSizeType(const %1%<Key, Mapped, Hasher, KeyEqual, Alloc> &container, size_t& returnArg)
+{
+    size_t memorySize = container.getAllocatedMemorySize();
+    SAVE_SIZE(sizeof(%1%<Key, Mapped, Hasher, KeyEqual>) + memorySize);
+
+    SAVE_DATA(memorySize);
+    SAVE_DATA(container.bucket_count());
+    SAVE_DATA(container.size());
+
+    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
+    for (auto&& it: container) {
+        getSizeType(it.first, returnArg);
+        getSizeType(it.second, returnArg);
+    }
+}
+"""

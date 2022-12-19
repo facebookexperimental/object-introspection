@@ -1,0 +1,33 @@
+[info]
+typeName = "boost::bimap"
+numTemplateParams = 2
+ctype = "BOOST_BIMAP_TYPE"
+header = "boost/bimap.hpp"
+ns = ["boost::bimap"]
+replaceTemplateParamIndex = []
+# allocatorIndex = 0
+# underlyingContainerIndex = 0
+
+[codegen]
+decl = """
+template <class KeyTypeA, class KeyTypeB, class AP1, class AP2, class AP3>
+void getSizeType(const %1%<KeyTypeA, KeyTypeB, AP1, AP2, AP3> &container,
+                 size_t& returnArg);
+"""
+
+func = """
+template <class KeyTypeA, class KeyTypeB, class AP1, class AP2, class AP3>
+void getSizeType(const %1%<KeyTypeA, KeyTypeB, AP1, AP2, AP3> &container,
+                size_t& returnArg)
+{
+
+    SAVE_SIZE(sizeof(%1%<KeyTypeA, KeyTypeB, AP1, AP2, AP3>));
+
+    SAVE_DATA((uintptr_t)container.size());
+
+    for (auto const& it: container) {
+        getSizeType(it.left, returnArg);
+        getSizeType(it.right, returnArg);
+    }
+}
+"""
