@@ -11,23 +11,24 @@ First ensure your system has all the dependencies installed. We have tested on U
 ### Ubuntu 22.04.1 (Jammy)
 
 ```
-sudo apt-get update
-sudo apt-get install -y bison autopoint build-essential clang-12 cmake flex gawk libboost-all-dev libbz2-dev libcap2-bin libclang-12-dev libcurl4-gnutls-dev libdouble-conversion-dev libdw-dev libfmt-dev libgflags-dev libgmock-dev libgoogle-glog-dev libgtest-dev libjemalloc-dev libmsgpack-dev libzstd-dev llvm-12-dev ninja-build pkg-config python3-setuptools sudo xsltproc libboost-all-dev
-sudo pip3 install toml
+$ sudo apt-get update
+$ sudo apt-get install -y bison autopoint build-essential clang-12 cmake flex gawk libboost-all-dev libbz2-dev libcap2-bin libclang-12-dev libcurl4-gnutls-dev libdouble-conversion-dev libdw-dev libfmt-dev libgflags-dev libgmock-dev libgoogle-glog-dev libgtest-dev libjemalloc-dev libmsgpack-dev libzstd-dev llvm-12-dev ninja-build pkg-config python3-setuptools sudo xsltproc libboost-all-dev
+$ sudo pip3 install toml
+$ cmake -G Ninja -B build/ -DWITH_TESTS=On
 ```
 
 ### OpenSuse Tumbleweed
 
 ```
-sudo zypper in git ninja cmake llvm12-devel clang12-devel binutils-gold gcc gcc-c++ libcap-progs sudo gflags-devel-static gflags-devel bison libboost_{system,filesystem,thread,regex,serialization}-devel msgpack-c-devel libzstd-devel flex gtest gmock python3-toml python3-devel python3-setuptools gettext-tools findutils zlib-devel libcurl-devel libbz2-devel libdw-devel libdwarf-devel jemalloc-devel msgpack-cxx-devel double-conversion-devel fmt-devel
-sudo apt install libdw-dev libclang-dev llvm-dev libboost-all-dev libgtest-dev libbz2-dev libgflags-dev libzstd-dev libcurl4-gnutls-dev ninja-build python3-toml
+$ sudo zypper in git ninja cmake llvm12-devel clang12-devel binutils-gold gcc gcc-c++ libcap-progs sudo gflags-devel-static gflags-devel bison libboost_{system,filesystem,thread,regex,serialization}-devel msgpack-c-devel libzstd-devel flex gtest gmock python3-toml python3-devel python3-setuptools gettext-tools findutils zlib-devel libcurl-devel libbz2-devel libdw-devel libdwarf-devel jemalloc-devel msgpack-cxx-devel double-conversion-devel fmt-devel
+$ sudo apt install libdw-dev libclang-dev llvm-dev libboost-all-dev libgtest-dev libbz2-dev libgflags-dev libzstd-dev libcurl4-gnutls-dev ninja-build python3-toml
 ```
 
 ### Fedora 37
 
 ```
-Package installation instructions here for Fedora 37.
-
+$ sudo dnf install boost-static elfutils-devel clang clang12-devel llvm12-devel llvm12-static gtest-devel gflags-devel gmock-devel cmake autoconf automake libtool python3-devel bzip2-devel fmt-devel gettext-devel libcurl-devel ninja-build python3-toml bison bison-devel flex msgpack-devel jemalloc-devel double-conversion-static
+$ cmake -G Ninja -B build/ -DLLVM_DIR=/usr/lib64/llvm12/lib/cmake/llvm -DClang_DIR=/usr/lib64/llvm12/lib/cmake/clang -DFORCE_LLVM_STATIC=Off
 ```
 
 ### Clone the OI repo:
@@ -49,11 +50,9 @@ Now compile the `oid` binary:
 
 ```
 $ cd object-introspection/
-$ cmake -G Ninja -B build/ -DWITH_TESTS=On
-<lots of elided output>
 $ cmake --build build/ -j
-
 ```
+
 ```
 $ ~/object-introspection# ls -l build/oid
 -rwxr-xr-x 1 root root 86818272 Dec 16 18:08 build/oid

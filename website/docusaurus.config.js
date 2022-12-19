@@ -14,7 +14,7 @@ const config = {
   title: 'Object Introspection',
   tagline: 'Dynamic C++ Object Profiling',
   url: 'https://your-docusaurus-test-site.com',
-  baseUrl: '/',
+  baseUrl: '/object-introspection',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
