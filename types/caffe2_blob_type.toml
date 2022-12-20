@@ -1,5 +1,6 @@
 [info]
 typeName = "caffe2::Blob"
+matcher = "^caffe2::Blob$"
 numTemplateParams = 0
 ctype = "CAFFE2_BLOB_TYPE"
 header = "caffe2/core/blob.h"

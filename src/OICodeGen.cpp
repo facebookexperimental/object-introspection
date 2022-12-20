@@ -166,20 +166,11 @@ std::optional<ContainerInfo> OICodeGen::getContainerInfo(
     return std::nullopt;
   }
 
+  std::string nameStr = std::string(*name);
   for (auto it = containerInfoList.rbegin(); it != containerInfoList.rend();
        it++) {
     const auto &info = *it;
-    if (name->starts_with(info->typeName)) {
-      // Blob must match exactly. Otherwise it also matches BlobsMap
-      if (info->ctype == CAFFE2_BLOB_TYPE && *name != "caffe2::Blob") {
-        return std::nullopt;
-      }
-
-      // IOBuf must also match exactly, or it also matches IOBufQueue
-      if (info->ctype == FOLLY_IOBUF_TYPE && *name != "folly::IOBuf") {
-        continue;
-      }
-
+    if (std::regex_search(nameStr, info->matcher)) {
       return *info;
     }
   }

@@ -72,6 +72,14 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
     return nullptr;
   }
 
+  std::regex matcher;
+  if (std::optional<std::string> str =
+          (*info)["matcher"].value<std::string>()) {
+    matcher = std::regex(*str, std::regex_constants::grep);
+  } else {
+    matcher = std::regex("^" + typeName, std::regex_constants::grep);
+  }
+
   std::optional<size_t> numTemplateParams =
       (*info)["numTemplateParams"].value<size_t>();
 
@@ -122,6 +130,7 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
 
   return std::unique_ptr<ContainerInfo>(new ContainerInfo{
       std::move(typeName),
+      std::move(matcher),
       numTemplateParams,
       ctype,
       std::move(header),

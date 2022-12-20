@@ -16,6 +16,7 @@
 #pragma once
 #include <filesystem>
 #include <optional>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -73,6 +74,7 @@ const char *containerTypeEnumToStr(ContainerTypeEnum ty);
 
 struct ContainerInfo {
   std::string typeName;
+  std::regex matcher;
   std::optional<size_t> numTemplateParams;
   ContainerTypeEnum ctype = UNKNOWN_TYPE;
   std::string header;
