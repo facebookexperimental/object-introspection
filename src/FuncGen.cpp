@@ -23,10 +23,6 @@
 
 #include "ContainerInfo.h"
 
-#ifndef OSS_ENABLE
-#include "cea/object-introspection/internal/FuncGenInternal.h"
-#endif
-
 namespace {
 
 const std::string typedValueFunc = R"(
@@ -137,9 +133,6 @@ const std::string typedValueFunc = R"(
   }
   )";
 
-const std::map<ContainerTypeEnum, std::string> defaultTypeToDeclMap = {};
-
-const std::map<ContainerTypeEnum, std::string> defaultTypeToFuncMap = {};
 }  // namespace
 
 void FuncGen::DeclareGetSize(std::string& testCode, const std::string& type) {
@@ -459,18 +452,6 @@ void FuncGen::DeclareGetContainer(std::string& testCode) {
       }
       )";
   testCode.append(func);
-}
-
-// TODO: remove map initialisation once all container configs are removed from
-// the code
-FuncGen::FuncGen()
-    : typeToDeclMap(defaultTypeToDeclMap), typeToFuncMap(defaultTypeToFuncMap) {
-#ifndef OSS_ENABLE
-  typeToDeclMap.insert(typeToDeclMapInternal.begin(),
-                       typeToDeclMapInternal.end());
-  typeToFuncMap.insert(typeToFuncMapInternal.begin(),
-                       typeToFuncMapInternal.end());
-#endif
 }
 
 bool FuncGen::RegisterContainer(ContainerTypeEnum ctype, const fs::path& path) {
