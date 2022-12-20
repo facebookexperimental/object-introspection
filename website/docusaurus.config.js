@@ -92,7 +92,7 @@ const config = {
             items: [
               {
                 label: 'GitHub',
-                href: 'https://facebookexperimental.github.io/object-introspection/',
+                href: 'https://github.com/facebookexperimental/object-introspection',
               },
             ],
           },
