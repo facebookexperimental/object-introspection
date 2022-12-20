@@ -39,7 +39,7 @@
   BOOST_CLASS_VERSION(Type, version)
 
 DEFINE_TYPE_VERSION(PaddingInfo, 120, 3)
-DEFINE_TYPE_VERSION(ContainerInfo, 168, 4)
+DEFINE_TYPE_VERSION(ContainerInfo, 200, 5)
 DEFINE_TYPE_VERSION(struct drgn_location_description, 32, 2)
 DEFINE_TYPE_VERSION(struct drgn_object_locator, 72, 2)
 DEFINE_TYPE_VERSION(FuncDesc::Arg, 128, 2)

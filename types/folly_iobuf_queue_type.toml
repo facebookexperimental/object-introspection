@@ -1,5 +1,6 @@
 [info]
 typeName = "folly::IOBufQueue"
+matcher = "^folly::IOBufQueue$"
 numTemplateParams = 0
 ctype = "FOLLY_IOBUFQUEUE_TYPE"
 header = "folly/io/IOBufQueue.h"

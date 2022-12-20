@@ -1,5 +1,6 @@
 [info]
 typeName = "folly::IOBuf"
+matcher = "^folly::IOBuf$"
 numTemplateParams = 0
 ctype = "FOLLY_IOBUF_TYPE"
 header = "folly/io/IOBuf.h"
