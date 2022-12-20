@@ -100,7 +100,7 @@ bool OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
   codegen->setRootType(type);
   codegen->setLinkageName(linkageName);
 
-  if (!codegen->generateFunctionsForTypesDrgn(code)) {
+  if (!codegen->generate(code)) {
     LOG(ERROR) << "failed to generate code";
     return false;
   }
