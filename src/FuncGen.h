@@ -25,8 +25,6 @@ namespace fs = std::filesystem;
 
 class FuncGen {
  public:
-  // TODO: remove me once all containers are in toml files
-  FuncGen();
   bool RegisterContainer(ContainerTypeEnum, const fs::path& path);
 
   void DeclareStoreData(std::string& testCode);

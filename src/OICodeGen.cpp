@@ -34,9 +34,6 @@
 #include "OIParser.h"
 #include "PaddingHunter.h"
 #include "SymbolService.h"
-#ifndef OSS_ENABLE
-#include "cea/object-introspection/internal/FuncGenInternal.h"
-#endif
 
 namespace fs = std::filesystem;
 
@@ -45,13 +42,6 @@ static size_t g_level = 0;
 #undef VLOG
 #define VLOG(verboselevel) \
   LOG_IF(INFO, VLOG_IS_ON(verboselevel)) << std::string(2 * g_level, ' ')
-
-// typeName, numTemplateParams, ctype, header, namespaces...
-// formatting disabled due to line length becoming a mess
-// clang-format off
-static const std::vector<ContainerInfo> defaultContainerInfoList = {
-};
-// clang-format on
 
 std::unique_ptr<OICodeGen> OICodeGen::buildFromConfig(const Config &c) {
   auto cg = std::unique_ptr<OICodeGen>(new OICodeGen(c));
@@ -66,22 +56,7 @@ std::unique_ptr<OICodeGen> OICodeGen::buildFromConfig(const Config &c) {
   return cg;
 }
 
-// TODO: remove containerInfoList initialisation once all container configs are
-// removed from the code
 OICodeGen::OICodeGen(const Config &c) : config{c} {
-#ifndef OSS_ENABLE
-  containerInfoList.reserve(containerInfoListInternal.size() +
-                            defaultContainerInfoList.size());
-  for (const auto &el : containerInfoListInternal) {
-    containerInfoList.push_back(std::make_unique<ContainerInfo>(el));
-  }
-#endif
-
-  containerInfoList.reserve(defaultContainerInfoList.size());
-  for (const auto &el : defaultContainerInfoList) {
-    containerInfoList.push_back(std::make_unique<ContainerInfo>(el));
-  }
-
   // TODO: Should folly::Range just be added as a container?
   auto typesToStub = std::array{
       "SharedMutex",
