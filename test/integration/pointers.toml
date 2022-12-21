@@ -15,7 +15,7 @@ definitions = '''
 [cases]
   [cases.int]
     skip = "top-level pointers are skipped over"
-    oil_skip = "oil can't chase pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["int*"]
     setup = "return new int(1);"
     cli_options = ["--chase-raw-pointers"]
@@ -94,7 +94,7 @@ definitions = '''
 
   [cases.vector]
     skip = "top-level pointers are skipped over"
-    oil_skip = "oil can't chase pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["std::vector<int>*"]
     setup = "return new std::vector<int>{1,2,3};"
     cli_options = ["--chase-raw-pointers"]
@@ -136,7 +136,7 @@ definitions = '''
 
 
   [cases.struct_primitive_ptrs]
-    oil_skip = "oil can't chase pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const PrimitivePtrs&"]
     setup = "return PrimitivePtrs{0, new int(0), new int(0)};"
     cli_options = ["--chase-raw-pointers"]
@@ -174,7 +174,7 @@ definitions = '''
 
 
   [cases.struct_vector_ptr]
-    oil_skip = "oil can't chase pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const VectorPtr&"]
     setup = "return VectorPtr{new std::vector<int>{1,2,3}};"
     cli_options = ["--chase-raw-pointers"]
@@ -206,7 +206,7 @@ definitions = '''
 
 
   [cases.vector_of_pointers]
-    oil_skip = "oil can't chase pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const std::vector<int*>&"]
     setup = "return {{new int(1), nullptr, new int(3)}};"
     cli_options = ["--chase-raw-pointers"]

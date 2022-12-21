@@ -82,7 +82,7 @@ definitions = '''
     expect_json = '[{"staticSize":16, "dynamicSize":0, "NOT":"members"}]'
 
   [cases.containing_struct]
-    oil_skip = "oil can't chase pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const IncompleteTypeContainer&"]
     setup = "return IncompleteTypeContainer{};"
     cli_options = ["--chase-raw-pointers"]

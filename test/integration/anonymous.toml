@@ -95,7 +95,7 @@ definitions = '''
       ]}]'''
 
   [cases.anon_struct]
-    oil_skip = "oil can't chase raw pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const AnonStructContainer&"]
     setup = '''
       return AnonStructContainer{
@@ -144,7 +144,7 @@ definitions = '''
     cli_options = ["--chase-raw-pointers"]
 
   [cases.anon_typedef]
-    oil_skip = "oil can't chase raw pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const AnonTypedefContainer&"]
     setup = '''
       return AnonTypedefContainer{
@@ -202,7 +202,7 @@ definitions = '''
     }]'''
 
   [cases.nested_anon_struct]
-    oil_skip = "oil can't chase raw pointers safely"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const NestedAnonContainer&"]
     setup = 'return NestedAnonContainer{.m = { .v = {.as = {new Node{1, 2, 3}}}}};'
     cli_options = ["--chase-raw-pointers"]
