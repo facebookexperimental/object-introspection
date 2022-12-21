@@ -20,7 +20,7 @@ definitions = '''
 
   # Test that TreeBuilder failing to run on the first arg doesn't impact the second arg
   [cases.tb_fail_first_arg]
-    oil_skip = "oil doesn't handle invalid strings"
+    oil_disable = "treebuilder tests are oid specific"
     param_types = ["const std::string&", "const NodeA&"]
     args = "arg0,arg1"
     setup = """
@@ -32,7 +32,7 @@ definitions = '''
     expect_json = '[{},{"staticSize":12, "dynamicSize":0}]'
 
   [cases.tb_all_fail_crashes]
-    oil_skip = "oil doesn't handle invalid strings"
+    oil_disable = "treebuilder tests are oid specific"
     param_types = ["const std::string&", "const std::string&"]
     args = "arg0,arg1"
     setup = """

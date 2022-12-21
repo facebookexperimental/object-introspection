@@ -304,6 +304,9 @@ def add_oil_integration_test(f, config, case_name, case):
     case_str = get_case_name(config["suite"], case_name)
     exit_code = case.get("expect_oil_exit_code", 0)
 
+    if case.get("oil_disable", False):
+        return
+
     f.write(
         f"\n"
         f'TEST_F(OilIntegration, {config["suite"]}_{case_name}) {{\n'

@@ -17,7 +17,7 @@ definitions = '''
 '''
 [cases]
   [cases.raw_ptr]
-    oil_skip = "oil can't chase pointers safely"
+    oil_disable = "oil can't chase pointers safely"
     param_types = ["RawNode*"]
     setup = '''
       RawNode *first  = new RawNode{1, nullptr};
