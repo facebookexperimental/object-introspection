@@ -80,14 +80,13 @@ definitions = '''
     ]
     '''
   [cases.unique_ptr_void_present]
-    skip = "we don't report the dynamic size"
     param_types = ["std::unique_ptr<void, decltype(&void_int_deleter)>&"]
     setup = "return {std::unique_ptr<void, decltype(&void_int_deleter)>(new int, &void_int_deleter)};"
     expect_json = '''
     [
       {
         "staticSize": 16,
-        "dynamicSize": 8
+        "dynamicSize": 0
       }
     ]
     '''
@@ -165,14 +164,13 @@ definitions = '''
     ]
     '''
   [cases.shared_ptr_void_present]
-    skip = "we don't report the dynamic size"
     param_types = ["std::shared_ptr<void>&"]
     setup = "return {std::shared_ptr<void>(new int)};"
     expect_json = '''
     [
       {
         "staticSize": 16,
-        "dynamicSize": 8
+        "dynamicSize": 0
       }
     ]
     '''
