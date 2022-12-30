@@ -14,7 +14,7 @@ definitions = '''
 
 [cases]
   [cases.raw]
-    oid_skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{myFunction}};"
     expect_json = '''[{
@@ -29,7 +29,7 @@ definitions = '''
       }]
     }]'''
   [cases.raw_chase] # We should never chase function pointers
-    oid_skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{myFunction}};"
@@ -46,7 +46,7 @@ definitions = '''
       }]
     }]'''
   [cases.raw_null]
-    oid_skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{nullptr}};"
     expect_json = '''[{
@@ -62,7 +62,7 @@ definitions = '''
     }]'''
 
   [cases.std_function]
-    oid_skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     param_types = ["std::function<void(int)> &"]
     setup = "return myFunction;"
     expect_json = '''[{
@@ -73,7 +73,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.std_function_chase] # We should never chase function pointers
-    oid_skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["std::function<void(int)> &"]
     setup = "return myFunction;"
@@ -86,7 +86,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.std_function_null]
-    oid_skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     param_types = ["std::function<void(int)> &"]
     setup = "return nullptr;"
     expect_json = '''[{

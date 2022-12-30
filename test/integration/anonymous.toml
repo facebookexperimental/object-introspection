@@ -133,7 +133,7 @@ definitions = '''
     }]'''
 
   [cases.anon_struct_ptr]
-    skip = "We don't support pointer to anon-structs yet"
+    skip = "We don't support pointer to anon-structs yet" # https://github.com/facebookexperimental/object-introspection/issues/20
     param_types = ["const AnonStructPtrContainer&"]
     setup = '''
       return AnonStructPtrContainer{

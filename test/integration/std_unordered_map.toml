@@ -1,7 +1,7 @@
 includes = ["unordered_map"]
 [cases]
   [cases.int_int]
-    skip = true
+    skip = true # https://github.com/facebookexperimental/object-introspection/issues/15
     param_types = ["const std::unordered_map<int, int>&"]
     setup = "return {{{1,2},{3,4}}};"
     # TODO confirm this JSON is correct
