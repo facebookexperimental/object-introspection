@@ -9,12 +9,12 @@ includes = ["vector"]
     setup = "return {{1,2,3}};"
     expect_json = '[{"staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}]'
   [cases.bool_empty]
-    skip = true
+    skip = true # https://github.com/facebookexperimental/object-introspection/issues/14
     param_types = ["const std::vector<bool>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":40, "dynamicSize":0, "length":0, "capacity":0, "elementStaticSize":0.125}]'
   [cases.bool_some]
-    skip = true
+    skip = true # https://github.com/facebookexperimental/object-introspection/issues/14
     param_types = ["const std::vector<bool>&"]
     setup = "return {{true, false, true}};"
     expect_json = '[{"staticSize":40,"dynamicSize":8, "length":3, "capacity":64, "elementStaticSize":0.125}]'

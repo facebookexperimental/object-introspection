@@ -9,7 +9,7 @@ definitions = '''
 '''
 [cases]
   [cases.int_ref]
-    skip = "references are being treated as raw pointers"
+    skip = "references are being treated as raw pointers" # https://github.com/facebookexperimental/object-introspection/issues/16
     param_types = ["const IntRef&"]
     setup = "return {{*new int(1)}};"
     expect_json = '''[{
@@ -24,7 +24,7 @@ definitions = '''
         }
       ]}]'''
   [cases.vector_ref]
-    skip = "references are being treated as raw pointers"
+    skip = "references are being treated as raw pointers" # https://github.com/facebookexperimental/object-introspection/issues/16
     param_types = ["const VectorRef&"]
     setup = "return {{*new std::vector<int>{1,2,3}}};"
     expect_json = '''[{
