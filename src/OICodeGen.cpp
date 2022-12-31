@@ -85,7 +85,7 @@ OICodeGen::OICodeGen(const Config &c) : config{c} {
   };
 
   config.membersToStub.reserve(typesToStub.size());
-  for (auto &type : typesToStub) {
+  for (const auto &type : typesToStub) {
     config.membersToStub.emplace_back(type, "*");
   }
 
@@ -102,11 +102,7 @@ OICodeGen::OICodeGen(const Config &c) : config{c} {
 bool OICodeGen::registerContainer(const fs::path &path) {
   VLOG(1) << "registering container, path: " << path;
   auto info = ContainerInfo::loadFromFile(path);
-  if (!info) {
-    return false;
-  }
-
-  if (!funcGen.RegisterContainer(info->ctype, path)) {
+  if (!info || !funcGen.RegisterContainer(info->ctype, path)) {
     return false;
   }
 
@@ -141,9 +137,9 @@ bool OICodeGen::isKnownType(const std::string &type, std::string &matched) {
 }
 
 std::optional<const std::string_view> OICodeGen::fullyQualifiedName(
-    struct drgn_type *type) {
-  auto entry = fullyQualifiedNames.find(type);
-  if (entry != fullyQualifiedNames.end()) {
+    drgn_type *type) {
+  if (auto entry = fullyQualifiedNames.find(type);
+      entry != fullyQualifiedNames.end()) {
     return entry->second.contents;
   }
 
@@ -159,8 +155,7 @@ std::optional<const std::string_view> OICodeGen::fullyQualifiedName(
   return typeNamePair->second.contents;
 }
 
-std::optional<ContainerInfo> OICodeGen::getContainerInfo(
-    struct drgn_type *type) {
+std::optional<ContainerInfo> OICodeGen::getContainerInfo(drgn_type *type) {
   auto name = fullyQualifiedName(type);
   if (!name.has_value()) {
     return std::nullopt;
@@ -168,7 +163,7 @@ std::optional<ContainerInfo> OICodeGen::getContainerInfo(
 
   std::string nameStr = std::string(*name);
   for (auto it = containerInfoList.rbegin(); it != containerInfoList.rend();
-       it++) {
+       ++it) {
     const auto &info = *it;
     if (std::regex_search(nameStr, info->matcher)) {
       return *info;
@@ -177,12 +172,11 @@ std::optional<ContainerInfo> OICodeGen::getContainerInfo(
   return std::nullopt;
 }
 
-bool OICodeGen::isContainer(struct drgn_type *type) {
+bool OICodeGen::isContainer(drgn_type *type) {
   return getContainerInfo(type).has_value();
 }
 
-std::string OICodeGen::preProcessUniquePtr(struct drgn_type *type,
-                                           std::string name) {
+std::string OICodeGen::preProcessUniquePtr(drgn_type *type, std::string name) {
   std::string typeName;
   std::string deleterName;
 
@@ -322,7 +316,7 @@ void OICodeGen::replaceTemplateOperator(
   }
 
   size_t comparatorSz = 1;
-  struct drgn_type *cmpType = template_params[index].first.type;
+  drgn_type *cmpType = template_params[index].first.type;
   if (isDrgnSizeComplete(cmpType)) {
     comparatorSz = drgn_type_size(cmpType);
   } else {
@@ -350,7 +344,7 @@ void OICodeGen::replaceTemplateOperator(
 }
 
 void OICodeGen::replaceTemplateParameters(
-    struct drgn_type *type, TemplateParamList &template_params,
+    drgn_type *type, TemplateParamList &template_params,
     std::vector<std::string> &template_params_strings,
     const std::string &nameWithoutTemplate) {
   auto containerInfo = getContainerInfo(type);
@@ -377,10 +371,10 @@ void OICodeGen::replaceTemplateParameters(
   }
 }
 
-bool OICodeGen::buildName(struct drgn_type *type, std::string &text,
+bool OICodeGen::buildName(drgn_type *type, std::string &text,
                           std::string &outName) {
   int ptrDepth = 0;
-  struct drgn_type *ut = type;
+  drgn_type *ut = type;
   while (drgn_type_kind(ut) == DRGN_TYPE_POINTER) {
     ut = drgn_type_type(ut).type;
     ptrDepth++;
@@ -402,8 +396,7 @@ bool OICodeGen::buildName(struct drgn_type *type, std::string &text,
   return true;
 }
 
-bool OICodeGen::buildNameInt(struct drgn_type *type,
-                             std::string &nameWithoutTemplate,
+bool OICodeGen::buildNameInt(drgn_type *type, std::string &nameWithoutTemplate,
                              std::string &outName) {
   // Calling buildName only makes sense if a type is a container and has
   // template parameters. For a generic template class, we just flatten the
@@ -428,7 +421,7 @@ bool OICodeGen::buildNameInt(struct drgn_type *type,
 
   std::vector<std::string> templateParamsStrings;
 
-  for (size_t i = 0; i < templateParams.size(); i++) {
+  for (size_t i = 0; i < templateParams.size(); ++i) {
     auto &[p, value] = templateParams[i];
     enum drgn_qualifiers qualifiers = p.qualifiers;
     prependQualifiers(qualifiers, outName);
@@ -465,8 +458,7 @@ bool OICodeGen::buildNameInt(struct drgn_type *type,
         // matter for now.
 
         auto enumVal = std::stoull(value);
-        struct drgn_type_enumerator *enumerators =
-            drgn_type_enumerators(p.type);
+        drgn_type_enumerator *enumerators = drgn_type_enumerators(p.type);
         templateParamName = *fullyQualifiedName(p.type);
         templateParamName += "::";
         templateParamName += enumerators[enumVal].name;
@@ -528,7 +520,7 @@ bool OICodeGen::buildNameInt(struct drgn_type *type,
       templateParamName = std::string("void");
     } else if (drgn_type_kind(p.type) == DRGN_TYPE_ARRAY) {
       size_t elems = 1;
-      struct drgn_type *arrayElementType = nullptr;
+      drgn_type *arrayElementType = nullptr;
       getDrgnArrayElementType(p.type, &arrayElementType, elems);
 
       if (drgn_type_has_name(arrayElementType)) {
@@ -562,7 +554,7 @@ bool OICodeGen::buildNameInt(struct drgn_type *type,
                             nameWithoutTemplate);
 
   outName = nameWithoutTemplate;
-  for (size_t i = 0; i < templateParamsStrings.size(); i++) {
+  for (size_t i = 0; i < templateParamsStrings.size(); ++i) {
     auto &[p, value] = templateParams[i];
     enum drgn_qualifiers qualifiers = p.qualifiers;
     prependQualifiers(qualifiers, outName);
@@ -578,28 +570,29 @@ bool OICodeGen::buildNameInt(struct drgn_type *type,
 }
 
 bool OICodeGen::getTemplateParams(
-    struct drgn_type *type, size_t numTemplateParams,
-    std::vector<std::pair<struct drgn_qualified_type, std::string>> &v) {
-  struct drgn_type_template_parameter *tParams =
-      drgn_type_template_parameters(type);
+    drgn_type *type, size_t numTemplateParams,
+    std::vector<std::pair<drgn_qualified_type, std::string>> &v) {
+  drgn_type_template_parameter *tParams = drgn_type_template_parameters(type);
 
-  for (size_t i = 0; i < numTemplateParams; i++) {
-    const struct drgn_object *obj = nullptr;
-    struct drgn_error *err = drgn_template_parameter_object(&tParams[i], &obj);
-    if (err != nullptr) {
+  for (size_t i = 0; i < numTemplateParams; ++i) {
+    const drgn_object *obj = nullptr;
+    if (auto *err = drgn_template_parameter_object(&tParams[i], &obj);
+        err != nullptr) {
       LOG(ERROR) << "Error when looking up template parameter " << err->code
                  << " " << err->message;
+      drgn_error_destroy(err);
       return false;
     }
 
     std::string value;
-    struct drgn_qualified_type t {};
+    drgn_qualified_type t{};
 
     if (obj == nullptr) {
-      err = drgn_template_parameter_type(&tParams[i], &t);
-      if (err != nullptr) {
+      if (auto *err = drgn_template_parameter_type(&tParams[i], &t);
+          err != nullptr) {
         LOG(ERROR) << "Error when looking up template parameter " << err->code
                    << " " << err->message;
+        drgn_error_destroy(err);
         return false;
       }
     } else {
@@ -634,8 +627,7 @@ bool OICodeGen::getTemplateParams(
   return true;
 }
 
-std::string OICodeGen::transformTypeName(struct drgn_type *type,
-                                         std::string &text) {
+std::string OICodeGen::transformTypeName(drgn_type *type, std::string &text) {
   VLOG(3) << "Original String " << text;
 
   std::string tmp = stripFullyQualifiedNameWithSeparators(text);
@@ -661,8 +653,7 @@ std::string OICodeGen::transformTypeName(struct drgn_type *type,
   return buildNameOutput;
 }
 
-bool OICodeGen::getContainerTemplateParams(struct drgn_type *type,
-                                           bool &ifStub) {
+bool OICodeGen::getContainerTemplateParams(drgn_type *type, bool &ifStub) {
   if (containerTypeMapDrgn.find(type) != containerTypeMapDrgn.end()) {
     return true;
   }
@@ -705,7 +696,7 @@ bool OICodeGen::getContainerTemplateParams(struct drgn_type *type,
               << *numTemplateParams;
     }
 
-    for (size_t i = 0; i < *numTemplateParams; i++) {
+    for (size_t i = 0; i < *numTemplateParams; ++i) {
       paramIdxs.push_back(i);
     }
   }
@@ -713,7 +704,7 @@ bool OICodeGen::getContainerTemplateParams(struct drgn_type *type,
   return enumerateTemplateParamIdxs(type, *containerInfo, paramIdxs, ifStub);
 }
 
-bool OICodeGen::enumerateTemplateParamIdxs(struct drgn_type *type,
+bool OICodeGen::enumerateTemplateParamIdxs(drgn_type *type,
                                            const ContainerInfo &containerInfo,
                                            const std::vector<size_t> &paramIdxs,
                                            bool &ifStub) {
@@ -728,12 +719,11 @@ bool OICodeGen::enumerateTemplateParamIdxs(struct drgn_type *type,
     return false;
   }
 
-  struct drgn_type_template_parameter *tParams =
-      drgn_type_template_parameters(type);
+  drgn_type_template_parameter *tParams = drgn_type_template_parameters(type);
   for (auto i : paramIdxs) {
-    struct drgn_qualified_type t;
-    struct drgn_error *err = drgn_template_parameter_type(&tParams[i], &t);
-    if (err) {
+    drgn_qualified_type t{};
+    if (auto *err = drgn_template_parameter_type(&tParams[i], &t);
+        err != nullptr) {
       LOG(ERROR) << "Error when looking up template parameter " << err->code
                  << " " << err->message;
       return false;
@@ -747,11 +737,12 @@ bool OICodeGen::enumerateTemplateParamIdxs(struct drgn_type *type,
   }
 
   for (auto i : paramIdxs) {
-    struct drgn_qualified_type t;
-    struct drgn_error *err = drgn_template_parameter_type(&tParams[i], &t);
-    if (err) {
+    drgn_qualified_type t{};
+    if (auto *err = drgn_template_parameter_type(&tParams[i], &t);
+        err != nullptr) {
       LOG(ERROR) << "Error when looking up template parameter " << err->code
                  << " " << err->message;
+      drgn_error_destroy(err);
       return false;
     }
     // TODO: This is painful, there seems to be a bug in drgn (or maybe it is
@@ -772,7 +763,7 @@ bool OICodeGen::enumerateTemplateParamIdxs(struct drgn_type *type,
   // to `containerTypeMapDrgn`.
   if (containerInfo.ctype == SHRD_PTR_TYPE ||
       containerInfo.ctype == UNIQ_PTR_TYPE) {
-    struct drgn_qualified_type t {};
+    drgn_qualified_type t{};
     // We checked that this succeeded in the previous loop
     drgn_template_parameter_type(&tParams[0], &t);
     if (drgn_type_kind(t.type) == DRGN_TYPE_VOID) {
@@ -782,13 +773,13 @@ bool OICodeGen::enumerateTemplateParamIdxs(struct drgn_type *type,
 
   auto &templateTypes =
       containerTypeMapDrgn
-          .emplace(type, std::pair(containerInfo,
-                                   std::vector<struct drgn_qualified_type>()))
+          .emplace(type,
+                   std::pair(containerInfo, std::vector<drgn_qualified_type>()))
           .first->second.second;
 
   for (auto i : paramIdxs) {
-    struct drgn_qualified_type t {};
-    struct drgn_error *err = drgn_template_parameter_type(&tParams[i], &t);
+    drgn_qualified_type t{};
+    drgn_error *err = drgn_template_parameter_type(&tParams[i], &t);
     if (err) {
       LOG(ERROR) << "Error when looking up template parameter " << err->code
                  << " " << err->message;
@@ -803,13 +794,13 @@ bool OICodeGen::enumerateTemplateParamIdxs(struct drgn_type *type,
   return true;
 }
 
-void OICodeGen::addPaddingForBaseClass(struct drgn_type *type,
+void OICodeGen::addPaddingForBaseClass(drgn_type *type,
                                        std::vector<std::string> &def) {
   if (drgn_type_num_members(type) < 1) {
     return;
   }
 
-  struct drgn_type_member *members = drgn_type_members(type);
+  drgn_type_member *members = drgn_type_members(type);
 
   VLOG(2) << "Base member offset is " << members[0].bit_offset / CHAR_BIT;
 
@@ -826,7 +817,7 @@ void OICodeGen::addPaddingForBaseClass(struct drgn_type *type,
   }
 }
 
-std::string_view OICodeGen::drgnKindStr(struct drgn_type *type) {
+std::string_view OICodeGen::drgnKindStr(drgn_type *type) {
   switch (drgn_type_kind(type)) {
     case DRGN_TYPE_VOID:
       return "DRGN_TYPE_VOID";
@@ -856,8 +847,7 @@ std::string_view OICodeGen::drgnKindStr(struct drgn_type *type) {
   return "";
 }
 
-std::string OICodeGen::getAnonName(struct drgn_type *type,
-                                   const char *template_) {
+std::string OICodeGen::getAnonName(drgn_type *type, const char *template_) {
   std::string typeName;
   if (drgn_type_tag(type) != nullptr) {
     typeName = drgn_type_tag(type);
@@ -881,7 +871,7 @@ std::string OICodeGen::getAnonName(struct drgn_type *type,
   return transformTypeName(type, typeName);
 }
 
-bool OICodeGen::getMemberDefinition(struct drgn_type *type) {
+bool OICodeGen::getMemberDefinition(drgn_type *type) {
   // Do a [] lookup to ensure `type` has a entry in classMembersMap
   // If it has no entry, the lookup will default construct on for us
   classMembersMap[type];
@@ -897,15 +887,16 @@ bool OICodeGen::getMemberDefinition(struct drgn_type *type) {
     return true;
   }
 
-  struct drgn_type_member *members = drgn_type_members(type);
-  for (size_t i = 0; i < drgn_type_num_members(type); i++) {
+  drgn_type_member *members = drgn_type_members(type);
+  for (size_t i = 0; i < drgn_type_num_members(type); ++i) {
     auto &member = members[i];
     auto memberName = member.name ? std::string(member.name)
                                   : "__anon_member_" + std::to_string(i);
 
-    struct drgn_qualified_type t {};
+    drgn_qualified_type t{};
     uint64_t bitFieldSize = 0;
-    if (auto *err = drgn_member_type(&member, &t, &bitFieldSize)) {
+    if (auto *err = drgn_member_type(&member, &t, &bitFieldSize);
+        err != nullptr) {
       LOG(ERROR) << "Error when looking up member type '" << memberName
                  << "': (" << err->code << ") " << err->message;
       drgn_error_destroy(err);
@@ -945,13 +936,13 @@ void OICodeGen::printTypePath() {
   }
 }
 
-std::string OICodeGen::typeToTransformedName(struct drgn_type *type) {
+std::string OICodeGen::typeToTransformedName(drgn_type *type) {
   auto typeName = typeToName(type);
   typeName = transformTypeName(type, typeName);
   return typeName;
 }
 
-std::string OICodeGen::typeToName(struct drgn_type *type) {
+std::string OICodeGen::typeToName(drgn_type *type) {
   std::string typeName;
   if (drgn_type_has_tag(type)) {
     const char *typeTag = drgn_type_tag(type);
@@ -965,7 +956,7 @@ std::string OICodeGen::typeToName(struct drgn_type *type) {
     typeName = drgn_type_name(type);
   } else if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
     char *defStr = nullptr;
-    struct drgn_qualified_type qtype = {type, {}};
+    drgn_qualified_type qtype = {type, {}};
     if (drgn_format_type_name(qtype, &defStr) != nullptr) {
       LOG(ERROR) << "Failed to get formatted string for " << type;
       typeName = "";
@@ -977,7 +968,7 @@ std::string OICodeGen::typeToName(struct drgn_type *type) {
     return "void";
   } else if (drgn_type_kind(type) == DRGN_TYPE_ARRAY) {
     size_t elems = 1;
-    struct drgn_type *arrayElementType = nullptr;
+    drgn_type *arrayElementType = nullptr;
     getDrgnArrayElementType(type, &arrayElementType, elems);
 
     if (drgn_type_has_name(arrayElementType)) {
@@ -1011,7 +1002,7 @@ bool OICodeGen::populateDefsAndDecls() {
   auto *type = rootType.type;
   rootTypeToIntrospect = rootType;
 
-  struct drgn_qualified_type qtype {};
+  drgn_qualified_type qtype{};
   if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
     qtype = drgn_type_type(type);
     type = qtype.type;
@@ -1035,9 +1026,9 @@ bool OICodeGen::populateDefsAndDecls() {
   return enumerateTypesRecurse(rootType.type);
 }
 
-std::optional<uint64_t> OICodeGen::getDrgnTypeSize(struct drgn_type *type) {
+std::optional<uint64_t> OICodeGen::getDrgnTypeSize(drgn_type *type) {
   uint64_t sz = 0;
-  if (auto *err = drgn_type_sizeof(type, &sz)) {
+  if (auto *err = drgn_type_sizeof(type, &sz); err != nullptr) {
     LOG(ERROR) << "dgn_type_sizeof(" << type << "): " << err->code << " "
                << err->message;
     drgn_error_destroy(err);
@@ -1060,10 +1051,11 @@ std::optional<uint64_t> OICodeGen::getDrgnTypeSize(struct drgn_type *type) {
   return sz;
 }
 
-bool OICodeGen::isDrgnSizeComplete(struct drgn_type *type) {
+bool OICodeGen::isDrgnSizeComplete(drgn_type *type) {
   uint64_t sz = 0;
-  auto *err = drgn_type_sizeof(type, &sz);
-  if (err == nullptr) {
+  if (auto *err = drgn_type_sizeof(type, &sz); err != nullptr) {
+    drgn_error_destroy(err);
+  } else {
     return true;
   }
 
@@ -1081,7 +1073,7 @@ bool OICodeGen::isDrgnSizeComplete(struct drgn_type *type) {
   return false;
 }
 
-struct drgn_type *OICodeGen::drgnUnderlyingType(struct drgn_type *type) {
+drgn_type *OICodeGen::drgnUnderlyingType(drgn_type *type) {
   auto *underlyingType = type;
 
   while (drgn_type_kind(underlyingType) == DRGN_TYPE_TYPEDEF) {
@@ -1091,14 +1083,15 @@ struct drgn_type *OICodeGen::drgnUnderlyingType(struct drgn_type *type) {
   return underlyingType;
 }
 
-bool OICodeGen::enumerateClassParents(struct drgn_type *type,
+bool OICodeGen::enumerateClassParents(drgn_type *type,
                                       const std::string &typeName) {
-  struct drgn_type_template_parameter *parents = drgn_type_parents(type);
+  drgn_type_template_parameter *parents = drgn_type_parents(type);
 
-  for (size_t i = 0; i < drgn_type_num_parents(type); i++) {
-    struct drgn_qualified_type t {};
+  for (size_t i = 0; i < drgn_type_num_parents(type); ++i) {
+    drgn_qualified_type t{};
 
-    if (auto *err = drgn_template_parameter_type(&parents[i], &t)) {
+    if (auto *err = drgn_template_parameter_type(&parents[i], &t);
+        err != nullptr) {
       LOG(ERROR) << "Error when looking up parent class for type " << type
                  << " err " << err->code << " " << err->message;
       drgn_error_destroy(err);
@@ -1125,13 +1118,13 @@ bool OICodeGen::enumerateClassParents(struct drgn_type *type,
   return true;
 }
 
-bool OICodeGen::enumerateClassMembers(struct drgn_type *type,
+bool OICodeGen::enumerateClassMembers(drgn_type *type,
                                       const std::string &typeName,
                                       bool &isStubbed) {
-  struct drgn_type_member *members = drgn_type_members(type);
+  drgn_type_member *members = drgn_type_members(type);
 
-  for (size_t i = 0; i < drgn_type_num_members(type); i++) {
-    struct drgn_qualified_type t {};
+  for (size_t i = 0; i < drgn_type_num_members(type); ++i) {
+    drgn_qualified_type t{};
     auto *err = drgn_member_type(&members[i], &t, nullptr);
 
     if (err != nullptr || !isDrgnSizeComplete(t.type)) {
@@ -1151,10 +1144,12 @@ bool OICodeGen::enumerateClassMembers(struct drgn_type *type,
       memberName.assign(members[i].name);
     }
 
-    std::string outName;
-    getDrgnTypeNameInt(t.type, outName);
-    VLOG(2) << "Processing member; type: " << outName << " " << t.type
-            << " name: " << memberName;
+    if (VLOG_IS_ON(2)) {
+      std::string outName;
+      getDrgnTypeNameInt(t.type, outName);
+      VLOG(2) << "Processing member; type: " << outName << " " << t.type
+              << " name: " << memberName;
+    }
 
     if (!OICodeGen::enumerateTypesRecurse(t.type)) {
       return false;
@@ -1164,7 +1159,7 @@ bool OICodeGen::enumerateClassMembers(struct drgn_type *type,
   return true;
 }
 
-bool OICodeGen::enumerateClassTemplateParams(struct drgn_type *type,
+bool OICodeGen::enumerateClassTemplateParams(drgn_type *type,
                                              const std::string &typeName,
                                              bool &isStubbed) {
   bool ifStub = false;
@@ -1191,7 +1186,7 @@ bool OICodeGen::ifGenerateMemberDefinition(const std::string &typeName) {
   return !isKnownType(typeName);
 }
 
-bool OICodeGen::generateMemberDefinition(struct drgn_type *type,
+bool OICodeGen::generateMemberDefinition(drgn_type *type,
                                          std::string &typeName) {
   if (!getMemberDefinition(type)) {
     return false;
@@ -1207,9 +1202,9 @@ bool OICodeGen::generateMemberDefinition(struct drgn_type *type,
     }
 
     uint64_t sz = 0;
-    auto *err = drgn_type_sizeof(type, &sz);
-    if (err != nullptr) {
+    if (auto *err = drgn_type_sizeof(type, &sz); err != nullptr) {
       LOG(ERROR) << "Failed to get size: " << err->code << " " << err->message;
+      drgn_error_destroy(err);
       return false;
     }
   }
@@ -1236,8 +1231,7 @@ std::optional<std::string_view> OICodeGen::isTypeToStub(
   return std::nullopt;
 }
 
-bool OICodeGen::isTypeToStub(struct drgn_type *type,
-                             const std::string &typeName) {
+bool OICodeGen::isTypeToStub(drgn_type *type, const std::string &typeName) {
   if (isTypeToStub(typeName)) {
     VLOG(1) << "Found type to stub ";
     knownDummyTypeList.insert(type);
@@ -1247,13 +1241,13 @@ bool OICodeGen::isTypeToStub(struct drgn_type *type,
   return false;
 }
 
-bool OICodeGen::isEmptyClassOrFunctionType(struct drgn_type *type,
+bool OICodeGen::isEmptyClassOrFunctionType(drgn_type *type,
                                            const std::string &typeName) {
   return (!isKnownType(typeName) && drgn_type_has_members(type) &&
           drgn_type_num_members(type) == 0);
 }
 
-bool OICodeGen::enumerateClassType(struct drgn_type *type) {
+bool OICodeGen::enumerateClassType(drgn_type *type) {
   std::string typeName = getStructName(type);
   VLOG(2) << "Transformed typename: " << typeName << " " << type;
 
@@ -1266,7 +1260,7 @@ bool OICodeGen::enumerateClassType(struct drgn_type *type) {
     return true;
   }
 
-  if (!(isContainer(type) || isKnownType(typeName))) {
+  if (!isContainer(type)) {
     if (!enumerateClassParents(type, typeName)) {
       knownDummyTypeList.insert(type);
       return true;
@@ -1308,7 +1302,7 @@ bool OICodeGen::enumerateClassType(struct drgn_type *type) {
   return true;
 }
 
-bool OICodeGen::enumerateTypeDefType(struct drgn_type *type) {
+bool OICodeGen::enumerateTypeDefType(drgn_type *type) {
   std::string typeName;
   if (drgn_type_has_name(type)) {
     typeName = drgn_type_name(type);
@@ -1346,10 +1340,10 @@ bool OICodeGen::enumerateTypeDefType(struct drgn_type *type) {
     tname = drgn_type_name(qtype.type);
   } else {
     uint64_t sz = 0;
-    auto *err = drgn_type_sizeof(type, &sz);
-    if (err != nullptr) {
+    if (auto *err = drgn_type_sizeof(type, &sz); err != nullptr) {
       LOG(ERROR) << "Failed to get size: " << err->code << " " << err->message
                  << " " << typeName;
+      drgn_error_destroy(err);
       return false;
     }
 
@@ -1368,7 +1362,7 @@ bool OICodeGen::enumerateTypeDefType(struct drgn_type *type) {
   return ret;
 }
 
-bool OICodeGen::enumerateEnumType(struct drgn_type *type) {
+bool OICodeGen::enumerateEnumType(drgn_type *type) {
   std::string typeName;
 
   if (drgn_type_tag(type) != nullptr) {
@@ -1394,8 +1388,8 @@ bool OICodeGen::enumerateEnumType(struct drgn_type *type) {
   return true;
 }
 
-static struct drgn_type *getPtrUnderlyingType(struct drgn_type *type) {
-  struct drgn_type *underlyingType = type;
+static drgn_type *getPtrUnderlyingType(drgn_type *type) {
+  drgn_type *underlyingType = type;
 
   while (drgn_type_kind(underlyingType) == DRGN_TYPE_POINTER ||
          drgn_type_kind(underlyingType) == DRGN_TYPE_TYPEDEF) {
@@ -1405,7 +1399,7 @@ static struct drgn_type *getPtrUnderlyingType(struct drgn_type *type) {
   return underlyingType;
 }
 
-bool OICodeGen::enumeratePointerType(struct drgn_type *type) {
+bool OICodeGen::enumeratePointerType(drgn_type *type) {
   // Not handling pointers right now. Pointer members in classes are going to be
   // tricky. If we enumerate objects from pointers there are many questions :-
   // 1. How to handle uninitialized pointers
@@ -1416,14 +1410,13 @@ bool OICodeGen::enumeratePointerType(struct drgn_type *type) {
   // 4. Smart pointers might make it easier to detect (1)/(2)
 
   bool ret = true;
-  struct drgn_qualified_type qtype = drgn_type_type(type);
-
+  drgn_qualified_type qtype = drgn_type_type(type);
   funcDefTypeList.insert(type);
 
   // If type is a function pointer, directly store the underlying type in
   // pointerToTypeMap, so that TreeBuilder can easily replace function
   // pointers with uintptr_t
-  struct drgn_type *utype = getPtrUnderlyingType(type);
+  drgn_type *utype = getPtrUnderlyingType(type);
   if (drgn_type_kind(utype) == DRGN_TYPE_FUNCTION) {
     VLOG(2) << "Type " << type << " is a function pointer to " << utype;
     pointerToTypeMap.emplace(type, utype);
@@ -1431,7 +1424,7 @@ bool OICodeGen::enumeratePointerType(struct drgn_type *type) {
   }
 
   pointerToTypeMap.emplace(type, qtype.type);
-  struct drgn_type *underlyingType = drgnUnderlyingType(qtype.type);
+  drgn_type *underlyingType = drgnUnderlyingType(qtype.type);
 
   bool isComplete = isDrgnSizeComplete(underlyingType);
   if (drgn_type_kind(underlyingType) == DRGN_TYPE_FUNCTION || isComplete) {
@@ -1444,7 +1437,7 @@ bool OICodeGen::enumeratePointerType(struct drgn_type *type) {
   return ret;
 }
 
-bool OICodeGen::enumeratePrimitiveType(struct drgn_type *type) {
+bool OICodeGen::enumeratePrimitiveType(drgn_type *type) {
   std::string typeName;
 
   if (!drgn_type_has_name(type)) {
@@ -1459,13 +1452,13 @@ bool OICodeGen::enumeratePrimitiveType(struct drgn_type *type) {
   return true;
 }
 
-bool OICodeGen::enumerateArrayType(struct drgn_type *type) {
+bool OICodeGen::enumerateArrayType(drgn_type *type) {
   uint64_t ret = 0;
 
-  auto *err = drgn_type_sizeof(type, &ret);
-  if (err != nullptr) {
+  if (auto *err = drgn_type_sizeof(type, &ret); err != nullptr) {
     LOG(ERROR) << "Error when looking up size from drgn " << err->code << " "
                << err->message << " " << std::endl;
+    drgn_error_destroy(err);
     return false;
   }
 
@@ -1477,7 +1470,7 @@ bool OICodeGen::enumerateArrayType(struct drgn_type *type) {
   return true;
 }
 
-bool OICodeGen::enumerateTypesRecurse(struct drgn_type *type) {
+bool OICodeGen::enumerateTypesRecurse(drgn_type *type) {
   auto kind = drgn_type_kind(type);
 
   if (kind == DRGN_TYPE_VOID || kind == DRGN_TYPE_FUNCTION) {
@@ -1494,7 +1487,7 @@ bool OICodeGen::enumerateTypesRecurse(struct drgn_type *type) {
   std::string outName;
   getDrgnTypeNameInt(type, outName);
 
-  struct drgn_qualified_type qtype = {type, {}};
+  drgn_qualified_type qtype = {type, {}};
   char *defStr = nullptr;
   std::string typeDefStr;
 
@@ -1508,12 +1501,14 @@ bool OICodeGen::enumerateTypesRecurse(struct drgn_type *type) {
 
   VLOG(1) << "START processing type: " << outName << " " << type << " "
           << drgnKindStr(type) << " {";
+
   g_level += 1;
-
-  VLOG(2) << typeDefStr;
-
   typePath.push_back(type);
-  printTypePath();
+
+  if (VLOG_IS_ON(2)) {
+    VLOG(2) << "typeDefStr: " << typeDefStr;
+    printTypePath();
+  }
 
   processedTypes.insert(type);
 
@@ -1557,7 +1552,7 @@ bool OICodeGen::enumerateTypesRecurse(struct drgn_type *type) {
   return ret;
 }
 
-std::optional<std::string> OICodeGen::getNameForType(struct drgn_type *type) {
+std::optional<std::string> OICodeGen::getNameForType(drgn_type *type) {
   if (typeToNameMap.find(type) == typeToNameMap.end()) {
     LOG(ERROR) << "QOO7 Failed to find " << type;
     return std::nullopt;
@@ -1566,7 +1561,7 @@ std::optional<std::string> OICodeGen::getNameForType(struct drgn_type *type) {
 }
 
 void OICodeGen::getFuncDefClassMembers(
-    std::string &code, struct drgn_type *type,
+    std::string &code, drgn_type *type,
     std::unordered_map<std::string, int> &memberNames, bool skipPadding) {
   if (drgn_type_kind(type) == DRGN_TYPE_TYPEDEF) {
     // Handle case where parent is a typedef
@@ -1590,7 +1585,7 @@ void OICodeGen::getFuncDefClassMembers(
     auto paddingIt = paddingIndexMap.find(type);
     if (paddingIt != paddingIndexMap.end()) {
       const auto &paddingRange = paddingIt->second;
-      for (auto i = paddingRange.first; i < paddingRange.second; i++) {
+      for (auto i = paddingRange.first; i < paddingRange.second; ++i) {
         code += "SAVE_SIZE(sizeof(t.__padding_" + std::to_string(i) + "));\n";
       }
     }
@@ -1607,7 +1602,7 @@ void OICodeGen::getFuncDefClassMembers(
     code += ">;\n";
   }
 
-  for (std::size_t i = 0; i < members.size(); i++) {
+  for (std::size_t i = 0; i < members.size(); ++i) {
     if (captureThriftIsset && i < members.size() - 1) {
       // Capture Thrift's isset value for each field, except __isset itself,
       // which we assume comes last
@@ -1649,7 +1644,7 @@ void OICodeGen::getFuncDefClassMembers(
   }
 }
 
-void OICodeGen::getFuncDefinitionStr(std::string &code, struct drgn_type *type,
+void OICodeGen::getFuncDefinitionStr(std::string &code, drgn_type *type,
                                      const std::string &typeName) {
   if (classMembersMap.find(type) == classMembersMap.end()) {
     return;
@@ -1730,7 +1725,7 @@ void OICodeGen::memberTransformName(
 }
 
 OICodeGen::SortedTypeDefMap OICodeGen::getSortedTypeDefMap(
-    const std::map<struct drgn_type *, struct drgn_type *> &typedefTypeMap) {
+    const std::map<drgn_type *, drgn_type *> &typedefTypeMap) {
   auto typeMap = typedefTypeMap;
   SortedTypeDefMap typedefVec;
 
@@ -1747,7 +1742,7 @@ OICodeGen::SortedTypeDefMap OICodeGen::getSortedTypeDefMap(
   return typedefVec;
 }
 
-bool OICodeGen::getEnumUnderlyingTypeStr(struct drgn_type *e,
+bool OICodeGen::getEnumUnderlyingTypeStr(drgn_type *e,
                                          std::string &enumUnderlyingTypeStr) {
   std::string name;
   if (drgn_type_tag(e) != nullptr) {
@@ -1757,10 +1752,10 @@ bool OICodeGen::getEnumUnderlyingTypeStr(struct drgn_type *e,
   }
 
   uint64_t sz = 0;
-  auto *err = drgn_type_sizeof(e, &sz);
-  if (err != nullptr) {
+  if (auto *err = drgn_type_sizeof(e, &sz); err != nullptr) {
     LOG(ERROR) << "Error when looking up size from drgn " << err->code << " "
                << err->message << " ";
+    drgn_error_destroy(err);
     return false;
   }
 
@@ -1787,8 +1782,7 @@ bool OICodeGen::getEnumUnderlyingTypeStr(struct drgn_type *e,
   return true;
 }
 
-bool OICodeGen::getDrgnTypeNameInt(struct drgn_type *type,
-                                   std::string &outName) {
+bool OICodeGen::getDrgnTypeNameInt(drgn_type *type, std::string &outName) {
   std::string name;
 
   if (drgn_type_kind(type) == DRGN_TYPE_ENUM) {
@@ -1808,14 +1802,14 @@ bool OICodeGen::getDrgnTypeNameInt(struct drgn_type *type,
   } else if (drgn_type_has_name(type)) {
     name.assign(drgn_type_name(type));
   } else if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
-    struct drgn_type *underlyingType = getPtrUnderlyingType(type);
+    drgn_type *underlyingType = getPtrUnderlyingType(type);
     if (config.chaseRawPointers &&
         drgn_type_kind(underlyingType) != DRGN_TYPE_FUNCTION) {
       // For pointers, figure out name for the underlying type then add
       // appropriate number of '*'
       {
         int ptrDepth = 0;
-        struct drgn_type *ut = type;
+        drgn_type *ut = type;
         while (drgn_type_kind(ut) == DRGN_TYPE_POINTER) {
           ut = drgn_type_type(ut).type;
           ptrDepth++;
@@ -1846,11 +1840,11 @@ bool OICodeGen::getDrgnTypeNameInt(struct drgn_type *type,
   return true;
 }
 
-bool OICodeGen::getDrgnTypeName(struct drgn_type *type, std::string &outName) {
+bool OICodeGen::getDrgnTypeName(drgn_type *type, std::string &outName) {
   return getDrgnTypeNameInt(type, outName);
 }
 
-void OICodeGen::addTypeToName(struct drgn_type *type, std::string name) {
+void OICodeGen::addTypeToName(drgn_type *type, std::string name) {
   VLOG(2) << "Trying to assign name to type: " << name << " " << type;
 
   if (typeToNameMap.find(type) != typeToNameMap.end()) {
@@ -1893,7 +1887,7 @@ void OICodeGen::addTypeToName(struct drgn_type *type, std::string name) {
 }
 
 void OICodeGen::getClassMembersIncludingParent(
-    struct drgn_type *type, std::vector<DrgnClassMemberInfo> &out) {
+    drgn_type *type, std::vector<DrgnClassMemberInfo> &out) {
   if (drgn_type_kind(type) == DRGN_TYPE_TYPEDEF) {
     // Handle case where parent is a typedef
     getClassMembersIncludingParent(drgnUnderlyingType(type), out);
@@ -1911,7 +1905,7 @@ void OICodeGen::getClassMembersIncludingParent(
   }
 }
 
-std::map<struct drgn_type *, std::vector<DrgnClassMemberInfo>>
+std::map<drgn_type *, std::vector<DrgnClassMemberInfo>>
     &OICodeGen::getClassMembersMap() {
   for (auto &e : classMembersMap) {
     std::vector<DrgnClassMemberInfo> v;
@@ -2017,7 +2011,7 @@ void OICodeGen::printAllTypeNames() {
   }
 }
 
-bool OICodeGen::generateStructDef(struct drgn_type *e, std::string &code) {
+bool OICodeGen::generateStructDef(drgn_type *e, std::string &code) {
   if (classMembersMap.find(e) == classMembersMap.end()) {
     LOG(ERROR) << "Failed to find in classMembersMap " << e;
     return false;
@@ -2143,8 +2137,8 @@ bool OICodeGen::generateStructDef(struct drgn_type *e, std::string &code) {
   return true;
 }
 
-void OICodeGen::getDrgnArrayElementType(struct drgn_type *type,
-                                        struct drgn_type **outElemType,
+void OICodeGen::getDrgnArrayElementType(drgn_type *type,
+                                        drgn_type **outElemType,
                                         size_t &outNumElems) {
   size_t elems = 1;
 
@@ -2161,7 +2155,7 @@ void OICodeGen::getDrgnArrayElementType(struct drgn_type *type,
   outNumElems = elems;
 }
 
-bool OICodeGen::isNumMemberGreaterThanZero(struct drgn_type *type) {
+bool OICodeGen::isNumMemberGreaterThanZero(drgn_type *type) {
   if (drgn_type_num_members(type) > 0) {
     return true;
   }
@@ -2272,7 +2266,7 @@ std::optional<uint64_t> OICodeGen::generateMember(
     // TODO: No idea how to handle flexible array member or zero length array
     size_t elems = 1;
 
-    struct drgn_type *arrayElementType = nullptr;
+    drgn_type *arrayElementType = nullptr;
     getDrgnArrayElementType(memberType, &arrayElementType, elems);
     auto tmpStr = getNameForType(arrayElementType);
 
@@ -2341,7 +2335,7 @@ std::optional<uint64_t> OICodeGen::generateMember(
 }
 
 bool OICodeGen::generateParent(
-    struct drgn_type *p, std::unordered_map<std::string, int> &memberNames,
+    drgn_type *p, std::unordered_map<std::string, int> &memberNames,
     uint64_t &currOffsetBits, std::string &code, size_t offsetToNextMember) {
   // Parent class could be a typedef
   PaddingInfo paddingInfo{};
@@ -2372,8 +2366,7 @@ bool OICodeGen::generateParent(
 }
 
 /*Helper function that returns the alignment constraints in bits*/
-std::optional<uint64_t> OICodeGen::getAlignmentRequirements(
-    struct drgn_type *e) {
+std::optional<uint64_t> OICodeGen::getAlignmentRequirements(drgn_type *e) {
   const uint64_t minimumAlignmentBits = CHAR_BIT;
   uint64_t alignmentRequirement = CHAR_BIT;
   std::string outName;
@@ -2402,8 +2395,8 @@ std::optional<uint64_t> OICodeGen::getAlignmentRequirements(
       } else {
         auto numMembers = drgn_type_num_members(e);
         auto *members = drgn_type_members(e);
-        for (size_t i = 0; i < numMembers; i++) {
-          struct drgn_qualified_type memberType {};
+        for (size_t i = 0; i < numMembers; ++i) {
+          drgn_qualified_type memberType{};
           if (drgn_member_type(&members[i], &memberType, nullptr) != nullptr) {
             continue;
           }
@@ -2414,7 +2407,7 @@ std::optional<uint64_t> OICodeGen::getAlignmentRequirements(
               std::max(alignmentRequirement, currentMemberAlignmentRequirement);
         }
         for (size_t parentIndex = 0; parentIndex < parentClasses[e].size();
-             parentIndex++) {
+             ++parentIndex) {
           size_t parentAlignment =
               getAlignmentRequirements(parentClasses[e][parentIndex].type)
                   .value_or(minimumAlignmentBits);
@@ -2435,7 +2428,7 @@ std::optional<uint64_t> OICodeGen::getAlignmentRequirements(
 }
 
 bool OICodeGen::generateStructMembers(
-    struct drgn_type *e, std::unordered_map<std::string, int> &memberNames,
+    drgn_type *e, std::unordered_map<std::string, int> &memberNames,
     std::string &code, uint64_t &out_offset_bits, PaddingInfo &paddingInfo,
     bool &violatesAlignmentRequirement, size_t offsetToNextMemberInSubclass) {
   if (classMembersMap.find(e) == classMembersMap.end()) {
@@ -2697,14 +2690,14 @@ bool OICodeGen::generateStructMembers(
 }
 
 bool OICodeGen::generateStructDefs(std::string &code) {
-  std::vector<struct drgn_type *> structDefTypeCopy = structDefType;
-  std::map<struct drgn_type *, std::vector<ParentMember>> parentClassesCopy =
+  std::vector<drgn_type *> structDefTypeCopy = structDefType;
+  std::map<drgn_type *, std::vector<ParentMember>> parentClassesCopy =
       parentClasses;
 
   while (!structDefTypeCopy.empty()) {
     for (auto it = structDefTypeCopy.cbegin();
          it != structDefTypeCopy.cend();) {
-      struct drgn_type *e = *it;
+      drgn_type *e = *it;
       if (classMembersMap.find(e) == classMembersMap.end()) {
         LOG(ERROR) << "Failed to find in classMembersMap " << e;
         return false;
@@ -2768,7 +2761,7 @@ bool OICodeGen::generateStructDefs(std::string &code) {
   return true;
 }
 
-bool OICodeGen::addStaticAssertsForType(struct drgn_type *type,
+bool OICodeGen::addStaticAssertsForType(drgn_type *type,
                                         bool generateAssertsForOffsets,
                                         std::string &code) {
   auto struct_name = getNameForType(type);
@@ -2962,8 +2955,10 @@ bool OICodeGen::generateJitCode(std::string &code) {
     }
 
     uint64_t sz = 0;
-    if (auto *err = drgn_type_sizeof(e, &sz)) {
+    if (auto *err = drgn_type_sizeof(e, &sz); err != nullptr) {
+      bool shouldReturn = false;
       std::string knownTypeName;
+
       if (auto opt = isTypeToStub(*typeName)) {
         knownTypeName = opt.value();
       }
@@ -2976,6 +2971,12 @@ bool OICodeGen::generateJitCode(std::string &code) {
       } else {
         LOG(ERROR) << "Failed to get size: " << err->code << " " << err->message
                    << " " << e;
+        shouldReturn = true;
+      }
+
+      drgn_error_destroy(err);
+
+      if (shouldReturn) {
         return false;
       }
     }
@@ -3003,10 +3004,10 @@ bool OICodeGen::generateJitCode(std::string &code) {
     }
 
     uint64_t sz = 0;
-    auto *err = drgn_type_sizeof(e, &sz);
-    if (err != nullptr) {
+    if (auto *err = drgn_type_sizeof(e, &sz); err != nullptr) {
       LOG(ERROR) << "Error when looking up size from drgn " << err->code << " "
                  << err->message << " ";
+      drgn_error_destroy(err);
       return false;
     }
 
@@ -3243,7 +3244,7 @@ bool OICodeGen::generateJitCode(std::string &code) {
   return true;
 }
 
-bool OICodeGen::isUnnamedStruct(struct drgn_type *type) {
+bool OICodeGen::isUnnamedStruct(drgn_type *type) {
   return unnamedUnion.find(type) != unnamedUnion.end();
 }
 
@@ -3379,7 +3380,7 @@ bool OICodeGen::generateNamesForTypes() {
   for (auto &e : funcDefTypeList) {
     if (drgn_type_kind(e) == DRGN_TYPE_POINTER) {
       int ptrDepth = 0;
-      struct drgn_type *ut = e;
+      drgn_type *ut = e;
       while (drgn_type_kind(ut) == DRGN_TYPE_POINTER) {
         ut = drgn_type_type(ut).type;
         ptrDepth++;
@@ -3403,7 +3404,7 @@ bool OICodeGen::generateNamesForTypes() {
   for (auto &e : typedefTypes) {
     if (drgn_type_kind(e.second) == DRGN_TYPE_POINTER) {
       int ptrDepth = 0;
-      struct drgn_type *ut = e.second;
+      drgn_type *ut = e.second;
       while (drgn_type_kind(ut) == DRGN_TYPE_POINTER) {
         ut = drgn_type_type(ut).type;
         ptrDepth++;
@@ -3471,10 +3472,11 @@ std::optional<RootInfo> OICodeGen::getRootType(SymbolService &symbols,
       return std::nullopt;
     }
 
-    struct drgn_object global {};
+    drgn_object global{};
     drgn_object_init(&global, prog);
     if (auto *err = drgn_program_find_object(prog, req.func.c_str(), nullptr,
-                                             DRGN_FIND_OBJECT_ANY, &global)) {
+                                             DRGN_FIND_OBJECT_ANY, &global);
+        err != nullptr) {
       LOG(ERROR) << "Failed to lookup global variable '" << req.func
                  << "': " << err->code << " " << err->message;
       drgn_error_destroy(err);
@@ -3502,9 +3504,10 @@ std::optional<RootInfo> OICodeGen::getRootType(SymbolService &symbols,
     return std::nullopt;
   }
 
-  struct drgn_qualified_type ft {};
-  if (auto *err = drgn_program_find_type_by_symbol_name(
-          prog, req.func.c_str(), &ft, nullptr, nullptr)) {
+  drgn_qualified_type ft{};
+  if (auto *err = drgn_program_find_type_by_symbol_name(prog, req.func.c_str(),
+                                                        &ft, nullptr, nullptr);
+      err != nullptr) {
     LOG(ERROR) << "Error when finding type by symbol " << err->code << " "
                << err->message;
     drgn_error_destroy(err);
@@ -3547,9 +3550,9 @@ std::optional<RootInfo> OICodeGen::getRootType(SymbolService &symbols,
     return std::nullopt;
   }
 
-  struct drgn_qualified_type paramType {};
-  auto *err = drgn_parameter_type(&params[argIdx], &paramType);
-  if (err != nullptr) {
+  drgn_qualified_type paramType{};
+  if (auto *err = drgn_parameter_type(&params[argIdx], &paramType);
+      err != nullptr) {
     LOG(ERROR) << "Failed to get params: " << err->code << " " << err->message;
     drgn_error_destroy(err);
     return std::nullopt;
@@ -3568,7 +3571,7 @@ std::optional<RootInfo> OICodeGen::getRootType(SymbolService &symbols,
  * Generate static_asserts for the offsets of each member of the given type
  */
 bool OICodeGen::staticAssertMemberOffsets(
-    const std::string &struct_name, struct drgn_type *struct_type,
+    const std::string &struct_name, drgn_type *struct_type,
     std::string &assert_str, std::unordered_map<std::string, int> &memberNames,
     uint64_t base_offset) {
   if (knownDummyTypeList.find(struct_type) != knownDummyTypeList.end()) {
@@ -3604,7 +3607,7 @@ bool OICodeGen::staticAssertMemberOffsets(
   }
 
   auto *members = drgn_type_members(struct_type);
-  for (size_t i = 0; i < drgn_type_num_members(struct_type); i++) {
+  for (size_t i = 0; i < drgn_type_num_members(struct_type); ++i) {
     if (members[i].name == nullptr) {
       // Types can be defined in a class without assigning a member name e.g.
       // struct A { struct {int i;} ;}; is a valid struct with size 4.
@@ -3615,12 +3618,14 @@ bool OICodeGen::staticAssertMemberOffsets(
 
     std::replace(memberName.begin(), memberName.end(), '.', '_');
 
-    struct drgn_qualified_type memberQualType {};
+    drgn_qualified_type memberQualType{};
     uint64_t bitFieldSize = 0;
-    auto *err = drgn_member_type(&members[i], &memberQualType, &bitFieldSize);
-    if (err != nullptr) {
+    if (auto *err =
+            drgn_member_type(&members[i], &memberQualType, &bitFieldSize);
+        err != nullptr) {
       LOG(ERROR) << "Error when looking up member type " << err->code << " "
                  << err->message << " " << memberName;
+      drgn_error_destroy(err);
       return false;
     }
 
@@ -3643,11 +3648,11 @@ std::map<std::string, PaddingInfo> OICodeGen::getPaddingInfo() {
   return paddedStructs;
 }
 
-struct drgn_qualified_type OICodeGen::getRootType() {
+drgn_qualified_type OICodeGen::getRootType() {
   return rootTypeToIntrospect;
 };
 
-void OICodeGen::setRootType(struct drgn_qualified_type rt) {
+void OICodeGen::setRootType(drgn_qualified_type rt) {
   rootType = rt;
 }
 
