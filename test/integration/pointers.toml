@@ -14,7 +14,7 @@ definitions = '''
 
 [cases]
   [cases.int]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["int*"]
     setup = "return new int(1);"
@@ -33,7 +33,7 @@ definitions = '''
       ]
     }]'''
   [cases.int_no_follow]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
     param_types = ["int*"]
     setup = "return new int(1);"
     expect_json = '''[{
@@ -44,7 +44,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.int_null]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
     param_types = ["int*"]
     setup = "return nullptr;"
     expect_json = '''[{
@@ -57,7 +57,8 @@ definitions = '''
 
 
   [cases.void]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["void*"]
     setup = "return new int(1);"
     cli_options = ["--chase-raw-pointers"]
@@ -69,7 +70,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.void_no_follow]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
     param_types = ["void*"]
     setup = "return new int(1);"
     expect_json = '''[{
@@ -80,7 +81,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.void_null]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
     param_types = ["void*"]
     setup = "return nullptr;"
     expect_json = '''[{
@@ -93,7 +94,7 @@ definitions = '''
 
 
   [cases.vector]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["std::vector<int>*"]
     setup = "return new std::vector<int>{1,2,3};"
@@ -112,7 +113,7 @@ definitions = '''
       ]
     }]'''
   [cases.vector_no_follow]
-    skip = "top-level pointers are skipped over"
+    oid_skip = "top-level pointers are skipped over"
     param_types = ["std::vector<int>*"]
     setup = "return new std::vector<int>{1,2,3};"
     expect_json = '''[{
@@ -123,7 +124,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.vector_null]
-    skip = "BAD DATA SEGMENT!!! top-level pointers are skipped over"
+    oid_skip = "BAD DATA SEGMENT!!! top-level pointers are skipped over"
     param_types = ["std::vector<int>*"]
     setup = "return nullptr;"
     expect_json = '''[{
