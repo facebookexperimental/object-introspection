@@ -14,7 +14,7 @@ definitions = '''
 
 [cases]
   [cases.raw]
-    skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly"
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{myFunction}};"
     expect_json = '''[{
@@ -29,7 +29,8 @@ definitions = '''
       }]
     }]'''
   [cases.raw_chase] # We should never chase function pointers
-    skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{myFunction}};"
     cli_options = ["--chase-raw-pointers"]
@@ -45,7 +46,7 @@ definitions = '''
       }]
     }]'''
   [cases.raw_null]
-    skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly"
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{nullptr}};"
     expect_json = '''[{
@@ -61,7 +62,7 @@ definitions = '''
     }]'''
 
   [cases.std_function]
-    skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly"
     param_types = ["std::function<void(int)> &"]
     setup = "return myFunction;"
     expect_json = '''[{
@@ -72,7 +73,8 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.std_function_chase] # We should never chase function pointers
-    skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly"
+    oil_disable = "oil can't chase raw pointers safely"
     param_types = ["std::function<void(int)> &"]
     setup = "return myFunction;"
     cli_options = ["--chase-raw-pointers"]
@@ -84,7 +86,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.std_function_null]
-    skip = "function pointers are not handled correctly"
+    oid_skip = "function pointers are not handled correctly"
     param_types = ["std::function<void(int)> &"]
     setup = "return nullptr;"
     expect_json = '''[{
