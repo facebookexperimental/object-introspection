@@ -10,7 +10,6 @@ definitions = '''
 
 [cases]
   [cases.a]
-    oil_skip = "OIL doesn't support the 'codegen.ignore' config yet"
     param_types = ["const Bar&"]
     setup = """
       return Bar{
