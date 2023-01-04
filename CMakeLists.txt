@@ -35,19 +35,6 @@ endif()
 ## System checks
 ## These checks are potentially fatal so perform them first.
 
-### Require sudo and setcap (for setting oid capabilities)
-find_program(SETCAP setcap)
-if(NOT SETCAP)
-  message(FATAL_ERROR "setcap not found - please install")
-endif()
-
-if(NOT EXISTS "/etc/centos-release")
-  find_program(SUDO sudo)
-  if(NOT SUDO)
-    message(FATAL_ERROR "sudo not found - please install")
-  endif()
-endif()
-
 ### (Re)download submodules
 find_package(Git QUIET)
 
@@ -335,10 +322,6 @@ else()
   target_link_libraries(oid gflags_shared)
 endif()
 target_link_libraries(oid oicore treebuilder)
-
-add_custom_command(TARGET oid POST_BUILD
-  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-  COMMAND sudo setcap cap_sys_ptrace+ep ./oid)
 
 ### Object Introspection Tests
 if (WITH_TESTS)
