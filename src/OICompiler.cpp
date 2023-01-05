@@ -471,6 +471,7 @@ bool OICompiler::compile(const std::string &code, const fs::path &sourcePath,
   compInv->getLangOpts()->GNUCVersion = 11 * 100 * 100;  // 11.0.0
   compInv->getLangOpts()->Bool = true;
   compInv->getLangOpts()->WChar = true;
+  compInv->getLangOpts()->Char8 = true;
   compInv->getLangOpts()->CXXOperatorNames = true;
   compInv->getLangOpts()->DoubleSquareBracketAttributes = true;
   compInv->getLangOpts()->ImplicitInt = false;
