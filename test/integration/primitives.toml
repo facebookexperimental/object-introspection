@@ -51,6 +51,10 @@
     param_types = ["wchar_t"]
     setup = "return 'a';"
     expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+  [cases.char8_t]
+    param_types = ["char8_t"]
+    setup = "return 'a';"
+    expect_json = '[{"staticSize":1, "dynamicSize":0}]'
   [cases.char16_t]
     param_types = ["char16_t"]
     setup = "return 'a';"
