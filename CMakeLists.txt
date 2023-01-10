@@ -182,9 +182,6 @@ set(DRGN_CONFIGURE_FLAGS "--with-libkdumpfile=no")
 if (ASAN)
   list(APPEND DRGN_CONFIGURE_FLAGS "--enable-asan=yes")
 endif()
-# We always compile drgn with aggressive optimizations because it is
-# responsible for most of the time OID takes to generate caches.
-set(DRGN_CFLAGS "-O3" "-march=broadwell")
 add_custom_target(libdrgn ALL
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extern/drgn
   COMMAND unset BISON_PKGDATADIR && CC=gcc CFLAGS="${DRGN_CFLAGS}" CONFIGURE_FLAGS="${DRGN_CONFIGURE_FLAGS}" ${PYTHON} ./setup.py build --build-temp build
