@@ -26,6 +26,7 @@
 #include "Serialize.h"
 
 #ifndef OSS_ENABLE
+#include "cea/object-introspection/internal/GobsService.h"
 #include "cea/object-introspection/internal/ManifoldCache.h"
 #endif
 
@@ -241,6 +242,10 @@ std::string OICache::generateRemoteHash(const irequest &req) {
 
   std::string remote_cache_id = *buildID + "/" + req.func + "/" + req.arg +
                                 "/" + generatorConfig.toString();
+#ifndef OSS_ENABLE
+  auto version_pair = ObjectIntrospection::GobsService::getOidRpmVersions();
+  remote_cache_id += "/" + version_pair.first + "/" + version_pair.second;
+#endif
 
   LOG(INFO) << "generating remote hash from: " << remote_cache_id;
   return std::to_string(std::hash<std::string>{}(remote_cache_id));
