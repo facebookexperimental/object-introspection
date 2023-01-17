@@ -1553,11 +1553,12 @@ bool OICodeGen::enumerateTypesRecurse(drgn_type *type) {
 }
 
 std::optional<std::string> OICodeGen::getNameForType(drgn_type *type) {
-  if (typeToNameMap.find(type) == typeToNameMap.end()) {
-    LOG(ERROR) << "QOO7 Failed to find " << type;
-    return std::nullopt;
+  if (auto search = typeToNameMap.find(type); search != typeToNameMap.end()) {
+    return search->second;
   }
-  return typeToNameMap[type];
+
+  LOG(ERROR) << "QOO7 Failed to find " << type;
+  return std::nullopt;
 }
 
 void OICodeGen::getFuncDefClassMembers(
