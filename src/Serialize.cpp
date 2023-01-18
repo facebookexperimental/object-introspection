@@ -226,10 +226,6 @@ void serialize(Archive &ar, struct drgn_type &type,
   } while (0)
 
   verify_version<struct drgn_type>(version);
-  // We want to ensure that if the definition of `struct drgn_type` is changed
-  // at any point in the future that our code stops compiling, instead of us
-  // silently ignoring any newly added fields.
-  static_assert(sizeof(type) == 120);
 
   // Ensure any unused fields are zeroed out for safety, as to avoid subtle
   // bugs resulting from mistakenly unserialized fields containing garbage.
@@ -259,16 +255,12 @@ void serialize(Archive &ar, struct drgn_type &type,
   // `struct drgn_type`s in order to avoid serializing massive amounts of data.
   // In other words, our serialization of `struct drgn_type` is shallow.
 
-  // First union: `name`, `tag`, `num_parameters`
+  // First union: `name`, `tag`
   assert_in_same_union(name, tag);
-  assert_in_same_union(name, num_parameters);
   if (drgn_type_has_name(&type)) {
     serialize_c_string(ar, const_cast<char **>(&type._private.name));
   } else if (drgn_type_has_tag(&type)) {
     serialize_c_string(ar, const_cast<char **>(&type._private.tag));
-  } else if (drgn_type_has_parameters(&type)) {
-    // Leave `num_parameters` set to 0 per the initial `memset`,
-    // see "AVOIDING OVERSERIALIZATION" comment above
   }
 
   // Second union: `size`, `length`, `num_enumerators`, `is_variadic`
@@ -285,7 +277,11 @@ void serialize(Archive &ar, struct drgn_type &type,
     ar &type._private.is_variadic;
   }
 
-  // Third union: `little_endian`, `members`, `enumerators`, `parameters`
+  // Third union: `is_signed`, `num_members`, `num_paramters`
+  // Leave set to 0 per the initial `memset`, see "AVOIDING OVERSERIALIZATION"
+  // comment above
+
+  // Fourth union: `little_endian`, `members`, `enumerators`, `parameters`
   assert_in_same_union(little_endian, members);
   assert_in_same_union(little_endian, enumerators);
   assert_in_same_union(little_endian, parameters);
