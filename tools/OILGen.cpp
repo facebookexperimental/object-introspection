@@ -16,6 +16,7 @@
 
 #include <glog/logging.h>
 
+#include <cstdlib>
 #include <filesystem>
 #include <iostream>
 
@@ -76,6 +77,12 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
   fs::path primaryObject = argv[optind];
+
+  if ((setenv("DRGN_ENABLE_TYPE_ITERATOR", "1", 1)) < 0) {
+    std::cerr << "Failed to set environment variable\
+       DRGN_ENABLE_TYPE_ITERATOR\n";
+    exit(EXIT_FAILURE);
+  }
 
   OIGenerator oigen;
 
