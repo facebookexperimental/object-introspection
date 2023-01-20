@@ -1,0 +1,58 @@
+definitions = '''
+  class Base {
+    int base_int;
+  };
+
+  class Public : public Base {
+    int public_int;
+  };
+
+  class Protected : protected Base {
+    int protected_int;
+  };
+
+  class Private : private Base {
+    int private_int;
+  };
+'''
+[cases]
+  [cases.public]
+    param_types = ["const Public&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "members":[
+        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"public_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+      ]}]'''
+  [cases.protected]
+    param_types = ["const Protected&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "members":[
+        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"protected_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+      ]}]'''
+  [cases.private]
+    param_types = ["const Private&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "members":[
+        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"},
+        {"name":"private_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+      ]}]'''
+  [cases.public_as_base]
+    param_types = ["const Base&"]
+    arg_types = ["Public"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":4,
+      "dynamicSize":0,
+      "members":[
+        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+      ]}]'''

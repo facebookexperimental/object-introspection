@@ -22,10 +22,7 @@ definitions = '''
 [cases]
   [cases.a]
     param_types = ["const Derived_2&"]
-    setup = '''
-      Derived_2 d;
-      return {d};
-    '''
+    setup = 'return {};'
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":0,

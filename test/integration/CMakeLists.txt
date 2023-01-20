@@ -3,6 +3,11 @@ set(INTEGRATION_TEST_CONFIGS
   anonymous.toml
   container_enums.toml
   cycles.toml
+  inheritance_access.toml
+  inheritance_multiple.toml
+  inheritance_polymorphic.toml
+  inheritance_polymorphic_diamond.toml
+  inheritance_polymorphic_non_dynamic_base.toml
   multi_arg.toml
   namespaces.toml
   packed.toml
@@ -12,7 +17,6 @@ set(INTEGRATION_TEST_CONFIGS
   pointers_incomplete.toml
   primitives.toml
   references.toml
-  simple_multiple_multilevel_inheritance.toml
   simple_struct.toml
   std_array.toml
   std_deque_del_allocator.toml
