@@ -1,0 +1,37 @@
+definitions = '''
+  struct CustomComparator {
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct Foo {
+    std::multimap<int, int> m1;
+    std::multimap<int, int, CustomComparator> m2;
+  };
+'''
+includes = ["map"]
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+
+      for (int i = 0; i < 3; i++) {
+        foo.m1.insert(std::pair<int, int>(i,i));
+      }
+
+      for (int i = 0; i < 5; i++) {
+        foo.m2.insert(std::pair<int, int>(i,i));
+      }
+
+      return {foo};
+    '''
+    expect_json = '''[{
+      "staticSize":96,
+      "dynamicSize":64,
+      "members":[
+        {"name":"m1", "staticSize":48, "dynamicSize":24, "length":3, "capacity":3, "elementStaticSize":8},
+        {"name":"m2", "staticSize":48, "dynamicSize":40, "length":5, "capacity":5, "elementStaticSize":8}
+      ]}]'''

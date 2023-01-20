@@ -19,6 +19,7 @@ set(INTEGRATION_TEST_CONFIGS
   std_list_del_allocator.toml
   std_deque.toml
   std_map_custom_comparator.toml
+  std_multimap_custom_comparator.toml
   std_optional.toml
   std_pair.toml
   std_queue.toml

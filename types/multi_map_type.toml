@@ -4,9 +4,8 @@ numTemplateParams = 2
 ctype = "MULTI_MAP_TYPE"
 header = "map"
 ns = ["namespace std"]
-replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
+replaceTemplateParamIndex = [2]
+allocatorIndex = 3
 
 [codegen]
 decl = """
