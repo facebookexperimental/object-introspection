@@ -1,0 +1,119 @@
+includes = ["vector"]
+definitions = '''
+  class A {
+  public:
+    virtual void myfunc() {}
+    int int_a;
+  };
+
+  class B : public A {
+  public:
+    virtual void myfunc() override {}
+    std::vector<int> vec_b;
+  };
+
+  class C : public B {
+  public:
+    virtual void myfunc() override {}
+    int int_c;
+  };
+'''
+[cases]
+  [cases.a_as_a]
+    param_types = ["const A&"]
+    arg_types = ["A"]
+    setup = "return {};"
+    expect_json = '''[{
+      "typeName":"A",
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_a", "staticSize":4, "dynamicSize":0}
+      ]}]'''
+
+  [cases.b_as_a]
+    param_types = ["const A&"]
+    arg_types = ["B"]
+    setup = '''
+      B b;
+      b.vec_b = {1,2,3};
+      return b;
+    '''
+    expect_json = '''[{
+      "typeName":"A",
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_a", "staticSize":4, "dynamicSize":0}
+      ]}]'''
+  [cases.b_as_b]
+    param_types = ["const B&"]
+    arg_types = ["B"]
+    setup = '''
+      B b;
+      b.vec_b = {1,2,3};
+      return b;
+    '''
+    expect_json = '''[{
+      "typeName":"B",
+      "staticSize":40,
+      "dynamicSize":12,
+      "members":[
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}
+      ]}]'''
+
+  [cases.c_as_a]
+    param_types = ["const A&"]
+    arg_types = ["C"]
+    setup = '''
+      C c;
+      c.vec_b = {1,2,3};
+      return c;
+    '''
+    expect_json = '''[{
+      "typeName":"A",
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_a", "staticSize":4, "dynamicSize":0}
+      ]}]'''
+  [cases.c_as_b]
+    param_types = ["const B&"]
+    arg_types = ["C"]
+    setup = '''
+      C c;
+      c.vec_b = {1,2,3};
+      return c;
+    '''
+    expect_json = '''[{
+      "typeName":"B",
+      "staticSize":40,
+      "dynamicSize":12,
+      "members":[
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}
+      ]}]'''
+  [cases.c_as_c]
+    param_types = ["const C&"]
+    arg_types = ["C"]
+    setup = '''
+      C c;
+      c.vec_b = {1,2,3};
+      return c;
+    '''
+    expect_json = '''[{
+      "typeName":"C",
+      "staticSize":48,
+      "dynamicSize":12,
+      "members":[
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"name":"int_c", "staticSize":4, "dynamicSize":0}
+      ]}]'''
