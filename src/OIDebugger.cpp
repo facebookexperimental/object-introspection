@@ -1951,7 +1951,7 @@ OIDebugger::OIDebugger(fs::path debugInfo, std::string configFile,
  */
 bool OIDebugger::writeTargetMemory(void *local_buffer, void *target_addr,
                                    size_t bufsz) const {
-  VLOG(1) << "Writting buffer " << std::hex << local_buffer << ", bufsz "
+  VLOG(1) << "Writing buffer " << std::hex << local_buffer << ", bufsz "
           << std::dec << bufsz << " into target " << std::hex << target_addr;
 
   struct iovec liovecs[] = {{
