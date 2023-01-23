@@ -294,10 +294,6 @@ add_executable(oilgen
 )
 target_link_libraries(oilgen oicore)
 
-### Object Introspection Compiler
-add_executable(oi_compile src/OICompile.cpp)
-target_link_libraries(oi_compile oicore oil)
-
 ### Object Introspection cache Printer (OIP)
 add_executable(oip tools/OIP.cpp)
 set_project_warnings(oip)
@@ -351,6 +347,6 @@ target_precompile_headers(oicore
   PUBLIC <glog/logging.h>
 )
 
-foreach(TARGET oil oip oi_compile oid oitb)
+foreach(TARGET oil oip oid oitb)
   target_precompile_headers(${TARGET} REUSE_FROM oicore)
 endforeach()
