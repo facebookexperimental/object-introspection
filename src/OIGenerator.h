@@ -39,11 +39,15 @@ class OIGenerator {
   void setSourceFileDumpPath(fs::path _sourceFileDumpPath) {
     sourceFileDumpPath = std::move(_sourceFileDumpPath);
   }
+  void setFailIfNothingGenerated(bool fail) {
+    failIfNothingGenerated = fail;
+  }
 
  private:
   fs::path outputPath;
   fs::path configFilePath;
   fs::path sourceFileDumpPath;
+  bool failIfNothingGenerated;
 
   std::unordered_map<std::string, std::string> oilStrongToWeakSymbolsMap(
       drgnplusplus::program& prog);

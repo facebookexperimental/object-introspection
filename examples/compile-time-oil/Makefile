@@ -16,7 +16,7 @@ oilgen:
 	ln -s ../../build/oilgen oilgen
 
 JitCompiled.o: oilgen OilVectorOfStrings.o
-	DRGN_ENABLE_TYPE_ITERATOR=1 ./oilgen -o JitCompiled.o -c ../../build/sample.oid.toml -d OilVectorOfStrings.o
+	./oilgen --exit-code -o JitCompiled.o -c ../../build/sample.oid.toml -d OilVectorOfStrings.o
 
 OilVectorOfStrings: OilVectorOfStrings.o JitCompiled.o
 	${CXX} ${CXXFLAGS} OilVectorOfStrings.o JitCompiled.o -o OilVectorOfStrings
