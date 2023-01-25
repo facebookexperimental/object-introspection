@@ -238,7 +238,7 @@ def add_oid_integration_test(f, config, case_name, case):
 
     f.write(
         f"\n"
-        f'TEST_F(OidIntegration, {config["suite"]}_{case_name}) {{\n'
+        f"TEST_F(OidIntegration, {case_str}) {{\n"
         f"{generate_skip(case, 'oid')}"
         f'  std::string configOptions = R"--(\n'
         f"{config_extra}\n"
@@ -309,7 +309,7 @@ def add_oil_integration_test(f, config, case_name, case):
 
     f.write(
         f"\n"
-        f'TEST_F(OilIntegration, {config["suite"]}_{case_name}) {{\n'
+        f"TEST_F(OilIntegration, {case_str}) {{\n"
         f"{generate_skip(case, 'oil')}"
         f"  ba::io_context ctx;\n"
         f"  auto target = runOilTarget({{\n"
