@@ -1,17 +1,7 @@
 ## OI specific
 build/
-test.o
-test/tester
-test/mttest?
-test/mttest2_inline
 test/integration_mttest
-test/integration_cycles
 test/integration_sleepy
-test/integration_packed
-test/mapiter
-test/userDef1
-test/vector
-test/inlined_test
 test/.autogen-*
 oi_preprocessed
 *_test.oid
@@ -22,7 +12,6 @@ Testing
 *.o
 PADDING
 failed
-fb_*_wrapper.sh
 website/node_modules
 
 ## Vim

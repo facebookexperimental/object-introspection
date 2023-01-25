@@ -64,7 +64,6 @@ class OIDebuggerTestCase(unittest.TestCase):
         )
 
         self.custom_generated_code_file = f"{self.temp.name}/custom_oid_output.cpp"
-        self.script_packed = f"{self.temp.name}/integration_packed_arg0.oid"
         self.default_script = "integration_entry_doStuff_arg0.oid"
 
     def tearDown(self):
