@@ -28,88 +28,69 @@ definitions = '''
       third->next = first;
       return first;
     '''
-	cli_options = ["--chase-raw-pointers"]
+    cli_options = ["--chase-raw-pointers"]
     expect_json = '''
-	[{
-	  "typeName": "RawNode",
-	  "isTypedef": false,
-	  "staticSize": 16,
-	  "dynamicSize": 32,
-	  "members": [
-		{
-		  "name": "value",
-		  "typePath": "value",
-		  "typeName": "uint64_t",
-		  "staticSize": 8,
-		  "dynamicSize": 0
-		},
-		{
-		  "name": "next",
-		  "typePath": "next",
-		  "typeName": "struct RawNode *",
-		  "isTypedef": false,
-		  "staticSize": 8,
-		  "dynamicSize": 32,
-		  "members": [
-			{
-			  "name": "",
-			  "typePath": "",
-			  "typeName": "RawNode",
-			  "isTypedef": false,
-			  "staticSize": 16,
-			  "dynamicSize": 16,
-			  "members": [
-				{
-				  "name": "value",
-				  "typePath": "value",
-				  "typeName": "uint64_t",
-				  "staticSize": 8,
-				  "dynamicSize": 0
-				},
-				{
-				  "name": "next",
-				  "typePath": "next",
-				  "typeName": "struct RawNode *",
-				  "isTypedef": false,
-				  "staticSize": 8,
-				  "dynamicSize": 16,
-				  "members": [
-					{
-					  "name": "",
-					  "typePath": "",
-					  "typeName": "RawNode",
-					  "isTypedef": false,
-					  "staticSize": 16,
-					  "dynamicSize": 0,
-					  "members": [
-						{
-						  "name": "value",
-						  "typePath": "value",
-						  "typeName": "uint64_t",
-						  "staticSize": 8,
-						  "dynamicSize": 0
-						},
-						{
-						  "name": "next",
-						  "typePath": "next",
-						  "typeName": "struct RawNode *",
-						  "isTypedef": false,
-						  "staticSize": 8,
-						  "dynamicSize": 0
-						}
-					  ]
-					}
-				  ]
-				}
-			  ]
-			}
-		  ]
-		}
-	  ]
-	}]
+    [
+      {
+        "typeName": "RawNode",
+        "staticSize": 16,
+        "dynamicSize": 32,
+        "members": [
+          {
+            "typeName": "uint64_t",
+            "staticSize": 8,
+            "dynamicSize": 0
+          },
+          {
+            "typeName": "struct RawNode *",
+            "staticSize": 8,
+            "dynamicSize": 32,
+            "members": [
+              {
+                "typeName": "RawNode",
+                "staticSize": 16,
+                "dynamicSize": 16,
+                "members": [
+                  {
+                    "typeName": "uint64_t",
+                    "staticSize": 8,
+                    "dynamicSize": 0
+                  },
+                  {
+                    "typeName": "struct RawNode *",
+                    "staticSize": 8,
+                    "dynamicSize": 16,
+                    "members": [
+                      {
+                        "typeName": "RawNode",
+                        "staticSize": 16,
+                        "dynamicSize": 0,
+                        "members": [
+                          {
+                            "typeName": "uint64_t",
+                            "staticSize": 8,
+                            "dynamicSize": 0
+                          },
+                          {
+                            "typeName": "struct RawNode *",
+                            "staticSize": 8,
+                            "dynamicSize": 0
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
     '''
 
   [cases.unique_ptr]
+    oil_skip = "OIL is not following top-level pointers"
     param_types = ["UniqueNode*"]
     setup = '''
       auto first = std::make_unique<UniqueNode>();
@@ -119,9 +100,68 @@ definitions = '''
       first->next->next->next = std::move(first);
       return firstPtr;
     '''
-    # TODO check JSON
+    expect_json = '''
+    [
+      {
+        "typeName": "UniqueNode",
+        "staticSize": 16,
+        "dynamicSize": 32,
+        "members": [
+          {
+            "typeName": "uint64_t",
+            "staticSize": 8,
+            "dynamicSize": 0
+          },
+          {
+            "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+            "staticSize": 8,
+            "dynamicSize": 32,
+            "members": [
+              {
+                "typeName": "UniqueNode",
+                "staticSize": 16,
+                "dynamicSize": 16,
+                "members": [
+                  {
+                    "typeName": "uint64_t",
+                    "staticSize": 8,
+                    "dynamicSize": 0
+                  },
+                  {
+                    "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                    "staticSize": 8,
+                    "dynamicSize": 16,
+                    "members": [
+                      {
+                        "typeName": "UniqueNode",
+                        "staticSize": 16,
+                        "dynamicSize": 0,
+                        "members": [
+                          {
+                            "typeName": "uint64_t",
+                            "staticSize": 8,
+                            "dynamicSize": 0
+                          },
+                          {
+                            "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                            "staticSize": 8,
+                            "dynamicSize": 0
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    '''
 
   [cases.shared_ptr]
+    oil_skip = "OIL is not following top-level pointers"
     param_types = ["SharedNode*"]
     setup = '''
       auto first = std::make_shared<SharedNode>();
@@ -131,4 +171,62 @@ definitions = '''
       first->next->next->next = first;
       return firstPtr;
     '''
-    # TODO check JSON
+    expect_json = '''
+    [
+      {
+        "typeName": "SharedNode",
+        "staticSize": 24,
+        "dynamicSize": 48,
+        "members": [
+          {
+            "typeName": "uint64_t",
+            "staticSize": 8,
+            "dynamicSize": 0
+          },
+          {
+            "typeName": "shared_ptr<ns_cycles::SharedNode>",
+            "staticSize": 16,
+            "dynamicSize": 48,
+            "members": [
+              {
+                "typeName": "SharedNode",
+                "staticSize": 24,
+                "dynamicSize": 24,
+                "members": [
+                  {
+                    "typeName": "uint64_t",
+                    "staticSize": 8,
+                    "dynamicSize": 0
+                  },
+                  {
+                    "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                    "staticSize": 16,
+                    "dynamicSize": 24,
+                    "members": [
+                      {
+                        "typeName": "SharedNode",
+                        "staticSize": 24,
+                        "dynamicSize": 0,
+                        "members": [
+                          {
+                            "typeName": "uint64_t",
+                            "staticSize": 8,
+                            "dynamicSize": 0
+                          },
+                          {
+                            "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                            "staticSize": 16,
+                            "dynamicSize": 0
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    '''
