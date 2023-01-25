@@ -199,7 +199,11 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   size_t successes = oilTypes.size() - failures;
   LOG(INFO) << "object introspection generation complete. " << successes
             << " successes and " << failures << " failures.";
-  return (failures > 0) ? -1 : 0;
+
+  if (failures > 0 || (failIfNothingGenerated && successes == 0)) {
+    return -1;
+  }
+  return 0;
 }
 
 }  // namespace ObjectIntrospection

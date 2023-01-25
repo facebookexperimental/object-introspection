@@ -34,6 +34,8 @@ constexpr static OIOpts opts{
           "Path to OI configuration file."},
     OIOpt{'d', "dump-jit", optional_argument, "<jit.cpp>",
           "Write generated code to a file (for debugging)."},
+    OIOpt{'e', "exit-code", no_argument, nullptr,
+          "Return a bad exit code if nothing is generated."},
 };
 
 void usage() {
@@ -55,6 +57,7 @@ int main(int argc, char* argv[]) {
   fs::path outputPath = "a.o";
   fs::path configFilePath = "/usr/local/share/oi/base.oid.toml";
   fs::path sourceFileDumpPath = "";
+  bool exitCode = false;
 
   int c;
   while ((c = getopt_long(argc, argv, opts.shortOpts(), opts.longOpts(),
@@ -68,6 +71,9 @@ int main(int argc, char* argv[]) {
         break;
       case 'd':
         sourceFileDumpPath = optarg != nullptr ? optarg : "jit.cpp";
+        break;
+      case 'e':
+        exitCode = true;
         break;
     }
   }
@@ -89,6 +95,7 @@ int main(int argc, char* argv[]) {
   oigen.setOutputPath(std::move(outputPath));
   oigen.setConfigFilePath(std::move(configFilePath));
   oigen.setSourceFileDumpPath(sourceFileDumpPath);
+  oigen.setFailIfNothingGenerated(exitCode);
 
   SymbolService symbols(primaryObject);
 
