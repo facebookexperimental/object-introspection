@@ -79,6 +79,8 @@ enum Response : int {
   OIL_UNINITIALISED = 7,
 };
 
+#ifndef OIL_AOT_COMPILATION
+
 struct options {
   std::string configFilePath{};
   std::string debugFilePath{};
@@ -233,6 +235,8 @@ int getObjectSize(T *ObjectAddr, size_t *ObjectSize, const options &opts,
   return CodegenHandler<T>::getObjectSize(ObjectAddr, ObjectSize, opts,
                                           checkOptions);
 }
+
+#endif
 
 /*
  * You may only call this after a call to the previous signature, or a
