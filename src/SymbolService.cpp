@@ -101,10 +101,11 @@ SymbolService::~SymbolService() {
 }
 
 struct ModParams {
-  const char *st;
-  GElf_Sym s;
+  std::string_view symName;
+  GElf_Sym sym;
   GElf_Addr value;
   std::vector<std::pair<uint64_t, uint64_t>> &exeAddrs;
+  bool demangle;
 };
 
 /**
@@ -146,15 +147,20 @@ static int moduleCallback(Dwfl_Module *mod, void ** /* userData */,
     Elf *elf = nullptr;
     GElf_Word shndxp = 0;
 
-    const char *sname = dwfl_module_getsym_info(mod, i, &m->s, &m->value,
-                                                &shndxp, &elf, nullptr);
-
-    if (sname == nullptr || sname[0] == '\0') {
+    const char *lookupResult = dwfl_module_getsym_info(
+        mod, i, &m->sym, &m->value, &shndxp, &elf, nullptr);
+    if (lookupResult == nullptr || lookupResult[0] == '\0') {
       continue;
     }
 
+    std::string symName = lookupResult;
+
+    if (m->demangle) {
+      symName = boost::core::demangle(symName.c_str());
+    }
+
     switch
-      GELF_ST_TYPE(m->s.st_info) {
+      GELF_ST_TYPE(m->sym.st_info) {
         case STT_SECTION:
         case STT_FILE:
         case STT_TLS:
@@ -162,10 +168,9 @@ static int moduleCallback(Dwfl_Module *mod, void ** /* userData */,
           break;
 
         case STT_OBJECT:
-          if (shndxp != SHN_UNDEF && m->st && !strcmp(sname, m->st)) {
-            VLOG(1) << "Symbol lookup successful for " << sname << " in module "
-                    << name;
-            m->st = nullptr;
+          if (shndxp != SHN_UNDEF && symName == m->symName) {
+            VLOG(1) << "Symbol lookup successful for " << symName
+                    << " in module " << name;
             return DWARF_CB_ABORT;
           }
           break;
@@ -176,12 +181,10 @@ static int moduleCallback(Dwfl_Module *mod, void ** /* userData */,
            * to us here has NOTYPE yet readelf shows me it is defined
            * as an STT_FUNC. Confused...
            */
-          if (shndxp != SHN_UNDEF && m->st && !strcmp(sname, m->st) &&
+          if (shndxp != SHN_UNDEF && symName == m->symName &&
               isExecutableAddr(m->value, m->exeAddrs)) {
-            m->st = nullptr;
-
-            VLOG(1) << "Symbol lookup successful for " << sname << " in module "
-                    << name;
+            VLOG(1) << "Symbol lookup successful for " << symName
+                    << " in module " << name;
 
             return DWARF_CB_ABORT;
           }
@@ -201,7 +204,7 @@ static int moduleCallback(Dwfl_Module *mod, void ** /* userData */,
  * @return - A std::optional with the symbol's information
  */
 std::optional<SymbolInfo> SymbolService::locateSymbol(
-    const std::string &symName) {
+    const std::string &symName, bool demangle) {
   static char *debuginfo_path;
   static const Dwfl_Callbacks proc_callbacks{
       .find_elf = dwfl_linux_proc_find_elf,
@@ -259,15 +262,18 @@ std::optional<SymbolInfo> SymbolService::locateSymbol(
     LOG(ERROR) << "dwfl_report_end: " << dwfl_errmsg(-1);
   }
 
-  ModParams m = {
-      .st = symName.c_str(), .s = {}, .value = 0, .exeAddrs = executableAddrs};
+  ModParams m = {.symName = symName,
+                 .sym = {},
+                 .value = 0,
+                 .exeAddrs = executableAddrs,
+                 .demangle = demangle};
 
   dwfl_getmodules(dwfl, moduleCallback, (void *)&m, 0);
 
   if (m.value == 0) {
     return std::nullopt;
   }
-  return SymbolInfo{m.value, m.s.st_size};
+  return SymbolInfo{m.value, m.sym.st_size};
 }
 
 static std::string bytesToHexString(const unsigned char *bytes, int nbbytes) {

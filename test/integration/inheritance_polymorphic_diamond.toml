@@ -26,6 +26,8 @@ definitions = '''
 '''
 [cases]
   [cases.root_as_root]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Root&"]
     arg_types = ["Root"]
     setup = "return {};"
@@ -39,6 +41,8 @@ definitions = '''
       ]}]'''
 
   [cases.middle1_as_root]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Root&"]
     arg_types = ["Middle1"]
     setup = '''
@@ -47,14 +51,17 @@ definitions = '''
       return m;
     '''
     expect_json = '''[{
-      "typeName":"Root",
-      "staticSize":16,
-      "dynamicSize":0,
+      "typeName":"Middle1",
+      "staticSize":40,
+      "dynamicSize":12,
       "members":[
         {"staticSize":8, "dynamicSize":0},
-        {"name":"int_root", "staticSize":4, "dynamicSize":0}
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle1", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}
       ]}]'''
   [cases.middle1_as_middle1]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Middle1&"]
     arg_types = ["Middle1"]
     setup = '''
@@ -73,6 +80,8 @@ definitions = '''
       ]}]'''
 
   [cases.middle2_as_root]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Root&"]
     arg_types = ["Middle2"]
     setup = '''
@@ -81,14 +90,17 @@ definitions = '''
       return m;
     '''
     expect_json = '''[{
-      "typeName":"Root",
-      "staticSize":16,
-      "dynamicSize":0,
+      "typeName":"Middle2",
+      "staticSize":40,
+      "dynamicSize":8,
       "members":[
         {"staticSize":8, "dynamicSize":0},
-        {"name":"int_root", "staticSize":4, "dynamicSize":0}
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle2", "staticSize":24, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4}
       ]}]'''
   [cases.middle2_as_middle2]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Middle2&"]
     arg_types = ["Middle2"]
     setup = '''
@@ -107,6 +119,8 @@ definitions = '''
       ]}]'''
 
   [cases.child_as_middle1_root]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     # We need to explicitly cast from Child to Middle1 before going to root to
     # resolve the diamond problem
     param_types = ["const Root&"]
@@ -118,14 +132,21 @@ definitions = '''
       return static_cast<Middle1&>(*c);
     '''
     expect_json = '''[{
-      "typeName":"Root",
-      "staticSize":16,
-      "dynamicSize":0,
+      "typeName":"Child",
+      "staticSize":88,
+      "dynamicSize":20,
       "members":[
         {"staticSize":8, "dynamicSize":0},
-        {"name":"int_root", "staticSize":4, "dynamicSize":0}
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle1", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle2", "staticSize":24, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4},
+        {"name":"int_child", "staticSize":4, "dynamicSize":0}
       ]}]'''
   [cases.child_as_middle2_root]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     # We need to explicitly cast from Child to Middle2 before going to root to
     # resolve the diamond problem
     param_types = ["const Root&"]
@@ -137,14 +158,21 @@ definitions = '''
       return static_cast<Middle2&>(*c);
     '''
     expect_json = '''[{
-      "typeName":"Root",
-      "staticSize":16,
-      "dynamicSize":0,
+      "typeName":"Child",
+      "staticSize":88,
+      "dynamicSize":20,
       "members":[
         {"staticSize":8, "dynamicSize":0},
-        {"name":"int_root", "staticSize":4, "dynamicSize":0}
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle1", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle2", "staticSize":24, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4},
+        {"name":"int_child", "staticSize":4, "dynamicSize":0}
       ]}]'''
   [cases.child_as_middle1]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Middle1&"]
     arg_types = ["Child"]
     setup = '''
@@ -154,15 +182,21 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"Middle1",
-      "staticSize":40,
-      "dynamicSize":12,
+      "typeName":"Child",
+      "staticSize":88,
+      "dynamicSize":20,
       "members":[
         {"staticSize":8, "dynamicSize":0},
         {"name":"int_root", "staticSize":4, "dynamicSize":0},
-        {"name":"vec_middle1", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}
+        {"name":"vec_middle1", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle2", "staticSize":24, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4},
+        {"name":"int_child", "staticSize":4, "dynamicSize":0}
       ]}]'''
   [cases.child_as_middle2]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Middle2&"]
     arg_types = ["Child"]
     setup = '''
@@ -172,15 +206,21 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"Middle2",
-      "staticSize":40,
-      "dynamicSize":8,
+      "typeName":"Child",
+      "staticSize":88,
+      "dynamicSize":20,
       "members":[
         {"staticSize":8, "dynamicSize":0},
         {"name":"int_root", "staticSize":4, "dynamicSize":0},
-        {"name":"vec_middle2", "staticSize":24, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4}
+        {"name":"vec_middle1", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_root", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_middle2", "staticSize":24, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4},
+        {"name":"int_child", "staticSize":4, "dynamicSize":0}
       ]}]'''
   [cases.child_as_child]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const Child&"]
     arg_types = ["Child"]
     setup = '''

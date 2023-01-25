@@ -51,7 +51,7 @@ DEFINE_TYPE_VERSION(struct drgn_type, 152, 4)
 DEFINE_TYPE_VERSION(DrgnClassMemberInfo, 64, 3)
 DEFINE_TYPE_VERSION(struct drgn_qualified_type, 16, 2)
 DEFINE_TYPE_VERSION(RootInfo, 48, 2)
-DEFINE_TYPE_VERSION(TypeHierarchy, 336, 5)
+DEFINE_TYPE_VERSION(TypeHierarchy, 384, 6)
 
 #undef DEFINE_TYPE_VERSION
 

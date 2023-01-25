@@ -20,6 +20,8 @@ definitions = '''
 '''
 [cases]
   [cases.a_as_a]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const A&"]
     arg_types = ["A"]
     setup = "return {};"
@@ -33,6 +35,8 @@ definitions = '''
       ]}]'''
 
   [cases.b_as_a]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const A&"]
     arg_types = ["B"]
     setup = '''
@@ -41,14 +45,17 @@ definitions = '''
       return b;
     '''
     expect_json = '''[{
-      "typeName":"A",
-      "staticSize":16,
-      "dynamicSize":0,
+      "typeName":"B",
+      "staticSize":40,
+      "dynamicSize":12,
       "members":[
         {"staticSize":8, "dynamicSize":0},
-        {"name":"int_a", "staticSize":4, "dynamicSize":0}
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}
       ]}]'''
   [cases.b_as_b]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const B&"]
     arg_types = ["B"]
     setup = '''
@@ -67,6 +74,8 @@ definitions = '''
       ]}]'''
 
   [cases.c_as_a]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const A&"]
     arg_types = ["C"]
     setup = '''
@@ -75,14 +84,18 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"A",
-      "staticSize":16,
-      "dynamicSize":0,
+      "typeName":"C",
+      "staticSize":48,
+      "dynamicSize":12,
       "members":[
         {"staticSize":8, "dynamicSize":0},
-        {"name":"int_a", "staticSize":4, "dynamicSize":0}
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"name":"int_c", "staticSize":4, "dynamicSize":0}
       ]}]'''
   [cases.c_as_b]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const B&"]
     arg_types = ["C"]
     setup = '''
@@ -91,15 +104,18 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"B",
-      "staticSize":40,
+      "typeName":"C",
+      "staticSize":48,
       "dynamicSize":12,
       "members":[
         {"staticSize":8, "dynamicSize":0},
         {"name":"int_a", "staticSize":4, "dynamicSize":0},
-        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"name":"int_c", "staticSize":4, "dynamicSize":0}
       ]}]'''
   [cases.c_as_c]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["--polymorphic-inheritance"]
     param_types = ["const C&"]
     arg_types = ["C"]
     setup = '''

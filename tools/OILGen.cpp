@@ -90,5 +90,7 @@ int main(int argc, char* argv[]) {
   oigen.setConfigFilePath(std::move(configFilePath));
   oigen.setSourceFileDumpPath(sourceFileDumpPath);
 
-  return oigen.generate(primaryObject);
+  SymbolService symbols(primaryObject);
+
+  return oigen.generate(primaryObject, symbols);
 }

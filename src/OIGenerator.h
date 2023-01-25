@@ -28,7 +28,7 @@ namespace ObjectIntrospection {
 
 class OIGenerator {
  public:
-  int generate(fs::path& primaryObject);
+  int generate(fs::path& primaryObject, SymbolService& symbols);
 
   void setOutputPath(fs::path _outputPath) {
     outputPath = std::move(_outputPath);
@@ -50,7 +50,7 @@ class OIGenerator {
   bool generateForType(const OICodeGen::Config& generatorConfig,
                        const OICompiler::Config& compilerConfig,
                        const drgn_qualified_type& type,
-                       const std::string& linkageName);
+                       const std::string& linkageName, SymbolService& symbols);
 };
 
 }  // namespace ObjectIntrospection

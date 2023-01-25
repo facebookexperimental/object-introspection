@@ -152,6 +152,8 @@ constexpr static OIOpts opts{
           "Padded structs will be written to file called PADDING"},
     OIOpt{'T', "capture-thrift-isset", no_argument, nullptr,
           "Capture the isset value for Thrift fields"},
+    OIOpt{'P', "polymorphic-inheritance", no_argument, nullptr,
+          "Follow runtime polymorphic inheritance hierarchies"},
     OIOpt{'m', "mode", required_argument, "[prod]",
           "Allows to specify a mode of operation/group of settings"},
 };
@@ -459,6 +461,7 @@ int main(int argc, char *argv[]) {
   bool packStructs = true;
   bool dumpDataSegment = false;
   bool captureThriftIsset = false;
+  bool polymorphicInheritance = false;
 
   Metrics::Tracing _("main");
 #ifndef OSS_ENABLE
@@ -635,6 +638,9 @@ int main(int argc, char *argv[]) {
       case 'T':
         captureThriftIsset = true;
         break;
+      case 'P':
+        polymorphicInheritance = true;
+        break;
       case 'h':
       default:
         usage();
@@ -679,6 +685,7 @@ int main(int argc, char *argv[]) {
       .packStructs = packStructs,
       .genPaddingStats = oidConfig.genPaddingStats,
       .captureThriftIsset = captureThriftIsset,
+      .polymorphicInheritance = polymorphicInheritance,
   };
 
   TreeBuilder::Config tbConfig{

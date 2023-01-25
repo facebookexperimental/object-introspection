@@ -444,7 +444,23 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
         } else if (isContainer(variable)) {
           processContainer(variable, node);
         } else {
-          auto entry = th->classMembersMap.find(variable.type);
+          drgn_type *objectType = variable.type;
+          if (auto it = th->descendantClasses.find(objectType);
+              it != th->descendantClasses.end()) {
+            // The first item of data in dynamic classes identifies which
+            // concrete type we should process it as, represented as an index
+            // into the vector of child classes, or -1 to processes this type
+            // as itself.
+            const auto &descendants = it->second;
+            auto val = next();
+            if (val != (uint64_t)-1) {
+              objectType = descendants[val];
+              node.typeName = drgnTypeToName(objectType);
+              node.staticSize = getDrgnTypeSize(objectType);
+            }
+          }
+
+          auto entry = th->classMembersMap.find(objectType);
           if (entry == th->classMembersMap.end() || entry->second.empty()) {
             break;
           }
@@ -455,7 +471,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
           auto childID = node.children->first;
 
           bool captureThriftIsset =
-              th->thriftIssetStructTypes.contains(variable.type);
+              th->thriftIssetStructTypes.contains(objectType);
 
           for (std::size_t i = 0; i < members.size(); i++) {
             std::optional<bool> isset;
