@@ -374,6 +374,7 @@ void serialize(Archive &ar, struct TypeHierarchy &th,
   ar &th.knownDummyTypeList;
   ar &th.pointerToTypeMap;
   ar &th.thriftIssetStructTypes;
+  ar &th.descendantClasses;
 }
 
 INSTANCIATE_SERIALIZE(struct TypeHierarchy)

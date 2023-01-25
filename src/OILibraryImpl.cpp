@@ -185,7 +185,7 @@ int OILibraryImpl::compileCode() {
 #include "OITraceCode.cpp"
         ;
 
-    auto codegen = OICodeGen::buildFromConfig(generatorConfig);
+    auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
     if (!codegen) {
       return OIL_COMPILATION_FAILURE;
     }

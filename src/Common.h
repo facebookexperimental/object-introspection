@@ -56,4 +56,6 @@ struct TypeHierarchy {
   std::set<struct drgn_type *> knownDummyTypeList;
   std::map<struct drgn_type *, struct drgn_type *> pointerToTypeMap;
   std::set<struct drgn_type *> thriftIssetStructTypes;
+  std::map<struct drgn_type *, std::vector<struct drgn_type *>>
+      descendantClasses;
 };

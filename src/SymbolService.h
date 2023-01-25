@@ -43,7 +43,8 @@ class SymbolService {
   struct drgn_program *getDrgnProgram();
 
   std::optional<std::string> locateBuildID();
-  std::optional<SymbolInfo> locateSymbol(const std::string &);
+  std::optional<SymbolInfo> locateSymbol(const std::string &,
+                                         bool demangle = false);
 
   std::shared_ptr<FuncDesc> findFuncDesc(const irequest &);
   std::shared_ptr<GlobalDesc> findGlobalDesc(const std::string &);

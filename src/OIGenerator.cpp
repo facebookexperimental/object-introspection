@@ -86,8 +86,9 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
 bool OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
                                   const OICompiler::Config& compilerConfig,
                                   const drgn_qualified_type& type,
-                                  const std::string& linkageName) {
-  auto codegen = OICodeGen::buildFromConfig(generatorConfig);
+                                  const std::string& linkageName,
+                                  SymbolService& symbols) {
+  auto codegen = OICodeGen::buildFromConfig(generatorConfig, symbols);
   if (!codegen) {
     LOG(ERROR) << "failed to initialise codegen";
     return false;
@@ -119,7 +120,7 @@ bool OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
   return compiler.compile(code, sourcePath, outputPath);
 }
 
-int OIGenerator::generate(fs::path& primaryObject) {
+int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   drgnplusplus::program prog;
 
   {
@@ -152,7 +153,8 @@ int OIGenerator::generate(fs::path& primaryObject) {
 
   size_t failures = 0;
   for (const auto& [type, linkageName] : oilTypes) {
-    if (!generateForType(generatorConfig, compilerConfig, type, linkageName)) {
+    if (!generateForType(generatorConfig, compilerConfig, type, linkageName,
+                         symbols)) {
       LOG(WARNING) << "failed to generate for symbol `" << linkageName
                    << "`. this is non-fatal but the call will not work.";
       failures++;

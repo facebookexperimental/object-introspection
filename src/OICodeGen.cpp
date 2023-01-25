@@ -21,6 +21,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
+#include <boost/format.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -43,8 +44,9 @@ static size_t g_level = 0;
 #define VLOG(verboselevel) \
   LOG_IF(INFO, VLOG_IS_ON(verboselevel)) << std::string(2 * g_level, ' ')
 
-std::unique_ptr<OICodeGen> OICodeGen::buildFromConfig(const Config &c) {
-  auto cg = std::unique_ptr<OICodeGen>(new OICodeGen(c));
+std::unique_ptr<OICodeGen> OICodeGen::buildFromConfig(const Config &c,
+                                                      SymbolService &s) {
+  auto cg = std::unique_ptr<OICodeGen>(new OICodeGen(c, s));
 
   for (const auto &path : c.containerConfigPaths) {
     if (!cg->registerContainer(path)) {
@@ -56,7 +58,8 @@ std::unique_ptr<OICodeGen> OICodeGen::buildFromConfig(const Config &c) {
   return cg;
 }
 
-OICodeGen::OICodeGen(const Config &c) : config{c} {
+OICodeGen::OICodeGen(const Config &c, SymbolService &s)
+    : config{c}, symbols{s} {
   // TODO: Should folly::Range just be added as a container?
   auto typesToStub = std::array{
       "SharedMutex",
@@ -986,6 +989,106 @@ std::string OICodeGen::typeToName(drgn_type *type) {
   return typeName;
 }
 
+bool OICodeGen::recordChildren(drgn_type *type) {
+  drgn_type_template_parameter *parents = drgn_type_parents(type);
+
+  for (size_t i = 0; i < drgn_type_num_parents(type); i++) {
+    drgn_qualified_type t{};
+
+    if (auto *err = drgn_template_parameter_type(&parents[i], &t);
+        err != nullptr) {
+      LOG(ERROR) << "Error when looking up parent class for type " << type
+                 << " err " << err->code << " " << err->message;
+      drgn_error_destroy(err);
+      continue;
+    }
+
+    drgn_type *parent = drgnUnderlyingType(t.type);
+    if (!isDrgnSizeComplete(parent)) {
+      VLOG(1) << "Incomplete size for parent class (" << drgn_type_tag(parent)
+              << ") of " << drgn_type_tag(type);
+      continue;
+    }
+
+    const char *parentName = drgn_type_tag(parent);
+    if (parentName == nullptr) {
+      VLOG(1) << "No name for parent class (" << parent << ") of "
+              << drgn_type_tag(type);
+      continue;
+    }
+
+    /*
+     * drgn pointers are not stable, so use string representation for reverse
+     * mapping for now. We need to find a better way of creating this
+     * childClasses map - ideally drgn would do this for us.
+     */
+    childClasses[parentName].push_back(type);
+    VLOG(1) << drgn_type_tag(type) << "(" << type << ") is a child of "
+            << drgn_type_tag(parent) << "(" << parent << ")";
+  }
+
+  return true;
+}
+
+/*
+ * Build a mapping of Class -> Children
+ *
+ * drgn only gives us the mapping Class -> Parents, so we must iterate over all
+ * types in the program to build the reverse mapping.
+ */
+bool OICodeGen::enumerateChildClasses() {
+  if (!config.polymorphicInheritance) {
+    return true;
+  }
+
+  if ((setenv("DRGN_ENABLE_TYPE_ITERATOR", "1", 1)) < 0) {
+    LOG(ERROR)
+        << "Could not set DRGN_ENABLE_TYPE_ITERATOR environment variable";
+    return false;
+  }
+
+  drgn_type_iterator *typesIterator;
+  auto *prog = symbols.getDrgnProgram();
+  drgn_error *err = drgn_type_iterator_create(prog, &typesIterator);
+  if (err) {
+    LOG(ERROR) << "Error initialising drgn_type_iterator: " << err->code << ", "
+               << err->message;
+    drgn_error_destroy(err);
+    return false;
+  }
+
+  int i = 0;
+  int j = 0;
+  while (true) {
+    i++;
+    drgn_qualified_type *t;
+    err = drgn_type_iterator_next(typesIterator, &t);
+    if (err) {
+      LOG(ERROR) << "Error from drgn_type_iterator_next: " << err->code << ", "
+                 << err->message;
+      drgn_error_destroy(err);
+      continue;
+    }
+
+    if (!t) {
+      break;
+    }
+    j++;
+
+    auto kind = drgn_type_kind(t->type);
+    if (kind != DRGN_TYPE_CLASS && kind != DRGN_TYPE_STRUCT) {
+      continue;
+    }
+
+    if (!recordChildren(t->type)) {
+      return false;
+    }
+  }
+
+  drgn_type_iterator_destroy(typesIterator);
+  return true;
+}
+
 // The top level function which enumerates the rootType object. This function
 // fills out : -
 // 1. struct/class definitions
@@ -994,6 +1097,10 @@ std::string OICodeGen::typeToName(drgn_type *type) {
 //
 // They are appended to the jit code in that order (1), (2), (3)
 bool OICodeGen::populateDefsAndDecls() {
+  if (!enumerateChildClasses()) {
+    return false;
+  }
+
   if (drgn_type_has_type(rootType.type) &&
       drgn_type_kind(rootType.type) == DRGN_TYPE_FUNCTION) {
     rootType = drgn_type_type(rootType.type);
@@ -1085,6 +1192,12 @@ drgn_type *OICodeGen::drgnUnderlyingType(drgn_type *type) {
 
 bool OICodeGen::enumerateClassParents(drgn_type *type,
                                       const std::string &typeName) {
+  if (drgn_type_num_parents(type) == 0) {
+    // Be careful to early exit here to avoid accidentally initialising
+    // parentClasses when there are no parents.
+    return true;
+  }
+
   drgn_type_template_parameter *parents = drgn_type_parents(type);
 
   for (size_t i = 0; i < drgn_type_num_parents(type); ++i) {
@@ -1247,6 +1360,41 @@ bool OICodeGen::isEmptyClassOrFunctionType(drgn_type *type,
           drgn_type_num_members(type) == 0);
 }
 
+/*
+ * Returns true if the provided type represents a dynamic class.
+ *
+ * From the Itanium C++ ABI, a dynamic class is defined as:
+ *   A class requiring a virtual table pointer (because it or its bases have
+ *   one or more virtual member functions or virtual base classes).
+ */
+bool OICodeGen::isDynamic(drgn_type *type) const {
+  if (!config.polymorphicInheritance || !drgn_type_has_virtuality(type)) {
+    return false;
+  }
+
+  if (drgn_type_virtuality(type) != 0 /*DW_VIRTUALITY_none*/) {
+    // Virtual class - not fully supported by OI yet
+    return true;
+  }
+
+  drgn_type_member_function *functions = drgn_type_functions(type);
+  for (size_t i = 0; i < drgn_type_num_functions(type); i++) {
+    drgn_qualified_type t{};
+    if (auto *err = drgn_member_function_type(&functions[i], &t)) {
+      LOG(ERROR) << "Error when looking up member function for type " << type
+                 << " err " << err->code << " " << err->message;
+      drgn_error_destroy(err);
+      continue;
+    }
+    if (drgn_type_virtuality(t.type) != 0 /*DW_VIRTUALITY_none*/) {
+      // Virtual function
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool OICodeGen::enumerateClassType(drgn_type *type) {
   std::string typeName = getStructName(type);
   VLOG(2) << "Transformed typename: " << typeName << " " << type;
@@ -1289,6 +1437,12 @@ bool OICodeGen::enumerateClassType(drgn_type *type) {
       return true;
     }
   } else if (ifGenerateMemberDefinition(typeName)) {
+    if (isDynamic(type)) {
+      const auto &children = childClasses[drgn_type_tag(type)];
+      for (const auto &child : children) {
+        enumerateTypesRecurse(child);
+      }
+    }
     if (!generateMemberDefinition(type, typeName)) {
       return false;
     }
@@ -1645,19 +1799,115 @@ void OICodeGen::getFuncDefClassMembers(
   }
 }
 
+void OICodeGen::enumerateDescendants(drgn_type *type, drgn_type *baseType) {
+  auto it = childClasses.find(drgn_type_tag(type));
+  if (it == childClasses.end()) {
+    return;
+  }
+
+  // TODO this list may end up containing duplicates
+  const auto &children = it->second;
+  descendantClasses[baseType].insert(descendantClasses[baseType].end(),
+                                     children.begin(), children.end());
+
+  for (const auto &child : children) {
+    enumerateDescendants(child, baseType);
+  }
+}
+
 void OICodeGen::getFuncDefinitionStr(std::string &code, drgn_type *type,
                                      const std::string &typeName) {
   if (classMembersMap.find(type) == classMembersMap.end()) {
     return;
   }
 
-  code += std::string("void getSizeType(const ") + typeName +
-          std::string("& t, size_t& returnArg) {\n");
+  std::string funcName = "getSizeType";
+  if (isDynamic(type)) {
+    funcName = "getSizeTypeConcrete";
+  }
+
+  code +=
+      "void " + funcName + "(const " + typeName + "& t, size_t& returnArg) {\n";
 
   std::unordered_map<std::string, int> memberNames;
   getFuncDefClassMembers(code, type, memberNames);
 
   code += "}\n";
+
+  if (isDynamic(type)) {
+    enumerateDescendants(type, type);
+    auto it = descendantClasses.find(type);
+    if (it == descendantClasses.end()) {
+      return;
+    }
+    const auto &descendants = it->second;
+
+    std::vector<std::pair<std::string, SymbolInfo>> concreteClasses;
+    concreteClasses.reserve(descendants.size());
+
+    for (const auto &child : descendants) {
+      auto fqChildName = *fullyQualifiedName(child);
+
+      // We must split this assignment and append because the C++ standard lacks
+      // an operator for concatenating std::string and std::string_view...
+      std::string childVtableName = "vtable for ";
+      childVtableName += fqChildName;
+
+      auto optVtableSym = symbols.locateSymbol(childVtableName, true);
+      if (!optVtableSym) {
+        LOG(ERROR) << "Failed to find vtable address for '" << childVtableName;
+        LOG(ERROR) << "Falling back to non dynamic mode";
+        concreteClasses.clear();
+        break;
+      }
+      auto vtableSym = *optVtableSym;
+
+      auto oiChildName = *getNameForType(child);
+      concreteClasses.push_back({oiChildName, vtableSym});
+    }
+
+    for (const auto &child : concreteClasses) {
+      const auto &className = child.first;
+      code += "void getSizeTypeConcrete(const " + className +
+              "& t, size_t& returnArg);\n";
+    }
+
+    code += std::string("void getSizeType(const ") + typeName +
+            std::string("& t, size_t& returnArg) {\n");
+    // The Itanium C++ ABI defines that the vptr must appear at the zero-offset
+    // position in any class in which they are present.
+    code += "  auto *vptr = *reinterpret_cast<uintptr_t * const *>(&t);\n";
+    code += "  uintptr_t topOffset = *(vptr - 2);\n";
+    code += "  uintptr_t vptrVal = reinterpret_cast<uintptr_t>(vptr);\n";
+
+    for (size_t i = 0; i < concreteClasses.size(); i++) {
+      // The vptr will point to *somewhere* in the vtable of this object's
+      // concrete class. The exact offset into the vtable can vary based on a
+      // number of factors, so we compare the vptr against the vtable range for
+      // each possible class to determine the concrete type.
+      //
+      // This works for C++ compilers which follow the GNU v3 ABI, i.e. GCC and
+      // Clang. Other compilers may differ.
+      const auto &[className, vtableSym] = concreteClasses[i];
+      uintptr_t vtableMinAddr = vtableSym.addr;
+      uintptr_t vtableMaxAddr = vtableSym.addr + vtableSym.size;
+      code += "  if (vptrVal >= 0x" +
+              (boost::format("%x") % vtableMinAddr).str() + " && vptrVal < 0x" +
+              (boost::format("%x") % vtableMaxAddr).str() + ") {\n";
+      code += "    SAVE_DATA(" + std::to_string(i) + ");\n";
+      code +=
+          "    uintptr_t baseAddress = reinterpret_cast<uintptr_t>(&t) + "
+          "topOffset;\n";
+      code += "    getSizeTypeConcrete(*reinterpret_cast<const " + className +
+              "*>(baseAddress), returnArg);\n";
+      code += "    return;\n";
+      code += "  }\n";
+    }
+
+    code += "  SAVE_DATA(-1);\n";
+    code += "  getSizeTypeConcrete(t, returnArg);\n";
+    code += "}\n";
+  }
 }
 
 std::string OICodeGen::templateTransformType(const std::string &typeName) {
@@ -3666,6 +3916,7 @@ TypeHierarchy OICodeGen::getTypeHierarchy() {
       .knownDummyTypeList = knownDummyTypeList,
       .pointerToTypeMap = pointerToTypeMap,
       .thriftIssetStructTypes = thriftIssetStructTypes,
+      .descendantClasses = descendantClasses,
   };
 }
 
@@ -3686,13 +3937,17 @@ std::string OICodeGen::Config::toString() const {
          (packStructs ? "" : "Dont") + "PackStructs,"s +
          (genPaddingStats ? "" : "Dont") + "GenPaddingStats,"s +
          (captureThriftIsset ? "" : "Dont") + "CaptureThriftIsset,"s +
+         (polymorphicInheritance ? "" : "Dont") + "PolymorphicInheritance,"s +
          ignoreMembers;
 }
 
 std::vector<std::string> OICodeGen::Config::toOptions() const {
   return {"",  // useDataSegment is always true?
-          (chaseRawPointers ? "-n" : ""), (packStructs ? "" : "-z"),
-          (genPaddingStats ? "" : "-w"), (captureThriftIsset ? "-T" : "")};
+          (chaseRawPointers ? "-n" : ""),
+          (packStructs ? "" : "-z"),
+          (genPaddingStats ? "" : "-w"),
+          (captureThriftIsset ? "-T" : ""),
+          (polymorphicInheritance ? "-P" : "")};
 }
 
 void OICodeGen::initializeCodeGen() {

@@ -58,6 +58,7 @@ class OICodeGen {
     bool packStructs;
     bool genPaddingStats;
     bool captureThriftIsset;
+    bool polymorphicInheritance;
 
     std::set<fs::path> containerConfigPaths{};
     std::set<std::string> defaultHeaders{};
@@ -71,10 +72,11 @@ class OICodeGen {
  private:
   // Private constructor. Please use the fallible `OICodeGen::buildFromConfig`
   // for the expected behaviour.
-  OICodeGen(const Config &);
+  OICodeGen(const Config &, SymbolService &);
 
  public:
-  static std::unique_ptr<OICodeGen> buildFromConfig(const Config &);
+  static std::unique_ptr<OICodeGen> buildFromConfig(const Config &,
+                                                    SymbolService &);
   bool generate(std::string &code);
 
   [[deprecated("Use generate(std::string&) instead.")]] bool
@@ -112,6 +114,7 @@ class OICodeGen {
   bool enumerateTypesRecurse(drgn_type *type);
   static std::string_view drgnKindStr(drgn_type *type);
   std::set<drgn_type *> processedTypes;
+  bool isDynamic(drgn_type *type) const;
 
  private:
   Config config{};
@@ -139,6 +142,10 @@ class OICodeGen {
 
   std::map<std::string, std::string> typedefMap;
   std::map<drgn_type *, std::vector<ParentMember>> parentClasses;
+  std::map<std::string, std::vector<drgn_type *>> childClasses;
+  std::map<drgn_type *, std::vector<drgn_type *>> descendantClasses;
+
+  SymbolService &symbols;
 
   size_t pad_index = 0;
   std::unordered_map<drgn_type *, std::pair<size_t, size_t>> paddingIndexMap;
@@ -206,6 +213,8 @@ class OICodeGen {
   bool getDrgnTypeName(drgn_type *type, std::string &outName);
 
   bool getDrgnTypeNameInt(drgn_type *type, std::string &outName);
+  bool recordChildren(drgn_type *type);
+  bool enumerateChildClasses();
   bool populateDefsAndDecls();
   static void memberTransformName(
       std::map<std::string, std::string> &templateTransformMap,
@@ -224,6 +233,7 @@ class OICodeGen {
                                   const std::vector<size_t> &paramIdxs,
                                   bool &ifStub);
   bool getContainerTemplateParams(drgn_type *type, bool &ifStub);
+  void enumerateDescendants(drgn_type *type, drgn_type *baseType);
   void getFuncDefinitionStr(std::string &code, drgn_type *type,
                             const std::string &typeName);
   std::optional<uint64_t> getDrgnTypeSize(drgn_type *type);

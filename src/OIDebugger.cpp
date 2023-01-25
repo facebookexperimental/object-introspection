@@ -2942,7 +2942,7 @@ std::optional<std::string> OIDebugger::generateCode(const irequest &req) {
 #include "OITraceCode.cpp"
       ;
 
-  auto codegen = OICodeGen::buildFromConfig(generatorConfig);
+  auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
   if (!codegen) {
     return nullopt;
   }
