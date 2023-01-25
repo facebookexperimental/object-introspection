@@ -350,3 +350,8 @@ target_precompile_headers(oicore
 foreach(TARGET oil oip oid oitb)
   target_precompile_headers(${TARGET} REUSE_FROM oicore)
 endforeach()
+
+# Add a hook for custom CMake rules
+if (DEFINED ENV{CMAKE_HOOK})
+  include($ENV{CMAKE_HOOK})
+endif()
