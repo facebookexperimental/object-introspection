@@ -1,4 +1,4 @@
-includes = ["memory"]
+includes = ["functional", "memory"]
 definitions = '''
   struct RawNode {
     uint64_t value;
@@ -28,107 +28,219 @@ definitions = '''
       third->next = first;
       return first;
     '''
-	cli_options = ["--chase-raw-pointers"]
+    cli_options = ["--chase-raw-pointers"]
     expect_json = '''
-	[{
-	  "typeName": "RawNode",
-	  "isTypedef": false,
-	  "staticSize": 16,
-	  "dynamicSize": 32,
-	  "members": [
-		{
-		  "name": "value",
-		  "typePath": "value",
-		  "typeName": "uint64_t",
-		  "staticSize": 8,
-		  "dynamicSize": 0
-		},
-		{
-		  "name": "next",
-		  "typePath": "next",
-		  "typeName": "struct RawNode *",
-		  "isTypedef": false,
-		  "staticSize": 8,
-		  "dynamicSize": 32,
-		  "members": [
-			{
-			  "name": "",
-			  "typePath": "",
-			  "typeName": "RawNode",
-			  "isTypedef": false,
-			  "staticSize": 16,
-			  "dynamicSize": 16,
-			  "members": [
-				{
-				  "name": "value",
-				  "typePath": "value",
-				  "typeName": "uint64_t",
-				  "staticSize": 8,
-				  "dynamicSize": 0
-				},
-				{
-				  "name": "next",
-				  "typePath": "next",
-				  "typeName": "struct RawNode *",
-				  "isTypedef": false,
-				  "staticSize": 8,
-				  "dynamicSize": 16,
-				  "members": [
-					{
-					  "name": "",
-					  "typePath": "",
-					  "typeName": "RawNode",
-					  "isTypedef": false,
-					  "staticSize": 16,
-					  "dynamicSize": 0,
-					  "members": [
-						{
-						  "name": "value",
-						  "typePath": "value",
-						  "typeName": "uint64_t",
-						  "staticSize": 8,
-						  "dynamicSize": 0
-						},
-						{
-						  "name": "next",
-						  "typePath": "next",
-						  "typeName": "struct RawNode *",
-						  "isTypedef": false,
-						  "staticSize": 8,
-						  "dynamicSize": 0
-						}
-					  ]
-					}
-				  ]
-				}
-			  ]
-			}
-		  ]
-		}
-	  ]
-	}]
+    [
+      {
+        "typeName": "RawNode",
+        "staticSize": 16,
+        "dynamicSize": 32,
+        "members": [
+          {
+            "typeName": "uint64_t",
+            "staticSize": 8,
+            "dynamicSize": 0
+          },
+          {
+            "typeName": "struct RawNode *",
+            "staticSize": 8,
+            "dynamicSize": 32,
+            "members": [
+              {
+                "typeName": "RawNode",
+                "staticSize": 16,
+                "dynamicSize": 16,
+                "members": [
+                  {
+                    "typeName": "uint64_t",
+                    "staticSize": 8,
+                    "dynamicSize": 0
+                  },
+                  {
+                    "typeName": "struct RawNode *",
+                    "staticSize": 8,
+                    "dynamicSize": 16,
+                    "members": [
+                      {
+                        "typeName": "RawNode",
+                        "staticSize": 16,
+                        "dynamicSize": 0,
+                        "members": [
+                          {
+                            "typeName": "uint64_t",
+                            "staticSize": 8,
+                            "dynamicSize": 0
+                          },
+                          {
+                            "typeName": "struct RawNode *",
+                            "staticSize": 8,
+                            "dynamicSize": 0
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
     '''
 
   [cases.unique_ptr]
-    param_types = ["UniqueNode*"]
+    oil_skip = "OIL processes one node in the cycle twice" # https://github.com/facebookexperimental/object-introspection/issues/104
+    param_types = ["std::reference_wrapper<UniqueNode>&"]
     setup = '''
       auto first = std::make_unique<UniqueNode>();
       auto firstPtr = first.get();
       first->next = std::make_unique<UniqueNode>();
       first->next->next = std::make_unique<UniqueNode>();
       first->next->next->next = std::move(first);
-      return firstPtr;
+      return *firstPtr;
     '''
-    # TODO check JSON
+    expect_json = '''
+    [
+      {
+        "typeName": "reference_wrapper<ns_cycles::UniqueNode>",
+        "staticSize": 8,
+        "dynamicSize": 48,
+        "members": [
+          {
+            "typeName": "UniqueNode",
+            "staticSize": 16,
+            "dynamicSize": 32,
+            "members": [
+              {
+                "typeName": "uint64_t",
+                "staticSize": 8,
+                "dynamicSize": 0
+              },
+              {
+                "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                "staticSize": 8,
+                "dynamicSize": 32,
+                "members": [
+                  {
+                    "typeName": "UniqueNode",
+                    "staticSize": 16,
+                    "dynamicSize": 16,
+                    "members": [
+                      {
+                        "typeName": "uint64_t",
+                        "staticSize": 8,
+                        "dynamicSize": 0
+                      },
+                      {
+                        "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                        "staticSize": 8,
+                        "dynamicSize": 16,
+                        "members": [
+                          {
+                            "typeName": "UniqueNode",
+                            "staticSize": 16,
+                            "dynamicSize": 0,
+                            "members": [
+                              {
+                                "typeName": "uint64_t",
+                                "staticSize": 8,
+                                "dynamicSize": 0
+                              },
+                              {
+                                "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                                "staticSize": 8,
+                                "dynamicSize": 0
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    '''
 
   [cases.shared_ptr]
-    param_types = ["SharedNode*"]
+    oil_skip = "OIL processes one node in the cycle twice" # https://github.com/facebookexperimental/object-introspection/issues/104
+    param_types = ["std::reference_wrapper<SharedNode>&"]
     setup = '''
       auto first = std::make_shared<SharedNode>();
       auto firstPtr = first.get();
       first->next = std::make_shared<SharedNode>();
       first->next->next = std::make_shared<SharedNode>();
       first->next->next->next = first;
-      return firstPtr;
+      return *firstPtr;
     '''
-    # TODO check JSON
+    expect_json = '''
+    [
+      {
+        "typeName": "reference_wrapper<ns_cycles::SharedNode>",
+        "staticSize": 8,
+        "dynamicSize": 72,
+        "members": [
+          {
+            "typeName": "SharedNode",
+            "staticSize": 24,
+            "dynamicSize": 48,
+            "members": [
+              {
+                "typeName": "uint64_t",
+                "staticSize": 8,
+                "dynamicSize": 0
+              },
+              {
+                "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                "staticSize": 16,
+                "dynamicSize": 48,
+                "members": [
+                  {
+                    "typeName": "SharedNode",
+                    "staticSize": 24,
+                    "dynamicSize": 24,
+                    "members": [
+                      {
+                        "typeName": "uint64_t",
+                        "staticSize": 8,
+                        "dynamicSize": 0
+                      },
+                      {
+                        "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                        "staticSize": 16,
+                        "dynamicSize": 24,
+                        "members": [
+                          {
+                            "typeName": "SharedNode",
+                            "staticSize": 24,
+                            "dynamicSize": 0,
+                            "members": [
+                              {
+                                "typeName": "uint64_t",
+                                "staticSize": 8,
+                                "dynamicSize": 0
+                              },
+                              {
+                                "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                                "staticSize": 16,
+                                "dynamicSize": 0
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+    '''
