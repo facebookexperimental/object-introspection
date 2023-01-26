@@ -32,7 +32,7 @@ int main() {
   foo.strings.push_back("consectetur adipiscing elit,");
 
   size_t size = -1;
-  int ret = ObjectIntrospection::getObjectSize<Foo>(&foo, &size);
+  int ret = ObjectIntrospection::getObjectSize(foo, size);
 
   std::cout << "oil returned: " << ret << "; with size: " << size << std::endl;
 }

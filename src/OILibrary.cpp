@@ -52,12 +52,12 @@ int OILibrary::init() {
   return pimpl_->compileCode();
 }
 
-int OILibrary::getObjectSize(void* ObjectAddr, size_t* size) {
+int OILibrary::getObjectSize(void* ObjectAddr, size_t& size) {
   if (fp == nullptr) {
     return Response::OIL_UNINITIALISED;
   }
 
-  *size = (*fp)(ObjectAddr);
+  size = (*fp)(ObjectAddr);
   return Response::OIL_SUCCESS;
 }
 }  // namespace ObjectIntrospection
