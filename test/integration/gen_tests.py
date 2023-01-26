@@ -121,7 +121,7 @@ def add_test_setup(f, config):
         oil_func_body += '    std::cout << "{\\"results\\": [" << std::endl;\n'
         oil_func_body += '    std::cout << "," << std::endl;\n'.join(
             f"    size_t size{i} = 0;\n"
-            f"    auto ret{i} = ObjectIntrospection::getObjectSize(&a{i}, &size{i}, opts);\n"
+            f"    auto ret{i} = ObjectIntrospection::getObjectSize(a{i}, size{i}, opts);\n"
             f'    std::cout << "{{\\"ret\\": " << ret{i} << ", \\"size\\": " << size{i} << "}}" << std::endl;\n'
             for i in range(len(case["param_types"]))
         )
