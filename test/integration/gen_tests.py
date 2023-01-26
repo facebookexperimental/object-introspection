@@ -121,7 +121,7 @@ def add_test_setup(f, config):
         oil_func_body += '    std::cout << "{\\"results\\": [" << std::endl;\n'
         oil_func_body += '    std::cout << "," << std::endl;\n'.join(
             f"    size_t size{i} = 0;\n"
-            f"    auto ret{i} = ObjectIntrospection::getObjectSize(a{i}, size{i}, opts);\n"
+            f"    auto ret{i} = getObjectSizeTopLevelPtr(a{i}, size{i}, opts);\n"
             f'    std::cout << "{{\\"ret\\": " << ret{i} << ", \\"size\\": " << size{i} << "}}" << std::endl;\n'
             for i in range(len(case["param_types"]))
         )
@@ -194,6 +194,23 @@ def add_footer(f):
     )
 
 
+def add_oil_preamble(f):
+    f.write(
+        """
+    template <class T>
+    int getObjectSizeTopLevelPtr(T &ObjectAddr, size_t &ObjectSize, const ObjectIntrospection::options &opts) {
+        if constexpr (std::is_same_v<T, void *>) {
+            return -1;
+        } else if constexpr (std::is_pointer<T>()) {
+            return ObjectIntrospection::getObjectSize(*ObjectAddr, ObjectSize, opts);
+        } else {
+            return ObjectIntrospection::getObjectSize(ObjectAddr, ObjectSize, opts);
+        }
+    }
+"""
+    )
+
+
 def gen_target(output_target_name, test_configs):
     with open(output_target_name, "w") as f:
         headers = set()
@@ -205,6 +222,7 @@ def gen_target(output_target_name, test_configs):
                     f"thrift/annotation/gen-cpp2/{config['suite']}_types.h"
                 ]
         add_headers(f, sorted(headers), thrift_headers)
+        add_oil_preamble(f)
 
         for config in test_configs:
             add_test_setup(f, config)
