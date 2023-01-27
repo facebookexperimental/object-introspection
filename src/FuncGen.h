@@ -61,7 +61,7 @@ class FuncGen {
   void DefineTopLevelGetSizeRef(std::string& testCode,
                                 const std::string& rawType);
 
-  void DefineTopLevelGetSizePtrRet(std::string& testCode,
+  void DefineTopLevelGetSizeRefRet(std::string& testCode,
                                    const std::string& type);
 
   void DefineTopLevelGetSizeSmartPtr(std::string& testCode,

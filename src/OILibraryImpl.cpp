@@ -281,7 +281,7 @@ int OILibraryImpl::compileCode() {
   _self->fp = nullptr;
   for (const auto &[symName, symAddr] : jitSymbols) {
     if (symName.starts_with("_Z7getSize")) {
-      _self->fp = (size_t(*)(void *))symAddr;
+      _self->fp = (size_t(*)(const void *))symAddr;
       break;
     }
   }

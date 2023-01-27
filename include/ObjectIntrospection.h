@@ -118,7 +118,7 @@ class OILibrary {
  private:
   class OILibraryImpl *pimpl_;
 
-  size_t (*fp)(void *) = nullptr;
+  size_t (*fp)(const void *) = nullptr;
 };
 
 template <class T>
@@ -141,7 +141,7 @@ class CodegenHandler {
     delete lib;
   }
 
-  static int getObjectSize(T &ObjectAddr, size_t &ObjectSize) {
+  static int getObjectSize(const T &ObjectAddr, size_t &ObjectSize) {
     OILibrary *lib;
     if (int responseCode = getLibrary(lib);
         responseCode != Response::OIL_SUCCESS) {
@@ -151,7 +151,7 @@ class CodegenHandler {
     return lib->getObjectSize((void *)&ObjectAddr, ObjectSize);
   }
 
-  static int getObjectSize(T &ObjectAddr, size_t &ObjectSize,
+  static int getObjectSize(const T &ObjectAddr, size_t &ObjectSize,
                            const options &opts, bool checkOptions = true) {
     OILibrary *lib;
     if (int responseCode = getLibrary(lib, opts, checkOptions);
@@ -196,7 +196,7 @@ class CodegenHandler {
       }
       curBoxedLib = getLib();
 
-      int (*sizeFp)(T &, size_t &) = &getObjectSize;
+      int (*sizeFp)(const T &, size_t &) = &getObjectSize;
       void *typedFp = reinterpret_cast<void *>(sizeFp);
       OILibrary *newLib = new OILibrary(typedFp, opts);
 
@@ -230,7 +230,7 @@ class CodegenHandler {
  * Ahead-Of-Time (AOT) compilation.
  */
 template <class T>
-int getObjectSize(T &ObjectAddr, size_t &ObjectSize, const options &opts,
+int getObjectSize(const T &ObjectAddr, size_t &ObjectSize, const options &opts,
                   bool checkOptions = true) {
   return CodegenHandler<T>::getObjectSize(ObjectAddr, ObjectSize, opts,
                                           checkOptions);
@@ -248,7 +248,8 @@ int getObjectSize(T &ObjectAddr, size_t &ObjectSize, const options &opts,
  * production system.
  */
 template <class T>
-int __attribute__((weak)) getObjectSize(T &ObjectAddr, size_t &ObjectSize) {
+int __attribute__((weak))
+getObjectSize(const T &ObjectAddr, size_t &ObjectSize) {
 #ifdef OIL_AOT_COMPILATION
   return Response::OIL_UNINITIALISED;
 #else
