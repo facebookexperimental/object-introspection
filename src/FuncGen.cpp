@@ -267,6 +267,28 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
   testCode.append(fmt.str());
 }
 
+void FuncGen::DefineTopLevelGetSizeRefRet(std::string& testCode,
+                                          const std::string& rawType) {
+  std::string func = R"(
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunknown-attributes"
+    /* Raw Type: %1% */
+    size_t __attribute__((used, retain)) getSize(const OIInternal::__ROOT_TYPE__& t)
+    #pragma GCC diagnostic pop
+    {
+      pointers.initialize();
+      size_t ret = 0;
+      pointers.add((uintptr_t)&t);
+      SAVE_DATA((uintptr_t)t);
+      OIInternal::getSizeType(t, ret);
+      return ret;
+    }
+    )";
+
+  boost::format fmt = boost::format(func) % rawType;
+  testCode.append(fmt.str());
+}
+
 void FuncGen::DefineTopLevelGetSizePtr(std::string& testCode,
                                        const std::string& type,
                                        const std::string& rawType) {
@@ -296,28 +318,6 @@ void FuncGen::DefineTopLevelGetSizePtr(std::string& testCode,
 
   boost::format fmt =
       boost::format(func) % type % rawType % std::hash<std::string>{}(rawType);
-  testCode.append(fmt.str());
-}
-
-void FuncGen::DefineTopLevelGetSizePtrRet(std::string& testCode,
-                                          const std::string& rawType) {
-  std::string func = R"(
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* Raw Type: %1% */
-    size_t __attribute__((used, retain)) getSize(const OIInternal::__ROOT_TYPE__* t)
-    #pragma GCC diagnostic pop
-    {
-      pointers.initialize();
-      size_t ret = 0;
-      pointers.add((uintptr_t)t);
-      SAVE_DATA((uintptr_t)t);
-      OIInternal::getSizeType(*t, ret);
-      return ret;
-    }
-    )";
-
-  boost::format fmt = boost::format(func) % rawType;
   testCode.append(fmt.str());
 }
 

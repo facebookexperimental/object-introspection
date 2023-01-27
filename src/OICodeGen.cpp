@@ -3200,7 +3200,7 @@ bool OICodeGen::generateJitCode(std::string &code) {
       }
     } else {
       if (linkageName.empty()) {
-        funcGen.DefineTopLevelGetSizePtrRet(functionsCode, rawTypeName);
+        funcGen.DefineTopLevelGetSizeRefRet(functionsCode, rawTypeName);
       } else {
         funcGen.DefineTopLevelGetObjectSize(functionsCode, rawTypeName,
                                             linkageName);
