@@ -3,22 +3,22 @@ typeName = "folly::small_vector<"
 numTemplateParams = 1
 ctype = "SMALL_VEC_TYPE"
 header = "folly/small_vector.h"
-ns = ["folly::small_vector"]
+ns = ["folly::small_vector_policy::policy_size_type", "folly::small_vector"]
 replaceTemplateParamIndex = []
 # allocatorIndex = 0
 # underlyingContainerIndex = 0
 
 [codegen]
 decl = """
-template <class V, std::size_t N, class PA, class PB, class PC>
-void getSizeType(const %1%<V, N, PA, PB, PC> &container, size_t& returnArg);
+template <class V, std::size_t N, class P>
+void getSizeType(const %1%<V, N, P> &container, size_t& returnArg);
 """
 
 func = """
-template <class V, std::size_t N, class PA, class PB, class PC>
-void getSizeType(const %1%<V, N, PA, PB, PC> &container, size_t& returnArg)
+template <class V, std::size_t N, class P>
+void getSizeType(const %1%<V, N, P> &container, size_t& returnArg)
 {
-    SAVE_SIZE(sizeof(%1%<V, N, PA, PB, PC>));
+    SAVE_SIZE(sizeof(%1%<V, N, P>));
     SAVE_DATA((uintptr_t)(N));
     SAVE_DATA((uintptr_t)container.capacity());
     SAVE_DATA((uintptr_t)container.size());
