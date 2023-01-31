@@ -44,8 +44,8 @@ class OICompiler {
     /* Whether to generate DWARF debug info for the JIT code */
     bool generateJitDebugInfo = false;
 
-    std::vector<std::string> userHeaderPaths{};
-    std::vector<std::string> sysHeaderPaths{};
+    std::vector<fs::path> userHeaderPaths{};
+    std::vector<fs::path> sysHeaderPaths{};
   };
 
   /**
