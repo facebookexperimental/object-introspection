@@ -76,8 +76,19 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
       linkageName = linkageNameCstr;
     }
 
+    const std::string_view linkagePrefix =
+        "_ZN19ObjectIntrospection13getObjectSize";
+    if (!linkageName.starts_with(linkagePrefix)) {
+      LOG(INFO) << "expected symbol to match but missing linkagePrefix: `"
+                << linkageName << "`";
+      continue;
+    }
     LOG(INFO) << "found linkage name: " << linkageName;
-    out.push_back({paramType, linkageName});
+
+    std::string weakLinkageName =
+        "_ZN19ObjectIntrospection17getObjectSizeImpl" +
+        linkageName.substr(linkagePrefix.length());
+    out.push_back({paramType, std::move(weakLinkageName)});
   }
 
   return out;
