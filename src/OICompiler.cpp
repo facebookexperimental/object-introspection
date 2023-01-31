@@ -495,12 +495,13 @@ bool OICompiler::compile(const std::string &code, const fs::path &sourcePath,
 
   for (const auto &path : config.userHeaderPaths) {
     headerSearchOptions.AddPath(
-        path, clang::frontend::IncludeDirGroup::IndexHeaderMap, false, false);
+        path.c_str(), clang::frontend::IncludeDirGroup::IndexHeaderMap, false,
+        false);
   }
 
   for (const auto &path : config.sysHeaderPaths) {
-    headerSearchOptions.AddPath(path, clang::frontend::IncludeDirGroup::System,
-                                false, false);
+    headerSearchOptions.AddPath(
+        path.c_str(), clang::frontend::IncludeDirGroup::System, false, false);
   }
 
   compInv->getFrontendOpts().OutputFile = objectPath;

@@ -20,9 +20,12 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
+#include <filesystem>
 
 #include "OICodeGen.h"
 #include "OICompiler.h"
+
+namespace fs = std::filesystem;
 
 namespace OIUtils {
 
@@ -31,6 +34,8 @@ using namespace std::literals;
 bool processConfigFile(const std::string& configFilePath,
                        OICompiler::Config& compilerConfig,
                        OICodeGen::Config& generatorConfig) {
+  fs::path configDirectory = fs::path(configFilePath).remove_filename();
+
   toml::table config;
   try {
     config = toml::parse_file(configFilePath);
@@ -44,7 +49,13 @@ bool processConfigFile(const std::string& configFilePath,
     if (toml::array* arr = (*types)["containers"].as_array()) {
       arr->for_each([&](auto&& el) {
         if constexpr (toml::is_string<decltype(el)>) {
-          generatorConfig.containerConfigPaths.emplace(std::string(el));
+          /*
+          The / operator on std::filesystem::path will choose the right path
+          if the right path is absolute, else append the right path to the
+          left path.
+          */
+          generatorConfig.containerConfigPaths.emplace(configDirectory /
+                                                       el.get());
         }
       });
     }
@@ -54,14 +65,26 @@ bool processConfigFile(const std::string& configFilePath,
     if (toml::array* arr = (*headers)["user_paths"].as_array()) {
       arr->for_each([&](auto&& el) {
         if constexpr (toml::is_string<decltype(el)>) {
-          compilerConfig.userHeaderPaths.emplace_back(el);
+          /*
+          The / operator on std::filesystem::path will choose the right path
+          if the right path is absolute, else append the right path to the
+          left path.
+          */
+          compilerConfig.userHeaderPaths.emplace_back(configDirectory /
+                                                      el.get());
         }
       });
     }
     if (toml::array* arr = (*headers)["system_paths"].as_array()) {
       arr->for_each([&](auto&& el) {
         if constexpr (toml::is_string<decltype(el)>) {
-          compilerConfig.sysHeaderPaths.emplace_back(el);
+          /*
+          The / operator on std::filesystem::path will choose the right path
+          if the right path is absolute, else append the right path to the
+          left path.
+          */
+          compilerConfig.sysHeaderPaths.emplace_back(configDirectory /
+                                                     el.get());
         }
       });
     }
