@@ -86,9 +86,7 @@ jobs:
               llvm-12-dev \
               ninja-build \
               pkg-config \
-              python3-setuptools \
-              sudo \
-              xsltproc
+              python3-setuptools
             pip3 install toml
           environment:
             DEBIAN_FRONTEND: noninteractive
@@ -110,14 +108,7 @@ jobs:
             ctest --test-dir build/test/ --test-action Test -j$(nproc) \
               --no-compress-output --output-on-failure \
               --exclude-regex 'TestTypes\/ComparativeTest\..*' \
-              --schedule-random --timeout 30 --repeat until-pass:2
-
-      - run:
-          name: Convert test results
-          when: always
-          command: |
-            mkdir -p build/results/ctest
-            bash test/convert_to_junit.sh build/test
-
+              --schedule-random --timeout 30 --repeat until-pass:2 \
+              --output-junit results.xml
       - store_test_results:
-          path: build/results
+          path: build/test/results.xml
