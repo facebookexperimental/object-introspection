@@ -45,8 +45,12 @@ class OIGenerator {
   fs::path configFilePath;
   fs::path sourceFileDumpPath;
 
+  std::unordered_map<std::string, std::string> oilStrongToWeakSymbolsMap(
+      drgnplusplus::program& prog);
+
   std::vector<std::tuple<drgn_qualified_type, std::string>>
   findOilTypesAndNames(drgnplusplus::program& prog);
+
   bool generateForType(const OICodeGen::Config& generatorConfig,
                        const OICompiler::Config& compilerConfig,
                        const drgn_qualified_type& type,
