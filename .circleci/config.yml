@@ -1,22 +1,41 @@
 version: 2.1
 
 workflows:
-  build-test:
+  object-introspection:
     jobs:
       - lint
-      - build-test:
-          name: build-test-gcc
+
+      - build:
+          name: build-gcc
           cc: /usr/bin/gcc
           cxx: /usr/bin/g++
-      - build-test:
-          name: build-test-clang
+      - test:
+          name: test-gcc
+          requires:
+            - build-gcc
+
+      - build:
+          name: build-clang
           cc: /usr/bin/clang-12
           cxx: /usr/bin/clang++-12
+      - test:
+          name: test-clang
+          requires:
+            - build-clang
+
+executors:
+  ubuntu-docker:
+    docker:
+      - image: ubuntu:jammy
+    resource_class: small
+  big-boy:
+    machine:
+      image: ubuntu-2204:2022.10.2
+    resource_class: 2xlarge
 
 jobs:
   lint:
-    docker:
-      - image: ubuntu:jammy
+    executor: ubuntu-docker
     steps:
       - run:
           name: Install dependencies
@@ -42,10 +61,9 @@ jobs:
             black --check --diff test/
             isort --check --diff test/
 
-  build-test:
-    machine:
-      image: ubuntu-2204:2022.10.2
-    resource_class: 2xlarge
+  build:
+    # TODO this job could be run in Docker
+    executor: big-boy
     parameters:
       cc:
         type: string
@@ -55,11 +73,9 @@ jobs:
       CC: << parameters.cc >>
       CXX: << parameters.cxx >>
     steps:
-      - checkout
       - run:
           name: Install dependencies
           command: |
-            sudo rm -f /etc/apt/sources.list.d/heroku.list
             sudo apt-get update
             sudo apt-get install -y \
               bison \
@@ -90,13 +106,34 @@ jobs:
             pip3 install toml
           environment:
             DEBIAN_FRONTEND: noninteractive
-
+      - checkout
       - run:
           name: Build
           command: |
             cmake -G Ninja -B build/ -DWITH_TESTS=On
-            cmake --build build/ -j
+            cmake --build build/
+            # Testing rubbish:
+            cp test/ci.oid.toml build/testing.oid.toml
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build/*
+            - extern/*
+            - types/*
 
+  test:
+    executor: big-boy
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y \
+              clang-12 \
+              libgflags-dev \
+              llvm-12-dev
       - run:
           name: Test
           environment:
@@ -104,7 +141,6 @@ jobs:
             OMP_NUM_THREADS: 1
           command: |
             echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
-            cp test/ci.oid.toml build/testing.oid.toml
             ctest --test-dir build/test/ --test-action Test -j$(nproc) \
               --no-compress-output --output-on-failure \
               --exclude-regex 'TestTypes\/ComparativeTest\..*' \
