@@ -111,7 +111,7 @@ class OILibrary {
   OILibrary(void *TemplateFunc, options opt);
   ~OILibrary();
   int init();
-  int getObjectSize(void *ObjectAddr, size_t &size);
+  int getObjectSize(void *objectAddr, size_t &size);
 
   options opts;
 
@@ -141,17 +141,17 @@ class CodegenHandler {
     delete lib;
   }
 
-  static int getObjectSize(const T &ObjectAddr, size_t &ObjectSize) {
+  static int getObjectSize(const T &objectAddr, size_t &objectSize) {
     OILibrary *lib;
     if (int responseCode = getLibrary(lib);
         responseCode != Response::OIL_SUCCESS) {
       return responseCode;
     }
 
-    return lib->getObjectSize((void *)&ObjectAddr, ObjectSize);
+    return lib->getObjectSize((void *)&objectAddr, objectSize);
   }
 
-  static int getObjectSize(const T &ObjectAddr, size_t &ObjectSize,
+  static int getObjectSize(const T &objectAddr, size_t &objectSize,
                            const options &opts, bool checkOptions = true) {
     OILibrary *lib;
     if (int responseCode = getLibrary(lib, opts, checkOptions);
@@ -159,7 +159,7 @@ class CodegenHandler {
       return responseCode;
     }
 
-    return lib->getObjectSize((void *)&ObjectAddr, ObjectSize);
+    return lib->getObjectSize((void *)&objectAddr, objectSize);
   }
 
  private:
@@ -230,11 +230,17 @@ class CodegenHandler {
  * Ahead-Of-Time (AOT) compilation.
  */
 template <class T>
-int getObjectSize(const T &ObjectAddr, size_t &ObjectSize, const options &opts,
+int getObjectSize(const T &objectAddr, size_t &objectSize, const options &opts,
                   bool checkOptions = true) {
-  return CodegenHandler<T>::getObjectSize(ObjectAddr, ObjectSize, opts,
+  return CodegenHandler<T>::getObjectSize(objectAddr, objectSize, opts,
                                           checkOptions);
 }
+
+#else
+
+template <class T>
+int __attribute__((weak))
+getObjectSizeImpl(const T &objectAddr, size_t &objectSize);
 
 #endif
 
@@ -248,12 +254,14 @@ int getObjectSize(const T &ObjectAddr, size_t &ObjectSize, const options &opts,
  * production system.
  */
 template <class T>
-int __attribute__((weak))
-getObjectSize(const T &ObjectAddr, size_t &ObjectSize) {
+int getObjectSize(const T &objectAddr, size_t &objectSize) {
 #ifdef OIL_AOT_COMPILATION
-  return Response::OIL_UNINITIALISED;
+  if (!getObjectSizeImpl<T>) {
+    return Response::OIL_UNINITIALISED;
+  }
+  return getObjectSizeImpl(objectAddr, objectSize);
 #else
-  return CodegenHandler<T>::getObjectSize(ObjectAddr, ObjectSize);
+  return CodegenHandler<T>::getObjectSize(objectAddr, objectSize);
 #endif
 }
 

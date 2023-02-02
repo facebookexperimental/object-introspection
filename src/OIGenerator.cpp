@@ -18,7 +18,9 @@
 
 #include <glog/logging.h>
 
+#include <boost/core/demangle.hpp>
 #include <fstream>
+#include <unordered_map>
 #include <variant>
 
 #include "DrgnUtils.h"
@@ -26,32 +28,77 @@
 
 namespace ObjectIntrospection {
 
+std::unordered_map<std::string, std::string>
+OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
+  static constexpr std::string_view strongSymbolPrefix =
+      "int ObjectIntrospection::getObjectSize<";
+  static constexpr std::string_view weakSymbolPrefix =
+      "int ObjectIntrospection::getObjectSizeImpl<";
+
+  std::unordered_map<std::string, std::pair<std::string, std::string>>
+      templateArgsToSymbolsMap;
+
+  auto symbols = prog.find_symbols_by_name(nullptr);
+  for (drgn_symbol* sym : *symbols) {
+    auto symName = drgnplusplus::symbol::name(sym);
+    auto demangled = boost::core::demangle(symName);
+
+    if (demangled.starts_with(strongSymbolPrefix)) {
+      auto& matchedSyms = templateArgsToSymbolsMap[demangled.substr(
+          strongSymbolPrefix.length())];
+      if (!matchedSyms.first.empty()) {
+        LOG(WARNING) << "non-unique symbols found: `" << matchedSyms.first
+                     << "` and `" << symName << "`";
+      }
+      matchedSyms.first = symName;
+    } else if (demangled.starts_with(weakSymbolPrefix)) {
+      auto& matchedSyms =
+          templateArgsToSymbolsMap[demangled.substr(weakSymbolPrefix.length())];
+      if (!matchedSyms.second.empty()) {
+        LOG(WARNING) << "non-unique symbols found: `" << matchedSyms.first
+                     << "` and `" << symName << "`";
+      }
+      matchedSyms.second = symName;
+    }
+  }
+
+  std::unordered_map<std::string, std::string> strongToWeakSymbols;
+  for (auto& [_, val] : templateArgsToSymbolsMap) {
+    if (val.first.empty() || val.second.empty()) {
+      continue;
+    }
+    strongToWeakSymbols[std::move(val.first)] = std::move(val.second);
+  }
+
+  return strongToWeakSymbols;
+}
+
 std::vector<std::tuple<drgn_qualified_type, std::string>>
 OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
+  auto strongToWeakSymbols = oilStrongToWeakSymbolsMap(prog);
+
   std::vector<std::tuple<drgn_qualified_type, std::string>> out;
 
+  // TODO: Clean up this loop when switching to
+  // drgn_program_find_function_by_address.
   for (auto& func : drgnplusplus::func_iterator(prog)) {
-    std::string fqdn;
+    std::string strongLinkageName;
     {
-      char* fqdnChars;
-      size_t fqdnLen;
-      if (drgnplusplus::error err(
-              drgn_type_fully_qualified_name(func.type, &fqdnChars, &fqdnLen));
-          err) {
-        LOG(ERROR) << "error getting drgn type fully qualified name: " << err;
-        throw err;
+      char* linkageNameCstr;
+      if (auto err = drgnplusplus::error(
+              drgn_type_linkage_name(func.type, &linkageNameCstr))) {
+        // throw err;
+        continue;
       }
-      fqdn = std::string(fqdnChars, fqdnLen);
+      strongLinkageName = linkageNameCstr;
     }
 
-    if (!fqdn.starts_with("ObjectIntrospection::getObjectSize<")) {
-      continue;
-    }
-    if (drgn_type_num_parameters(func.type) != 2) {
-      continue;
-    }
-    if (drgn_type_num_template_parameters(func.type) != 1) {
-      continue;
+    std::string weakLinkageName;
+    if (auto search = strongToWeakSymbols.find(strongLinkageName);
+        search != strongToWeakSymbols.end()) {
+      weakLinkageName = search->second;
+    } else {
+      continue;  // not an oil strong symbol
     }
 
     auto templateParameters = drgn_type_template_parameters(func.type);
@@ -65,19 +112,7 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
     }
 
     LOG(INFO) << "found OIL type: " << drgn_type_name(paramType.type);
-
-    std::string linkageName;
-    {
-      char* linkageNameCstr;
-      if (auto err = drgnplusplus::error(
-              drgn_type_linkage_name(func.type, &linkageNameCstr))) {
-        throw err;
-      }
-      linkageName = linkageNameCstr;
-    }
-
-    LOG(INFO) << "found linkage name: " << linkageName;
-    out.push_back({paramType, linkageName});
+    out.push_back({paramType, std::move(weakLinkageName)});
   }
 
   return out;

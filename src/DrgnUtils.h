@@ -19,6 +19,7 @@
 #include <exception>
 #include <iterator>
 #include <memory>
+#include <span>
 #include <sstream>
 #include <variant>
 
@@ -26,9 +27,10 @@ extern "C" {
 // Declare drgn structs and only refer to them by pointers to avoid exposing
 // drgn.h.
 struct drgn_error;
-struct drgn_program;
 struct drgn_func_iterator;
+struct drgn_program;
 struct drgn_qualified_type;
+struct drgn_symbol;
 }
 
 namespace drgnplusplus {
@@ -50,6 +52,11 @@ class error : public std::exception {
   std::unique_ptr<drgn_error, Deleter> ptr;
 };
 
+struct SymbolsDeleter {
+  void operator()(std::span<drgn_symbol*>*) noexcept;
+};
+using symbols = std::unique_ptr<std::span<drgn_symbol*>, SymbolsDeleter>;
+
 class program {
  public:
   struct Deleter {
@@ -58,6 +65,8 @@ class program {
 
   program();
   program(drgn_program* prog) : ptr(prog){};
+
+  symbols find_symbols_by_name(const char* name);
 
   drgn_program* get() {
     return ptr.get();
@@ -110,5 +119,9 @@ class func_iterator {
   std::shared_ptr<drgn_func_iterator> iter = nullptr;
   pointer current = nullptr;
 };
+
+namespace symbol {
+const char* name(drgn_symbol*);
+}
 
 }  // namespace drgnplusplus

@@ -69,4 +69,27 @@ func_iterator& func_iterator::operator++() {
   return *this;
 }
 
+void SymbolsDeleter::operator()(std::span<drgn_symbol*>* syms) noexcept {
+  drgn_symbols_destroy(syms->data(), syms->size());
+  delete syms;
+}
+
+symbols program::find_symbols_by_name(const char* name) {
+  drgn_symbol** syms;
+  size_t count;
+
+  if (error err(
+          drgn_program_find_symbols_by_name(ptr.get(), nullptr, &syms, &count));
+      err) {
+    throw err;
+  }
+
+  return std::unique_ptr<std::span<drgn_symbol*>, SymbolsDeleter>(
+      new std::span(syms, count));
+}
+
+const char* symbol::name(drgn_symbol* sym) {
+  return drgn_symbol_name(sym);
+}
+
 }  // namespace drgnplusplus
