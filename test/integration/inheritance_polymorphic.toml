@@ -2,18 +2,21 @@ includes = ["vector"]
 definitions = '''
   class A {
   public:
+    virtual ~A() = default;
     virtual void myfunc() {}
     int int_a;
   };
 
   class B : public A {
   public:
+    virtual ~B() = default;
     virtual void myfunc() override {}
     std::vector<int> vec_b;
   };
 
   class C : public B {
   public:
+    virtual ~C() = default;
     virtual void myfunc() override {}
     int int_c;
   };
