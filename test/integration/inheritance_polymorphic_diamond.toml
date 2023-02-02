@@ -2,24 +2,28 @@ includes = ["vector"]
 definitions = '''
   class Root {
   public:
+    virtual ~Root() = default;
     virtual void myfunc() {}
     int int_root;
   };
 
   class Middle1 : public Root {
   public:
+    virtual ~Middle1() = default;
     virtual void myfunc() override {}
     std::vector<int> vec_middle1;
   };
 
   class Middle2 : public Root {
   public:
+    virtual ~Middle2() = default;
     virtual void myfunc() override {}
     std::vector<int> vec_middle2;
   };
 
   class Child : public Middle1, public Middle2 {
   public:
+    virtual ~Child() = default;
     virtual void myfunc() override {}
     int int_child;
   };
