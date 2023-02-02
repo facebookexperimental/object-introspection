@@ -1229,7 +1229,7 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
           ret = processFuncTrap(*tInfo, newpid, regs, fpregs);
         }
       } else {
-        LOG(ERROR) << "Error! SIGTRAP: 0x" << std::hex << bpaddr
+        LOG(ERROR) << "Error! SIGTRAP: " << std::hex << bpaddr
                    << " No activeTraps entry found, resuming thread "
                    << std::dec << newpid;
 
@@ -1253,8 +1253,8 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
     }
 
     case SIGILL: {
-      VLOG(1) << "OOPS! SIGILL received for pid " << newpid << " addr: 0x"
-              << std::hex << info.si_addr;
+      VLOG(1) << "OOPS! SIGILL received for pid " << newpid
+              << " addr: " << std::hex << info.si_addr;
 
       break;
     }
@@ -2171,7 +2171,7 @@ bool OIDebugger::writePrologue(
                                       segConfig.textSegBase + off);
   auto ret = activeTraps.emplace(t->trapAddr, t);
   if (ret.second == false) {
-    LOG(ERROR) << "activeTrap element for 0x" << t->trapAddr
+    LOG(ERROR) << "activeTrap element for " << std::hex << t->trapAddr
                << " already exists (writePrologue error!)";
   }
 
