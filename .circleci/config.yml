@@ -13,6 +13,9 @@ workflows:
           name: test-gcc
           requires:
             - build-gcc
+      - coverage:
+          requires:
+            - test-gcc
 
       - build:
           name: build-clang
@@ -72,6 +75,8 @@ jobs:
     environment:
       CC: << parameters.cc >>
       CXX: << parameters.cxx >>
+    working_directory:
+      /tmp/object-introspection
     steps:
       - run:
           name: Install dependencies
@@ -110,7 +115,7 @@ jobs:
       - run:
           name: Build
           command: |
-            cmake -G Ninja -B build/ -DWITH_TESTS=On
+            cmake -G Ninja -B build/ -DWITH_TESTS=On -DCODE_COVERAGE=On
             cmake --build build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
@@ -123,6 +128,8 @@ jobs:
 
   test:
     executor: big-boy
+    working_directory:
+      /tmp/object-introspection
     steps:
       - attach_workspace:
           at: .
@@ -147,3 +154,50 @@ jobs:
               --output-junit results.xml
       - store_test_results:
           path: build/test/results.xml
+      - persist_to_workspace:
+          # Save code coverage data
+          root: .
+          paths:
+            - build/*
+
+  coverage:
+    executor: ubuntu-docker
+    working_directory:
+      /tmp/object-introspection
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update
+            apt-get install -y \
+              curl \
+              git \
+              gpg \
+              lcov
+      - attach_workspace:
+          at: .
+      - run:
+          name: Code Coverage
+          when: always
+          command: |
+            lcov --directory . --capture --rc lcov_branch_coverage=1 --output-file coverage.info
+            lcov --extract coverage.info '/tmp/object-introspection/src/*' '/tmp/object-introspection/include/*' --rc lcov_branch_coverage=1 --output-file coverage.info
+            lcov --list --rc lcov_branch_coverage=1 coverage.info
+
+            curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
+            curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig
+            gpgv codecov.SHA256SUM.sig codecov.SHA256SUM
+            shasum -a 256 -c codecov.SHA256SUM
+            chmod +x codecov
+
+            # It appears that codecov wants to scan through all directories
+            # other than "build", looking for files to upload, even if we
+            # specify a file name on the command line.
+            #
+            # "extern" is huge and makes uploading the coverage report take
+            # forever. Delete it for a speedup.
+            rm -rf extern
+
+            ./codecov -Z -f coverage.info
