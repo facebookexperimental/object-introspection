@@ -21,6 +21,7 @@ include(cmake/CompilerWarnings.cmake)
 
 option(STATIC_LINK "Statically link oid" OFF)
 option(ASAN "Enable address sanitizer" OFF)
+option(CODE_COVERAGE "Enable code coverage" OFF)
 option(WITH_TESTS "Build with tests" Off)
 option(FORCE_BOOST_STATIC "Build with static boost" On)
 option(FORCE_LLVM_STATIC "Build with static llvm and clang" On)
@@ -28,6 +29,11 @@ option(FORCE_LLVM_STATIC "Build with static llvm and clang" On)
 if (ASAN)
   add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
   add_link_options(-fsanitize=address)
+endif()
+
+if (CODE_COVERAGE)
+  add_compile_options(--coverage)
+  add_link_options(--coverage)
 endif()
 
 
