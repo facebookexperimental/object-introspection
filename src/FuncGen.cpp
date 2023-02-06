@@ -225,6 +225,7 @@ void FuncGen::DefineTopLevelGetObjectSize(std::string& testCode,
     /* RawType: %1% */
     extern "C" int %2%(const OIInternal::__ROOT_TYPE__* ObjectAddr, size_t* ObjectSize)
     {
+      *ObjectSize = 0;
       OIInternal::getSizeType(*ObjectAddr, *ObjectSize);
       return 0;
     }
