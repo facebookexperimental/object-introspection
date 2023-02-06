@@ -254,7 +254,8 @@ getObjectSizeImpl(const T &objectAddr, size_t &objectSize);
  * production system.
  */
 template <class T>
-int getObjectSize(const T &objectAddr, size_t &objectSize) {
+int __attribute__((noinline))
+getObjectSize(const T &objectAddr, size_t &objectSize) {
 #ifdef OIL_AOT_COMPILATION
   if (!getObjectSizeImpl<T>) {
     return Response::OIL_UNINITIALISED;
