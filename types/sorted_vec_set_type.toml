@@ -4,9 +4,9 @@ numTemplateParams = 1
 ctype = "SORTED_VEC_SET_TYPE"
 header = "folly/sorted_vector_types.h"
 ns = ["namespace std", "folly::sorted_vector_set"]
-replaceTemplateParamIndex = []
+replaceTemplateParamIndex = [1,2]
 # allocatorIndex = 0
-# underlyingContainerIndex = 0
+underlyingContainerIndex = 4
 
 [codegen]
 decl = """
