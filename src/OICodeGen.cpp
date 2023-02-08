@@ -2325,7 +2325,7 @@ bool OICodeGen::generateStructDef(drgn_type *e, std::string &code) {
   std::string structDefinition;
 
   if (paddingInfo.paddingSize != 0 && config.genPaddingStats) {
-    structDefinition.append("/* offset    |  size */");
+    structDefinition.append("/* offset    |  size */ ");
   }
 
   if (kind == DRGN_TYPE_STRUCT || kind == DRGN_TYPE_CLASS) {
@@ -2440,10 +2440,10 @@ bool OICodeGen::addPadding(uint64_t padding_bits, std::string &code) {
 
     if (isByteMultiple) {
       info << "/* XXX" << std::setw(3) << std::right << padding_bits / CHAR_BIT
-           << "-byte hole  */";
+           << "-byte hole  */ ";
     } else {
       info << "/* XXX" << std::setw(3) << std::right << padding_bits
-           << "-bit  hole  */";
+           << "-bit  hole  */ ";
     }
 
     code.append(info.str());
@@ -2465,10 +2465,10 @@ static inline void addSizeComment(bool genPaddingStats, std::string &code,
   std::ostringstream info;
   if (isByteMultiple) {
     info << "/* " << std::setw(10) << std::left << offset / CHAR_BIT << "| "
-         << std::setw(5) << std::right << sizeInBytes << " */";
+         << std::setw(5) << std::right << sizeInBytes << " */ ";
   } else {
     info << "/* " << std::setw(4) << std::left << offset / CHAR_BIT
-         << ": 0   | " << std::setw(5) << std::right << sizeInBytes << " */";
+         << ": 0   | " << std::setw(5) << std::right << sizeInBytes << " */ ";
   }
   code.append(info.str());
 }
