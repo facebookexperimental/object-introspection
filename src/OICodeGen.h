@@ -201,7 +201,6 @@ class OICodeGen {
   std::optional<ContainerInfo> getContainerInfo(drgn_type *type);
   void printAllTypes();
   void printAllTypeNames();
-  void printTypePath();
 
   static void addPaddingForBaseClass(drgn_type *type,
                                      std::vector<std::string> &def);

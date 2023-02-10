@@ -928,17 +928,6 @@ bool OICodeGen::getMemberDefinition(drgn_type *type) {
   return true;
 }
 
-void OICodeGen::printTypePath() {
-  int cnt = 1;
-  for (auto &type : typePath) {
-    std::string outName;
-    getDrgnTypeNameInt(type, outName);
-    outName = std::string(cnt, ' ') + outName;
-    VLOG(2) << outName;
-    cnt += 1;
-  }
-}
-
 std::string OICodeGen::typeToTransformedName(drgn_type *type) {
   auto typeName = typeToName(type);
   typeName = transformTypeName(type, typeName);
@@ -1658,11 +1647,6 @@ bool OICodeGen::enumerateTypesRecurse(drgn_type *type) {
 
   g_level += 1;
   typePath.push_back(type);
-
-  if (VLOG_IS_ON(2)) {
-    VLOG(2) << "typeDefStr: " << typeDefStr;
-    printTypePath();
-  }
 
   processedTypes.insert(type);
 
