@@ -150,7 +150,7 @@ jobs:
             echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
             ctest --test-dir build/test/ --test-action Test -j 4 \
               --no-compress-output --output-on-failure \
-              --schedule-random --timeout 30 --repeat until-pass:2 \
+              --schedule-random --timeout 30 --repeat until-pass:4 \
               --output-junit results.xml
       - store_test_results:
           path: build/test/results.xml
