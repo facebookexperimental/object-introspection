@@ -15,10 +15,6 @@
  */
 #include "OICompiler.h"
 
-#ifndef OSS_ENABLE
-#include "cea/object-introspection/internal/ManifoldCache.h"
-#endif
-
 #include <clang/Basic/LangStandard.h>
 #include <clang/Basic/TargetInfo.h>
 #include <clang/Basic/TargetOptions.h>
