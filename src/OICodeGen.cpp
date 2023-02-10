@@ -537,7 +537,6 @@ bool OICodeGen::buildNameInt(drgn_type *type, std::string &nameWithoutTemplate,
       return false;
     }
 
-    VLOG(3) << "Template parameter " << templateParamName;
     // templateParamName = templateTransformType(templateParamName);
     templateParamName =
         stripFullyQualifiedNameWithSeparators(templateParamName);
@@ -546,9 +545,6 @@ bool OICodeGen::buildNameInt(drgn_type *type, std::string &nameWithoutTemplate,
         buildName(p.type, templateParamName, recursiveParam)) {
       templateParamName = recursiveParam;
     }
-
-    VLOG(3) << "Template parameter after templateTransformType "
-            << templateParamName;
 
     templateParamsStrings.push_back(templateParamName);
   }
@@ -631,8 +627,6 @@ bool OICodeGen::getTemplateParams(
 }
 
 std::string OICodeGen::transformTypeName(drgn_type *type, std::string &text) {
-  VLOG(3) << "Original String " << text;
-
   std::string tmp = stripFullyQualifiedNameWithSeparators(text);
 
   boost::regex re{"<typename\\s(\\w+)>"};
@@ -640,17 +634,13 @@ std::string OICodeGen::transformTypeName(drgn_type *type, std::string &text) {
 
   std::string output = boost::regex_replace(tmp, re, fmt);
 
-  VLOG(3) << "New Output string is " << output;
-
   std::string buildNameOutput;
   if (!buildName(type, text, buildNameOutput)) {
     buildNameOutput = output;
   }
-  VLOG(3) << "BuildName Output string is " << buildNameOutput;
 
   if (buildNameOutput.starts_with("unique_ptr")) {
     buildNameOutput = preProcessUniquePtr(type, buildNameOutput);
-    VLOG(3) << "unique_ptr preprocessed: " << buildNameOutput;
   }
 
   return buildNameOutput;
@@ -1117,8 +1107,6 @@ bool OICodeGen::populateDefsAndDecls() {
   rootTypeStr = typeName;
   VLOG(1) << "Root type to introspect : " << rootTypeStr;
 
-  typePath.push_back(rootType.type);
-
   return enumerateTypesRecurse(rootType.type);
 }
 
@@ -1386,7 +1374,7 @@ bool OICodeGen::isDynamic(drgn_type *type) const {
 
 bool OICodeGen::enumerateClassType(drgn_type *type) {
   std::string typeName = getStructName(type);
-  VLOG(2) << "Transformed typename: " << typeName << " " << type;
+  VLOG(2) << "Class name : " << typeName << " " << type;
 
   if (isTypeToStub(type, typeName)) {
     return true;
@@ -1646,7 +1634,6 @@ bool OICodeGen::enumerateTypesRecurse(drgn_type *type) {
           << drgnKindStr(type) << " {";
 
   g_level += 1;
-  typePath.push_back(type);
 
   processedTypes.insert(type);
 
@@ -1682,8 +1669,6 @@ bool OICodeGen::enumerateTypesRecurse(drgn_type *type) {
   }
   g_level -= 1;
 
-  typePath.pop_back();
-
   VLOG(1) << "END processing type: " << outName << " " << type << " "
           << drgnKindStr(type) << " ret:" << ret << " }";
 
@@ -1695,7 +1680,7 @@ std::optional<std::string> OICodeGen::getNameForType(drgn_type *type) {
     return search->second;
   }
 
-  LOG(ERROR) << "QOO7 Failed to find " << type;
+  LOG(ERROR) << "Failed to find " << type;
   return std::nullopt;
 }
 
@@ -3540,11 +3525,9 @@ bool OICodeGen::generateNamesForTypes() {
     }
 
     std::string tname = templateTransformType(name);
-    VLOG(1) << "BOO type " << e << " " << name;
 
     if (tname.size() == 0) {
       static int index = 0;
-      VLOG(1) << "Unnamed dummy struct";
       tname = "__unnamed_dummy_struct_" + std::to_string(index);
       index++;
     }
@@ -3603,9 +3586,7 @@ bool OICodeGen::generateNamesForTypes() {
         if (!getDrgnTypeName(e.second, name)) {
           return false;
         }
-        VLOG(2) << "Type2: " << e.second << " " << name;
         memberTransformName(templateTransformMap, name);
-        VLOG(2) << "Type3: " << e.second << " " << name;
         addTypeToName(e.second, name);
       }
     }
@@ -3653,9 +3634,7 @@ bool OICodeGen::generateNamesForTypes() {
         if (!getDrgnTypeName(e.second, name)) {
           return false;
         }
-        VLOG(2) << "Type2: " << e.second << " " << name;
         memberTransformName(templateTransformMap, name);
-        VLOG(2) << "Type3: " << e.second << " " << name;
         addTypeToName(e.second, name);
       }
     }
