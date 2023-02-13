@@ -15,7 +15,6 @@
  */
 #pragma once
 
-#include "OICache.h"
 #include "OICodeGen.h"
 #include "OICompiler.h"
 #include "ObjectIntrospection.h"
@@ -45,8 +44,6 @@ class OILibraryImpl {
   OICompiler::Config compilerConfig{};
   OICodeGen::Config generatorConfig{};
   std::shared_ptr<SymbolService> symbols{};
-
-  OICache _cache{};
 
   struct c {
     void *textSegBase = nullptr;

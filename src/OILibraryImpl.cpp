@@ -25,6 +25,7 @@
 #include <boost/format.hpp>
 #include <fstream>
 
+#include "OIParser.h"
 #include "OIUtils.h"
 
 extern "C" {
@@ -91,19 +92,12 @@ bool OILibraryImpl::unmapSegment() {
 void OILibraryImpl::initCompiler() {
   symbols = std::make_shared<SymbolService>(getpid());
 
-  _cache.symbols = symbols;
-
   compilerConfig.generateJitDebugInfo = _self->opts.generateJitDebugInfo;
 
   generatorConfig.useDataSegment = false;
   generatorConfig.chaseRawPointers = _self->opts.chaseRawPointers;
   generatorConfig.packStructs = true;
   generatorConfig.genPaddingStats = false;
-
-  _cache.basePath = _self->opts.cacheDirPath;
-  _cache.enableUpload = _self->opts.enableUpload;
-  _cache.enableDownload = _self->opts.enableDownload;
-  _cache.abortOnLoadFail = _self->opts.abortOnLoadFail;
 }
 
 bool OILibraryImpl::processConfigFile() {
