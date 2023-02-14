@@ -18,7 +18,7 @@ set(INTEGRATION_TEST_CONFIGS
   pointers_incomplete.toml
   primitives.toml
   references.toml
-  simple_struct.toml
+  simple.toml
   sorted_vector_set.toml
   std_array.toml
   std_conditional.toml
