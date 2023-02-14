@@ -3,6 +3,7 @@ set(INTEGRATION_TEST_CONFIGS
   anonymous.toml
   container_enums.toml
   cycles.toml
+  enums.toml
   ignored.toml
   inheritance_access.toml
   inheritance_multiple.toml
