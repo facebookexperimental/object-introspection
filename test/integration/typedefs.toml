@@ -1,0 +1,43 @@
+includes = ["vector"]
+definitions = '''
+  typedef uint64_t UInt64;
+  using IntVector = std::vector<int>;
+'''
+[cases]
+  [cases.c_style]
+    param_types = ["UInt64"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "isTypedef":true,
+      "typeName":"UInt64",
+      "members":[
+        {
+          "staticSize":8,
+          "dynamicSize":0,
+          "isTypedef":false,
+          "typeName":"uint64_t",
+          "NOT":"members"
+        }
+      ]}]'''
+  [cases.using]
+    param_types = ["const IntVector&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "isTypedef":true,
+      "typeName":"IntVector",
+      "members":[
+        {
+          "staticSize":24,
+          "dynamicSize":0,
+          "length":0,
+          "capacity":0,
+          "elementStaticSize":4,
+          "isTypedef":false,
+          "typeName":"vector<int, std::allocator<int> >",
+          "NOT":"members"
+        }
+      ]}]'''
