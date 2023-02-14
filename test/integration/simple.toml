@@ -1,0 +1,49 @@
+definitions = '''
+  struct SimpleStruct {
+    int a;
+    char b;
+    long long c;
+  };
+  class SimpleClass {
+    int a;
+    char b;
+    long long c;
+  };
+  union SimpleUnion {
+    int a;
+    char b;
+    long long c;
+  };
+'''
+
+[cases]
+  [cases.struct]
+    param_types = ["const SimpleStruct&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":1, "dynamicSize":0},
+        {"name":"c", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+  [cases.class]
+    param_types = ["const SimpleClass&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":16,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":1, "dynamicSize":0},
+        {"name":"c", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+  [cases.union]
+    param_types = ["const SimpleUnion&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "NOT":"members"
+    }]'''
