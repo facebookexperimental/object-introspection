@@ -1,5 +1,5 @@
 # object-introspection
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.19)
 project(object-introspection)
 
 # Lets find_program() locate SETUID binaries
