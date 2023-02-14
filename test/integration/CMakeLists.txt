@@ -1,6 +1,7 @@
 # Add new test definition files to this list:
 set(INTEGRATION_TEST_CONFIGS
   anonymous.toml
+  arrays.toml
   container_enums.toml
   cycles.toml
   enums.toml
