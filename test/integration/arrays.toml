@@ -1,0 +1,77 @@
+definitions = '''
+  struct Foo10 {
+    int arr[10];
+  };
+  struct Foo0 {
+    int arr[0];
+  };
+  struct MultiDim {
+    int arr[2][3];
+  };
+'''
+[cases]
+  [cases.member_int10]
+    param_types = ["const Foo10&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":40,
+      "dynamicSize":0,
+      "members":[{
+        "staticSize":40,
+        "dynamicSize":0,
+        "length":10,
+        "capacity":10,
+        "elementStaticSize":4
+      }]}]'''
+  [cases.member_int0]
+    # WARNING: zero-length arrays are handled differently to non-empty arrays.
+    # They end up not being treated as containers. This should probably change
+    # in the future.
+    param_types = ["const Foo0&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":0,
+      "dynamicSize":0,
+      "members":[{
+        "staticSize":0,
+        "dynamicSize":0
+      }]}]'''
+  [cases.multidim]
+    param_types = ["const MultiDim&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "members":[{
+        "staticSize":24,
+        "dynamicSize":0,
+        "length":6,
+        "capacity":6,
+        "elementStaticSize":4
+      }]}]'''
+  [cases.direct_int10]
+    skip = "Direct array arguments don't work"
+    param_types = ["int[10]"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":40, "dynamicSize":0, "length":10, "capacity":10, "elementStaticSize":4}]'
+  [cases.direct_int0]
+    skip = "Direct array arguments don't work"
+    # WARNING: zero-length arrays are handled differently to non-empty arrays.
+    # They end up not being treated as containers. This should probably change
+    # in the future.
+    param_types = ["int[0]"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":0, "dynamicSize":0}]'
+  [cases.ref_int10]
+    skip = "CodeGen bug with array reference arguments"
+    param_types = ["const int(&)[10]"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":40, "dynamicSize":0, "length":10, "capacity":10, "elementStaticSize":4}]'
+  [cases.ref_int0]
+    skip = "CodeGen bug with array reference arguments"
+    # WARNING: zero-length arrays are handled differently to non-empty arrays.
+    # They end up not being treated as containers. This should probably change
+    # in the future.
+    param_types = ["const int(&)[0]"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":0, "dynamicSize":0}]'
