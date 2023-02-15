@@ -168,8 +168,7 @@ int OILibraryImpl::compileCode() {
     const char *name = drgn_symbol_name(sym);
     drgn_symbol_destroy(sym);
 
-    auto rootType =
-        OICodeGen::getRootType(*symbols.get(), irequest{"entry", name, "arg0"});
+    auto rootType = symbols->getRootType(irequest{"entry", name, "arg0"});
     if (!rootType.has_value()) {
       LOG(ERROR) << "Failed to get type of probe argument";
       return Response::OIL_COMPILATION_FAILURE;
