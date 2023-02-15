@@ -2933,7 +2933,7 @@ bool OIDebugger::processTargetData() {
 }
 
 std::optional<std::string> OIDebugger::generateCode(const irequest &req) {
-  auto root = OICodeGen::getRootType(*symbols, req);
+  auto root = symbols->getRootType(req);
   if (!root.has_value()) {
     return std::nullopt;
   }

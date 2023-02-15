@@ -84,8 +84,6 @@ class OICodeGen {
     return generate(code);
   }
 
-  static std::optional<RootInfo> getRootType(SymbolService &, const irequest &);
-
   bool registerContainer(const fs::path &);
 
   // TODO: remove me once all the callsites are gone

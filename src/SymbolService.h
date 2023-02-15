@@ -23,6 +23,7 @@
 #include <variant>
 #include <vector>
 
+#include "Common.h"
 #include "Descs.h"
 
 namespace fs = std::filesystem;
@@ -49,6 +50,7 @@ class SymbolService {
   std::shared_ptr<FuncDesc> findFuncDesc(const irequest &);
   std::shared_ptr<GlobalDesc> findGlobalDesc(const std::string &);
   static std::string getTypeName(struct drgn_type *);
+  std::optional<RootInfo> getRootType(const irequest &);
 
   std::unordered_map<std::string, std::shared_ptr<FuncDesc>> funcDescs;
   std::unordered_map<std::string, std::shared_ptr<GlobalDesc>> globalDescs;
