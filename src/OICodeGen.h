@@ -135,7 +135,6 @@ class OICodeGen {
   std::map<drgn_type *, ContainerTypeMap> containerTypeMapDrgn;
   std::vector<std::unique_ptr<ContainerInfo>> containerInfoList;
   std::vector<drgn_type *> enumTypes;
-  std::vector<drgn_type *> typePath;
   std::vector<std::string> knownTypes;
   drgn_qualified_type rootType;
   drgn_qualified_type rootTypeToIntrospect;
