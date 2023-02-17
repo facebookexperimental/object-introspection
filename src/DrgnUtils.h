@@ -31,6 +31,7 @@ struct drgn_func_iterator;
 struct drgn_program;
 struct drgn_qualified_type;
 struct drgn_symbol;
+struct drgn_type;
 }
 
 namespace drgnplusplus {
@@ -125,3 +126,19 @@ const char* name(drgn_symbol*);
 }
 
 }  // namespace drgnplusplus
+
+namespace drgn_utils {
+/*
+ * These utils are not intended to be permanent. As part of the transition to
+ * type-graph based CodeGen, we need to break dependencies on legacy OICodeGen
+ * from other parts of OI.
+ *
+ * Parts of OICodeGen used by other parts of OI, but  which only return drgn
+ * data can be moved here.
+ */
+
+void getDrgnArrayElementType(drgn_type* type, drgn_type** outElemType,
+                             size_t& outNumElems);
+std::string typeToName(drgn_type* type);
+
+}  // namespace drgn_utils

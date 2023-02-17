@@ -97,9 +97,6 @@ class OICodeGen {
   TypeHierarchy getTypeHierarchy();
   std::map<std::string, PaddingInfo> getPaddingInfo();
 
-  static void getDrgnArrayElementType(drgn_type *type, drgn_type **outElemType,
-                                      size_t &outNumElems);
-
   bool isContainer(drgn_type *type);
 
   static drgn_type *drgnUnderlyingType(drgn_type *type);
@@ -107,7 +104,6 @@ class OICodeGen {
   bool buildName(drgn_type *type, std::string &text, std::string &outName);
 
   std::string typeToTransformedName(drgn_type *type);
-  static std::string typeToName(drgn_type *type);
 
   bool enumerateTypesRecurse(drgn_type *type);
   static std::string_view drgnKindStr(drgn_type *type);

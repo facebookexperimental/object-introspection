@@ -20,7 +20,7 @@
 #include <boost/serialization/version.hpp>
 #include <stdexcept>
 
-#include "OICodeGen.h"
+#include "DrgnUtils.h"
 
 namespace boost::serialization {
 
@@ -319,7 +319,7 @@ void serialize(Archive &ar, struct drgn_type &type,
   // `serialize_c_string`.
   std::string oi_name;
   if (Archive::is_saving::value) {
-    oi_name = OICodeGen::typeToName(&type);
+    oi_name = drgn_utils::typeToName(&type);
     type._private.oi_name = oi_name.c_str();
   }
   serialize_c_string(ar, const_cast<char **>(&type._private.oi_name));
