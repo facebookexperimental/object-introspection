@@ -224,19 +224,17 @@ add_library(oid_parser STATIC ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS})
 target_link_libraries(oid_parser glog::glog)
 
 ### Core OI
+add_subdirectory(src)
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_library(oicore
-  src/ContainerInfo.cpp
   src/Descs.cpp
-  src/FuncGen.cpp
   src/Metrics.cpp
   src/OICache.cpp
-  src/OICodeGen.cpp
   src/OICompiler.cpp
   src/OIUtils.cpp
   src/PaddingHunter.cpp
   src/Serialize.cpp
-  src/SymbolService.cpp
 )
 add_dependencies(oicore libdrgn)
 set_project_warnings(oicore)
@@ -245,10 +243,11 @@ target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
 
 llvm_map_components_to_libnames(llvm_libs core native mcjit x86disassembler)
 target_link_libraries(oicore
+  codegen
+
   ${Boost_LIBRARIES}
   Boost::headers
   glog::glog
-  tomlplusplus::tomlplusplus
 )
 if (FORCE_LLVM_STATIC)
   target_link_libraries(oicore
@@ -296,9 +295,11 @@ target_link_libraries(oil oicore)
 add_executable(oilgen
   tools/OILGen.cpp
   src/OIGenerator.cpp
-  src/DrgnUtils.cpp
 )
-target_link_libraries(oilgen oicore)
+target_link_libraries(oilgen
+  drgn_utils
+  oicore
+)
 
 ### Object Introspection cache Printer (OIP)
 add_executable(oip tools/OIP.cpp)

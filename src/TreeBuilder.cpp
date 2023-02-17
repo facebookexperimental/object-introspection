@@ -26,6 +26,7 @@
 #include <stdexcept>
 
 #include "ContainerInfo.h"
+#include "DrgnUtils.h"
 #include "Metrics.h"
 #include "OICodeGen.h"
 #include "PaddingHunter.h"
@@ -274,7 +275,7 @@ void TreeBuilder::setPaddedStructs(
 
 static std::string drgnTypeToName(struct drgn_type *type) {
   if (type->_private.program != nullptr) {
-    return OICodeGen::typeToName(type);
+    return drgn_utils::typeToName(type);
   }
 
   return type->_private.oi_name ? type->_private.oi_name : "";
@@ -530,8 +531,8 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
     kind = ARRAY_TYPE;
     struct drgn_type *arrayElementType = nullptr;
     size_t numElems = 0;
-    OICodeGen::getDrgnArrayElementType(variable.type, &arrayElementType,
-                                       numElems);
+    drgn_utils::getDrgnArrayElementType(variable.type, &arrayElementType,
+                                        numElems);
     assert(numElems > 0);
     elementTypes.push_back(
         drgn_qualified_type{arrayElementType, (enum drgn_qualifiers)(0)});
