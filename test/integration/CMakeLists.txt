@@ -44,6 +44,7 @@ set(INTEGRATION_TEST_CONFIGS
   std_variant.toml
   std_vector.toml
   std_vector_del_allocator.toml
+  templates.toml
   typedefs.toml
   typedefed_parent.toml
 )
