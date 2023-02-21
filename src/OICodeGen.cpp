@@ -263,6 +263,14 @@ std::string OICodeGen::stripFullyQualifiedNameWithSeparators(
   std::vector<std::string> stack;
   std::string sep = " ,<>()";
   std::string tmp;
+  constexpr std::string_view cond = "conditional_t";
+  constexpr std::string_view stdCond = "std::conditional_t";
+  static int cond_t_val = 0;
+
+  if ((fullyQualifiedName.starts_with(cond)) ||
+      (fullyQualifiedName.starts_with(stdCond))) {
+    return "conditional_t_" + std::to_string(cond_t_val++);
+  }
 
   for (auto &c : fullyQualifiedName) {
     if (sep.find(c) == std::string::npos) {
