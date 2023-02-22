@@ -111,7 +111,11 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
       throw err;
     }
 
-    LOG(INFO) << "found OIL type: " << drgn_type_name(paramType.type);
+    if (drgn_type_has_name(paramType.type)) {
+      LOG(INFO) << "found OIL type: " << drgn_type_name(paramType.type);
+    } else {
+      LOG(INFO) << "found OIL type: (no name)";
+    }
     out.push_back({paramType, std::move(weakLinkageName)});
   }
 
