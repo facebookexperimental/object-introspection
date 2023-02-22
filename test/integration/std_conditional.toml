@@ -1,0 +1,80 @@
+definitions = '''
+class A {
+  int f;
+  int g;
+};
+
+class B {
+  int h;
+};
+
+class C {
+public:
+//  using T = std::conditional_t<alignof(int*) >= sizeof(char), A, B>;
+  std::conditional_t<alignof(int*) >= sizeof(char), A, B> foo;
+};
+'''
+[cases]
+  [cases.a]
+    param_types = ["const C&"]
+    setup = '''
+      C foo;
+      return {foo};
+    '''
+    expect_json = '''
+[
+  {
+    "typeName": "C",
+    "isTypedef": false,
+    "staticSize": 8,
+    "dynamicSize": 0,
+    "members": [
+      {
+        "name": "foo",
+        "typePath": "foo",
+        "isTypedef": true,
+        "staticSize": 8,
+        "dynamicSize": 0,
+        "members": [
+          {
+            "name": "",
+            "typePath": "",
+            "typeName": "type",
+            "isTypedef": true,
+            "staticSize": 8,
+            "dynamicSize": 0,
+            "members": [
+              {
+                "name": "",
+                "typePath": "",
+                "typeName": "A",
+                "isTypedef": false,
+                "staticSize": 8,
+                "dynamicSize": 0,
+                "members": [
+                  {
+                    "name": "f",
+                    "typePath": "f",
+                    "typeName": "int",
+                    "isTypedef": false,
+                    "staticSize": 4,
+                    "dynamicSize": 0
+                  },
+                  {
+                    "name": "g",
+                    "typePath": "g",
+                    "typeName": "int",
+                    "isTypedef": false,
+                    "staticSize": 4,
+                    "dynamicSize": 0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
+'''
