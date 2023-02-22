@@ -19,6 +19,7 @@ set(INTEGRATION_TEST_CONFIGS
   references.toml
   simple_struct.toml
   std_array.toml
+  std_conditional.toml
   std_deque_del_allocator.toml
   std_list_del_allocator.toml
   std_deque.toml
