@@ -18,6 +18,7 @@ set(INTEGRATION_TEST_CONFIGS
   primitives.toml
   references.toml
   simple_struct.toml
+  sorted_vector_set.toml
   std_array.toml
   std_conditional.toml
   std_deque_del_allocator.toml

@@ -1,0 +1,47 @@
+includes = ["folly/sorted_vector_types.h"]
+definitions = '''
+    using folly::sorted_vector_set;
+'''
+
+[cases]
+  [cases.no_ints]
+    param_types = ["const sorted_vector_set<int>&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "length":0,
+      "capacity":0,
+      "elementStaticSize":4,
+      "members":[{
+        "staticSize": 24,
+        "dynamicSize": 0,
+        "length": 0,
+        "capacity": 0,
+        "elementStaticSize": 4
+    }]}]'''
+
+  [cases.some_ints]
+    param_types = ["const sorted_vector_set<int>&"]
+    setup = '''
+      sorted_vector_set<int> is;
+      is.insert(1);
+      is.insert(3);
+      is.insert(2);
+      is.insert(3);
+      return is;
+    '''
+    expect_json = '''[{
+      "staticSize": 24,
+      "dynamicSize": 16,
+      "length":3,
+      "capacity":4,
+      "elementStaticSize":4,
+      "members": [{
+        "staticSize": 24,
+        "dynamicSize": 16,
+        "length": 3,
+        "capacity": 4,
+        "elementStaticSize": 4
+    }]}]
+    '''

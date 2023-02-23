@@ -14,19 +14,14 @@ void getSizeType(const %1%<T,Compare, Allocator, GrowthPolicy, Container> &conta
 
 func = """
 template <class T, class Compare, class Allocator, class GrowthPolicy, class Container>
-void getSizeType(const %1%<T,Compare, Allocator, GrowthPolicy, Container> &container, size_t& returnArg)
+void getSizeType(const %1%<T,Compare, Allocator, GrowthPolicy, Container> &containerAdapter, size_t& returnArg)
 {
-    SAVE_SIZE(sizeof(%1%<T,Compare, Allocator, GrowthPolicy, Container>));
+    SAVE_DATA((uintptr_t)&containerAdapter);
 
-    SAVE_DATA((uintptr_t)&container);
-    SAVE_DATA((uintptr_t)container.capacity());
-    SAVE_DATA((uintptr_t)container.size());
+    // Underlying container is grabbed by recursion, store only the exclusive size.
+    SAVE_SIZE(sizeof(%1%<T,Compare, Allocator, GrowthPolicy, Container>) - sizeof(Container));
 
-    SAVE_SIZE((container.capacity() - container.size()) * sizeof(T));
-
-    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
-    for (auto&& it: container) {
-        getSizeType(it, returnArg);
-    }
+    const Container &container = containerAdapter.get_container();
+    getSizeType(container, returnArg);
 }
 """
