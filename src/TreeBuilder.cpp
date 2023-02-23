@@ -607,6 +607,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
         return;
       }
       break;
+    case SORTED_VEC_SET_TYPE:
     case CONTAINER_ADAPTER_TYPE: {
       node.pointer = next();
 
@@ -673,7 +674,6 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
       break;
     case SEQ_TYPE:
     case MICROLIST_TYPE:
-    case SORTED_VEC_SET_TYPE:
     case FEED_QUICK_HASH_SET:
     case FEED_QUICK_HASH_MAP:
     case FB_HASH_MAP_TYPE:
