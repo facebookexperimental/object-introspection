@@ -31,6 +31,7 @@
 #include "PaddingHunter.h"
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
+#include "rocksdb/statistics.h"
 
 extern "C" {
 #include <drgn.h>
