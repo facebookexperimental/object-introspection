@@ -3,6 +3,7 @@ set(INTEGRATION_TEST_CONFIGS
   anonymous.toml
   container_enums.toml
   cycles.toml
+  ignored.toml
   inheritance_access.toml
   inheritance_multiple.toml
   inheritance_polymorphic.toml
@@ -95,7 +96,9 @@ target_include_directories(integration_test_runner PRIVATE ${CMAKE_CURRENT_SOURC
 target_link_libraries(integration_test_runner PRIVATE
   ${GMOCK_MAIN_LIBS}
   Boost::headers
-  ${Boost_LIBRARIES})
+  ${Boost_LIBRARIES}
+  tomlplusplus::tomlplusplus
+)
 target_compile_definitions(integration_test_runner PRIVATE
   TARGET_EXE_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration_test_target"
   OID_EXE_PATH="$<TARGET_FILE:oid>"

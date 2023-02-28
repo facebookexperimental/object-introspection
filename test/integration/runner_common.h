@@ -38,6 +38,7 @@ class IntegrationBase : public ::testing::Test {
   void TearDown() override;
   void SetUp() override;
   int exit_code(Proc &proc);
+  std::filesystem::path createCustomConfig(const std::string &extra);
 
   std::filesystem::path workingDir;
 
@@ -68,5 +69,5 @@ class OilIntegration : public IntegrationBase {
  protected:
   std::string TmpDirStr() override;
 
-  Proc runOilTarget(OidOpts opts);
+  Proc runOilTarget(OidOpts opts, std::string extra_config);
 };

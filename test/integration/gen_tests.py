@@ -240,9 +240,7 @@ def add_oid_integration_test(f, config, case_name, case):
         f"\n"
         f"TEST_F(OidIntegration, {case_str}) {{\n"
         f"{generate_skip(case, 'oid')}"
-        f'  std::string configOptions = R"--(\n'
-        f"{config_extra}\n"
-        f'  )--";\n'
+        f'  std::string configOptions = R"--({config_extra})--";\n'
         f"  ba::io_context ctx;\n"
         f"  auto [target, oid] = runOidOnProcess(\n"
         f"        {{\n"
@@ -307,15 +305,18 @@ def add_oil_integration_test(f, config, case_name, case):
     if case.get("oil_disable", False):
         return
 
+    config_extra = case.get("config", "")
+
     f.write(
         f"\n"
         f"TEST_F(OilIntegration, {case_str}) {{\n"
         f"{generate_skip(case, 'oil')}"
+        f'  std::string configOptions = R"--({config_extra})--";\n'
         f"  ba::io_context ctx;\n"
         f"  auto target = runOilTarget({{\n"
         f"    .ctx = ctx,\n"
         f'    .targetArgs = "oil {case_str} 1",\n'
-        f"  }});\n\n"
+        f"  }}, std::move(configOptions));\n\n"
         f"  ASSERT_EQ(exit_code(target), {exit_code});\n"
         f"\n"
         f"  bpt::ptree result_json;\n"
