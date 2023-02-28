@@ -24,3 +24,5 @@ static constexpr uint8_t movabsrax1Inst = 0xb8;
 static constexpr uint8_t callRaxInst0Inst = 0xff;
 static constexpr uint8_t callRaxInst1Inst = 0xd0;
 static constexpr long syscallInsts = 0x9090909090050fcc;
+static constexpr uint8_t ud2Inst0 = 0x0f;
+static constexpr uint8_t ud2Inst1 = 0x0b;

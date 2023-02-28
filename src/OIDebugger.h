@@ -160,6 +160,7 @@ class OIDebugger {
   uint64_t count{};
   bool sigIntHandlerActive{false};
   const int sizeofInt3 = 1;
+  const int sizeofUd2 = 2;
   const int replayInstSize = 512;
   bool trapsRemoved{false};
   std::shared_ptr<SymbolService> symbols;
