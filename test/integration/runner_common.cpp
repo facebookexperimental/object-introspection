@@ -1,5 +1,8 @@
 #include "runner_common.h"
 
+#include <toml++/toml.h>
+
+#include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
@@ -119,6 +122,48 @@ int IntegrationBase::exit_code(Proc &proc) {
   return proc.proc.exit_code();
 }
 
+fs::path IntegrationBase::createCustomConfig(const std::string &extraConfig) {
+  // If no extra config provided, return the config path unaltered.
+  if (extraConfig.empty()) {
+    return configFile;
+  }
+
+  auto customConfigFile = workingDir / "oid.config.toml";
+  auto config = toml::parse_file(configFile);
+
+  // As relative paths are allowed, we must canonicalise the paths before
+  // moving the file to the temporary directory.
+  fs::path configDirectory = fs::path(configFile).remove_filename();
+
+  if (toml::table *types = config["types"].as_table()) {
+    if (toml::array *arr = (*types)["containers"].as_array()) {
+      arr->for_each([&](auto &&el) {
+        if constexpr (toml::is_string<decltype(el)>) {
+          el = configDirectory / el.get();
+        }
+      });
+    }
+  }
+  if (toml::table *headers = config["headers"].as_table()) {
+    for (auto &path : {"user_paths", "system_paths"}) {
+      if (toml::array *arr = (*headers)[path].as_array()) {
+        arr->for_each([&](auto &&el) {
+          if constexpr (toml::is_string<decltype(el)>) {
+            el = configDirectory / el.get();
+          }
+        });
+      }
+    }
+  }
+
+  std::ofstream customConfig(customConfigFile, std::ios_base::app);
+  customConfig << config;
+  customConfig << "\n\n# Test custom config\n\n";
+  customConfig << extraConfig;
+
+  return customConfigFile;
+}
+
 std::string OidIntegration::TmpDirStr() {
   return std::string("/tmp/oid-integration-XXXXXX");
 }
@@ -149,18 +194,7 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
     std::ofstream touch(segconfigPath);
   }
 
-  // Only create a new custom config if we've been provided an extra_config
-  boost::trim(extra_config);
-
-  fs::path customConfigFile = configFile;
-  if (!extra_config.empty()) {
-    customConfigFile = workingDir / "oid.config.toml";
-    fs::copy_file(configFile, customConfigFile);
-
-    std::ofstream customConfig(customConfigFile, std::ios_base::app);
-    customConfig << "\n\n# Test custom config\n\n";
-    customConfig << extra_config;
-  }
+  fs::path thisConfig = createCustomConfig(extra_config);
 
   // Keep PID as the last argument to make it easier for users to directly copy
   // and modify the command from the verbose mode output.
@@ -169,7 +203,7 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
       "--debug-level=3"s,
       "--timeout=20"s,
       "--dump-json"s,
-      "--config-file"s, customConfigFile.string(),
+      "--config-file"s, thisConfig.string(),
       "--script-source"s, opts.scriptSource,
       "--pid"s, std::to_string(targetProcess.id()),
   };
@@ -302,7 +336,7 @@ std::string OilIntegration::TmpDirStr() {
   return std::string("/tmp/oil-integration-XXXXXX");
 }
 
-Proc OilIntegration::runOilTarget(OidOpts opts) {
+Proc OilIntegration::runOilTarget(OidOpts opts, std::string extra_config) {
   std::string targetExe = std::string(TARGET_EXE_PATH) + " " + opts.targetArgs;
 
   if (verbose) {
@@ -341,6 +375,8 @@ Proc OilIntegration::runOilTarget(OidOpts opts) {
     // clang-format on
   }
 
+  fs::path thisConfig = createCustomConfig(extra_config);
+
   /* Spawn target with tracing on and IOs redirected in custom pipes to be read
    * later */
   // clang-format off
@@ -349,7 +385,7 @@ Proc OilIntegration::runOilTarget(OidOpts opts) {
       bp::std_in  < bp::null,
       bp::std_out > std_out_pipe,
       bp::std_err > std_err_pipe,
-      bp::env["CONFIG_FILE_PATH"] = configFile,
+      bp::env["CONFIG_FILE_PATH"] = thisConfig.string(),
       opts.ctx);
   // clang-format on
 
