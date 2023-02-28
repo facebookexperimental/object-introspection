@@ -2113,7 +2113,6 @@ bool OIDebugger::writePrologue(
     const prequest &preq, const OICompiler::RelocResult::SymTable &jitSymbols) {
   size_t off = 0;
   uint8_t newInsts[prologueLength];
-  memset(newInsts, nopInst /* NOP */, sizeof(newInsts));
 
   /*
    * Global probes don't have multiple arguments, but calling `getReqForArg(X)`
@@ -2136,17 +2135,6 @@ bool OIDebugger::writePrologue(
     VLOG(1) << "Generating prologue for argument '" << req.arg
             << "', using probe at " << (void *)jitCodeStart->second;
 
-    /*
-     * With the move to an INT3 to regain control of the target thread I'm
-     * not convinced that we actually need to do any of this now. We may be
-     * able to simply tack an INT3 on to the end of the JIT'd code sequence
-     * (obviously we wouldn't ever execute the 'ret' there but that doesn't
-     * really matter).
-     */
-    /*
-     * movabs is really a synthetic for a REX prefixed mov instruction.
-     * The REX prefix opcode is 0x48 (REX.W == 1).
-     */
     newInsts[off++] = movabsrdi0Inst;
     newInsts[off++] = movabsrdi1Inst;
     remoteObjAddrs.emplace(std::move(jitCodeStart->first),
@@ -2176,6 +2164,11 @@ bool OIDebugger::writePrologue(
   }
 
   newInsts[off++] = int3Inst;
+
+  while (off <= prologueLength - sizeofUd2) {
+    newInsts[off++] = ud2Inst0;
+    newInsts[off++] = ud2Inst1;
+  }
 
   assert(off <= prologueLength);
 
