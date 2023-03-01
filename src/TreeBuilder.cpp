@@ -156,9 +156,15 @@ struct TreeBuilder::Node {
 
   std::optional<bool> isset{std::nullopt};
 
+  /**
+   * An estimation of the "exclusive size" of a type, trying to
+   * attribute every byte once and only once to types in the tree.
+   */
+  size_t exclusiveSize{};
+
   MSGPACK_DEFINE_ARRAY(id, name, typeName, typePath, isTypedef, staticSize,
                        dynamicSize, paddingSavingsSize, containerStats, pointer,
-                       children, isset)
+                       children, isset, exclusiveSize)
 };
 
 TreeBuilder::~TreeBuilder() {
@@ -376,6 +382,19 @@ static std::string_view drgnKindStr(struct drgn_type *type) {
   return kind;
 }
 
+void TreeBuilder::setSize(TreeBuilder::Node &node, uint64_t dynamicSize,
+                          uint64_t memberSizes) {
+  node.dynamicSize = dynamicSize;
+  if (memberSizes > node.staticSize + node.dynamicSize) {
+    // TODO handle this edge case in a more elegant way.
+    // This can occur when handling bitfields or vector<bool>
+    // (as we cannot accurately track sub-byte sizes currently)
+    node.exclusiveSize = 0;
+  } else {
+    node.exclusiveSize = node.staticSize + node.dynamicSize - memberSizes;
+  }
+}
+
 TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
   Node node{
       .id = id,
@@ -390,6 +409,8 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
           << "', kind: " << drgnKindStr(variable.type) << ")"
           << (variable.isStubbed ? " STUBBED" : "")
           << (th->knownDummyTypeList.contains(variable.type) ? " DUMMY" : "");
+  // Default dynamic size to 0 and calculate fallback exclusive size
+  setSize(node, 0, 0);
   if (!variable.isStubbed) {
     switch (drgn_type_kind(variable.type)) {
       case DRGN_TYPE_POINTER:
@@ -413,7 +434,8 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
             auto childID = nextNodeID++;
             auto child = process(childID, Variable{entry->second, "", ""});
             node.children = {childID, childID + 1};
-            node.dynamicSize = child.staticSize + child.dynamicSize;
+            setSize(node, child.staticSize + child.dynamicSize,
+                    child.staticSize + child.dynamicSize);
           }
         }
         break;
@@ -434,7 +456,8 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
           auto childID = nextNodeID++;
           auto child = process(childID, Variable{entry->second, "", ""});
           node.children = {childID, childID + 1};
-          node.dynamicSize = child.dynamicSize;
+          setSize(node, child.dynamicSize,
+                  child.dynamicSize + child.staticSize);
         }
       } break;
       case DRGN_TYPE_CLASS:
@@ -474,6 +497,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
           bool captureThriftIsset =
               th->thriftIssetStructTypes.contains(objectType);
 
+          uint64_t memberSizes = 0;
           for (std::size_t i = 0; i < members.size(); i++) {
             std::optional<bool> isset;
             if (captureThriftIsset && i < members.size() - 1) {
@@ -492,7 +516,9 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
                         Variable{member.type, member.member_name,
                                  member.member_name, isset, member.isStubbed});
             node.dynamicSize += child.dynamicSize;
+            memberSizes += child.dynamicSize + child.staticSize;
           }
+          setSize(node, node.dynamicSize, memberSizes);
         }
         break;
       default:
@@ -625,7 +651,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
                       .name = "",
                       .typePath = drgnTypeToName(containerType.type) + "[]"});
 
-      node.dynamicSize = child.dynamicSize;
+      setSize(node, child.dynamicSize, child.dynamicSize + child.staticSize);
       node.containerStats = child.containerStats;
       return;
     }
@@ -665,7 +691,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
                         .name = "",
                         .typePath = drgnTypeToName(elementType.type) + "[]"});
 
-        node.dynamicSize = child.dynamicSize;
+        setSize(node, child.dynamicSize, child.dynamicSize + child.staticSize);
       }
       return;
     }
@@ -741,7 +767,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
       break;
     case CAFFE2_BLOB_TYPE:
       // This is a weird one, need to ask why we just overwite size like this
-      node.dynamicSize = next();
+      setSize(node, next(), 0);
       return;
     case ARRAY_TYPE:
       contentsStoredInline = true;
@@ -770,7 +796,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
       containerStats.elementStaticSize += next();
       size_t bucketCount = next();
       // Both libc++ and libstdc++ define buckets as an array of raw pointers
-      node.dynamicSize += bucketCount * sizeof(void *);
+      setSize(node, node.dynamicSize + bucketCount * sizeof(void *), 0);
       containerStats.length = containerStats.capacity = next();
     } break;
     case F14_MAP:
@@ -781,7 +807,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
       // conveniently provide a `getAllocatedMemorySize()` method which we can
       // use instead.
       contentsStoredInline = true;
-      node.dynamicSize += next();
+      setSize(node, node.dynamicSize + next(), 0);
       containerStats.capacity = next();
       containerStats.length = next();
       break;
@@ -801,8 +827,10 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
   }
 
   if (!contentsStoredInline) {
-    node.dynamicSize +=
-        containerStats.elementStaticSize * containerStats.capacity;
+    setSize(node,
+            node.dynamicSize +
+                containerStats.elementStaticSize * containerStats.capacity,
+            0);
   }
 
   // A cutoff value used to sanity-check our results. If a container
@@ -834,6 +862,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
           << node.children->first << ", " << node.children->second << ")";
   nextNodeID += numChildren;
   auto childID = node.children->first;
+  uint64_t memberSizes = 0;
   for (size_t i = 0; i < containerStats.length; i++) {
     for (auto &type : elementTypes) {
       auto child =
@@ -841,8 +870,10 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
                               .name = "",
                               .typePath = drgnTypeToName(type.type) + "[]"});
       node.dynamicSize += child.dynamicSize;
+      memberSizes += child.dynamicSize + child.staticSize;
     }
   }
+  setSize(node, node.dynamicSize, memberSizes);
 }
 
 template <class T>
@@ -873,7 +904,8 @@ void TreeBuilder::JSON(NodeID id, std::ofstream &output) {
   output << "\"typeName\":\"" << node.typeName << "\",";
   output << "\"isTypedef\":" << (node.isTypedef ? "true" : "false") << ",";
   output << "\"staticSize\":" << node.staticSize << ",";
-  output << "\"dynamicSize\":" << node.dynamicSize;
+  output << "\"dynamicSize\":" << node.dynamicSize << ",";
+  output << "\"exclusiveSize\":" << node.exclusiveSize;
   if (node.paddingSavingsSize.has_value()) {
     output << ",";
     output << "\"paddingSavingsSize\":" << *node.paddingSavingsSize;
