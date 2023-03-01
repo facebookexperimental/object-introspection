@@ -111,4 +111,7 @@ class TreeBuilder {
   template <class T>
   std::string_view serialize(const T &);
   void JSON(NodeID id, std::ofstream &output);
+
+  static void setSize(TreeBuilder::Node &node, uint64_t dynamicSize,
+                      uint64_t memberSizes);
 };
