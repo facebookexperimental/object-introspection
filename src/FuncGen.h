@@ -56,10 +56,6 @@ class FuncGen {
                                           const std::string& type,
                                           const std::string& linkageName);
 
-  static void DefineTopLevelGetSizePtr(std::string& testCode,
-                                       const std::string& type,
-                                       const std::string& rawType);
-
   static void DefineTopLevelGetSizeRef(std::string& testCode,
                                        const std::string& rawType);
 
