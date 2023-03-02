@@ -27,17 +27,17 @@ class FuncGen {
  public:
   bool RegisterContainer(ContainerTypeEnum, const fs::path& path);
 
-  void DeclareStoreData(std::string& testCode);
-  void DefineStoreData(std::string& testCode);
+  static void DeclareStoreData(std::string& testCode);
+  static void DefineStoreData(std::string& testCode);
 
-  void DeclareAddData(std::string& testCode);
-  void DefineAddData(std::string& testCode);
+  static void DeclareAddData(std::string& testCode);
+  static void DefineAddData(std::string& testCode);
 
-  void DeclareEncodeData(std::string& testCode);
-  void DefineEncodeData(std::string& testCode);
+  static void DeclareEncodeData(std::string& testCode);
+  static void DefineEncodeData(std::string& testCode);
 
-  void DeclareEncodeDataSize(std::string& testCode);
-  void DefineEncodeDataSize(std::string& testCode);
+  static void DeclareEncodeDataSize(std::string& testCode);
+  static void DefineEncodeDataSize(std::string& testCode);
 
   bool DeclareGetSizeFuncs(std::string& testCode,
                            const std::set<ContainerInfo>& containerInfo,
@@ -46,29 +46,31 @@ class FuncGen {
                           const std::set<ContainerInfo>& containerInfo,
                           bool chaseRawPointers);
 
-  void DeclareGetContainer(std::string& testCode);
+  static void DeclareGetContainer(std::string& testCode);
 
-  void DeclareGetSize(std::string& testCode, const std::string& type);
+  static void DeclareGetSize(std::string& testCode, const std::string& type);
 
-  void DeclareTopLevelGetSize(std::string& testCode, const std::string& type);
-  void DefineTopLevelGetObjectSize(std::string& testCode,
-                                   const std::string& type,
-                                   const std::string& linkageName);
+  static void DeclareTopLevelGetSize(std::string& testCode,
+                                     const std::string& type);
+  static void DefineTopLevelGetObjectSize(std::string& testCode,
+                                          const std::string& type,
+                                          const std::string& linkageName);
 
-  void DefineTopLevelGetSizePtr(std::string& testCode, const std::string& type,
-                                const std::string& rawType);
+  static void DefineTopLevelGetSizePtr(std::string& testCode,
+                                       const std::string& type,
+                                       const std::string& rawType);
 
-  void DefineTopLevelGetSizeRef(std::string& testCode,
-                                const std::string& rawType);
+  static void DefineTopLevelGetSizeRef(std::string& testCode,
+                                       const std::string& rawType);
 
-  void DefineTopLevelGetSizeRefRet(std::string& testCode,
-                                   const std::string& type);
+  static void DefineTopLevelGetSizeRefRet(std::string& testCode,
+                                          const std::string& type);
 
-  void DefineTopLevelGetSizeSmartPtr(std::string& testCode,
-                                     const std::string& rawType);
+  static void DefineTopLevelGetSizeSmartPtr(std::string& testCode,
+                                            const std::string& rawType);
 
-  void DefineGetSizeTypedValueFunc(std::string& testCode,
-                                   const std::string& ctype);
+  static void DefineGetSizeTypedValueFunc(std::string& testCode,
+                                          const std::string& ctype);
 
  private:
   std::map<ContainerTypeEnum, std::string> typeToDeclMap;
