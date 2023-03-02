@@ -290,38 +290,6 @@ void FuncGen::DefineTopLevelGetSizeRefRet(std::string& testCode,
   testCode.append(fmt.str());
 }
 
-void FuncGen::DefineTopLevelGetSizePtr(std::string& testCode,
-                                       const std::string& type,
-                                       const std::string& rawType) {
-  std::string func = R"(
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* Type: %1%, RawType: %2% */
-    void __attribute__((used, retain)) getSize_%3$016x(const %1% * t)
-    #pragma GCC diagnostic pop
-    void getSize(const %1% * t)
-    {
-      pointers.initialize();
-      auto data = reinterpret_cast<uintptr_t*>(dataBase);
-      data[0] = oidMagicId;
-      data[1] = cookieValue;
-      data[2] = 0;
-
-      size_t dataSegOffset = 3 * sizeof(uintptr_t);
-
-      getSizeType(t, dataSegOffset);
-      OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
-      OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
-      data[2] = dataSegOffset;
-      dataBase += dataSegOffset;
-    }
-    )";
-
-  boost::format fmt =
-      boost::format(func) % type % rawType % std::hash<std::string>{}(rawType);
-  testCode.append(fmt.str());
-}
-
 void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
                                             const std::string& rawType) {
   std::string func = R"(
