@@ -144,10 +144,11 @@ definitions = '''
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":4,
+      "exclusiveSize":4,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0},
-        {"name":"b", "staticSize":8, "dynamicSize":4},
-        {"name":"c", "staticSize":8, "dynamicSize":0}
+        {"name":"a", "staticSize":4, "exclusiveSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":8, "exclusiveSize":8, "dynamicSize":4},
+        {"name":"c", "staticSize":8, "exclusiveSize":8, "dynamicSize":0}
       ]}]'''
   [cases.struct_primitive_ptrs_no_follow]
     param_types = ["const PrimitivePtrs&"]

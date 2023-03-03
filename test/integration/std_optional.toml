@@ -8,6 +8,7 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 16,
         "dynamicSize": 0,
+        "exclusiveSize": 16,
         "length": 0,
         "capacity": 1,
         "elementStaticSize": 8
@@ -22,6 +23,7 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 16,
         "dynamicSize": 0,
+        "exclusiveSize": 16,
         "length": 1,
         "capacity": 1,
         "elementStaticSize": 8
@@ -36,6 +38,7 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 32,
         "dynamicSize": 0,
+        "exclusiveSize": 32,
         "length": 0,
         "capacity": 1,
         "elementStaticSize": 24
@@ -50,6 +53,7 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 32,
         "dynamicSize": 40,
+        "exclusiveSize": 8,
         "length": 1,
         "capacity": 1,
         "elementStaticSize": 24,
@@ -57,6 +61,7 @@ includes = ["optional", "cstdint", "vector"]
           {
             "staticSize": 24,
             "dynamicSize": 40,
+            "exclusiveSize": 64,
             "length": 5
           }
         ]

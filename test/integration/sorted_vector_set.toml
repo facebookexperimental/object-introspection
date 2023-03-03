@@ -34,12 +34,14 @@ definitions = '''
     expect_json = '''[{
       "staticSize": 24,
       "dynamicSize": 16,
+      "exclusiveSize": 0,
       "length":3,
       "capacity":4,
       "elementStaticSize":4,
       "members": [{
         "staticSize": 24,
         "dynamicSize": 16,
+        "exclusiveSize": 40,
         "length": 3,
         "capacity": 4,
         "elementStaticSize": 4
