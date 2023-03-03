@@ -14,11 +14,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
+      "exclusiveSize":15,
       "length":1,
       "capacity":1,
       "elementStaticSize":8,
       "members":[
-        {"typeName":"char", "staticSize":1, "dynamicSize":0}
+        {"typeName":"char", "staticSize":1, "exclusiveSize":1, "dynamicSize":0}
       ]}]'''
   [cases.char_int64_2]
     param_types = ["const std::variant<char, int64_t>&"]
@@ -26,11 +27,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
+      "exclusiveSize":8,
       "length":1,
       "capacity":1,
       "elementStaticSize":8,
       "members":[
-        {"typeName":"long", "staticSize":8, "dynamicSize":0}
+        {"typeName":"long", "staticSize":8, "exclusiveSize":8, "dynamicSize":0}
       ]}]'''
 
   [cases.vector_int_1]
@@ -39,6 +41,7 @@ definitions = '''
     expect_json = '''[{
       "staticSize":32,
       "dynamicSize":12,
+      "exclusiveSize":8,
       "length":1,
       "capacity":1,
       "elementStaticSize":24,
@@ -47,6 +50,7 @@ definitions = '''
           "typeName":"vector<int, std::allocator<int> >",
           "staticSize":24,
           "dynamicSize":12,
+          "exclusiveSize":36,
           "length":3,
           "capacity":3,
           "elementStaticSize":4
@@ -77,6 +81,7 @@ definitions = '''
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":0,
+      "exclusiveSize":8,
       "length":1,
       "capacity":1,
       "elementStaticSize":16,
@@ -84,11 +89,12 @@ definitions = '''
         {
           "staticSize":16,
           "dynamicSize":0,
+          "exclusiveSize":8,
           "length":1,
           "capacity":1,
           "elementStaticSize":8,
           "members":[
-            {"typeName":"long", "staticSize":8, "dynamicSize":0}
+            {"typeName":"long", "staticSize":8, "exclusiveSize":8, "dynamicSize":0}
           ]
         }
       ]}]'''
@@ -109,6 +115,7 @@ definitions = '''
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":0,
+      "exclusiveSize":8,
       "length":1,
       "capacity":1,
       "elementStaticSize":4,
@@ -125,11 +132,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":0,
+      "exclusiveSize":7,
       "length":1,
       "capacity":1,
       "elementStaticSize":4,
       "members":[
-        {"typeName":"char", "staticSize":1, "dynamicSize":0}
+        {"typeName":"char", "staticSize":1, "exclusiveSize":1, "dynamicSize":0}
       ]}]'''
   [cases.256_params_empty]
     param_types = ["const std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char>&"]

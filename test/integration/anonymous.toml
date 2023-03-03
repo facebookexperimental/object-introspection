@@ -162,24 +162,28 @@ definitions = '''
         "isTypedef": true,
         "staticSize": 8,
         "dynamicSize": 12,
+        "exclusiveSize": 0,
         "members": [{
           "name": "",
           "typeName": "__anon_struct_0",
           "isTypedef": false,
           "staticSize": 8,
           "dynamicSize": 12,
+          "exclusiveSize": 0,
           "members": [{
             "name": "node",
             "typeName": "struct Node *",
             "staticSize": 8,
             "dynamicSize": 12,
+            "exclusiveSize": 8,
             "members": [{
               "typeName": "Node",
               "staticSize": 12,
+              "exclusiveSize": 0,
               "members": [
-                { "name": "a", "staticSize": 4, "dynamicSize": 0 },
-                { "name": "b", "staticSize": 4, "dynamicSize": 0 },
-                { "name": "c", "staticSize": 4, "dynamicSize": 0 }
+                { "name": "a", "staticSize": 4, "exclusiveSize": 4, "dynamicSize": 0 },
+                { "name": "b", "staticSize": 4, "exclusiveSize": 4, "dynamicSize": 0 },
+                { "name": "c", "staticSize": 4, "exclusiveSize": 4, "dynamicSize": 0 }
               ]
             }]
           }]

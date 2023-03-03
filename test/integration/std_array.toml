@@ -8,6 +8,7 @@ includes = ["array", "cstdint", "vector"]
       {
         "staticSize": 1,
         "dynamicSize": 0,
+        "exclusiveSize": 1,
         "length": 0,
         "capacity": 0,
         "elementStaticSize": 8
@@ -22,6 +23,7 @@ includes = ["array", "cstdint", "vector"]
       {
         "staticSize": 8,
         "dynamicSize": 0,
+        "exclusiveSize": 8,
         "length": 1,
         "capacity": 1,
         "elementStaticSize": 8
@@ -70,17 +72,20 @@ includes = ["array", "cstdint", "vector"]
       {
         "staticSize": 48,
         "dynamicSize": 72,
+        "exclusiveSize": 0,
         "length": 2,
         "capacity": 2,
         "elementStaticSize": 24,
         "members": [
           {
             "staticSize": 24,
-            "dynamicSize": 40
+            "dynamicSize": 40,
+            "exclusiveSize": 64
           },
           {
             "staticSize": 24,
-            "dynamicSize": 32
+            "dynamicSize": 32,
+            "exclusiveSize": 56
           }
         ]
       }
