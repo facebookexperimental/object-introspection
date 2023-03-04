@@ -439,7 +439,7 @@ bool OIDebugger::isExtendedWait(int status) {
 }
 
 bool OIDebugger::contTargetThread(bool detach) const {
-  VLOG(1) << "contTargetThread: About to PTRACE_CONT pid " << std::dec
+  VLOG(4) << "contTargetThread: About to PTRACE_CONT pid " << std::dec
           << traceePid << " detach = " << detach;
 
   if (detach) {
@@ -505,7 +505,7 @@ bool OIDebugger::replayTrappedInstr(const trapInfo &t, pid_t pid,
 
   if (rip > t.replayInstAddr && rip < t.replayInstAddr + 16) {
     /* See comment above in processFuncEntry() for this */
-    VLOG(1) << "Hit rip adjustment code in replayTrappedInstr";
+    VLOG(4) << "Hit rip adjustment code in replayTrappedInstr";
     size_t origInstSize = rip - t.replayInstAddr;
     /*
      * x64 instructions can be 16 bytes but we only use 8 bytes of patch. I
@@ -545,7 +545,7 @@ bool OIDebugger::locateObjectsAddresses(const trapInfo &tInfo,
       continue;
     }
 
-    VLOG(1) << "Entry: arg addr: " << std::hex << *addr;
+    VLOG(4) << "Entry: arg addr: " << std::hex << *addr;
     if (!writeTargetMemory((void *)(&addr.value()),
                            (void *)remoteObjAddr->second, sizeof(*addr))) {
       LOG(ERROR) << "Entry: writeTargetMemory remoteObjAddr failed!";
@@ -564,7 +564,7 @@ OIDebugger::processTrapRet OIDebugger::processFuncTrap(
 
   processTrapRet ret = OID_CONT;
 
-  VLOG(1) << "\nProcess Function Trap for pid=" << pid << ": " << tInfo
+  VLOG(4) << "\nProcess Function Trap for pid=" << pid << ": " << tInfo
           << "\n\n";
 
   auto t = std::make_shared<trapInfo>(tInfo);
@@ -581,7 +581,7 @@ OIDebugger::processTrapRet OIDebugger::processFuncTrap(
     replayTrappedInstr(*t, pid, t->savedRegs, t->savedFPregs);
 
     errno = 0;
-    VLOG(1) << "processFuncEntry about to PTRACE_CONT pid " << std::dec << pid;
+    VLOG(4) << "processFuncEntry about to PTRACE_CONT pid " << std::dec << pid;
     if (ptrace(PTRACE_CONT, pid, nullptr, nullptr) < 0) {
       LOG(ERROR) << "processTrap: Error in PTRACE_CONT for pid " << pid << " "
                  << strerror(errno) << "(" << errno << ")";
@@ -663,34 +663,21 @@ OIDebugger::processTrapRet OIDebugger::processFuncTrap(
     regs.rip = t->prologueObjAddr;
     t->fromVect = true;
 
-    VLOG(1) << "processTrap: redirect pid " << std::dec << pid << " to address "
+    VLOG(4) << "processTrap: redirect pid " << std::dec << pid << " to address "
             << std::hex << (void *)tInfo.prologueObjAddr << " tInfo: " << tInfo
             << " " << tInfo.prologueObjAddr << " " << tInfo.fromVect;
 
-    /*
-     * A NOTE ON SINGLE DATA OBJECT USAGE:
-     *
-     * This is so busted. Every thread that piles through this entry
-     * point gets its register contents written to the single place
-     * as we only look at a single object - we then continue the thread
-     * with its %rip set to the start of the JIT code. So it's possible
-     * (and likely in busy code) that mutiple threads could have come through
-     * here and rewritten the single 'remoteObjAddr' location. They may
-     * well end up not measuring their own object. That is really bad and
-     * we need to go to a per-thread object addresss store in the remote target
-     * process before this is let loose on the wider worl outside of FB.
-     */
     errno = 0;
     if (ptrace(PTRACE_SETREGS, pid, nullptr, &regs) < 0) {
       LOG(ERROR) << "Execute: Couldn't restore registers: " << strerror(errno);
     }
   }
 
-  VLOG(1) << "Inserting Trapinfo for pid " << std::dec << pid;
+  VLOG(4) << "Inserting Trapinfo for pid " << std::dec << pid;
   threadTrapState.insert_or_assign(pid, std::move(t));
 
   errno = 0;
-  VLOG(1) << "processFuncTrap about to PTRACE_CONT pid " << std::dec << pid;
+  VLOG(4) << "processFuncTrap about to PTRACE_CONT pid " << std::dec << pid;
   if (ptrace(PTRACE_CONT, pid, nullptr, nullptr) < 0) {
     LOG(ERROR) << "processTrap: Error in PTRACE_CONT for pid " << pid << " "
                << strerror(errno) << "(" << errno << ")";
@@ -707,7 +694,7 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
 
   assert(tInfo.trapKind == OID_TRAP_JITCODERET);
 
-  VLOG(1) << "Process JIT Code Return Trap";
+  VLOG(4) << "Process JIT Code Return Trap";
 
   /*
    * This is a trap from a non-vectored route. If an entry for this thread
@@ -728,7 +715,7 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
 
     auto jitTrapProcessTime = Metrics::Tracing("jit_ret");
 
-    VLOG(1) << "Hit the return path from vector. Redirect to " << std::hex
+    VLOG(4) << "Hit the return path from vector. Redirect to " << std::hex
             << t->trapAddr;
 
     /*
@@ -738,7 +725,7 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
     if (t->trapAddr != GLOBAL_VARIABLE_TRAP_ADDR) {
       replayTrappedInstr(*t, pid, t->savedRegs, t->savedFPregs);
     } else {
-      VLOG(1) << "processJitCodeRet processing global variable return";
+      VLOG(4) << "processJitCodeRet processing global variable return";
 
       errno = 0;
       if (ptrace(PTRACE_SETREGS, pid, nullptr, &t->savedRegs) < 0) {
@@ -752,7 +739,7 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
                    << strerror(errno);
       }
 
-      if (VLOG_IS_ON(1)) {
+      if (VLOG_IS_ON(4)) {
         errno = 0;
         struct user_regs_struct newregs {};
         if (ptrace(PTRACE_GETREGS, pid, NULL, &newregs) < 0) {
@@ -764,10 +751,10 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
       }
     }
 
-    VLOG(1) << "Erasing Trapinfo for pid " << std::dec << iter->first;
+    VLOG(4) << "Erasing Trapinfo for pid " << std::dec << iter->first;
     threadTrapState.erase(iter);
 
-    VLOG(1) << "processTrap2 processing PTRACE_CONT pid " << pid;
+    VLOG(4) << "processTrap2 processing PTRACE_CONT pid " << pid;
 
     jitTrapProcessTime.stop();
 
@@ -912,11 +899,10 @@ bool OIDebugger::canProcessTrapForThread(pid_t thread_pid) const {
 }
 
 /*
- * Continue the specified process and wait for a thread to stop and process
- * whatever caused it to stop. Which thread is waited for is controlled by
- * the 'anyPid' parameter: if true (default) we wait for any thread to stop,
- * if false we wait for the thread specified by the first parameter 'pid' to
- * stop (yes, I know that's some really bad naming).
+ * Wait for a thread to stop and process whatever caused it to stop. Which
+ * thread is waited for is controlled by the 'anyPid' parameter: if true
+ * (default) we wait for any thread to stop, if false we wait for the thread
+ * specified by the first parameter 'pid' to stop.
  */
 OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
                                                    bool anyPid) {
@@ -929,19 +915,6 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
     LOG(ERROR)
         << "Thread list is empty: the target process must have died. Abort...";
     return OID_DONE;
-  }
-
-  VLOG(1) << "processTrap: About to PTRACE_CONT pid " << std::dec << pid;
-
-  if (ptrace(PTRACE_CONT, pid, nullptr, nullptr) < 0) {
-    OIDebugger::StatusType s = getTaskState(pid);
-    VLOG(1) << "processTrap1: Error in PTRACE_CONT for pid " << pid << " "
-            << strerror(errno) << "(" << errno << ") status "
-            << taskStateToString(s) << " (" << static_cast<int>(s) << ")";
-
-    if (errno != ESRCH) {
-      return OIDebugger::OID_ERR;
-    }
   }
 
   if (!anyPid) {
@@ -965,7 +938,7 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
 
   if (newpid == 0) {
     /* WNOHANG handling */
-    VLOG(1) << "No child waiting for processTrap";
+    VLOG(4) << "No child waiting for processTrap";
     return OIDebugger::OID_DONE;
   }
 
@@ -976,12 +949,12 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
   siginfo_t info;
 
   auto stopsig = WSTOPSIG(status);
-  VLOG(1) << "Stop sig: " << std::dec << stopsig;
+  VLOG(4) << "Stop sig: " << std::dec << stopsig;
   if (ptrace(PTRACE_GETSIGINFO, newpid, nullptr, &info) < 0) {
     LOG(ERROR) << "PTRACE_GETSIGINFO failed with " << strerror(errno);
   } else {
     bool stopped = !!info.si_status;
-    VLOG(1) << "PTRACE_GETSIGINFO pid " << newpid << " signo " << info.si_signo
+    VLOG(4) << "PTRACE_GETSIGINFO pid " << newpid << " signo " << info.si_signo
             << " code " << info.si_code << " status " << info.si_status
             << " stopped: " << stopped;
   }
@@ -1001,7 +974,7 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
       }
 
       pid_t childPid = static_cast<pid_t>(ptraceMsg);
-      VLOG(1) << "New child created. pid " << std::dec << childPid
+      VLOG(4) << "New child created. pid " << std::dec << childPid
               << " (type: " << type << ")";
       threadList.push_back(childPid);
 
@@ -1014,22 +987,22 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
       tret = waitpid(childPid, &tstatus, __WALL | WSTOPPED | WEXITED);
 
       if (tret == -1) {
-        VLOG(1) << "processTrap: Error waiting for new child " << std::dec
+        VLOG(4) << "processTrap: Error waiting for new child " << std::dec
                 << childPid << " (Reason: " << strerror(errno) << ")";
       } else if (tret != childPid) {
-        VLOG(1) << "processTrap: Unexpected pid waiting for child: " << std::dec
+        VLOG(4) << "processTrap: Unexpected pid waiting for child: " << std::dec
                 << tret;
       } else if (!WIFSTOPPED(tstatus)) {
-        VLOG(1) << "processTrap: Unexpected status returned when "
+        VLOG(4) << "processTrap: Unexpected status returned when "
                    "waiting for child: "
                 << std::hex << tstatus;
       }
 
       if (WIFSTOPPED(tstatus)) {
-        VLOG(1) << "child was stopped with: " << WSTOPSIG(tstatus);
+        VLOG(4) << "child was stopped with: " << WSTOPSIG(tstatus);
       }
 
-      VLOG(1) << "About to PTRACE_CONT pid " << std::dec << childPid;
+      VLOG(4) << "About to PTRACE_CONT pid " << std::dec << childPid;
 
       ptrace(PTRACE_SETOPTIONS, childPid, NULL,
              PTRACE_O_TRACESYSGOOD | PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE |
@@ -1040,19 +1013,19 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
                 << " " << strerror(errno) << "(" << errno << ")";
       }
     } else if (type == PTRACE_EVENT_EXIT) {
-      VLOG(1) << "Thread exiting!! pid " << std::dec << newpid;
+      VLOG(4) << "Thread exiting!! pid " << std::dec << newpid;
       threadList.erase(
           std::remove(threadList.begin(), threadList.end(), newpid),
           threadList.end());
     } else if (type == PTRACE_EVENT_STOP) {
-      VLOG(1) << "PTRACE_EVENT_STOP!";
+      VLOG(4) << "PTRACE_EVENT_STOP!";
     } else {
-      VLOG(1) << "unhandled extended wait event type: " << type;
+      VLOG(4) << "unhandled extended wait event type: " << type;
     }
 
-    VLOG(1) << "extended wait About to cont pid " << newpid;
+    VLOG(4) << "extended wait About to cont pid " << newpid;
     if (ptrace(PTRACE_CONT, newpid, nullptr, nullptr) < 0) {
-      VLOG(1) << "processTrap2: Error in PTRACE_CONT for pid " << newpid << " "
+      VLOG(4) << "processTrap2: Error in PTRACE_CONT for pid " << newpid << " "
               << strerror(errno) << "(" << errno << ")";
     }
 
@@ -1062,20 +1035,15 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
   int sig = WSTOPSIG(status);
   switch (sig) {
       /*
-       * The handling of fatal signals for the child needs to be implemented
-       * in a more complete manner: be exhaustive in types of signals handled
-       * and also display diagnostics. However, for now this will do. One of
-       * the massive advantages of controlling a target via the ptrace
+       * One of the massive advantages of controlling a target via the ptrace
        * interface is that fatal signals are not delivered to the target but
        * come to us first. This means that we can pretty much do whatever we
        * want in our jitted code and get away with it...
-       *
-       * TODO: Ensure signal coverage is complete
        */
     case SIGALRM: {
-      VLOG(1) << "SIGALRM received!!";
+      VLOG(4) << "SIGALRM received!!";
       if (ptrace(PTRACE_CONT, newpid, nullptr, SIGALRM) < 0) {
-        VLOG(1) << "processTrap2: Error in PTRACE_CONT SIGALRM for pid "
+        VLOG(4) << "processTrap2: Error in PTRACE_CONT SIGALRM for pid "
                 << newpid << " " << strerror(errno) << "(" << errno << ")";
       }
       break;
@@ -1121,14 +1089,14 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
 
         errno = 0;
         if (ptrace(PTRACE_CONT, newpid, nullptr, nullptr) < 0) {
-          VLOG(1) << "processTrap: Error in PTRACE_CONT for pid " << newpid
+          VLOG(4) << "processTrap: Error in PTRACE_CONT for pid " << newpid
                   << " " << strerror(errno) << "(" << errno << ")";
         }
       } else {
         // We are not the source of the SIGSEGV so forward it to the target.
         errno = 0;
         if (ptrace(PTRACE_CONT, newpid, nullptr, sig) < 0) {
-          VLOG(1) << "processTrap: Error in PTRACE_CONT for pid " << newpid
+          VLOG(4) << "processTrap: Error in PTRACE_CONT for pid " << newpid
                   << " " << strerror(errno) << "(" << errno << ")";
         }
       }
@@ -1142,9 +1110,9 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
     }
 
     case SIGCHLD: {
-      VLOG(1) << "SIGCHLD processing for pid " << newpid;
+      VLOG(4) << "SIGCHLD processing for pid " << newpid;
       if (ptrace(PTRACE_CONT, newpid, nullptr, SIGCHLD) < 0) {
-        VLOG(1) << "processTrap2: Error in PTRACE_CONT SIGCHLD for pid " << pid
+        VLOG(4) << "processTrap2: Error in PTRACE_CONT SIGCHLD for pid " << pid
                 << " " << strerror(errno) << "(" << errno << ")";
       }
 
@@ -1203,11 +1171,11 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
            * traps by replaying their instruction and continuing their thread.
            */
           if (blocking) {
-            VLOG(1)
+            VLOG(4)
                 << "Another probe already running, skipping trap for thread "
                 << newpid;
           } else {
-            VLOG(1) << "Resuming thread " << newpid;
+            VLOG(4) << "Resuming thread " << newpid;
           }
 
           replayTrappedInstr(*tInfo, newpid, regs, fpregs);
@@ -1253,18 +1221,18 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
     }
 
     case SIGILL: {
-      VLOG(1) << "OOPS! SIGILL received for pid " << newpid
+      VLOG(4) << "OOPS! SIGILL received for pid " << newpid
               << " addr: " << std::hex << info.si_addr;
 
       break;
     }
 
     default:
-      LOG(ERROR) << "contAndExecute: Explictly unhandled signal. Forwarding "
-                 << strsignal(WSTOPSIG(status));
+      VLOG(4) << "contAndExecute: Explictly unhandled signal. Forwarding "
+              << strsignal(WSTOPSIG(status));
 
       if (ptrace(PTRACE_CONT, newpid, nullptr, sig) < 0) {
-        VLOG(1) << "processTrap2: Error in PTRACE_CONT SIGALRM for pid " << pid
+        VLOG(4) << "processTrap2: Error in PTRACE_CONT SIGALRM for pid " << pid
                 << " " << strerror(errno) << "(" << errno << ")";
       }
       break;
@@ -1888,7 +1856,7 @@ bool OIDebugger::removeTrap(pid_t pid, const trapInfo &t) {
     }
   }
 
-  VLOG(1) << "removeTrap removing int3 at " << std::hex << t.trapAddr;
+  VLOG(4) << "removeTrap removing int3 at " << std::hex << t.trapAddr;
   if (ptrace(PTRACE_POKETEXT, (!pid ? traceePid : pid), t.trapAddr,
              *reinterpret_cast<uintptr_t *>(repatchedBytes.data())) < 0) {
     LOG(ERROR) << "Execute: Couldn't poke text: " << strerror(errno);
