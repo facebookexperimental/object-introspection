@@ -20,6 +20,7 @@
 
 #include <boost/core/demangle.hpp>
 #include <fstream>
+#include <iostream>
 #include <unordered_map>
 #include <variant>
 
@@ -122,15 +123,15 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
   return out;
 }
 
-bool OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
-                                  const OICompiler::Config& compilerConfig,
-                                  const drgn_qualified_type& type,
-                                  const std::string& linkageName,
-                                  SymbolService& symbols) {
+fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
+                                      const OICompiler::Config& compilerConfig,
+                                      const drgn_qualified_type& type,
+                                      const std::string& linkageName,
+                                      SymbolService& symbols) {
   auto codegen = OICodeGen::buildFromConfig(generatorConfig, symbols);
   if (!codegen) {
     LOG(ERROR) << "failed to initialise codegen";
-    return false;
+    return {};
   }
 
   std::string code =
@@ -142,7 +143,7 @@ bool OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
 
   if (!codegen->generate(code)) {
     LOG(ERROR) << "failed to generate code";
-    return false;
+    return {};
   }
 
   std::string sourcePath = sourceFileDumpPath;
@@ -156,7 +157,15 @@ bool OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
   }
 
   OICompiler compiler{{}, compilerConfig};
-  return compiler.compile(code, sourcePath, outputPath);
+
+  // TODO: Revert to outputPath and remove printing when typegraph is done.
+  fs::path tmpObject = outputPath;
+  tmpObject.replace_extension("." + linkageName + ".o");
+
+  if (!compiler.compile(code, sourcePath, tmpObject)) {
+    return {};
+  }
+  return tmpObject;
 }
 
 int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
@@ -175,12 +184,6 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   std::vector<std::tuple<drgn_qualified_type, std::string>> oilTypes =
       findOilTypesAndNames(prog);
 
-  if (size_t count = oilTypes.size(); count > 1) {
-    LOG(WARNING) << "oilgen can currently only generate for one type per "
-                    "compilation unit and we found "
-                 << count;
-  }
-
   OICodeGen::Config generatorConfig{};
   OICompiler::Config compilerConfig{};
   if (!OIUtils::processConfigFile(configFilePath, compilerConfig,
@@ -192,8 +195,11 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
 
   size_t failures = 0;
   for (const auto& [type, linkageName] : oilTypes) {
-    if (!generateForType(generatorConfig, compilerConfig, type, linkageName,
-                         symbols)) {
+    if (auto obj = generateForType(generatorConfig, compilerConfig, type,
+                                   linkageName, symbols);
+        !obj.empty()) {
+      std::cout << obj.string() << std::endl;
+    } else {
       LOG(WARNING) << "failed to generate for symbol `" << linkageName
                    << "`. this is non-fatal but the call will not work.";
       failures++;
