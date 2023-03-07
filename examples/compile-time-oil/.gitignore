@@ -2,5 +2,5 @@ oilgen
 OilVectorOfStrings
 OilVectorOfStrings.o
 jit.cpp
-JitCompiled.o
+JitCompiled.*.o
 

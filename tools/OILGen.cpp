@@ -29,7 +29,8 @@ using namespace ObjectIntrospection;
 
 constexpr static OIOpts opts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit."},
-    OIOpt{'o', "output", required_argument, "<file>", "Write output to file."},
+    OIOpt{'o', "output", required_argument, "<file>",
+          "Write output(s) to file(s) with this prefix."},
     OIOpt{'c', "config-file", required_argument, "<oid.toml>",
           "Path to OI configuration file."},
     OIOpt{'d', "dump-jit", optional_argument, "<jit.cpp>",
@@ -63,6 +64,9 @@ int main(int argc, char* argv[]) {
   while ((c = getopt_long(argc, argv, opts.shortOpts(), opts.longOpts(),
                           nullptr)) != -1) {
     switch (c) {
+      case 'h':
+        usage();
+        return EXIT_SUCCESS;
       case 'o':
         outputPath = optarg;
         break;
@@ -85,7 +89,7 @@ int main(int argc, char* argv[]) {
   fs::path primaryObject = argv[optind];
 
   if ((setenv("DRGN_ENABLE_TYPE_ITERATOR", "1", 1)) < 0) {
-    std::cerr << "Failed to set environment variable\
+    LOG(ERROR) << "Failed to set environment variable\
        DRGN_ENABLE_TYPE_ITERATOR\n";
     exit(EXIT_FAILURE);
   }
