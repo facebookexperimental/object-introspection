@@ -1,6 +1,6 @@
 [submodule "extern/drgn"]
   path = extern/drgn
-  url = https://github.com/jgkamat/drgn.git
+  url = https://github.com/ajor/drgn.git
 [submodule "extern/folly"]
   path = extern/folly
   url = https://github.com/JakeHillion/folly.git
