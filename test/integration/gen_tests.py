@@ -61,6 +61,23 @@ def add_test_setup(f, config):
 
     # fmt: on
 
+    def get_param_str(param, i):
+        if "]" in param:
+            # Array param
+
+            if ")" in param:
+                # "int(&)[5]" ->  "int (&a0)[5]"
+                start, end = param.split(")")
+                return f"{start}a{i}){end}"
+
+            # "int[5]" -> "int a0[5]"
+            # "int[5][10]" -> "int a0[5][10]"
+            type_name, array_size = param.split("[", 1)
+            return f"{type_name} a{i}[{array_size}"
+
+        # Non-array param, e.g. "int&" -> "int& a0"
+        return f"{param} a{i}"
+
     def define_traceable_func(name, params, body):
         return (
             f"\n"
@@ -91,7 +108,7 @@ def add_test_setup(f, config):
 
         # generate oid and oil targets
         params_str = ", ".join(
-            f"{param} a{i}" for i, param in enumerate(case["param_types"])
+            get_param_str(param, i) for i, param in enumerate(case["param_types"])
         )
 
         oid_func_body = "".join(

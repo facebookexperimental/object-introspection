@@ -19,7 +19,9 @@
 #include "OICompiler.h"
 
 namespace OIUtils {
+
 bool processConfigFile(const std::string& configFilePath,
                        OICompiler::Config& compilerConfig,
                        OICodeGen::Config& generatorConfig);
-}
+
+}  // namespace OIUtils

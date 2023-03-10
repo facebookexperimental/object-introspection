@@ -1,8 +1,10 @@
 # Add new test definition files to this list:
 set(INTEGRATION_TEST_CONFIGS
   anonymous.toml
+  arrays.toml
   container_enums.toml
   cycles.toml
+  enums.toml
   ignored.toml
   inheritance_access.toml
   inheritance_multiple.toml
@@ -18,7 +20,7 @@ set(INTEGRATION_TEST_CONFIGS
   pointers_incomplete.toml
   primitives.toml
   references.toml
-  simple_struct.toml
+  simple.toml
   sorted_vector_set.toml
   std_array.toml
   std_conditional.toml
@@ -42,6 +44,8 @@ set(INTEGRATION_TEST_CONFIGS
   std_variant.toml
   std_vector.toml
   std_vector_del_allocator.toml
+  templates.toml
+  typedefs.toml
   typedefed_parent.toml
 )
 

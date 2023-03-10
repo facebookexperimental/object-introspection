@@ -1,0 +1,33 @@
+definitions = '''
+  enum class ScopedEnum {
+    CaseA,
+    CaseB,
+    CaseC,
+  };
+
+  enum class ScopedEnumInt8 : int8_t {
+    CaseA,
+    CaseB,
+    CaseC,
+  };
+
+
+  enum UNSCOPED_ENUM {
+    CASE_A,
+    CASE_B,
+    CASE_C,
+  };
+'''
+[cases]
+  [cases.scoped]
+    param_types = ["ScopedEnum"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+  [cases.scoped_int8]
+    param_types = ["ScopedEnumInt8"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":1, "dynamicSize":0}]'
+  [cases.unscoped]
+    param_types = ["UNSCOPED_ENUM"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":4, "dynamicSize":0}]'

@@ -1,0 +1,75 @@
+includes = ["vector"]
+definitions = '''
+  template <typename T>
+  class TemplatedClass1 {
+    T val;
+  };
+
+  template <typename T, typename S>
+  class TemplatedClass2 {
+    TemplatedClass1<T> tc1;
+    S val2;
+  };
+
+  struct Foo {
+    int a;
+    int b;
+  };
+
+  template <int N>
+  struct TemplatedClassVal {
+    int arr[N];
+  };
+'''
+
+[cases]
+  [cases.int]
+    param_types = ["const TemplatedClass1<int>&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "typeName":"TemplatedClass1<int>",
+      "staticSize":4,
+      "dynamicSize":0,
+      "members":[{
+        "typeName":"int"
+    }]}]'''
+  [cases.vector]
+    param_types = ["const TemplatedClass1<std::vector<int>>&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "typeName":"TemplatedClass1<std::vector<int, std::allocator<int> > >",
+      "staticSize":24,
+      "dynamicSize":0,
+      "members":[{
+        "typeName":"vector<int, std::allocator<int> >",
+        "staticSize":24,
+        "dynamicSize":0,
+        "length":0,
+        "capacity":0,
+        "elementStaticSize":4
+    }]}]'''
+  [cases.two]
+    param_types = ["const TemplatedClass2<Foo, int>&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "typeName":"TemplatedClass2<ns_templates::Foo, int>",
+      "staticSize":12,
+      "dynamicSize":0,
+      "members":[
+        {"typeName":"TemplatedClass1<ns_templates::Foo>", "staticSize":8, "dynamicSize":0},
+        {"typeName":"int", "staticSize":4, "dynamicSize":0}
+      ]}]'''
+  [cases.value]
+    param_types = ["const TemplatedClassVal<3>&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "typeName":"TemplatedClassVal<3>",
+      "staticSize":12,
+      "dynamicSize":0,
+      "members":[{
+        "staticSize":12,
+        "dynamicSize":0,
+        "length":3,
+        "capacity":3,
+        "elementStaticSize":4
+    }]}]'''

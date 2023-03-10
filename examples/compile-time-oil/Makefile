@@ -15,14 +15,11 @@ oilgen:
 	(cd ../../ && make oid-devel)
 	ln -s ../../build/oilgen oilgen
 
-JitCompiled.o: oilgen OilVectorOfStrings.o
-	./oilgen --exit-code -o JitCompiled.o -c ../../build/sample.oid.toml -d OilVectorOfStrings.o
-
-OilVectorOfStrings: OilVectorOfStrings.o JitCompiled.o
-	${CXX} ${CXXFLAGS} OilVectorOfStrings.o JitCompiled.o -o OilVectorOfStrings
+OilVectorOfStrings: oilgen OilVectorOfStrings.o
+	${CXX} ${CXXFLAGS} OilVectorOfStrings.o $$(./oilgen --exit-code -o JitCompiled.o -c ../../build/sample.oid.toml -d OilVectorOfStrings.o) -o OilVectorOfStrings
 
 all: OilVectorOfStrings
 
 clean:
-	rm -f oilgen OilVectorOfStrings{,.o,.o.dwarf} JitCompiled.o jit.cpp
+	rm -f oilgen OilVectorOfStrings{,.o,.o.dwarf} JitCompiled.*.o jit.cpp
 

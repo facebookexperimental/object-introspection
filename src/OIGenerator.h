@@ -22,8 +22,6 @@
 #include "OICodeGen.h"
 #include "OICompiler.h"
 
-namespace fs = std::filesystem;
-
 namespace ObjectIntrospection {
 
 class OIGenerator {
@@ -44,9 +42,9 @@ class OIGenerator {
   }
 
  private:
-  fs::path outputPath;
-  fs::path configFilePath;
-  fs::path sourceFileDumpPath;
+  std::filesystem::path outputPath;
+  std::filesystem::path configFilePath;
+  std::filesystem::path sourceFileDumpPath;
   bool failIfNothingGenerated;
 
   std::unordered_map<std::string, std::string> oilStrongToWeakSymbolsMap(
@@ -55,10 +53,10 @@ class OIGenerator {
   std::vector<std::tuple<drgn_qualified_type, std::string>>
   findOilTypesAndNames(drgnplusplus::program& prog);
 
-  bool generateForType(const OICodeGen::Config& generatorConfig,
-                       const OICompiler::Config& compilerConfig,
-                       const drgn_qualified_type& type,
-                       const std::string& linkageName, SymbolService& symbols);
+  std::filesystem::path generateForType(
+      const OICodeGen::Config& generatorConfig,
+      const OICompiler::Config& compilerConfig, const drgn_qualified_type& type,
+      const std::string& linkageName, SymbolService& symbols);
 };
 
 }  // namespace ObjectIntrospection
