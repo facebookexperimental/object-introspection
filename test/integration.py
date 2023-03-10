@@ -2,9 +2,11 @@ import glob
 import json
 import os.path
 import shutil
+import os
 import subprocess
 import tempfile
 import unittest
+import time
 from contextlib import contextmanager
 from enum import Enum
 
@@ -236,6 +238,59 @@ class OIDebuggerTestCase(unittest.TestCase):
         )
         self.expectReturncode(proc, ExitStatus.USAGE_ERROR)
         self.assertIn(b"usage: ", proc.stdout)
+
+    def test_remove_mappings(self):
+        with subprocess.Popen(
+            f"{self.binary_path} 100",
+            stdout = subprocess.PIPE,
+            stderr = subprocess.PIPE,
+            text = True,
+            shell=True) as target_proc:
+               pid = target_proc.pid
+
+               # The sleep is unfortunate but it allows the segments to get
+               # established in the target process.
+               time.sleep(2);
+
+               numsegs = subprocess.run(
+                  f"cat /proc/{pid}/maps | wc -l",
+                  shell=True,
+                  capture_output=True,
+                  check=True)
+               beforeSegs = int(numsegs.stdout.decode("ascii"))
+
+               proc = subprocess.run(
+                   f"{self.oid} --script {self.script()} -t 1 --pid {pid}",
+                   shell=True,
+                   stdout=subprocess.PIPE,
+                   stderr=subprocess.PIPE,
+                   )
+               self.expectReturncode(proc, ExitStatus.SUCCESS)
+
+               numsegs = subprocess.run(
+                  f"cat /proc/{pid}/maps | wc -l",
+                  shell=True,
+                  capture_output=True,
+                  check=True)
+               afterSegs = int(numsegs.stdout.decode("ascii"))
+               self.assertEqual(beforeSegs, afterSegs - 2)
+
+               # remove both the text and data segments
+               proc = subprocess.run(
+                   f"{self.oid} -r --pid {pid}",
+                   shell=True,
+                   stdout=subprocess.PIPE,
+                   stderr=subprocess.PIPE,
+                   )
+               self.expectReturncode(proc, ExitStatus.SUCCESS)
+
+               numsegs = subprocess.run(
+                  f"cat /proc/{pid}/maps | wc -l",
+                  shell=True,
+                  capture_output=True,
+                  check=True)
+               afterRemSegs = int(numsegs.stdout.decode("ascii"))
+               self.assertEqual(beforeSegs, afterRemSegs)
 
     def test_metrics_data_is_generated(self):
         with self.spawn_oid(self.script()) as proc:
