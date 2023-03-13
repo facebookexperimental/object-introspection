@@ -323,16 +323,20 @@ static ExitStatus::ExitStatus runScript(const std::string &fileName,
    */
   if (oidConfig.attachToProcess) {
     if (oidConfig.removeMappings) {
+      ExitStatus::ExitStatus ret = ExitStatus::Success;
+
       if (!oid->segConfigExists()) {
         LOG(INFO) << "No config exists for pid " << oidConfig.pid
                   << " : cannot remove mappings";
+        ret = ExitStatus::UsageError;
       } else if (!oid->unmapSegments(true)) {
         LOG(ERROR) << "Failed to remove segments in target process with PID "
                    << oidConfig.pid;
-        return ExitStatus::SegmentRemovalError;
+        ret = ExitStatus::SegmentRemovalError;
       }
 
-      return ExitStatus::Success;
+      oid->contTargetThread();
+      return ret;
     }
 
     if (oidConfig.dataSegSize > 0) {
@@ -677,6 +681,14 @@ int main(int argc, char *argv[]) {
     LOG(INFO) << "One of '-s', '-r' or '-S' must be specified";
     usage();
     return ExitStatus::UsageError;
+  }
+
+  /*
+   * This is unfortunately necessary to stop users having to specify a script
+   * just to remove mappings (which doesn't make sense).
+   */
+  if (oidConfig.removeMappings && scriptFile.empty() && scriptSource.empty()) {
+    scriptSource = "entry:unknown_function:arg0";
   }
 
   OICodeGen::Config codeGenConfig{
