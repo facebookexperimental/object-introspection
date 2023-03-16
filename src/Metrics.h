@@ -36,8 +36,8 @@ constexpr auto outputEnvKey = "OID_METRICS_OUTPUT";
  * "oid_metrics.json".
  */
 struct TraceFlags {
-  bool time : 1 = false;
-  bool rss : 1 = false;
+  bool time = false;
+  bool rss = false;
 
   operator bool() const {
     return time || rss;

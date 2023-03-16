@@ -56,7 +56,10 @@ def add_test_setup(f, config):
         f"\n"
         f'{config.get("raw_definitions", "")}\n'
         f"namespace {ns} {{\n"
+        f"#pragma clang diagnostic push\n"
+        f"#pragma clang diagnostic ignored \"-Wunused-private-field\"\n"
         f'{config.get("definitions", "")}\n'
+        f"#pragma clang diagnostic pop\n"
     )
 
     # fmt: on

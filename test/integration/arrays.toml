@@ -2,9 +2,16 @@ definitions = '''
   struct Foo10 {
     int arr[10];
   };
+
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wzero-length-array"
   struct Foo0 {
     int arr[0];
   };
+
+  using ZeroLengthIntArray = int[0];
+  #pragma clang diagnostic pop
+
   struct MultiDim {
     int arr[2][3];
   };
@@ -59,7 +66,7 @@ definitions = '''
     # WARNING: zero-length arrays are handled differently to non-empty arrays.
     # They end up not being treated as containers. This should probably change
     # in the future.
-    param_types = ["int[0]"]
+    param_types = ["ZeroLengthIntArray"]
     setup = "return {};"
     expect_json = '[{"staticSize":0, "dynamicSize":0}]'
   [cases.ref_int10]
@@ -72,6 +79,6 @@ definitions = '''
     # WARNING: zero-length arrays are handled differently to non-empty arrays.
     # They end up not being treated as containers. This should probably change
     # in the future.
-    param_types = ["const int(&)[0]"]
+    param_types = ["const ZeroLengthIntArray&"]
     setup = "return {};"
     expect_json = '[{"staticSize":0, "dynamicSize":0}]'
