@@ -98,7 +98,7 @@ OICodeGen::OICodeGen(const Config &c, SymbolService &s)
   // however, for now we just define the `knownTypes` list to be empty, as this
   // will make it easier to selectively revert our changes if it turns out that
   // there are issues with the new approach.
-  knownTypes = {"IPAddress"};
+  knownTypes = {"IPAddress", "uintptr_t"};
 
   sizeMap["SharedMutex"] = sizeof(folly::SharedMutex);
 }
@@ -2057,7 +2057,7 @@ void OICodeGen::addTypeToName(drgn_type *type, std::string name) {
         tIndex++;
       }
 
-      if (name != "uint8_t" && name != "uint32_t") {
+      if (name != "uint8_t" && name != "uint32_t" && name != "uintptr_t") {
         name = name + "__" + std::to_string(tIndex);
       } else {
         VLOG(1) << "Not renaming " << name;
