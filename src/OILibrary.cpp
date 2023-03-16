@@ -21,7 +21,6 @@ namespace ObjectIntrospection {
 
 bool operator==(const options& lhs, const options& rhs) {
   return lhs.configFilePath == rhs.configFilePath &&
-         lhs.cacheDirPath == rhs.cacheDirPath &&
          lhs.debugFilePath == rhs.debugFilePath &&
          lhs.debugLevel == rhs.debugLevel &&
          lhs.chaseRawPointers == rhs.chaseRawPointers;

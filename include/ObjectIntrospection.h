@@ -84,7 +84,6 @@ enum Response : int {
 struct options {
   std::string configFilePath{};
   std::string debugFilePath{};
-  std::string cacheDirPath{};
 
   int debugLevel = 0;
   std::string sourceFileDumpPath{};
@@ -92,11 +91,6 @@ struct options {
   bool layout = false;
   bool chaseRawPointers = false;
   bool generateJitDebugInfo = false;
-
-  bool enableUpload = false;
-  bool enableDownload = false;
-  bool abortOnLoadFail = false;
-  bool forceJIT = true;
 
   friend bool operator==(const options &lhs, const options &rhs);
   friend bool operator!=(const options &lhs, const options &rhs);
