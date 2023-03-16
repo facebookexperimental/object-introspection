@@ -22,8 +22,6 @@
 
 namespace ObjectIntrospection {
 
-const std::string function_identifier(uintptr_t);
-
 class OILibraryImpl {
  public:
   OILibraryImpl(OILibrary *, void *);

@@ -134,7 +134,6 @@ def add_test_setup(f, config):
             f'  .configFilePath = std::getenv("CONFIG_FILE_PATH"),\n'
             f"  .debugLevel = 3,\n"
             f'  .sourceFileDumpPath = "oil_jit_code.cpp",\n'
-            f"  .forceJIT = true,\n"
             f"}};"
         )
 
