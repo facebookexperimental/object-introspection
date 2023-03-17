@@ -4,6 +4,3 @@
 [submodule "extern/folly"]
   path = extern/folly
   url = https://github.com/JakeHillion/folly.git
-[submodule "extern/rocksdb"]
-  path = extern/rocksdb
-  url = https://github.com/facebook/rocksdb.git
