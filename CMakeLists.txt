@@ -120,7 +120,9 @@ FetchContent_Declare(
     GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
 )
 FetchContent_Populate(folly)
-include_directories(SYSTEM ${folly_SOURCE_DIR})
+
+add_library(folly_headers INTERFACE)
+target_include_directories(folly_headers SYSTEM INTERFACE ${folly_SOURCE_DIR})
 
 ### bison & flex (for oid_parser)
 find_package(BISON 3.5 REQUIRED)
