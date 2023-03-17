@@ -112,6 +112,16 @@ add_custom_target(librocksdb ALL
 )
 include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
 
+### folly
+### use folly as a header only library. some features won't be supported.
+FetchContent_Declare(
+    folly
+    GIT_REPOSITORY https://github.com/JakeHillion/folly.git
+    GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
+)
+FetchContent_Populate(folly)
+include_directories(SYSTEM ${folly_SOURCE_DIR})
+
 ### bison & flex (for oid_parser)
 find_package(BISON 3.5 REQUIRED)
 find_package(FLEX)
@@ -146,10 +156,6 @@ message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
 find_package(msgpack REQUIRED CONFIG)
 get_target_property(MSGPACK_INCLUDE_DIRS msgpackc INTERFACE_INCLUDE_DIRECTORIES)
 include_directories(SYSTEM ${MSGPACK_INCLUDE_DIRS})
-
-### folly
-### use folly as a header only library. some features won't be supported.
-include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/extern/folly)
 
 ### zstd (for rocksdb)
 find_package(zstd REQUIRED)
