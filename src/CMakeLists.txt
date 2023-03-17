@@ -31,6 +31,7 @@ target_link_libraries(codegen
 
   Boost::headers
   ${Boost_LIBRARIES}
+  folly_headers
   glog::glog
   tomlplusplus::tomlplusplus
 )
