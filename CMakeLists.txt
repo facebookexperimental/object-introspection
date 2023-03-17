@@ -95,6 +95,23 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glog)
 
+### rocksdb
+FetchContent_Declare(
+    rocksdb
+    GIT_REPOSITORY https://github.com/facebook/rocksdb.git
+    GIT_TAG        444b3f4845dd01b0d127c4b420fdd3b50ad56682
+)
+FetchContent_Populate(rocksdb)
+add_custom_target(librocksdb ALL
+  WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
+  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On
+  COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
+  BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
+  COMMENT "Building RocksDB"
+  USES_TERMINAL
+)
+include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
+
 ### bison & flex (for oid_parser)
 find_package(BISON 3.5 REQUIRED)
 find_package(FLEX)
@@ -136,18 +153,6 @@ include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/extern/folly)
 
 ### zstd (for rocksdb)
 find_package(zstd REQUIRED)
-
-### rocksdb
-add_custom_target(librocksdb ALL
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/extern/rocksdb
-  COMMAND cmake -G Ninja -B build/ -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On
-  COMMAND cmake --build build/ --target rocksdb
-  BYPRODUCTS ${CMAKE_CURRENT_SOURCE_DIR}/extern/rocksdb/build/librocksdb.a
-  COMMENT "Building RocksDB"
-  USES_TERMINAL
-)
-set(ROCKSDB_PATH "${PROJECT_SOURCE_DIR}/extern/rocksdb")
-include_directories(SYSTEM "${ROCKSDB_PATH}/include")
 
 ### drgn
 # The setup.py script in drgn is really meant to build drgn (python
@@ -278,7 +283,7 @@ target_link_libraries(oicore
 add_library(treebuilder src/TreeBuilder.cpp)
 add_dependencies(treebuilder librocksdb)
 target_link_libraries(treebuilder
-  ${ROCKSDB_PATH}/build/librocksdb.a
+  ${rocksdb_BINARY_DIR}/librocksdb.a
   oicore # overkill but it does need a lot of stuff
   zstd::zstd
 )
