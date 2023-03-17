@@ -45,7 +45,7 @@ containers = [
 
 [headers]
 user_paths = [
-    "../extern/folly",
+    "_deps/folly-src", # this path might be flaky, but it's unlikely to change
 ]
 system_paths = [
     "/usr/include/c++/11",
