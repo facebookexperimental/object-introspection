@@ -25,7 +25,6 @@
 #include <boost/serialization/vector.hpp>
 
 #include "Common.h"
-#include "ContainerInfo.h"
 #include "PaddingHunter.h"
 #include "SymbolService.h"
 
@@ -39,7 +38,6 @@
   BOOST_CLASS_VERSION(Type, version)
 
 DEFINE_TYPE_VERSION(PaddingInfo, 120, 3)
-DEFINE_TYPE_VERSION(ContainerInfo, 200, 5)
 DEFINE_TYPE_VERSION(struct drgn_location_description, 32, 2)
 DEFINE_TYPE_VERSION(struct drgn_object_locator, 72, 2)
 DEFINE_TYPE_VERSION(FuncDesc::Arg, 128, 2)
@@ -51,7 +49,7 @@ DEFINE_TYPE_VERSION(struct drgn_type, 152, 4)
 DEFINE_TYPE_VERSION(DrgnClassMemberInfo, 64, 3)
 DEFINE_TYPE_VERSION(struct drgn_qualified_type, 16, 2)
 DEFINE_TYPE_VERSION(RootInfo, 48, 2)
-DEFINE_TYPE_VERSION(TypeHierarchy, 384, 6)
+DEFINE_TYPE_VERSION(TypeHierarchy, 384, 7)
 
 #undef DEFINE_TYPE_VERSION
 
@@ -62,7 +60,6 @@ namespace boost::serialization {
   void serialize(Archive&, Type&, const unsigned int)
 
 DECL_SERIALIZE(PaddingInfo);
-DECL_SERIALIZE(ContainerInfo);
 
 DECL_SERIALIZE(FuncDesc::Arg);
 DECL_SERIALIZE(FuncDesc);

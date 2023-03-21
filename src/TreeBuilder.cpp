@@ -571,8 +571,8 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
           node.typeName + "'");
     }
 
-    auto& [containerInfo, templateTypes] = entry->second;
-    kind = containerInfo.ctype;
+    auto& [containerKind, templateTypes] = entry->second;
+    kind = containerKind;
     for (const auto& tt : templateTypes) {
       elementTypes.push_back(tt);
     }

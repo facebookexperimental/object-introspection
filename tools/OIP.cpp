@@ -76,7 +76,7 @@ void printClassMembersMap(
 void printContainerTypeMap(
     const std::map<
         struct drgn_type*,
-        std::pair<ContainerInfo, std::vector<struct drgn_qualified_type>>>&
+        std::pair<ContainerTypeEnum, std::vector<struct drgn_qualified_type>>>&
         containerTypeMap) {
   printf("{");
   bool isFirstItem = true;

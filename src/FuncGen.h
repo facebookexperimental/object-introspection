@@ -25,8 +25,6 @@ namespace fs = std::filesystem;
 
 class FuncGen {
  public:
-  bool RegisterContainer(ContainerTypeEnum, const fs::path& path);
-
   static void DeclareStoreData(std::string& testCode);
   static void DefineStoreData(std::string& testCode);
 
@@ -40,10 +38,10 @@ class FuncGen {
   static void DefineEncodeDataSize(std::string& testCode);
 
   bool DeclareGetSizeFuncs(std::string& testCode,
-                           const std::set<ContainerInfo>& containerInfo,
+                           const ContainerInfoRefSet& containerInfo,
                            bool chaseRawPointers);
   bool DefineGetSizeFuncs(std::string& testCode,
-                          const std::set<ContainerInfo>& containerInfo,
+                          const ContainerInfoRefSet& containerInfo,
                           bool chaseRawPointers);
 
   static void DeclareGetContainer(std::string& testCode);
@@ -67,8 +65,4 @@ class FuncGen {
 
   static void DefineGetSizeTypedValueFunc(std::string& testCode,
                                           const std::string& ctype);
-
- private:
-  std::map<ContainerTypeEnum, std::string> typeToDeclMap;
-  std::map<ContainerTypeEnum, std::string> typeToFuncMap;
 };

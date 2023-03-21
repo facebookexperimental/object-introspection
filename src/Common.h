@@ -25,7 +25,54 @@ extern "C" {
 
 constexpr int oidMagicId = 0x01DE8;
 
-struct ContainerInfo;
+#define LIST_OF_CONTAINER_TYPES  \
+  X(UNKNOWN_TYPE)                \
+  X(ARRAY_TYPE)                  \
+  X(SMALL_VEC_TYPE)              \
+  X(SET_TYPE)                    \
+  X(UNORDERED_SET_TYPE)          \
+  X(SEQ_TYPE)                    \
+  X(LIST_TYPE)                   \
+  X(STD_MAP_TYPE)                \
+  X(STD_UNORDERED_MAP_TYPE)      \
+  X(MAP_SEQ_TYPE)                \
+  X(BY_MULTI_QRT_TYPE)           \
+  X(F14_MAP)                     \
+  X(F14_SET)                     \
+  X(FEED_QUICK_HASH_SET)         \
+  X(FEED_QUICK_HASH_MAP)         \
+  X(RADIX_TREE_TYPE)             \
+  X(PAIR_TYPE)                   \
+  X(STRING_TYPE)                 \
+  X(FOLLY_IOBUF_TYPE)            \
+  X(FOLLY_IOBUFQUEUE_TYPE)       \
+  X(FB_STRING_TYPE)              \
+  X(UNIQ_PTR_TYPE)               \
+  X(SHRD_PTR_TYPE)               \
+  X(FB_HASH_MAP_TYPE)            \
+  X(FB_HASH_SET_TYPE)            \
+  X(FOLLY_OPTIONAL_TYPE)         \
+  X(OPTIONAL_TYPE)               \
+  X(TRY_TYPE)                    \
+  X(REF_WRAPPER_TYPE)            \
+  X(SORTED_VEC_SET_TYPE)         \
+  X(REPEATED_FIELD_TYPE)         \
+  X(CAFFE2_BLOB_TYPE)            \
+  X(MULTI_MAP_TYPE)              \
+  X(FOLLY_SMALL_HEAP_VECTOR_MAP) \
+  X(CONTAINER_ADAPTER_TYPE)      \
+  X(MICROLIST_TYPE)              \
+  X(ENUM_MAP_TYPE)               \
+  X(BOOST_BIMAP_TYPE)            \
+  X(STD_VARIANT_TYPE)            \
+  X(THRIFT_ISSET_TYPE)           \
+  X(WEAK_PTR_TYPE)
+
+enum ContainerTypeEnum {
+#define X(name) name,
+  LIST_OF_CONTAINER_TYPES
+#undef X
+};
 
 struct RootInfo {
   std::string varName;
@@ -47,8 +94,9 @@ struct DrgnClassMemberInfo {
 
 struct TypeHierarchy {
   std::map<struct drgn_type*, std::vector<DrgnClassMemberInfo>> classMembersMap;
-  std::map<struct drgn_type*,
-           std::pair<ContainerInfo, std::vector<struct drgn_qualified_type>>>
+  std::map<
+      struct drgn_type*,
+      std::pair<ContainerTypeEnum, std::vector<struct drgn_qualified_type>>>
       containerTypeMap;
   std::map<struct drgn_type*, struct drgn_type*> typedefMap;
   std::map<std::string, size_t> sizeMap;

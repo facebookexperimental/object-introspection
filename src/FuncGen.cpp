@@ -16,7 +16,6 @@
 #include "FuncGen.h"
 
 #include <glog/logging.h>
-#include <toml++/toml.h>
 
 #include <boost/format.hpp>
 #include <map>
@@ -322,27 +321,14 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
 }
 
 bool FuncGen::DeclareGetSizeFuncs(std::string& testCode,
-                                  const std::set<ContainerInfo>& containerInfo,
+                                  const ContainerInfoRefSet& containerInfo,
                                   bool chaseRawPointers) {
-  for (auto& cInfo : containerInfo) {
+  for (const ContainerInfo& cInfo : containerInfo) {
     std::string ctype = cInfo.typeName;
     ctype = ctype.substr(0, ctype.find("<", 0));
 
-    if (!typeToFuncMap.contains(cInfo.ctype)) {
-      LOG(ERROR) << "attempted to use container `"
-                 << containerTypeEnumToStr(cInfo.ctype)
-                 << "` for which a declaration was not provided";
-      return false;
-    }
-
-    auto& func = typeToDeclMap[cInfo.ctype];
-    boost::format fmt;
-    fmt = boost::format(func) % ctype;
-    /*if (cInfo.ctype == STRING_TYPE) {
-        fmt = boost::format(func);
-      } else {
-        fmt = boost::format(func) % ctype;
-      }*/
+    auto& decl = cInfo.codegen.decl;
+    boost::format fmt = boost::format(decl) % ctype;
     testCode.append(fmt.str());
   }
 
@@ -359,28 +345,14 @@ bool FuncGen::DeclareGetSizeFuncs(std::string& testCode,
 }
 
 bool FuncGen::DefineGetSizeFuncs(std::string& testCode,
-                                 const std::set<ContainerInfo>& containerInfo,
+                                 const ContainerInfoRefSet& containerInfo,
                                  bool chaseRawPointers) {
-  for (auto& cInfo : containerInfo) {
+  for (const ContainerInfo& cInfo : containerInfo) {
     std::string ctype = cInfo.typeName;
     ctype = ctype.substr(0, ctype.find("<", 0));
 
-    if (!typeToFuncMap.contains(cInfo.ctype)) {
-      LOG(ERROR) << "attempted to use container `"
-                 << containerTypeEnumToStr(cInfo.ctype)
-                 << "` for which a definition was not provided";
-      return false;
-    }
-    auto& func = typeToFuncMap[cInfo.ctype];
-
-    boost::format fmt;
-    fmt = boost::format(func) % ctype;
-    /*if (cInfo.ctype == STRING_TYPE) {
-        fmt = boost::format(func);
-      } else {
-        fmt = boost::format(func) % ctype;
-      }*/
-
+    auto& func = cInfo.codegen.func;
+    boost::format fmt = boost::format(func) % ctype;
     testCode.append(fmt.str());
   }
 
@@ -421,39 +393,4 @@ void FuncGen::DeclareGetContainer(std::string& testCode) {
       }
       )";
   testCode.append(func);
-}
-
-bool FuncGen::RegisterContainer(ContainerTypeEnum ctype, const fs::path& path) {
-  toml::table container;
-  try {
-    container = toml::parse_file(std::string(path));
-  } catch (const toml::parse_error& ex) {
-    LOG(ERROR) << "FuncGen::RegisterContainer: " << path << " : "
-               << ex.description();
-    return false;
-  }
-
-  toml::table* codegen = container["codegen"].as_table();
-  if (!codegen) {
-    LOG(ERROR) << "a container info file requires an `codegen` table";
-    return false;
-  }
-
-  if (std::optional<std::string> str =
-          (*codegen)["decl"].value<std::string>()) {
-    typeToDeclMap.emplace(ctype, std::move(*str));
-  } else {
-    LOG(ERROR) << "`codegen.decl` is a required field";
-    return false;
-  }
-
-  if (std::optional<std::string> str =
-          (*codegen)["func"].value<std::string>()) {
-    typeToFuncMap.emplace(ctype, std::move(*str));
-  } else {
-    LOG(ERROR) << "`codegen.func` is a required field";
-    return false;
-  }
-
-  return true;
 }

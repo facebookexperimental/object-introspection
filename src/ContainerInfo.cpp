@@ -20,6 +20,8 @@
 
 #include <map>
 
+namespace fs = std::filesystem;
+
 ContainerTypeEnum containerTypeEnumFromStr(std::string& str) {
   static const std::map<std::string, ContainerTypeEnum> nameMap = {
 #define X(name) {#name, name},
@@ -128,6 +130,30 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
   std::optional<size_t> underlyingContainerIndex =
       (*info)["underlyingContainerIndex"].value<size_t>();
 
+  toml::table* codegen = container["codegen"].as_table();
+  if (!codegen) {
+    LOG(ERROR) << "a container info file requires an `codegen` table";
+    return nullptr;
+  }
+
+  std::string decl;
+  if (std::optional<std::string> str =
+          (*codegen)["decl"].value<std::string>()) {
+    decl = std::move(*str);
+  } else {
+    LOG(ERROR) << "`codegen.decl` is a required field";
+    return nullptr;
+  }
+
+  std::string func;
+  if (std::optional<std::string> str =
+          (*codegen)["func"].value<std::string>()) {
+    func = std::move(*str);
+  } else {
+    LOG(ERROR) << "`codegen.func` is a required field";
+    return nullptr;
+  }
+
   return std::unique_ptr<ContainerInfo>(new ContainerInfo{
       std::move(typeName),
       std::move(matcher),
@@ -138,5 +164,10 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
       std::move(replaceTemplateParamIndex),
       allocatorIndex,
       underlyingContainerIndex,
+
+      {
+          std::move(decl),
+          std::move(func),
+      },
   });
 }

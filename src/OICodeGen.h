@@ -114,8 +114,9 @@ class OICodeGen {
   Config config{};
   FuncGen funcGen;
 
-  using ContainerTypeMap =
-      std::pair<ContainerInfo, std::vector<drgn_qualified_type>>;
+  using ContainerTypeMapEntry =
+      std::pair<std::reference_wrapper<const ContainerInfo>,
+                std::vector<drgn_qualified_type>>;
 
   using TemplateParamList =
       std::vector<std::pair<drgn_qualified_type, std::string>>;
@@ -126,7 +127,7 @@ class OICodeGen {
   std::string linkageName;
   std::map<drgn_type*, std::string> unnamedUnion;
   std::map<std::string, size_t> sizeMap;
-  std::map<drgn_type*, ContainerTypeMap> containerTypeMapDrgn;
+  std::map<drgn_type*, ContainerTypeMapEntry> containerTypeMapDrgn;
   std::vector<std::unique_ptr<ContainerInfo>> containerInfoList;
   std::vector<drgn_type*> enumTypes;
   std::vector<std::string> knownTypes;
@@ -155,7 +156,7 @@ class OICodeGen {
   std::set<drgn_type*> thriftIssetStructTypes;
   std::vector<drgn_type*> topoSortedStructTypes;
 
-  std::set<ContainerInfo> containerTypesFuncDef;
+  ContainerInfoRefSet containerTypesFuncDef;
 
   std::map<std::string, PaddingInfo> paddedStructs;
 
@@ -191,7 +192,8 @@ class OICodeGen {
   static SortedTypeDefMap getSortedTypeDefMap(
       const std::map<drgn_type*, drgn_type*>& typedefTypeMap);
 
-  std::optional<ContainerInfo> getContainerInfo(drgn_type* type);
+  std::optional<std::reference_wrapper<const ContainerInfo>> getContainerInfo(
+      drgn_type* type);
   void printAllTypes();
   void printAllTypeNames();
 
