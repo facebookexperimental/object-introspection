@@ -106,7 +106,7 @@ OICodeGen::OICodeGen(const Config& c, SymbolService& s)
 bool OICodeGen::registerContainer(const fs::path& path) {
   VLOG(1) << "registering container, path: " << path;
   auto info = ContainerInfo::loadFromFile(path);
-  if (!info || !funcGen.RegisterContainer(info->ctype, path)) {
+  if (!info) {
     return false;
   }
 
@@ -159,7 +159,8 @@ std::optional<const std::string_view> OICodeGen::fullyQualifiedName(
   return typeNamePair->second.contents;
 }
 
-std::optional<ContainerInfo> OICodeGen::getContainerInfo(drgn_type* type) {
+std::optional<std::reference_wrapper<const ContainerInfo>>
+OICodeGen::getContainerInfo(drgn_type* type) {
   auto name = fullyQualifiedName(type);
   if (!name.has_value()) {
     return std::nullopt;
@@ -168,9 +169,9 @@ std::optional<ContainerInfo> OICodeGen::getContainerInfo(drgn_type* type) {
   std::string nameStr = std::string(*name);
   for (auto it = containerInfoList.rbegin(); it != containerInfoList.rend();
        ++it) {
-    const auto& info = *it;
-    if (std::regex_search(nameStr, info->matcher)) {
-      return *info;
+    const ContainerInfo& info = **it;
+    if (std::regex_search(nameStr, info.matcher)) {
+      return info;
     }
   }
   return std::nullopt;
@@ -359,11 +360,12 @@ void OICodeGen::replaceTemplateParameters(
     drgn_type* type, TemplateParamList& template_params,
     std::vector<std::string>& template_params_strings,
     const std::string& nameWithoutTemplate) {
-  auto containerInfo = getContainerInfo(type);
-  if (!containerInfo.has_value()) {
+  auto optContainerInfo = getContainerInfo(type);
+  if (!optContainerInfo.has_value()) {
     LOG(ERROR) << "Unknown container type: " << nameWithoutTemplate;
     return;
   }
+  const ContainerInfo& containerInfo = *optContainerInfo;
 
   // Some containers will need special handling
   if (nameWithoutTemplate == "bimap<") {
@@ -373,12 +375,12 @@ void OICodeGen::replaceTemplateParameters(
     removeTemplateParamAtIndex(template_params_strings, 3);
     removeTemplateParamAtIndex(template_params_strings, 2);
   } else {
-    for (auto const& index : containerInfo->replaceTemplateParamIndex) {
+    for (auto const& index : containerInfo.replaceTemplateParamIndex) {
       replaceTemplateOperator(template_params, template_params_strings, index);
     }
-    if (containerInfo->allocatorIndex) {
+    if (containerInfo.allocatorIndex) {
       removeTemplateParamAtIndex(template_params_strings,
-                                 *containerInfo->allocatorIndex);
+                                 *containerInfo.allocatorIndex);
     }
   }
 }
@@ -672,22 +674,23 @@ bool OICodeGen::getContainerTemplateParams(drgn_type* type, bool& ifStub) {
   }
   typeName = transformTypeName(type, typeName);
 
-  auto containerInfo = getContainerInfo(type);
-  if (!containerInfo.has_value()) {
+  auto optContainerInfo = getContainerInfo(type);
+  if (!optContainerInfo.has_value()) {
     LOG(ERROR) << "Unknown container type: " << typeName;
     return false;
   }
+  const ContainerInfo& containerInfo = *optContainerInfo;
 
   std::vector<size_t> paramIdxs;
-  if (containerInfo->underlyingContainerIndex.has_value()) {
-    if (containerInfo->numTemplateParams.has_value()) {
+  if (containerInfo.underlyingContainerIndex.has_value()) {
+    if (containerInfo.numTemplateParams.has_value()) {
       LOG(ERROR) << "Container adapters should not enumerate their template "
                     "parameters";
       return false;
     }
-    paramIdxs.push_back(*containerInfo->underlyingContainerIndex);
+    paramIdxs.push_back(*containerInfo.underlyingContainerIndex);
   } else {
-    auto numTemplateParams = containerInfo->numTemplateParams;
+    auto numTemplateParams = containerInfo.numTemplateParams;
     if (!numTemplateParams.has_value()) {
       if (!drgn_type_has_template_parameters(type)) {
         LOG(ERROR) << "Failed to find template params";
@@ -703,7 +706,7 @@ bool OICodeGen::getContainerTemplateParams(drgn_type* type, bool& ifStub) {
     }
   }
 
-  return enumerateTemplateParamIdxs(type, *containerInfo, paramIdxs, ifStub);
+  return enumerateTemplateParamIdxs(type, containerInfo, paramIdxs, ifStub);
 }
 
 bool OICodeGen::enumerateTemplateParamIdxs(drgn_type* type,
@@ -776,8 +779,8 @@ bool OICodeGen::enumerateTemplateParamIdxs(drgn_type* type,
 
   auto& templateTypes =
       containerTypeMapDrgn
-          .emplace(type,
-                   std::pair(containerInfo, std::vector<drgn_qualified_type>()))
+          .emplace(type, std::pair(std::ref(containerInfo),
+                                   std::vector<drgn_qualified_type>()))
           .first->second.second;
 
   for (auto i : paramIdxs) {
@@ -3011,7 +3014,7 @@ bool OICodeGen::generateJitCode(std::string& code) {
   }
 
   std::set<std::string> includedHeaders = config.defaultHeaders;
-  for (auto& e : containerTypesFuncDef) {
+  for (const ContainerInfo& e : containerTypesFuncDef) {
     includedHeaders.insert(e.header);
   }
 
@@ -3070,7 +3073,7 @@ bool OICodeGen::generateJitCode(std::string& code) {
   definitionsCode.append("// namespace uses\n");
 
   std::set<std::string> usedNamespaces = config.defaultNamespaces;
-  for (const auto& v : containerTypesFuncDef) {
+  for (const ContainerInfo& v : containerTypesFuncDef) {
     for (auto& e : v.ns) {
       usedNamespaces.insert(std::string(e));
     }
@@ -3705,9 +3708,18 @@ void OICodeGen::setRootType(drgn_qualified_type rt) {
 }
 
 TypeHierarchy OICodeGen::getTypeHierarchy() {
+  std::map<
+      struct drgn_type*,
+      std::pair<ContainerTypeEnum, std::vector<struct drgn_qualified_type>>>
+      containerTypeMap;
+  for (auto const& [k, v] : containerTypeMapDrgn) {
+    const ContainerInfo& cinfo = v.first;
+    containerTypeMap[k] = {cinfo.ctype, v.second};
+  }
+
   return {
       .classMembersMap = getClassMembersMap(),
-      .containerTypeMap = containerTypeMapDrgn,
+      .containerTypeMap = std::move(containerTypeMap),
       .typedefMap = typedefTypes,
       .sizeMap = sizeMap,
       .knownDummyTypeList = knownDummyTypeList,

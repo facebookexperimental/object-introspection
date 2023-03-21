@@ -17,63 +17,45 @@
 #include <filesystem>
 #include <optional>
 #include <regex>
+#include <set>
 #include <string>
 #include <vector>
 
-namespace fs = std::filesystem;
+#include "Common.h"
 
-#define LIST_OF_CONTAINER_TYPES  \
-  X(UNKNOWN_TYPE)                \
-  X(ARRAY_TYPE)                  \
-  X(SMALL_VEC_TYPE)              \
-  X(SET_TYPE)                    \
-  X(UNORDERED_SET_TYPE)          \
-  X(SEQ_TYPE)                    \
-  X(LIST_TYPE)                   \
-  X(STD_MAP_TYPE)                \
-  X(STD_UNORDERED_MAP_TYPE)      \
-  X(MAP_SEQ_TYPE)                \
-  X(BY_MULTI_QRT_TYPE)           \
-  X(F14_MAP)                     \
-  X(F14_SET)                     \
-  X(FEED_QUICK_HASH_SET)         \
-  X(FEED_QUICK_HASH_MAP)         \
-  X(RADIX_TREE_TYPE)             \
-  X(PAIR_TYPE)                   \
-  X(STRING_TYPE)                 \
-  X(FOLLY_IOBUF_TYPE)            \
-  X(FOLLY_IOBUFQUEUE_TYPE)       \
-  X(FB_STRING_TYPE)              \
-  X(UNIQ_PTR_TYPE)               \
-  X(SHRD_PTR_TYPE)               \
-  X(FB_HASH_MAP_TYPE)            \
-  X(FB_HASH_SET_TYPE)            \
-  X(FOLLY_OPTIONAL_TYPE)         \
-  X(OPTIONAL_TYPE)               \
-  X(TRY_TYPE)                    \
-  X(REF_WRAPPER_TYPE)            \
-  X(SORTED_VEC_SET_TYPE)         \
-  X(REPEATED_FIELD_TYPE)         \
-  X(CAFFE2_BLOB_TYPE)            \
-  X(MULTI_MAP_TYPE)              \
-  X(FOLLY_SMALL_HEAP_VECTOR_MAP) \
-  X(CONTAINER_ADAPTER_TYPE)      \
-  X(MICROLIST_TYPE)              \
-  X(ENUM_MAP_TYPE)               \
-  X(BOOST_BIMAP_TYPE)            \
-  X(STD_VARIANT_TYPE)            \
-  X(THRIFT_ISSET_TYPE)           \
-  X(WEAK_PTR_TYPE)
-
-enum ContainerTypeEnum {
-#define X(name) name,
-  LIST_OF_CONTAINER_TYPES
-#undef X
-};
 ContainerTypeEnum containerTypeEnumFromStr(std::string& str);
 const char* containerTypeEnumToStr(ContainerTypeEnum ty);
 
 struct ContainerInfo {
+  struct Codegen {
+    std::string decl;
+    std::string func;
+  };
+
+  ContainerInfo(const ContainerInfo&) = delete;
+  ContainerInfo& operator=(const ContainerInfo& other) = delete;
+
+  ContainerInfo() = default;
+  ContainerInfo(std::string typeName_, std::regex matcher_,
+                std::optional<size_t> numTemplateParams_,
+                ContainerTypeEnum ctype_, std::string header_,
+                std::vector<std::string> ns_,
+                std::vector<size_t> replaceTemplateParamIndex_,
+                std::optional<size_t> allocatorIndex_,
+                std::optional<size_t> underlyingContainerIndex_,
+                ContainerInfo::Codegen codegen_)
+      : typeName(std::move(typeName_)),
+        matcher(std::move(matcher_)),
+        numTemplateParams(numTemplateParams_),
+        ctype(ctype_),
+        header(std::move(header_)),
+        ns(std::move(ns_)),
+        replaceTemplateParamIndex(std::move(replaceTemplateParamIndex_)),
+        allocatorIndex(allocatorIndex_),
+        underlyingContainerIndex(underlyingContainerIndex_),
+        codegen(std::move(codegen_)) {
+  }
+
   std::string typeName;
   std::regex matcher;
   std::optional<size_t> numTemplateParams;
@@ -86,9 +68,16 @@ struct ContainerInfo {
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
 
-  static std::unique_ptr<ContainerInfo> loadFromFile(const fs::path& path);
+  Codegen codegen;
+
+  static std::unique_ptr<ContainerInfo> loadFromFile(
+      const std::filesystem::path& path);
 
   bool operator<(const ContainerInfo& rhs) const {
     return (typeName < rhs.typeName);
   }
 };
+
+using ContainerInfoRefSet =
+    std::set<std::reference_wrapper<const ContainerInfo>,
+             std::less<ContainerInfo>>;

@@ -67,32 +67,6 @@ void serialize(Archive& ar, PaddingInfo& p, const unsigned int version) {
 INSTANCIATE_SERIALIZE(PaddingInfo)
 
 template <class Archive>
-void serialize(Archive& ar, ContainerInfo& info, const unsigned int version) {
-  verify_version<ContainerInfo>(version);
-  ar& info.typeName;
-  // Unfortunately boost serialization doesn't support `std::optional`,
-  // so we have to do this ourselves
-  size_t numTemplateParams = 0;
-  if (Archive::is_saving::value) {
-    numTemplateParams =
-        info.numTemplateParams.value_or(std::numeric_limits<size_t>::max());
-  }
-  ar& numTemplateParams;
-  if (Archive::is_loading::value) {
-    if (numTemplateParams == std::numeric_limits<size_t>::max()) {
-      info.numTemplateParams = std::nullopt;
-    } else {
-      info.numTemplateParams = numTemplateParams;
-    }
-  }
-  ar& info.ctype;
-  ar& info.header;
-  ar& info.ns;
-}
-
-INSTANCIATE_SERIALIZE(ContainerInfo)
-
-template <class Archive>
 void serialize(Archive& ar, struct drgn_location_description& location,
                const unsigned int version) {
   verify_version<struct drgn_location_description>(version);
