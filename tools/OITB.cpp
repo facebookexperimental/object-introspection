@@ -44,7 +44,7 @@ constexpr static OIOpts opts{
           "(in addition to the default RocksDB output)"},
 };
 
-static void usage(std::ostream &out) {
+static void usage(std::ostream& out) {
   out << "Run TreeBuilder on the given data-segment dump.\n";
   out << "oitb aims to facilitate debugging issues from TreeBuilder, by "
          "allowing local iterations and debugging.\n";
@@ -59,7 +59,7 @@ static void usage(std::ostream &out) {
 }
 
 template <typename... Args>
-[[noreturn]] static void fatal_error(Args &&...args) {
+[[noreturn]] static void fatal_error(Args&&... args) {
   std::cerr << "error: ";
   (std::cerr << ... << args);
   std::cerr << "\n\n";
@@ -107,15 +107,15 @@ static auto loadDatasegDump(fs::path datasegDumpPath) {
 
   { /* Read the dump into the dataseg vector */
     auto datasegBytes = std::as_writable_bytes(std::span{dataseg});
-    dump.read((char *)datasegBytes.data(), datasegBytes.size_bytes());
+    dump.read((char*)datasegBytes.data(), datasegBytes.size_bytes());
   }
 
   return dataseg;
 }
 
 [[maybe_unused]] /* For debugging... */
-static std::ostream &
-operator<<(std::ostream &out, TreeBuilder::Config tbc) {
+static std::ostream&
+operator<<(std::ostream& out, TreeBuilder::Config tbc) {
   out << "TreeBuilde::Config = [";
   out << "\n  logAllStructs = " << tbc.logAllStructs;
   out << "\n  chaseRawPointers = " << tbc.chaseRawPointers;
@@ -126,7 +126,7 @@ operator<<(std::ostream &out, TreeBuilder::Config tbc) {
   return out;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   google::InitGoogleLogging(*argv);
   google::LogToStderr();
   google::SetStderrLogging(google::INFO);

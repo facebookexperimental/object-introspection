@@ -63,7 +63,7 @@ TreeBuilder::TreeBuilder(Config c) : config{std::move(c)} {
 }
 
 struct TreeBuilder::Variable {
-  struct drgn_type *type;
+  struct drgn_type* type;
   std::string_view name;
   std::string typePath;
   std::optional<bool> isset = std::nullopt;
@@ -196,12 +196,12 @@ TreeBuilder::~TreeBuilder() {
 
 bool TreeBuilder::emptyOutput() const {
   return std::ranges::all_of(rootIDs,
-                             [](auto &id) { return id == ERROR_NODE_ID; });
+                             [](auto& id) { return id == ERROR_NODE_ID; });
 }
 
-void TreeBuilder::build(const std::vector<uint64_t> &data,
-                        const std::string &argName, struct drgn_type *type,
-                        const TypeHierarchy &typeHierarchy) {
+void TreeBuilder::build(const std::vector<uint64_t>& data,
+                        const std::string& argName, struct drgn_type* type,
+                        const TypeHierarchy& typeHierarchy) {
   th = &typeHierarchy;
   oidData = &data;
 
@@ -212,7 +212,7 @@ void TreeBuilder::build(const std::vector<uint64_t> &data,
   VLOG(1) << "Building tree...";
 
   {
-    auto &rootID = rootIDs.emplace_back(nextNodeID++);
+    auto& rootID = rootIDs.emplace_back(nextNodeID++);
 
     try {
       // The first value is the address of the root object
@@ -276,11 +276,11 @@ void TreeBuilder::dumpJson() {
 }
 
 void TreeBuilder::setPaddedStructs(
-    std::map<std::string, PaddingInfo> *_paddedStructs) {
+    std::map<std::string, PaddingInfo>* _paddedStructs) {
   this->paddedStructs = _paddedStructs;
 }
 
-static std::string drgnTypeToName(struct drgn_type *type) {
+static std::string drgnTypeToName(struct drgn_type* type) {
   if (type->_private.program != nullptr) {
     return drgn_utils::typeToName(type);
   }
@@ -288,15 +288,15 @@ static std::string drgnTypeToName(struct drgn_type *type) {
   return type->_private.oi_name ? type->_private.oi_name : "";
 }
 
-static struct drgn_error *drgnTypeSizeof(struct drgn_type *type,
-                                         uint64_t *ret) {
+static struct drgn_error* drgnTypeSizeof(struct drgn_type* type,
+                                         uint64_t* ret) {
   static struct drgn_error incompleteTypeError = {
       .code = DRGN_ERROR_TYPE,
       .needs_destroy = false,
       .errnum = 0,
       .path = NULL,
       .address = 0,
-      .message = (char *)"cannot get size of incomplete type",
+      .message = (char*)"cannot get size of incomplete type",
   };
 
   if (drgn_type_kind(type) == DRGN_TYPE_FUNCTION) {
@@ -318,9 +318,9 @@ static struct drgn_error *drgnTypeSizeof(struct drgn_type *type,
   return nullptr;
 }
 
-uint64_t TreeBuilder::getDrgnTypeSize(struct drgn_type *type) {
+uint64_t TreeBuilder::getDrgnTypeSize(struct drgn_type* type) {
   uint64_t size = 0;
-  struct drgn_error *err = drgnTypeSizeof(type, &size);
+  struct drgn_error* err = drgnTypeSizeof(type, &size);
   BOOST_SCOPE_EXIT(err) {
     drgn_error_destroy(err);
   }
@@ -330,7 +330,7 @@ uint64_t TreeBuilder::getDrgnTypeSize(struct drgn_type *type) {
   }
 
   std::string typeName = drgnTypeToName(type);
-  for (auto &[typeName2, size2] : th->sizeMap)
+  for (auto& [typeName2, size2] : th->sizeMap)
     if (typeName.starts_with(typeName2))
       return size2;
 
@@ -347,17 +347,17 @@ uint64_t TreeBuilder::next() {
   if (oidDataIndex >= oidData->size()) {
     throw std::runtime_error("Unexpected end of data");
   }
-  VLOG(3) << "next = " << (void *)(*oidData)[oidDataIndex];
+  VLOG(3) << "next = " << (void*)(*oidData)[oidDataIndex];
   return (*oidData)[oidDataIndex++];
 }
 
-bool TreeBuilder::isContainer(const Variable &variable) {
+bool TreeBuilder::isContainer(const Variable& variable) {
   return th->containerTypeMap.contains(variable.type) ||
          (drgn_type_kind(variable.type) == DRGN_TYPE_ARRAY &&
           drgn_type_length(variable.type) > 0);
 }
 
-bool TreeBuilder::isPrimitive(struct drgn_type *type) {
+bool TreeBuilder::isPrimitive(struct drgn_type* type) {
   while (drgn_type_kind(type) == DRGN_TYPE_TYPEDEF) {
     auto entry = th->typedefMap.find(type);
     if (entry == th->typedefMap.end())
@@ -376,14 +376,14 @@ bool TreeBuilder::shouldProcess(uintptr_t pointer) {
   return unprocessed;
 }
 
-static std::string_view drgnKindStr(struct drgn_type *type) {
+static std::string_view drgnKindStr(struct drgn_type* type) {
   auto kind = OICodeGen::drgnKindStr(type);
   // -1 is for the null terminator
   kind.remove_prefix(sizeof("DRGN_TYPE_") - 1);
   return kind;
 }
 
-void TreeBuilder::setSize(TreeBuilder::Node &node, uint64_t dynamicSize,
+void TreeBuilder::setSize(TreeBuilder::Node& node, uint64_t dynamicSize,
                           uint64_t memberSizes) {
   node.dynamicSize = dynamicSize;
   if (memberSizes > node.staticSize + node.dynamicSize) {
@@ -469,14 +469,14 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
         } else if (isContainer(variable)) {
           processContainer(variable, node);
         } else {
-          drgn_type *objectType = variable.type;
+          drgn_type* objectType = variable.type;
           if (auto it = th->descendantClasses.find(objectType);
               it != th->descendantClasses.end()) {
             // The first item of data in dynamic classes identifies which
             // concrete type we should process it as, represented as an index
             // into the vector of child classes, or -1 to processes this type
             // as itself.
-            const auto &descendants = it->second;
+            const auto& descendants = it->second;
             auto val = next();
             if (val != (uint64_t)-1) {
               objectType = descendants[val];
@@ -490,7 +490,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
             break;
           }
 
-          const auto &members = entry->second;
+          const auto& members = entry->second;
           node.children = {nextNodeID, nextNodeID + members.size()};
           nextNodeID += members.size();
           auto childID = node.children->first;
@@ -511,7 +511,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
                 isset = val;
               }
             }
-            const auto &member = members[i];
+            const auto& member = members[i];
             auto child =
                 process(childID++,
                         Variable{member.type, member.member_name,
@@ -548,7 +548,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
   return node;
 }
 
-void TreeBuilder::processContainer(const Variable &variable, Node &node) {
+void TreeBuilder::processContainer(const Variable& variable, Node& node) {
   VLOG(1) << "Processing container [" << node.id << "] of type '"
           << node.typeName << "'";
   ContainerTypeEnum kind = UNKNOWN_TYPE;
@@ -556,7 +556,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
 
   if (drgn_type_kind(variable.type) == DRGN_TYPE_ARRAY) {
     kind = ARRAY_TYPE;
-    struct drgn_type *arrayElementType = nullptr;
+    struct drgn_type* arrayElementType = nullptr;
     size_t numElems = 0;
     drgn_utils::getDrgnArrayElementType(variable.type, &arrayElementType,
                                         numElems);
@@ -571,9 +571,9 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
           node.typeName + "'");
     }
 
-    auto &[containerInfo, templateTypes] = entry->second;
+    auto& [containerInfo, templateTypes] = entry->second;
     kind = containerInfo.ctype;
-    for (const auto &tt : templateTypes) {
+    for (const auto& tt : templateTypes) {
       elementTypes.push_back(tt);
     }
   }
@@ -591,10 +591,10 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
   // Initialize, then take a reference to the underlying value for convenience
   // so that we don't have to dereference the optional every time we want to use
   // it.
-  auto &containerStats =
+  auto& containerStats =
       node.containerStats.emplace(Node::ContainerStats{0, 0, 0});
 
-  for (auto &type : elementTypes) {
+  for (auto& type : elementTypes) {
     containerStats.elementStaticSize += getDrgnTypeSize(type.type);
   }
 
@@ -659,7 +659,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
     case STD_VARIANT_TYPE: {
       containerStats.length = containerStats.capacity = 1;
       containerStats.elementStaticSize = 0;
-      for (auto &type : elementTypes) {
+      for (auto& type : elementTypes) {
         auto paramSize = getDrgnTypeSize(type.type);
         containerStats.elementStaticSize =
             std::max(containerStats.elementStaticSize, paramSize);
@@ -797,7 +797,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
       containerStats.elementStaticSize += next();
       size_t bucketCount = next();
       // Both libc++ and libstdc++ define buckets as an array of raw pointers
-      setSize(node, node.dynamicSize + bucketCount * sizeof(void *), 0);
+      setSize(node, node.dynamicSize + bucketCount * sizeof(void*), 0);
       containerStats.length = containerStats.capacity = next();
     } break;
     case F14_MAP:
@@ -846,7 +846,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
   }
   if (std::ranges::all_of(
           elementTypes.cbegin(), elementTypes.cend(),
-          [this](auto &type) { return isPrimitive(type.type); })) {
+          [this](auto& type) { return isPrimitive(type.type); })) {
     VLOG(1)
         << "Container [" << node.id
         << "] contains only primitive types, skipping processing its members";
@@ -865,7 +865,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
   auto childID = node.children->first;
   uint64_t memberSizes = 0;
   for (size_t i = 0; i < containerStats.length; i++) {
-    for (auto &type : elementTypes) {
+    for (auto& type : elementTypes) {
       auto child =
           process(childID++, {.type = type.type,
                               .name = "",
@@ -878,7 +878,7 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
 }
 
 template <class T>
-std::string_view TreeBuilder::serialize(const T &data) {
+std::string_view TreeBuilder::serialize(const T& data) {
   buffer->clear();
   msgpack::pack(*buffer, data);
   // It is *very* important that we construct the `std::string_view` with an
@@ -886,7 +886,7 @@ std::string_view TreeBuilder::serialize(const T &data) {
   return std::string_view(buffer->data(), buffer->size());
 }
 
-void TreeBuilder::JSON(NodeID id, std::ofstream &output) {
+void TreeBuilder::JSON(NodeID id, std::ofstream& output) {
   std::string data;
   auto status = db->Get(rocksdb::ReadOptions(), std::to_string(id), &data);
   if (!status.ok()) {

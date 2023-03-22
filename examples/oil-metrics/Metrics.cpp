@@ -16,9 +16,9 @@
 #include "Metrics.h"
 
 namespace Metrics {
-std::atomic<Metrics *> Metrics::singleton = nullptr;
+std::atomic<Metrics*> Metrics::singleton = nullptr;
 
-const char *to_string(ArgTiming t) {
+const char* to_string(ArgTiming t) {
   switch (t) {
     case ENTRY:
       return "entry";
@@ -29,7 +29,7 @@ const char *to_string(ArgTiming t) {
   }
 }
 
-Metrics::Metrics(ObjectIntrospection::options opts, const std::string &savePath)
+Metrics::Metrics(ObjectIntrospection::options opts, const std::string& savePath)
     : opts(opts) {
   writer = std::fstream(savePath, std::ios_base::out);
   writer << "{ \"metrics\": [" << std::endl;
@@ -43,7 +43,7 @@ Metrics::~Metrics() {
 }
 
 void Metrics::save(std::string object) {
-  Metrics *m = singleton.load();
+  Metrics* m = singleton.load();
   std::lock_guard<std::mutex> guard(m->writerLock);
 
   if (m->hasWritten) {
@@ -54,7 +54,7 @@ void Metrics::save(std::string object) {
   }
 }
 
-void Metrics::saveArg(const char *name, const char *argName, ArgTiming timing,
+void Metrics::saveArg(const char* name, const char* argName, ArgTiming timing,
                       size_t size) {
   std::string out = "{\"type\": \"size\", \"traceName\": \"";
   out += name;
@@ -69,7 +69,7 @@ void Metrics::saveArg(const char *name, const char *argName, ArgTiming timing,
   save(out);
 }
 
-void Metrics::saveDuration(const char *name,
+void Metrics::saveDuration(const char* name,
                            std::chrono::milliseconds duration) {
   std::string out = "{\"type\": \"duration\", \"traceName\": \"";
   out += name;
@@ -80,7 +80,7 @@ void Metrics::saveDuration(const char *name,
   save(out);
 }
 
-Tracing::Tracing(const char *name, bool enabled)
+Tracing::Tracing(const char* name, bool enabled)
     : name(name), enabled(enabled) {
 }
 
@@ -91,7 +91,7 @@ Tracing::~Tracing() {
     saveDuration(duration);
   }
 
-  for (auto const &exitFunc : exitFuncs)
+  for (auto const& exitFunc : exitFuncs)
     exitFunc();
 }
 
@@ -99,7 +99,7 @@ bool Tracing::isTimingEnabled() {
   return enabled || Metrics::isEnabled();
 }
 
-bool Tracing::isArgEnabled(const char *argName, ArgTiming timing) {
+bool Tracing::isArgEnabled(const char* argName, ArgTiming timing) {
   return enabled || Metrics::isEnabled();
 }
 
@@ -109,7 +109,7 @@ void Tracing::start() {
   }
 }
 
-void Tracing::saveArg(const char *argName, ArgTiming timing, size_t size) {
+void Tracing::saveArg(const char* argName, ArgTiming timing, size_t size) {
   Metrics::saveArg(name, argName, timing, size);
 }
 

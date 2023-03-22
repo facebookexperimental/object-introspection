@@ -72,8 +72,8 @@ struct FuncDesc {
     return arguments[argPos];
   }
 
-  std::shared_ptr<FuncDesc::TargetObject> getArgument(const std::string &);
-  std::optional<uint8_t> getArgumentIndex(const std::string &,
+  std::shared_ptr<FuncDesc::TargetObject> getArgument(const std::string&);
+  std::optional<uint8_t> getArgumentIndex(const std::string&,
                                           bool = true) const;
 
   size_t numArgs() const {
@@ -84,7 +84,7 @@ struct FuncDesc {
   }
 
   std::optional<Range> getRange(uintptr_t addr) {
-    for (const auto &range : ranges) {
+    for (const auto& range : ranges) {
       if (addr >= range.start && addr < range.end) {
         return range;
       }
@@ -103,7 +103,7 @@ struct FuncDesc {
      * can be found at the given pc (what about if we don't have this
      * location?).
      */
-    virtual std::optional<uintptr_t> findAddress(struct user_regs_struct *regs,
+    virtual std::optional<uintptr_t> findAddress(struct user_regs_struct* regs,
                                                  uintptr_t pc) const = 0;
   };
 
@@ -114,21 +114,21 @@ struct FuncDesc {
       drgn_object_locator_deinit(&locator);
     }
 
-    std::optional<uintptr_t> findAddress(struct user_regs_struct *regs,
+    std::optional<uintptr_t> findAddress(struct user_regs_struct* regs,
                                          uintptr_t pc) const final;
   };
 
   struct Retval final : virtual TargetObject {
     ~Retval() final = default;
 
-    std::optional<uintptr_t> findAddress(struct user_regs_struct *regs,
+    std::optional<uintptr_t> findAddress(struct user_regs_struct* regs,
                                          uintptr_t /* pc */) const final {
       return regs->rax;
     }
   };
 };
 
-std::ostream &operator<<(std::ostream &os, const FuncDesc::Range &r);
+std::ostream& operator<<(std::ostream& os, const FuncDesc::Range& r);
 
 class GlobalDesc {
  public:

@@ -49,7 +49,7 @@ void usage(std::string_view progname) {
   std::cout << opts;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
 
   int c;
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
 void IntegrationBase::SetUp() {
   // Move into a temporary directory to run the test in an isolated environment
   auto tmp_dir = TmpDirStr();
-  char *res = mkdtemp(&tmp_dir[0]);
+  char* res = mkdtemp(&tmp_dir[0]);
   if (!res)
     abort();
   workingDir = std::move(tmp_dir);
@@ -94,7 +94,7 @@ void IntegrationBase::SetUp() {
 }
 
 void IntegrationBase::TearDown() {
-  const ::testing::TestInfo *const test_info =
+  const ::testing::TestInfo* const test_info =
       ::testing::UnitTest::GetInstance()->current_test_info();
   if (preserve || (preserve_on_failure && test_info->result()->Failed())) {
     std::cerr << "Working directory preserved at: " << workingDir << std::endl;
@@ -103,7 +103,7 @@ void IntegrationBase::TearDown() {
   }
 }
 
-int IntegrationBase::exit_code(Proc &proc) {
+int IntegrationBase::exit_code(Proc& proc) {
   proc.ctx.run();
   proc.proc.wait();
 
@@ -122,7 +122,7 @@ int IntegrationBase::exit_code(Proc &proc) {
   return proc.proc.exit_code();
 }
 
-fs::path IntegrationBase::createCustomConfig(const std::string &extraConfig) {
+fs::path IntegrationBase::createCustomConfig(const std::string& extraConfig) {
   // If no extra config provided, return the config path unaltered.
   if (extraConfig.empty()) {
     return configFile;
@@ -135,19 +135,19 @@ fs::path IntegrationBase::createCustomConfig(const std::string &extraConfig) {
   // moving the file to the temporary directory.
   fs::path configDirectory = fs::path(configFile).remove_filename();
 
-  if (toml::table *types = config["types"].as_table()) {
-    if (toml::array *arr = (*types)["containers"].as_array()) {
-      arr->for_each([&](auto &&el) {
+  if (toml::table* types = config["types"].as_table()) {
+    if (toml::array* arr = (*types)["containers"].as_array()) {
+      arr->for_each([&](auto&& el) {
         if constexpr (toml::is_string<decltype(el)>) {
           el = configDirectory / el.get();
         }
       });
     }
   }
-  if (toml::table *headers = config["headers"].as_table()) {
-    for (auto &path : {"user_paths", "system_paths"}) {
-      if (toml::array *arr = (*headers)[path].as_array()) {
-        arr->for_each([&](auto &&el) {
+  if (toml::table* headers = config["headers"].as_table()) {
+    for (auto& path : {"user_paths", "system_paths"}) {
+      if (toml::array* arr = (*headers)[path].as_array()) {
+        arr->for_each([&](auto&& el) {
           if constexpr (toml::is_string<decltype(el)>) {
             el = configDirectory / el.get();
           }
@@ -215,7 +215,7 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
   if (verbose) {
     std::cerr << "Running: " << targetExe << "\n";
     std::cerr << "Running: " << oidExe << " ";
-    for (const auto &arg : oid_args) {
+    for (const auto& arg : oid_args) {
       std::cerr << arg << " ";
     }
     std::cerr << std::endl;
@@ -272,9 +272,9 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
   };
 }
 
-void OidIntegration::compare_json(const bpt::ptree &expected_json,
-                                  const bpt::ptree &actual_json,
-                                  const std::string &full_key, bool expect_eq) {
+void OidIntegration::compare_json(const bpt::ptree& expected_json,
+                                  const bpt::ptree& actual_json,
+                                  const std::string& full_key, bool expect_eq) {
   if (expected_json.empty()) {
     if (expect_eq) {
       ASSERT_EQ(expected_json.data(), actual_json.data())
@@ -303,14 +303,14 @@ void OidIntegration::compare_json(const bpt::ptree &expected_json,
   }
 
   // Compare as Key-Value pairs
-  for (const auto &[key, val] : expected_json) {
+  for (const auto& [key, val] : expected_json) {
     if (key == "NOT") {
       auto curr_key = full_key + ".NOT";
       ASSERT_EQ(true, expect_eq) << "Invalid expected data: " << curr_key
                                  << " - Can not use nested \"NOT\" expressions";
       if (val.empty()) {
         // Check that a given single key does not exist
-        const auto &key_to_check = val.data();
+        const auto& key_to_check = val.data();
         auto actual_it = actual_json.find(key_to_check);
         auto curr_key = full_key + "." + key_to_check;
         if (actual_it != actual_json.not_found()) {

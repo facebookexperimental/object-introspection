@@ -26,21 +26,21 @@ extern "C" {
 
 struct OIOpt {
   char shortName;
-  const char *longName;
+  const char* longName;
   int has_arg;
-  const char *argName;
-  const char *usage;
+  const char* argName;
+  const char* usage;
 };
 
 template <size_t N>
 class OIOpts {
  public:
   template <typename... Opts>
-  constexpr explicit OIOpts(Opts &&...options)
+  constexpr explicit OIOpts(Opts&&... options)
       : _opts{std::forward<decltype(options)>(options)...} {
     // Create the short opts string
     size_t shortOptIndex = 0;
-    for (const auto &opt : _opts) {
+    for (const auto& opt : _opts) {
       _shortOpts[shortOptIndex++] = opt.shortName;
       for (int i = 0; i < opt.has_arg; ++i)
         _shortOpts[shortOptIndex++] = ':';
@@ -52,7 +52,7 @@ class OIOpts {
 
     // Create the array of long opts
     for (size_t i = 0; i < _opts.size(); ++i) {
-      const auto &opt = _opts[i];
+      const auto& opt = _opts[i];
       _longOpts[i] = {opt.longName, opt.has_arg, nullptr, opt.shortName};
     }
 
@@ -60,15 +60,15 @@ class OIOpts {
     _longOpts[_opts.size()] = {nullptr, no_argument, nullptr, '\0'};
   }
 
-  constexpr const char *shortOpts() const {
+  constexpr const char* shortOpts() const {
     return _shortOpts.data();
   }
-  constexpr const struct option *longOpts() const {
+  constexpr const struct option* longOpts() const {
     return _longOpts.data();
   }
 
   template <size_t M>
-  friend std::ostream &operator<<(std::ostream &os, const OIOpts<M> &opts);
+  friend std::ostream& operator<<(std::ostream& os, const OIOpts<M>& opts);
 
  private:
   std::array<OIOpt, N> _opts;
@@ -77,16 +77,16 @@ class OIOpts {
 };
 
 template <size_t M>
-std::ostream &operator<<(std::ostream &os, const OIOpts<M> &opts) {
+std::ostream& operator<<(std::ostream& os, const OIOpts<M>& opts) {
   int maxLongName = 0;
-  for (const auto &opt : opts._opts) {
+  for (const auto& opt : opts._opts) {
     size_t longNameWidth = strlen(opt.longName);
     if (opt.argName)
       longNameWidth += 1 + strlen(opt.argName);
     maxLongName = std::max(maxLongName, (int)longNameWidth);
   }
 
-  for (const auto &opt : opts._opts) {
+  for (const auto& opt : opts._opts) {
     auto fullName = std::string(opt.longName);
     if (opt.argName) {
       fullName += ' ';

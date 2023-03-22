@@ -24,7 +24,7 @@ namespace ObjectIntrospection {
 
 class OILibraryImpl {
  public:
-  OILibraryImpl(OILibrary *, void *);
+  OILibraryImpl(OILibrary*, void*);
   ~OILibraryImpl();
 
   bool mapSegment();
@@ -35,16 +35,16 @@ class OILibraryImpl {
   void enableLayoutAnalysis();
 
  private:
-  class OILibrary *_self;
+  class OILibrary* _self;
 
-  void *_TemplateFunc;
+  void* _TemplateFunc;
 
   OICompiler::Config compilerConfig{};
   OICodeGen::Config generatorConfig{};
   std::shared_ptr<SymbolService> symbols{};
 
   struct c {
-    void *textSegBase = nullptr;
+    void* textSegBase = nullptr;
     size_t textSegSize = 1u << 22;
   } segConfig;
 };

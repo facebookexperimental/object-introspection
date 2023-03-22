@@ -34,7 +34,7 @@ extern "C" {
 
 namespace ObjectIntrospection {
 
-OILibraryImpl::OILibraryImpl(OILibrary *self, void *TemplateFunc)
+OILibraryImpl::OILibraryImpl(OILibrary* self, void* TemplateFunc)
     : _self(self), _TemplateFunc(TemplateFunc) {
   if (_self->opts.debugLevel != 0) {
     google::LogToStderr();
@@ -54,7 +54,7 @@ OILibraryImpl::~OILibraryImpl() {
 }
 
 bool OILibraryImpl::mapSegment() {
-  void *textSeg =
+  void* textSeg =
       mmap(NULL, segConfig.textSegSize, PROT_EXEC | PROT_READ | PROT_WRITE,
            MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (textSeg == MAP_FAILED) {
@@ -105,7 +105,7 @@ class Cleanup {
   }
 };
 
-void close_file(std::FILE *fp) {
+void close_file(std::FILE* fp) {
   std::fclose(fp);
 }
 
@@ -131,11 +131,11 @@ int OILibraryImpl::compileCode() {
   auto objectPath =
       fs::path((boost::format("/dev/fd/%1%") % objectMemfd).str());
 
-  struct drgn_program *prog = symbols->getDrgnProgram();
+  struct drgn_program* prog = symbols->getDrgnProgram();
   if (!prog) {
     return Response::OIL_COMPILATION_FAILURE;
   }
-  struct drgn_symbol *sym;
+  struct drgn_symbol* sym;
   if (auto err = drgn_program_find_symbol_by_address(
           prog, (uintptr_t)_TemplateFunc, &sym)) {
     LOG(ERROR) << "Error when finding symbol by address " << err->code << " "
@@ -143,7 +143,7 @@ int OILibraryImpl::compileCode() {
     drgn_error_destroy(err);
     return Response::OIL_COMPILATION_FAILURE;
   }
-  const char *name = drgn_symbol_name(sym);
+  const char* name = drgn_symbol_name(sym);
   drgn_symbol_destroy(sym);
 
   // TODO: change this to the new drgn interface from symbol -> type
@@ -187,13 +187,13 @@ int OILibraryImpl::compileCode() {
     return Response::OIL_RELOCATION_FAILURE;
   }
 
-  const auto &[_, segments, jitSymbols] = relocRes.value();
+  const auto& [_, segments, jitSymbols] = relocRes.value();
 
   // Locate the probe's entry point
   _self->fp = nullptr;
-  for (const auto &[symName, symAddr] : jitSymbols) {
+  for (const auto& [symName, symAddr] : jitSymbols) {
     if (symName.starts_with("_Z7getSize")) {
-      _self->fp = (size_t(*)(const void *))symAddr;
+      _self->fp = (size_t(*)(const void*))symAddr;
       break;
     }
   }
@@ -202,8 +202,8 @@ int OILibraryImpl::compileCode() {
   }
 
   // Copy relocated segments in their final destination
-  for (const auto &[BaseAddr, RelocAddr, Size] : segments)
-    memcpy((void *)RelocAddr, (void *)BaseAddr, Size);
+  for (const auto& [BaseAddr, RelocAddr, Size] : segments)
+    memcpy((void*)RelocAddr, (void*)BaseAddr, Size);
 
   return Response::OIL_SUCCESS;
 }

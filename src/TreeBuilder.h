@@ -49,10 +49,10 @@ class TreeBuilder {
   TreeBuilder(Config);
   ~TreeBuilder();
 
-  void build(const std::vector<uint64_t> &, const std::string &,
-             struct drgn_type *, const TypeHierarchy &);
+  void build(const std::vector<uint64_t>&, const std::string&,
+             struct drgn_type*, const TypeHierarchy&);
   void dumpJson();
-  void setPaddedStructs(std::map<std::string, PaddingInfo> *paddedStructs);
+  void setPaddedStructs(std::map<std::string, PaddingInfo>* paddedStructs);
   bool emptyOutput() const;
 
  private:
@@ -62,9 +62,9 @@ class TreeBuilder {
   struct Node;
   struct Variable;
 
-  const TypeHierarchy *th = nullptr;
-  const std::vector<uint64_t> *oidData = nullptr;
-  std::map<std::string, PaddingInfo> *paddedStructs = nullptr;
+  const TypeHierarchy* th = nullptr;
+  const std::vector<uint64_t>* oidData = nullptr;
+  std::map<std::string, PaddingInfo>* paddedStructs = nullptr;
 
   /*
    * The RocksDB output needs versioning so they are imported correctly in
@@ -98,20 +98,20 @@ class TreeBuilder {
    * to allocate a new buffer every time we serialize a `Node`.
    */
   std::unique_ptr<msgpack::sbuffer> buffer;
-  rocksdb::DB *db = nullptr;
+  rocksdb::DB* db = nullptr;
   std::unordered_set<uintptr_t> pointers{};
 
-  uint64_t getDrgnTypeSize(struct drgn_type *type);
+  uint64_t getDrgnTypeSize(struct drgn_type* type);
   uint64_t next();
-  bool isContainer(const Variable &variable);
-  bool isPrimitive(struct drgn_type *type);
+  bool isContainer(const Variable& variable);
+  bool isPrimitive(struct drgn_type* type);
   bool shouldProcess(uintptr_t pointer);
   Node process(NodeID id, Variable variable);
-  void processContainer(const Variable &variable, Node &node);
+  void processContainer(const Variable& variable, Node& node);
   template <class T>
-  std::string_view serialize(const T &);
-  void JSON(NodeID id, std::ofstream &output);
+  std::string_view serialize(const T&);
+  void JSON(NodeID id, std::ofstream& output);
 
-  static void setSize(TreeBuilder::Node &node, uint64_t dynamicSize,
+  static void setSize(TreeBuilder::Node& node, uint64_t dynamicSize,
                       uint64_t memberSizes);
 };

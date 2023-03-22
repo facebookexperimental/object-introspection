@@ -206,9 +206,9 @@ void installSigHandlers(void) {
   sigaction(SIGALRM, &nact, nullptr);
 }
 
-std::optional<long> strunittol(const char *str) {
+std::optional<long> strunittol(const char* str) {
   errno = 0;
-  char *strend = nullptr;
+  char* strend = nullptr;
   long retval = strtol(str, &strend, 10);
   if (errno != 0) {
     return std::nullopt;
@@ -266,11 +266,11 @@ struct Config {
 
 }  // namespace Oid
 
-static ExitStatus::ExitStatus runScript(const std::string &fileName,
-                                        std::istream &script,
-                                        const Oid::Config &oidConfig,
-                                        const OICodeGen::Config &codeGenConfig,
-                                        const TreeBuilder::Config &tbConfig) {
+static ExitStatus::ExitStatus runScript(const std::string& fileName,
+                                        std::istream& script,
+                                        const Oid::Config& oidConfig,
+                                        const OICodeGen::Config& codeGenConfig,
+                                        const TreeBuilder::Config& tbConfig) {
   if (!fileName.empty()) {
     VLOG(1) << "SCR FILE: " << fileName;
   }
@@ -452,7 +452,7 @@ static ExitStatus::ExitStatus runScript(const std::string &fileName,
   return ExitStatus::Success;
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int debugLevel = 1;
   Oid::Config oidConfig = {};
   std::string scriptFile;

@@ -60,10 +60,10 @@ using namespace ObjectIntrospection;
 
 bool OIDebugger::isGlobalDataProbeEnabled(void) const {
   return std::any_of(cbegin(pdata), cend(pdata),
-                     [](const auto &r) { return r.type == "global"; });
+                     [](const auto& r) { return r.type == "global"; });
 }
 
-bool OIDebugger::parseScript(std::istream &script) {
+bool OIDebugger::parseScript(std::istream& script) {
   Metrics::Tracing _("parse_script");
 
   OIScanner scanner(&script);
@@ -92,7 +92,7 @@ bool OIDebugger::patchFunctions(void) {
   assert(pdata.numReqs() != 0);
   Metrics::Tracing _("patch_functions");
 
-  for (const auto &preq : pdata) {
+  for (const auto& preq : pdata) {
     VLOG(1) << "Type " << preq.type << " Func " << preq.func
             << " Args: " << boost::join(preq.args, ",");
 
@@ -117,7 +117,7 @@ bool OIDebugger::patchFunctions(void) {
  * Single step an instruction in the target process 'pid' and leave the target
  * thread stopped. Returns the current rip.
  */
-uint64_t OIDebugger::singlestepInst(pid_t pid, struct user_regs_struct &regs) {
+uint64_t OIDebugger::singlestepInst(pid_t pid, struct user_regs_struct& regs) {
   int status = 0;
 
   Metrics::Tracing _("single_step_inst");
@@ -143,8 +143,8 @@ uint64_t OIDebugger::singlestepInst(pid_t pid, struct user_regs_struct &regs) {
   return regs.rip;
 }
 
-void OIDebugger::dumpRegs(const char *text, pid_t pid,
-                          struct user_regs_struct *regs) {
+void OIDebugger::dumpRegs(const char* text, pid_t pid,
+                          struct user_regs_struct* regs) {
   VLOG(1) << "(" << text << ")"
           << " dumpRegs: pid: " << std::dec << pid << std::hex << " rip "
           << regs->rip << " rbp: " << regs->rbp << " rsp " << regs->rsp
@@ -204,8 +204,8 @@ bool OIDebugger::setupLogFile(void) {
      * Using the text segment to store the path in the remote process' memory.
      * The memory will be re-used anyway and the path will get overwritten.
      */
-    if (!writeTargetMemory((void *)logFilePath.c_str(),
-                           (void *)segConfig.textSegBase, logFilePathLen)) {
+    if (!writeTargetMemory((void*)logFilePath.c_str(),
+                           (void*)segConfig.textSegBase, logFilePathLen)) {
       LOG(ERROR) << "Failed to write Log File's path into target process";
       return false;
     }
@@ -267,7 +267,7 @@ bool OIDebugger::segmentInit(void) {
 
     segConfig.existingConfig = true;
     segmentConfigFile.seekg(0);
-    segmentConfigFile.write((char *)&segConfig, sizeof(segConfig));
+    segmentConfigFile.write((char*)&segConfig, sizeof(segConfig));
 
     VLOG(1) << "segConfig size " << sizeof(segConfig);
 
@@ -318,7 +318,7 @@ void OIDebugger::createSegmentConfigFile(void) {
     /* Read config */
     segmentConfigFile =
         std::fstream(segConfigFilePath, ios::in | ios::out | ios::binary);
-    segmentConfigFile.read((char *)&segConfig, sizeof(c));
+    segmentConfigFile.read((char*)&segConfig, sizeof(c));
 
     if (segmentConfigFile.fail()) {
       LOG(ERROR) << "createSegmentConfigFile: failed to read from "
@@ -423,7 +423,7 @@ OIDebugger::StatusType OIDebugger::getTaskState(pid_t pid) {
 /* For debug - do not remove */
 void OIDebugger::dumpAlltaskStates(void) {
   VLOG(1) << "Task State Dump";
-  for (auto const &p : threadList) {
+  for (auto const& p : threadList) {
     auto state = getTaskState(p);
     VLOG(1) << "Task " << p << " state: " << taskStateToString(state) << " ("
             << static_cast<int>(state) << ")";
@@ -457,9 +457,9 @@ bool OIDebugger::contTargetThread(bool detach) const {
   return true;
 }
 
-bool OIDebugger::replayTrappedInstr(const trapInfo &t, pid_t pid,
-                                    struct user_regs_struct &regs,
-                                    struct user_fpregs_struct &fpregs) const {
+bool OIDebugger::replayTrappedInstr(const trapInfo& t, pid_t pid,
+                                    struct user_regs_struct& regs,
+                                    struct user_fpregs_struct& fpregs) const {
   /*
    * Single step the original instruction which has been patched over
    * with a breakpoint trap. The original instruction now resides in
@@ -524,13 +524,13 @@ bool OIDebugger::replayTrappedInstr(const trapInfo &t, pid_t pid,
   return true;
 }
 
-bool OIDebugger::locateObjectsAddresses(const trapInfo &tInfo,
-                                        struct user_regs_struct &regs) {
+bool OIDebugger::locateObjectsAddresses(const trapInfo& tInfo,
+                                        struct user_regs_struct& regs) {
   /*
    * Write objects into prologue in target.
    */
   bool ret = true;
-  for (const auto &arg : tInfo.args) {
+  for (const auto& arg : tInfo.args) {
     auto remoteObjAddr = remoteObjAddrs.find(arg);
     if (remoteObjAddr == remoteObjAddrs.end()) {
       LOG(ERROR) << "Entry: failed to find remoteObjAddr! Skipping...";
@@ -546,8 +546,8 @@ bool OIDebugger::locateObjectsAddresses(const trapInfo &tInfo,
     }
 
     VLOG(4) << "Entry: arg addr: " << std::hex << *addr;
-    if (!writeTargetMemory((void *)(&addr.value()),
-                           (void *)remoteObjAddr->second, sizeof(*addr))) {
+    if (!writeTargetMemory((void*)(&addr.value()), (void*)remoteObjAddr->second,
+                           sizeof(*addr))) {
       LOG(ERROR) << "Entry: writeTargetMemory remoteObjAddr failed!";
       ret = false;
       continue;
@@ -558,8 +558,8 @@ bool OIDebugger::locateObjectsAddresses(const trapInfo &tInfo,
 }
 
 OIDebugger::processTrapRet OIDebugger::processFuncTrap(
-    const trapInfo &tInfo, pid_t pid, struct user_regs_struct &regs,
-    struct user_fpregs_struct &fpregs) {
+    const trapInfo& tInfo, pid_t pid, struct user_regs_struct& regs,
+    struct user_fpregs_struct& fpregs) {
   assert(tInfo.trapKind != OID_TRAP_JITCODERET);
 
   processTrapRet ret = OID_CONT;
@@ -570,10 +570,10 @@ OIDebugger::processTrapRet OIDebugger::processFuncTrap(
   auto t = std::make_shared<trapInfo>(tInfo);
 
   /* Save interrupted registers into trap information */
-  memcpy((void *)&t->savedRegs, (void *)&regs, sizeof(t->savedRegs));
+  memcpy((void*)&t->savedRegs, (void*)&regs, sizeof(t->savedRegs));
 
   /* Save fpregs into trap information */
-  memcpy((void *)&t->savedFPregs, (void *)&fpregs, sizeof(t->savedFPregs));
+  memcpy((void*)&t->savedFPregs, (void*)&fpregs, sizeof(t->savedFPregs));
 
   /* Start by locating each Target Object's address */
   if (!locateObjectsAddresses(*t, regs)) {
@@ -664,7 +664,7 @@ OIDebugger::processTrapRet OIDebugger::processFuncTrap(
     t->fromVect = true;
 
     VLOG(4) << "processTrap: redirect pid " << std::dec << pid << " to address "
-            << std::hex << (void *)tInfo.prologueObjAddr << " tInfo: " << tInfo
+            << std::hex << (void*)tInfo.prologueObjAddr << " tInfo: " << tInfo
             << " " << tInfo.prologueObjAddr << " " << tInfo.fromVect;
 
     errno = 0;
@@ -689,7 +689,7 @@ OIDebugger::processTrapRet OIDebugger::processFuncTrap(
 }
 
 OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
-    const trapInfo &tInfo __attribute__((unused)), pid_t pid) {
+    const trapInfo& tInfo __attribute__((unused)), pid_t pid) {
   OIDebugger::processTrapRet ret = OIDebugger::OID_CONT;
 
   assert(tInfo.trapKind == OID_TRAP_JITCODERET);
@@ -784,7 +784,7 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
  * in this case) and introspect the global data. It would be good if we had
  * a cheap way of asserting that the global thread is stopped.
  */
-bool OIDebugger::processGlobal(const std::string &varName) {
+bool OIDebugger::processGlobal(const std::string& varName) {
   assert(mode == OID_MODE_THREAD);
 
   VLOG(1) << "Introspecting global variable: " << varName;
@@ -827,10 +827,10 @@ bool OIDebugger::processGlobal(const std::string &varName) {
 
   regs.rip -= 2;
   /* Save interrupted registers into trap information */
-  memcpy((void *)&t->savedRegs, (void *)&regs, sizeof(t->savedRegs));
+  memcpy((void*)&t->savedRegs, (void*)&regs, sizeof(t->savedRegs));
 
   /* Save fpregs into trap information */
-  memcpy((void *)&t->savedFPregs, (void *)&fpregs, sizeof(t->savedFPregs));
+  memcpy((void*)&t->savedFPregs, (void*)&fpregs, sizeof(t->savedFPregs));
   regs.rip = segConfig.textSegBase;
 
   dumpRegs("processGlobal2", traceePid, &regs);
@@ -858,7 +858,7 @@ bool OIDebugger::processGlobal(const std::string &varName) {
     return false;
   }
 
-  if (!writeTargetMemory((void *)&addr, (void *)remoteObjAddr->second,
+  if (!writeTargetMemory((void*)&addr, (void*)remoteObjAddr->second,
                          sizeof(addr))) {
     LOG(ERROR) << "processGlobal: writeTargetMemory remoteObjAddr failed!";
   }
@@ -1241,14 +1241,14 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
   return ret;
 }
 
-std::optional<std::vector<uintptr_t>> OIDebugger::findRetLocs(FuncDesc &fd) {
+std::optional<std::vector<uintptr_t>> OIDebugger::findRetLocs(FuncDesc& fd) {
   size_t maxSize = std::accumulate(
       fd.ranges.begin(), fd.ranges.end(), size_t(0),
-      [](auto currMax, auto &r) { return std::max(currMax, r.size()); });
+      [](auto currMax, auto& r) { return std::max(currMax, r.size()); });
 
   std::vector<uintptr_t> retLocs;
   std::vector<std::byte> text(maxSize);
-  for (const auto &range : fd.ranges) {
+  for (const auto& range : fd.ranges) {
     /*
      * We already have enough capacity to accomodate any range from the function
      * But we must ensure the actual `size` of the vector matches what is being
@@ -1260,7 +1260,7 @@ std::optional<std::vector<uintptr_t>> OIDebugger::findRetLocs(FuncDesc &fd) {
     text.resize(range.size());
 
     /* Copy the range of instruction into the text vector to be disassembled */
-    if (!readTargetMemory((void *)range.start, text.data(), text.size())) {
+    if (!readTargetMemory((void*)range.start, text.data(), text.size())) {
       LOG(ERROR) << "Could not read function range " << fd.symName << "@"
                  << range;
       return std::nullopt;
@@ -1310,10 +1310,10 @@ std::optional<std::vector<uintptr_t>> OIDebugger::findRetLocs(FuncDesc &fd) {
  * If it's not in the replayInstMap, return the address to the next free entry
  * in the cache and put the entry in the map.
  */
-std::optional<uintptr_t> OIDebugger::nextReplayInstrAddr(const trapInfo &t) {
+std::optional<uintptr_t> OIDebugger::nextReplayInstrAddr(const trapInfo& t) {
   if (auto it = replayInstMap.find(t.trapAddr); it != end(replayInstMap)) {
-    VLOG(1) << "Found instruction for trap " << (void *)t.trapAddr
-            << " at address " << (void *)it->second;
+    VLOG(1) << "Found instruction for trap " << (void*)t.trapAddr
+            << " at address " << (void*)it->second;
     return it->second;
   }
 
@@ -1330,8 +1330,8 @@ std::optional<uintptr_t> OIDebugger::nextReplayInstrAddr(const trapInfo &t) {
     return std::nullopt;
   }
 
-  VLOG(1) << "Orig instructions for trap " << (void *)t.trapAddr
-          << " will get saved at " << (void *)newInstrAddr;
+  VLOG(1) << "Orig instructions for trap " << (void*)t.trapAddr
+          << " will get saved at " << (void*)newInstrAddr;
   replayInstMap.emplace(t.trapAddr, newInstrAddr);
 
   return newInstrAddr;
@@ -1374,7 +1374,7 @@ std::optional<uintptr_t> OIDebugger::nextReplayInstrAddr(const trapInfo &t) {
  *   instrumentation much be done as a single unit.
  */
 
-bool OIDebugger::functionPatch(const prequest &req) {
+bool OIDebugger::functionPatch(const prequest& req) {
   assert(req.type != "global");
 
   auto fd = symbols->findFuncDesc(req.getReqForArg(0));
@@ -1398,15 +1398,15 @@ bool OIDebugger::functionPatch(const prequest &req) {
   /* 1. Locate all TRAP points and create a corresponding empty trapInfo in
    * tiVec */
   bool hasArg = std::any_of(begin(req.args), end(req.args),
-                            [](auto &arg) { return arg != "retval"; });
+                            [](auto& arg) { return arg != "retval"; });
 
   if (req.type == "entry" || hasArg) {
     trapType tType =
         req.type == "return" ? OID_TRAP_VECT_ENTRYRET : OID_TRAP_VECT_ENTRY;
     uintptr_t trapAddr = fd->ranges[0].start;
     if (req.args[0].starts_with("arg") || req.args[0] == "this") {
-      auto *argument =
-          dynamic_cast<FuncDesc::Arg *>(fd->getArgument(req.args[0]).get());
+      auto* argument =
+          dynamic_cast<FuncDesc::Arg*>(fd->getArgument(req.args[0]).get());
       if (argument->locator.locations_size > 0) {
         /*
          * The `std::max` is necessary because sometimes when a binary is
@@ -1440,9 +1440,9 @@ bool OIDebugger::functionPatch(const prequest &req) {
   localIov.reserve(tiVec.size());
   remoteIov.reserve(tiVec.size());
 
-  for (auto &ti : tiVec) {
-    localIov.push_back({(void *)ti->origTextBytes, sizeof(ti->origTextBytes)});
-    remoteIov.push_back({(void *)ti->trapAddr, sizeof(ti->origTextBytes)});
+  for (auto& ti : tiVec) {
+    localIov.push_back({(void*)ti->origTextBytes, sizeof(ti->origTextBytes)});
+    remoteIov.push_back({(void*)ti->trapAddr, sizeof(ti->origTextBytes)});
   }
 
   errno = 0;
@@ -1463,7 +1463,7 @@ bool OIDebugger::functionPatch(const prequest &req) {
   /* Re-use remoteIov to write the original instructions in our textSegment */
   remoteIov.clear();
 
-  for (auto &trap : tiVec) {
+  for (auto& trap : tiVec) {
     trap->patchedText = trap->origText;
     trap->patchedTextBytes[0] = int3Inst;
 
@@ -1476,13 +1476,13 @@ bool OIDebugger::functionPatch(const prequest &req) {
 
     trap->replayInstAddr = *replayInstrAddr;
     remoteIov.push_back(
-        {(void *)trap->replayInstAddr, sizeof(trap->origTextBytes)});
+        {(void*)trap->replayInstAddr, sizeof(trap->origTextBytes)});
 
     if (trap->trapKind == OID_TRAP_VECT_ENTRY ||
         trap->trapKind == OID_TRAP_VECT_ENTRYRET) {
       /* Capture the arguments to probe */
       trap->args.reserve(req.args.size());
-      for (const auto &arg : req.args) {
+      for (const auto& arg : req.args) {
         if (auto targetObj = fd->getArgument(arg)) {
           trap->args.push_back(std::move(targetObj));
         } else {
@@ -1517,9 +1517,9 @@ bool OIDebugger::functionPatch(const prequest &req) {
   }
 
   /* 5. Insert the traps in the target process */
-  for (const auto &trap : tiVec) {
+  for (const auto& trap : tiVec) {
     VLOG(1) << "Patching function " << req.func << " @"
-            << (void *)trap->trapAddr;
+            << (void*)trap->trapAddr;
     activeTraps.emplace(trap->trapAddr, trap);
 
     errno = 0;
@@ -1551,7 +1551,7 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
   }
 
   uint64_t patchAddr = sym->addr;
-  VLOG(1) << "Address of main: " << (void *)patchAddr;
+  VLOG(1) << "Address of main: " << (void*)patchAddr;
 
   /* Saving current registers states */
   errno = 0;
@@ -1600,7 +1600,7 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
      * arch/ABI      arg1  arg2  arg3  arg4  arg5  arg6  arg7
      * x86-64        rdi   rsi   rdx   r10   r8    r9    -
      */
-    const std::array<unsigned long long *, 6> argToReg = {
+    const std::array<unsigned long long*, 6> argToReg = {
         &newregs.rdi, &newregs.rsi, &newregs.rdx,
         &newregs.r10, &newregs.r8,  &newregs.r9,
     };
@@ -1692,7 +1692,7 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
 bool OIDebugger::setupSegment(SegType seg) {
   Metrics::Tracing _("setup_segment");
 
-  std::optional<void *> segAddr;
+  std::optional<void*> segAddr;
   if (seg == SegType::text) {
     segAddr =
         remoteSyscall<SysMmap>(nullptr, textSegSize,  // addr & size
@@ -1796,7 +1796,7 @@ bool OIDebugger::removeTraps(pid_t pid) {
   }
 
   for (auto it = activeTraps.begin(); it != activeTraps.end();) {
-    const auto &tInfo = it->second;
+    const auto& tInfo = it->second;
 
     /* We don't care about our own traps */
     if (tInfo->trapKind == OID_TRAP_JITCODERET) {
@@ -1833,7 +1833,7 @@ bool OIDebugger::removeTraps(pid_t pid) {
   return true;
 }
 
-bool OIDebugger::removeTrap(pid_t pid, const trapInfo &t) {
+bool OIDebugger::removeTrap(pid_t pid, const trapInfo& t) {
   std::array<std::byte, 8> repatchedBytes{};
   memcpy(repatchedBytes.data(), t.origTextBytes, repatchedBytes.size());
 
@@ -1858,7 +1858,7 @@ bool OIDebugger::removeTrap(pid_t pid, const trapInfo &t) {
 
   VLOG(4) << "removeTrap removing int3 at " << std::hex << t.trapAddr;
   if (ptrace(PTRACE_POKETEXT, (!pid ? traceePid : pid), t.trapAddr,
-             *reinterpret_cast<uintptr_t *>(repatchedBytes.data())) < 0) {
+             *reinterpret_cast<uintptr_t*>(repatchedBytes.data())) < 0) {
     LOG(ERROR) << "Execute: Couldn't poke text: " << strerror(errno);
     return false;
   }
@@ -1917,7 +1917,7 @@ OIDebugger::OIDebugger(fs::path debugInfo, std::string configFile,
  * @param[in] target_addr - target address where new data are to be written
  * @param[in] bufsz - length of 'target_addr' buffer in bytes
  */
-bool OIDebugger::writeTargetMemory(void *local_buffer, void *target_addr,
+bool OIDebugger::writeTargetMemory(void* local_buffer, void* target_addr,
                                    size_t bufsz) const {
   VLOG(1) << "Writing buffer " << std::hex << local_buffer << ", bufsz "
           << std::dec << bufsz << " into target " << std::hex << target_addr;
@@ -1960,7 +1960,7 @@ bool OIDebugger::writeTargetMemory(void *local_buffer, void *target_addr,
  * @param[in] local_addr - local address where new data are to be written
  * @param[in] bufsz - length of 'local_addr' buffer in bytes
  */
-bool OIDebugger::readTargetMemory(void *remote_buffer, void *local_addr,
+bool OIDebugger::readTargetMemory(void* remote_buffer, void* local_addr,
                                   size_t bufsz) const {
   VLOG(1) << "Reading buffer " << std::hex << remote_buffer << ", bufsz "
           << std::dec << bufsz << " into local " << std::hex << local_addr;
@@ -1996,11 +1996,11 @@ bool OIDebugger::readTargetMemory(void *remote_buffer, void *local_addr,
 
 std::optional<std::pair<OIDebugger::ObjectAddrMap::key_type, uintptr_t>>
 OIDebugger::locateJitCodeStart(
-    const irequest &req, const OICompiler::RelocResult::SymTable &jitSymbols) {
+    const irequest& req, const OICompiler::RelocResult::SymTable& jitSymbols) {
   // Get type of probed object to locate the JIT code start
   OIDebugger::ObjectAddrMap::key_type targetObj;
   if (req.type == "global") {
-    const auto &gd = symbols->findGlobalDesc(req.func);
+    const auto& gd = symbols->findGlobalDesc(req.func);
     if (!gd) {
       LOG(ERROR) << "Failed to find GlobalDesc for " << req.func;
       return std::nullopt;
@@ -2008,13 +2008,13 @@ OIDebugger::locateJitCodeStart(
 
     targetObj = gd;
   } else {
-    const auto &fd = symbols->findFuncDesc(req);
+    const auto& fd = symbols->findFuncDesc(req);
     if (!fd) {
       LOG(ERROR) << "Failed to find FuncDesc for " << req.func;
       return std::nullopt;
     }
 
-    const auto &farg = fd->getArgument(req.arg);
+    const auto& farg = fd->getArgument(req.arg);
     if (!farg) {
       LOG(ERROR) << "Failed to get argument for " << req.func << ':' << req.arg;
       return std::nullopt;
@@ -2023,13 +2023,13 @@ OIDebugger::locateJitCodeStart(
     targetObj = farg;
   }
 
-  auto &typeName = std::visit(
-      [](auto &&obj) -> std::string & { return obj->typeName; }, targetObj);
+  auto& typeName = std::visit(
+      [](auto&& obj) -> std::string& { return obj->typeName; }, targetObj);
   auto typeHash = std::hash<std::string_view>{}(typeName);
   auto jitCodeName = (boost::format("_Z24getSize_%016x") % typeHash).str();
 
   uintptr_t jitCodeStart = 0;
-  for (const auto &[symName, symAddr] : jitSymbols) {
+  for (const auto& [symName, symAddr] : jitSymbols) {
     if (symName.starts_with(jitCodeName)) {
       jitCodeStart = symAddr;
       break;
@@ -2078,7 +2078,7 @@ OIDebugger::locateJitCodeStart(
  */
 
 bool OIDebugger::writePrologue(
-    const prequest &preq, const OICompiler::RelocResult::SymTable &jitSymbols) {
+    const prequest& preq, const OICompiler::RelocResult::SymTable& jitSymbols) {
   size_t off = 0;
   uint8_t newInsts[prologueLength];
 
@@ -2091,7 +2091,7 @@ bool OIDebugger::writePrologue(
   size_t argCount = preq.type == "global" ? 1 : preq.args.size();
 
   for (size_t i = 0; i < argCount; i++) {
-    const auto &req = preq.getReqForArg(i);
+    const auto& req = preq.getReqForArg(i);
 
     auto jitCodeStart = locateJitCodeStart(req, jitSymbols);
     if (!jitCodeStart.has_value()) {
@@ -2101,13 +2101,13 @@ bool OIDebugger::writePrologue(
     }
 
     VLOG(1) << "Generating prologue for argument '" << req.arg
-            << "', using probe at " << (void *)jitCodeStart->second;
+            << "', using probe at " << (void*)jitCodeStart->second;
 
     newInsts[off++] = movabsrdi0Inst;
     newInsts[off++] = movabsrdi1Inst;
     remoteObjAddrs.emplace(std::move(jitCodeStart->first),
                            segConfig.textSegBase + off);
-    std::visit([](auto &&obj) { obj = nullptr; },
+    std::visit([](auto&& obj) { obj = nullptr; },
                jitCodeStart->first);  // Invalidate ptr after move
     memcpy(newInsts + off, &objectAddr, sizeof(objectAddr));
     off += sizeof(objectAddr);
@@ -2140,7 +2140,7 @@ bool OIDebugger::writePrologue(
 
   assert(off <= prologueLength);
 
-  return writeTargetMemory(&newInsts, (void *)segConfig.textSegBase,
+  return writeTargetMemory(&newInsts, (void*)segConfig.textSegBase,
                            prologueLength);
 }
 
@@ -2150,7 +2150,7 @@ bool OIDebugger::writePrologue(
  */
 bool OIDebugger::compileCode() {
   assert(pdata.numReqs() == 1);
-  const auto &preq = pdata.getReq();
+  const auto& preq = pdata.getReq();
 
   OICompiler compiler{symbols, compilerConfig};
   std::set<fs::path> objectFiles{};
@@ -2163,7 +2163,7 @@ bool OIDebugger::compileCode() {
    */
   size_t argCount = preq.type == "global" ? 1 : preq.args.size();
   for (size_t i = 0; i < argCount; i++) {
-    const auto &req = preq.getReqForArg(i);
+    const auto& req = preq.getReqForArg(i);
 
     if (cache.isEnabled()) {
       // try to download cache artifacts if present
@@ -2255,7 +2255,7 @@ bool OIDebugger::compileCode() {
         cache.store(req, OICache::Entity::FuncDescs, symbols->funcDescs);
       }
 
-      const auto &[rootType, typeHierarchy, paddingInfo] = typeInfos.at(req);
+      const auto& [rootType, typeHierarchy, paddingInfo] = typeInfos.at(req);
       cache.store(req, OICache::Entity::TypeHierarchy,
                   std::make_pair(rootType, typeHierarchy));
       cache.store(req, OICache::Entity::PaddingInfo, paddingInfo);
@@ -2273,7 +2273,7 @@ bool OIDebugger::compileCode() {
     };
 
     VLOG(2) << "Relocating...";
-    for (const auto &o : objectFiles) {
+    for (const auto& o : objectFiles) {
       VLOG(2) << "  * " << o;
     }
     auto relocRes = compiler.applyRelocs(segConfig.jitCodeStart, objectFiles,
@@ -2283,12 +2283,12 @@ bool OIDebugger::compileCode() {
       return false;
     }
 
-    const auto &[_, segments, jitSymbols] = relocRes.value();
-    for (const auto &[symName, symAddr] : jitSymbols) {
+    const auto& [_, segments, jitSymbols] = relocRes.value();
+    for (const auto& [symName, symAddr] : jitSymbols) {
       VLOG(2) << "sym " << symName << '@' << std::hex << symAddr;
     }
 
-    const auto &lastSeg = segments.back();
+    const auto& lastSeg = segments.back();
     auto segmentsLimit = lastSeg.RelocAddr + lastSeg.Size;
     auto remoteSegmentLimit = segConfig.textSegBase + segConfig.textSegSize;
     if (segmentsLimit > remoteSegmentLimit) {
@@ -2299,34 +2299,34 @@ bool OIDebugger::compileCode() {
       return false;
     }
 
-    for (const auto &[BaseAddr, RelocAddr, Size] : segments) {
-      if (!writeTargetMemory((void *)BaseAddr, (void *)RelocAddr, Size)) {
+    for (const auto& [BaseAddr, RelocAddr, Size] : segments) {
+      if (!writeTargetMemory((void*)BaseAddr, (void*)RelocAddr, Size)) {
         return false;
       }
     }
 
     if (!writeTargetMemory(&segConfig.dataSegBase,
-                           (void *)syntheticSymbols["dataBase"],
+                           (void*)syntheticSymbols["dataBase"],
                            sizeof(segConfig.dataSegBase))) {
       LOG(ERROR) << "Failed to write dataSegBase in probe's dataBase";
       return false;
     }
 
-    if (!writeTargetMemory(&dataSegSize, (void *)syntheticSymbols["dataSize"],
+    if (!writeTargetMemory(&dataSegSize, (void*)syntheticSymbols["dataSize"],
                            sizeof(dataSegSize))) {
       LOG(ERROR) << "Failed to write dataSegSize in probe's dataSize";
       return false;
     }
 
     if (!writeTargetMemory(&segConfig.cookie,
-                           (void *)syntheticSymbols["cookieValue"],
+                           (void*)syntheticSymbols["cookieValue"],
                            sizeof(segConfig.cookie))) {
       LOG(ERROR) << "Failed to write cookie in probe's cookieValue";
       return false;
     }
 
     int logFile = enableJitLogging ? segConfig.logFile : 0;
-    if (!writeTargetMemory(&logFile, (void *)syntheticSymbols["logFile"],
+    if (!writeTargetMemory(&logFile, (void*)syntheticSymbols["logFile"],
                            sizeof(logFile))) {
       LOG(ERROR) << "Failed to write logFile in probe's cookieValue";
       return false;
@@ -2349,7 +2349,7 @@ void OIDebugger::restoreState(void) {
    */
   const size_t activeTrapsCount = std::count_if(
       activeTraps.cbegin(), activeTraps.cend(),
-      [](const auto &t) { return t.second->trapKind != OID_TRAP_JITCODERET; });
+      [](const auto& t) { return t.second->trapKind != OID_TRAP_JITCODERET; });
   VLOG(1) << "Active traps still within the target process: "
           << activeTrapsCount;
   assert(activeTrapsCount == 0);
@@ -2367,7 +2367,7 @@ void OIDebugger::restoreState(void) {
    * thread could still be in oid JIT code here or trapping in from it normal
    * execution path.
    */
-  for (auto const &p : threadList) {
+  for (auto const& p : threadList) {
     auto state = getTaskState(p);
     VLOG(1) << "Task " << p << " state: " << taskStateToString(state) << " ("
             << static_cast<int>(state) << ")";
@@ -2465,8 +2465,8 @@ void OIDebugger::restoreState(void) {
           dumpRegs("Before1", p, &regs);
         }
 
-        memcpy((void *)&regs, (void *)&t->savedRegs, sizeof(regs));
-        memcpy((void *)&fpregs, (void *)&t->savedFPregs, sizeof(fpregs));
+        memcpy((void*)&regs, (void*)&t->savedRegs, sizeof(regs));
+        memcpy((void*)&fpregs, (void*)&t->savedFPregs, sizeof(fpregs));
 
         /*
          * Note that we need to rewind the original %rip as it has trapped
@@ -2568,7 +2568,7 @@ bool OIDebugger::targetAttach() {
     /* TODO - Handle exceptions */
     auto pidPath = fs::path("/proc") / std::to_string(traceePid) / "task";
     try {
-      for (const auto &entry : fs::directory_iterator(pidPath)) {
+      for (const auto& entry : fs::directory_iterator(pidPath)) {
         auto file = entry.path().filename().string();
         auto pid = std::stoi(file);
 
@@ -2590,7 +2590,7 @@ bool OIDebugger::targetAttach() {
           threadList.push_back(pid);
         }
       }
-    } catch (std::filesystem::filesystem_error const &ex) {
+    } catch (std::filesystem::filesystem_error const& ex) {
       LOG(ERROR) << "directory_iterator exception: " << ex.path1()
                  << ex.code().message();
 
@@ -2695,8 +2695,8 @@ void OIDebugger::setDataSegmentSize(size_t size) {
   VLOG(1) << "setDataSegmentSize: segment size: " << dataSegSize;
 }
 
-bool OIDebugger::decodeTargetData(const DataHeader &dataHeader,
-                                  std::vector<uint64_t> &outVec) const {
+bool OIDebugger::decodeTargetData(const DataHeader& dataHeader,
+                                  std::vector<uint64_t>& outVec) const {
   VLOG(1) << "== magicId: " << std::hex << dataHeader.magicId;
   VLOG(1) << "== cookie: " << std::hex << dataHeader.cookie;
   VLOG(1) << "== size: " << dataHeader.size;
@@ -2763,8 +2763,8 @@ bool OIDebugger::decodeTargetData(const DataHeader &dataHeader,
   return true;
 }
 
-static bool dumpDataSegment(const irequest &req,
-                            const std::vector<uint64_t> &dataSeg) {
+static bool dumpDataSegment(const irequest& req,
+                            const std::vector<uint64_t>& dataSeg) {
   char dumpPath[PATH_MAX] = {0};
   auto dumpPathSize =
       snprintf(dumpPath, sizeof(dumpPath), "/tmp/dataseg.%d.%s.dump", getpid(),
@@ -2782,7 +2782,7 @@ static bool dumpDataSegment(const irequest &req,
   }
 
   const auto outVecBytes = std::as_bytes(std::span{dataSeg});
-  dumpFile.write((const char *)outVecBytes.data(), outVecBytes.size());
+  dumpFile.write((const char*)outVecBytes.data(), outVecBytes.size());
   if (!dumpFile) {
     LOG(ERROR) << "Failed to write to data-segment file '" << dumpPath
                << "': " << strerror(errno);
@@ -2796,7 +2796,7 @@ bool OIDebugger::processTargetData() {
   Metrics::Tracing _("process_target_data");
 
   std::vector<std::byte> buf{dataSegSize};
-  if (!readTargetMemory(reinterpret_cast<void *>(segConfig.dataSegBase),
+  if (!readTargetMemory(reinterpret_cast<void*>(segConfig.dataSegBase),
                         buf.data(), dataSegSize)) {
     LOG(ERROR) << "Failed to read data segment from target process";
     return false;
@@ -2805,7 +2805,7 @@ bool OIDebugger::processTargetData() {
   auto res = reinterpret_cast<uintptr_t>(buf.data());
 
   assert(pdata.numReqs() == 1);
-  const auto &preq = pdata.getReq();
+  const auto& preq = pdata.getReq();
 
   PaddingHunter paddingHunter{};
   TreeBuilder typeTree(treeBuilderConfig);
@@ -2820,10 +2820,10 @@ bool OIDebugger::processTargetData() {
 
   std::vector<uint64_t> outVec{};
   for (size_t i = 0; i < argCount; i++) {
-    const auto &req = preq.getReqForArg(i);
+    const auto& req = preq.getReqForArg(i);
     LOG(INFO) << "Processing data for argument: " << req.arg;
 
-    const auto &dataHeader = *reinterpret_cast<DataHeader *>(res);
+    const auto& dataHeader = *reinterpret_cast<DataHeader*>(res);
     res += dataHeader.size;
 
     outVec.clear();
@@ -2845,8 +2845,8 @@ bool OIDebugger::processTargetData() {
       return false;
     }
 
-    const auto &[rootType, typeHierarchy, paddingInfos] = typeInfo->second;
-    VLOG(1) << "Root type addr: " << (void *)rootType.type.type;
+    const auto& [rootType, typeHierarchy, paddingInfos] = typeInfo->second;
+    VLOG(1) << "Root type addr: " << (void*)rootType.type.type;
 
     if (treeBuilderConfig.genPaddingStats) {
       paddingHunter.localPaddedStructs = paddingInfos;
@@ -2856,7 +2856,7 @@ bool OIDebugger::processTargetData() {
     try {
       typeTree.build(outVec, rootType.varName, rootType.type.type,
                      typeHierarchy);
-    } catch (std::exception &e) {
+    } catch (std::exception& e) {
       LOG(ERROR) << "Failed to run TreeBuilder for " << req.arg;
       LOG(ERROR) << e.what();
 
@@ -2893,7 +2893,7 @@ bool OIDebugger::processTargetData() {
   return true;
 }
 
-std::optional<std::string> OIDebugger::generateCode(const irequest &req) {
+std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   auto root = symbols->getRootType(req);
   if (!root.has_value()) {
     return std::nullopt;

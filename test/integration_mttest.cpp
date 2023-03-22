@@ -26,7 +26,7 @@ typedef union {
   float f;
   char c;
   struct {
-    int *myArray[3];
+    int* myArray[3];
     float myArray2[2][2][3];
   } myStruct;
   double array[10][20];
@@ -50,20 +50,20 @@ typedef ST ST2;
   std::string bar;
 };*/
 
-using Deleter1 = void (*)(int *);
-using Deleter2 = std::function<void(int *)>;
+using Deleter1 = void (*)(int*);
+using Deleter2 = std::function<void(int*)>;
 
-int *create() {
-  int *i = new int;
+int* create() {
+  int* i = new int;
   *i = 10;
   return i;
 }
-void destroy(int *i) {
+void destroy(int* i) {
   delete i;
 }
 
 struct Destroyer {
-  void operator()(int *i) const {
+  void operator()(int* i) const {
     delete i;
   }
 };
@@ -146,25 +146,25 @@ Foo myGlobalFoo;
 // std::unique_ptr<Foo> myGlobalFoo;
 
 // pass in the loop counter in the args
-std::vector<int> doStuff(Foo &foo,
-                         std::vector<std::map<std::string, std::string>> &m,
-                         std::vector<std::string> &f,
-                         std::vector<std::pair<std::string, double>> &p) {
+std::vector<int> doStuff(Foo& foo,
+                         std::vector<std::map<std::string, std::string>>& m,
+                         std::vector<std::string>& f,
+                         std::vector<std::pair<std::string, double>>& p) {
   std::vector<int> altvect = {1, 3, 5, 7};
   foo.inc();
   foo.incN(altvect.size());
   foo.incVectSize(altvect);
 
   std::cout << " doStuff entries: " << f.size() << std::endl;
-  std::cout << " addr of f = " << reinterpret_cast<void *>(&f) << std::endl;
-  std::cout << " addr of m = " << reinterpret_cast<void *>(&m) << std::endl;
-  std::cout << " addr of p = " << reinterpret_cast<void *>(&p) << std::endl;
+  std::cout << " addr of f = " << reinterpret_cast<void*>(&f) << std::endl;
+  std::cout << " addr of m = " << reinterpret_cast<void*>(&m) << std::endl;
+  std::cout << " addr of p = " << reinterpret_cast<void*>(&p) << std::endl;
   std::cout << " addr of myGlobalFoo = "
-            << reinterpret_cast<void *>(&myGlobalFoo) << std::endl;
+            << reinterpret_cast<void*>(&myGlobalFoo) << std::endl;
 
   std::vector<int> newvect(altvect);
 
-  std::cout << " addr of newvect = " << reinterpret_cast<void *>(&newvect)
+  std::cout << " addr of newvect = " << reinterpret_cast<void*>(&newvect)
             << std::endl;
 
   /*
@@ -179,7 +179,7 @@ std::vector<int> doStuff(Foo &foo,
   return newvect;
 }
 
-void doStuff(std::vector<int> &f, int i) {
+void doStuff(std::vector<int>& f, int i) {
   f.push_back(i);
   std::cout << "Entries in f: " << f.size() << std::endl;
 }
@@ -188,9 +188,9 @@ void doNothing() {
   std::cout << "I do nothing, the function does nothing" << std::endl;
 }
 
-void *doit(void *arg) {
+void* doit(void* arg) {
   doNothing();
-  int *loopcnt = reinterpret_cast<int *>(arg);
+  int* loopcnt = reinterpret_cast<int*>(arg);
   std::vector<std::string> f;
   f.reserve(200);
   std::vector<std::unordered_map<std::string, std::string>> mv;
@@ -277,11 +277,11 @@ void *doit(void *arg) {
   pthread_exit(arg);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
   int i = 0;
   int err;
   pthread_t tid[2];
-  char *b;
+  char* b;
 
   // facebook::initFacebook(&argc, &argv);
 
@@ -323,7 +323,7 @@ int main(int argc, char *argv[]) {
   std::cout << "nameList vector addr = " << &nameList << std::endl;
 
   for (int i = 0; i < 1; ++i) {
-    err = pthread_create(&(tid[i]), NULL, &doit, (void **)&loopcnt);
+    err = pthread_create(&(tid[i]), NULL, &doit, (void**)&loopcnt);
 
     if (err != 0) {
       std::cout << "Failed to create thread:[ " << strerror(err) << " ]"
@@ -337,7 +337,7 @@ int main(int argc, char *argv[]) {
   }
 
   for (int i = 0; i < 1; ++i) {
-    pthread_join(tid[i], (void **)&b);
+    pthread_join(tid[i], (void**)&b);
   }
 
   exit(EXIT_SUCCESS);

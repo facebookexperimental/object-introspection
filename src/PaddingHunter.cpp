@@ -19,7 +19,7 @@
 #include <fstream>
 
 void PaddingHunter::processLocalPaddingInfo() {
-  for (auto &lPS : localPaddedStructs) {
+  for (auto& lPS : localPaddedStructs) {
     if (paddedStructs.find(lPS.first) != paddedStructs.end()) {
       if (localPaddedStructs[lPS.first].instancesCnt >
           paddedStructs[lPS.first].instancesCnt) {
@@ -38,24 +38,24 @@ void PaddingHunter::outputPaddingInfo() {
   uint64_t sum = 0;
 
   std::vector<std::pair<std::string, PaddingInfo>> paddedStructsVec;
-  for (auto &paddedStruct : paddedStructs) {
+  for (auto& paddedStruct : paddedStructs) {
     paddedStructsVec.push_back({paddedStruct.first, paddedStruct.second});
   }
 
-  for (auto &paddedStruct : paddedStructsVec) {
+  for (auto& paddedStruct : paddedStructsVec) {
     sum += paddedStruct.second.paddingSize * paddedStruct.second.instancesCnt;
   }
 
   paddingStatsFile << "Total Saving Opportunity: " << sum << "\n\n\n";
 
   std::sort(paddedStructsVec.begin(), paddedStructsVec.end(),
-            [](const std::pair<std::string, PaddingInfo> &left,
-               const std::pair<std::string, PaddingInfo> &right) {
+            [](const std::pair<std::string, PaddingInfo>& left,
+               const std::pair<std::string, PaddingInfo>& right) {
               return left.second.instancesCnt * left.second.savingSize >
                      right.second.instancesCnt * right.second.savingSize;
             });
 
-  for (auto &paddedStruct : paddedStructsVec) {
+  for (auto& paddedStruct : paddedStructsVec) {
     paddingStatsFile << "Name: " << paddedStruct.first
                      << ", object size: " << paddedStruct.second.structSize
                      << ", saving size: " << paddedStruct.second.savingSize

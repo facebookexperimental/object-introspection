@@ -58,13 +58,13 @@ class OIDebugger {
   OIDebugger::processTrapRet processTrap(pid_t, bool = true, bool = true);
   bool contTargetThread(bool detach = true) const;
   bool isGlobalDataProbeEnabled(void) const;
-  static uint64_t singlestepInst(pid_t, struct user_regs_struct &);
+  static uint64_t singlestepInst(pid_t, struct user_regs_struct&);
   static bool singleStepFunc(pid_t, uint64_t);
-  bool parseScript(std::istream &script);
+  bool parseScript(std::istream& script);
   bool patchFunctions();
   void stopAll();
   bool removeTraps(pid_t);
-  bool removeTrap(pid_t, const trapInfo &);
+  bool removeTrap(pid_t, const trapInfo&);
   void enableDrgn();
   bool unmapSegments(bool deleteSegConf = false);
   bool isInterrupted(void) const {
@@ -92,20 +92,20 @@ class OIDebugger {
 
   bool uploadCache() {
     return std::all_of(
-        std::begin(pdata), std::end(pdata), [this](const auto &req) {
+        std::begin(pdata), std::end(pdata), [this](const auto& req) {
           return std::all_of(
               std::begin(req.args), std::end(req.args),
-              [this, &req](const auto &arg) {
+              [this, &req](const auto& arg) {
                 return cache.upload(irequest{req.type, req.func, arg});
               });
         });
   }
   bool downloadCache() {
     return std::all_of(
-        std::begin(pdata), std::end(pdata), [this](const auto &req) {
+        std::begin(pdata), std::end(pdata), [this](const auto& req) {
           return std::all_of(
               std::begin(req.args), std::end(req.args),
-              [this, &req](const auto &arg) {
+              [this, &req](const auto& arg) {
                 return cache.download(irequest{req.type, req.func, arg});
               });
         });
@@ -192,40 +192,38 @@ class OIDebugger {
 
   bool setupSegment(SegType);
   bool unmapSegment(SegType);
-  bool writeTargetMemory(void *, void *, size_t) const;
-  bool readTargetMemory(void *, void *, size_t) const;
+  bool writeTargetMemory(void*, void*, size_t) const;
+  bool readTargetMemory(void*, void*, size_t) const;
   std::optional<std::pair<OIDebugger::ObjectAddrMap::key_type, uintptr_t>>
-  locateJitCodeStart(const irequest &,
-                     const OICompiler::RelocResult::SymTable &);
-  bool writePrologue(const prequest &,
-                     const OICompiler::RelocResult::SymTable &);
-  bool readInstFromTarget(uintptr_t, uint8_t *, size_t);
+  locateJitCodeStart(const irequest&, const OICompiler::RelocResult::SymTable&);
+  bool writePrologue(const prequest&, const OICompiler::RelocResult::SymTable&);
+  bool readInstFromTarget(uintptr_t, uint8_t*, size_t);
   void createSegmentConfigFile(void);
   void deleteSegmentConfig(bool);
-  std::optional<std::shared_ptr<trapInfo>> makeTrapInfo(const prequest &,
+  std::optional<std::shared_ptr<trapInfo>> makeTrapInfo(const prequest&,
                                                         const trapType,
                                                         const uint64_t);
-  bool functionPatch(const prequest &);
+  bool functionPatch(const prequest&);
   bool canProcessTrapForThread(pid_t) const;
-  bool replayTrappedInstr(const trapInfo &, pid_t, struct user_regs_struct &,
-                          struct user_fpregs_struct &) const;
-  bool locateObjectsAddresses(const trapInfo &, struct user_regs_struct &);
-  processTrapRet processFuncTrap(const trapInfo &, pid_t,
-                                 struct user_regs_struct &,
-                                 struct user_fpregs_struct &);
-  processTrapRet processJitCodeRet(const trapInfo &, pid_t);
-  bool processGlobal(const std::string &);
-  static void dumpRegs(const char *, pid_t, struct user_regs_struct *);
-  std::optional<uintptr_t> nextReplayInstrAddr(const trapInfo &);
+  bool replayTrappedInstr(const trapInfo&, pid_t, struct user_regs_struct&,
+                          struct user_fpregs_struct&) const;
+  bool locateObjectsAddresses(const trapInfo&, struct user_regs_struct&);
+  processTrapRet processFuncTrap(const trapInfo&, pid_t,
+                                 struct user_regs_struct&,
+                                 struct user_fpregs_struct&);
+  processTrapRet processJitCodeRet(const trapInfo&, pid_t);
+  bool processGlobal(const std::string&);
+  static void dumpRegs(const char*, pid_t, struct user_regs_struct*);
+  std::optional<uintptr_t> nextReplayInstrAddr(const trapInfo&);
   static int getExtendedWaitEventType(int);
   static bool isExtendedWait(int);
   void dumpAlltaskStates(void);
-  std::optional<std::vector<uintptr_t>> findRetLocs(FuncDesc &);
+  std::optional<std::vector<uintptr_t>> findRetLocs(FuncDesc&);
 
   OICompiler::Config compilerConfig{};
   OICodeGen::Config generatorConfig{};
   TreeBuilder::Config treeBuilderConfig{};
-  std::optional<std::string> generateCode(const irequest &);
+  std::optional<std::string> generateCode(const irequest&);
 
   std::fstream segmentConfigFile;
   fs::path segConfigFilePath;
@@ -272,7 +270,7 @@ class OIDebugger {
 #pragma GCC diagnostic pop
   };
 
-  bool decodeTargetData(const DataHeader &, std::vector<uint64_t> &) const;
+  bool decodeTargetData(const DataHeader&, std::vector<uint64_t>&) const;
 
   static constexpr size_t prologueLength = 64;
   static constexpr size_t constLength = 64;

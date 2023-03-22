@@ -38,7 +38,7 @@ TEST(CompilerTest, CompileAndRelocate) {
   )";
 
   auto tmpdir = fs::temp_directory_path() / "test-XXXXXX";
-  EXPECT_NE(mkdtemp(const_cast<char *>(tmpdir.c_str())), nullptr);
+  EXPECT_NE(mkdtemp(const_cast<char*>(tmpdir.c_str())), nullptr);
 
   auto sourcePath = tmpdir / "src.cpp";
   auto objectPath = tmpdir / "obj.o";
@@ -48,7 +48,7 @@ TEST(CompilerTest, CompileAndRelocate) {
   EXPECT_TRUE(compiler.compile(code, sourcePath, objectPath));
 
   const size_t relocSlabSize = 4096;
-  void *relocSlab =
+  void* relocSlab =
       mmap(nullptr, relocSlabSize, PROT_READ | PROT_WRITE | PROT_EXEC,
            MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
   EXPECT_NE(relocSlab, nullptr);
@@ -57,20 +57,20 @@ TEST(CompilerTest, CompileAndRelocate) {
       compiler.applyRelocs((uintptr_t)relocSlab, {objectPath}, {});
   EXPECT_TRUE(relocResult.has_value());
 
-  auto &[_, segs, jitSymbols] = relocResult.value();
+  auto& [_, segs, jitSymbols] = relocResult.value();
 
   EXPECT_EQ(segs.size(), 1);
   EXPECT_EQ(jitSymbols.size(), 3);  // 2 functions + 1 static array
 
   {
-    const auto &lastSeg = segs.back();
+    const auto& lastSeg = segs.back();
     auto lastSegLimit = lastSeg.RelocAddr + lastSeg.Size;
     auto relocLimit = (uintptr_t)relocSlab + relocSlabSize;
     EXPECT_LE(lastSegLimit, relocLimit);
   }
 
-  for (const auto &[Base, Reloc, Size] : segs)
-    std::memcpy((void *)Reloc, (void *)Base, Size);
+  for (const auto& [Base, Reloc, Size] : segs)
+    std::memcpy((void*)Reloc, (void*)Base, Size);
 
   {
     auto symAddr = jitSymbols.at("constant");
@@ -113,7 +113,7 @@ TEST(CompilerTest, CompileAndRelocateMultipleObjs) {
   )";
 
   auto tmpdir = fs::temp_directory_path() / "test-XXXXXX";
-  EXPECT_NE(mkdtemp(const_cast<char *>(tmpdir.c_str())), nullptr);
+  EXPECT_NE(mkdtemp(const_cast<char*>(tmpdir.c_str())), nullptr);
 
   auto sourceXPath = tmpdir / "srcX.cpp";
   auto objectXPath = tmpdir / "objX.o";
@@ -126,7 +126,7 @@ TEST(CompilerTest, CompileAndRelocateMultipleObjs) {
   EXPECT_TRUE(compiler.compile(codeY, sourceYPath, objectYPath));
 
   const size_t relocSlabSize = 8192;
-  void *relocSlab =
+  void* relocSlab =
       mmap(nullptr, relocSlabSize, PROT_READ | PROT_WRITE | PROT_EXEC,
            MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
   EXPECT_NE(relocSlab, nullptr);
@@ -135,20 +135,20 @@ TEST(CompilerTest, CompileAndRelocateMultipleObjs) {
                                           {objectXPath, objectYPath}, {});
   EXPECT_TRUE(relocResult.has_value());
 
-  auto &[_, segs, jitSymbols] = relocResult.value();
+  auto& [_, segs, jitSymbols] = relocResult.value();
 
   EXPECT_EQ(segs.size(), 2);
   EXPECT_EQ(jitSymbols.size(), 4);  // 2 functions + 2 static array
 
   {
-    const auto &lastSeg = segs.back();
+    const auto& lastSeg = segs.back();
     auto lastSegLimit = lastSeg.RelocAddr + lastSeg.Size;
     auto relocLimit = (uintptr_t)relocSlab + relocSlabSize;
     EXPECT_LE(lastSegLimit, relocLimit);
   }
 
-  for (const auto &[Base, Reloc, Size] : segs)
-    std::memcpy((void *)Reloc, (void *)Base, Size);
+  for (const auto& [Base, Reloc, Size] : segs)
+    std::memcpy((void*)Reloc, (void*)Base, Size);
 
   {
     auto symAddr = jitSymbols.at("sumXs");

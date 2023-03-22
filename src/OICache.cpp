@@ -31,25 +31,25 @@
 #endif
 
 static std::optional<std::reference_wrapper<const std::string>> getEntName(
-    SymbolService &symbols, const irequest &req, OICache::Entity ent) {
+    SymbolService& symbols, const irequest& req, OICache::Entity ent) {
   if (ent == OICache::Entity::FuncDescs ||
       ent == OICache::Entity::GlobalDescs) {
     return req.func;
   } else {
     if (req.type == "global") {
-      const auto &globalDesc = symbols.findGlobalDesc(req.func);
+      const auto& globalDesc = symbols.findGlobalDesc(req.func);
       if (!globalDesc) {
         return std::nullopt;
       }
 
       return globalDesc->typeName;
     } else {
-      const auto &funcDesc = symbols.findFuncDesc(req);
+      const auto& funcDesc = symbols.findFuncDesc(req);
       if (!funcDesc) {
         return std::nullopt;
       }
 
-      const auto &arg = funcDesc->getArgument(req.arg);
+      const auto& arg = funcDesc->getArgument(req.arg);
       if (!arg) {
         return std::nullopt;
       }
@@ -59,15 +59,15 @@ static std::optional<std::reference_wrapper<const std::string>> getEntName(
   }
 }
 
-std::optional<fs::path> OICache::getPath(const irequest &req,
+std::optional<fs::path> OICache::getPath(const irequest& req,
                                          Entity ent) const {
-  auto hash = [](const std::string &str) {
+  auto hash = [](const std::string& str) {
     return std::to_string(std::hash<std::string>{}(str));
   };
 
   auto ext = extensions[static_cast<size_t>(ent)];
 
-  const auto &entName = getEntName(*symbols, req, ent);
+  const auto& entName = getEntName(*symbols, req, ent);
   if (!entName.has_value()) {
     return std::nullopt;
   }
@@ -76,7 +76,7 @@ std::optional<fs::path> OICache::getPath(const irequest &req,
 }
 
 template <typename T>
-bool OICache::load(const irequest &req, Entity ent, T &data) {
+bool OICache::load(const irequest& req, Entity ent, T& data) {
   if (!isEnabled())
     return false;
   try {
@@ -109,14 +109,14 @@ bool OICache::load(const irequest &req, Entity ent, T &data) {
 
     ia >> data;
     return true;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG(WARNING) << "Failed to load from cache: " << e.what();
     return false;
   }
 }
 
 template <typename T>
-bool OICache::store(const irequest &req, Entity ent, const T &data) {
+bool OICache::store(const irequest& req, Entity ent, const T& data) {
   if (!isEnabled())
     return false;
   try {
@@ -141,15 +141,15 @@ bool OICache::store(const irequest &req, Entity ent, const T &data) {
     oa << *buildID;
     oa << data;
     return true;
-  } catch (const std::exception &e) {
+  } catch (const std::exception& e) {
     LOG(WARNING) << "Failed to write to cache: " << e.what();
     return false;
   }
 }
 
-#define INSTANTIATE_ARCHIVE(...)                                        \
-  template bool OICache::load(const irequest &, Entity, __VA_ARGS__ &); \
-  template bool OICache::store(const irequest &, Entity, const __VA_ARGS__ &);
+#define INSTANTIATE_ARCHIVE(...)                                      \
+  template bool OICache::load(const irequest&, Entity, __VA_ARGS__&); \
+  template bool OICache::store(const irequest&, Entity, const __VA_ARGS__&);
 
 INSTANTIATE_ARCHIVE(std::pair<RootInfo, TypeHierarchy>)
 INSTANTIATE_ARCHIVE(std::unordered_map<std::string, std::shared_ptr<FuncDesc>>)
@@ -160,7 +160,7 @@ INSTANTIATE_ARCHIVE(std::map<std::string, PaddingInfo>)
 #undef INSTANTIATE_ARCHIVE
 
 // Upload all contents of cache for this request
-bool OICache::upload([[maybe_unused]] const irequest &req) {
+bool OICache::upload([[maybe_unused]] const irequest& req) {
 #ifndef OSS_ENABLE
   if (!isEnabled() || downloadedRemote || !enableUpload)
     return true;
@@ -194,7 +194,7 @@ bool OICache::upload([[maybe_unused]] const irequest &req) {
 }
 
 // Try to fetch contents of cache
-bool OICache::download([[maybe_unused]] const irequest &req) {
+bool OICache::download([[maybe_unused]] const irequest& req) {
 #ifndef OSS_ENABLE
   if (!isEnabled() || !enableDownload)
     return true;
@@ -233,7 +233,7 @@ bool OICache::download([[maybe_unused]] const irequest &req) {
 #endif
 }
 
-std::string OICache::generateRemoteHash(const irequest &req) {
+std::string OICache::generateRemoteHash(const irequest& req) {
   auto buildID = symbols->locateBuildID();
   if (!buildID) {
     LOG(ERROR) << "Failed to locate buildID";
