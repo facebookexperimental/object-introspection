@@ -131,7 +131,7 @@ def add_test_setup(f, config):
         oil_func_body = (
             f"\n"
             f"ObjectIntrospection::options opts{{\n"
-            f'  .configFilePath = std::getenv("CONFIG_FILE_PATH"),\n'
+            f"  .configFilePath = configFile,\n"
             f"  .debugLevel = 3,\n"
             f'  .sourceFileDumpPath = "oil_jit_code.cpp",\n'
             f"}};"
@@ -160,21 +160,36 @@ def add_test_setup(f, config):
 def add_common_code(f):
     f.write(
         """
+void usage(const std::string &argv0) {
+  std::cerr << "usage: " << argv0 << " oid CASE ITERATIONS" << std::endl;
+  std::cerr << "       " << argv0 << " oil CASE CONFIG_FILE" << std::endl;
+}
+
 int main(int argc, char *argv[]) {
-  if (argc < 3 || argc > 4) {
-    std::cerr << "usage: " << argv[0] << " oid/oil CASE [ITER]" << std::endl;
+  if (argc != 4) {
+    usage(argv[0]);
     return -1;
   }
 
   std::string mode = argv[1];
   std::string test_case = argv[2];
 
-  int iterations = 1000;
-  if (argc == 4) {
+  int iterations = 1;
+
+  if (mode == "oid") {
     std::istringstream iss(argv[3]);
     iss >> iterations;
-    if (iss.fail())
-      iterations = 1000;
+    if (iss.fail()) {
+      usage(argv[0]);
+      return -1;
+    }
+  }
+  else if (mode == "oil") {
+    configFile = argv[3];
+  }
+  else {
+    usage(argv[0]);
+    return -1;
   }
 
 """
@@ -224,6 +239,7 @@ def gen_target(output_target_name, test_configs):
                     f"thrift/annotation/gen-cpp2/{config['suite']}_types.h"
                 ]
         add_headers(f, sorted(headers), thrift_headers)
+        f.write("std::string configFile;")
 
         for config in test_configs:
             add_test_setup(f, config)
@@ -334,7 +350,7 @@ def add_oil_integration_test(f, config, case_name, case):
         f"  ba::io_context ctx;\n"
         f"  auto target = runOilTarget({{\n"
         f"    .ctx = ctx,\n"
-        f'    .targetArgs = "oil {case_str} 1",\n'
+        f'    .targetArgs = "oil {case_str}",\n'
         f"  }}, std::move(configOptions));\n\n"
         f"  ASSERT_EQ(exit_code(target), {exit_code});\n"
         f"\n"

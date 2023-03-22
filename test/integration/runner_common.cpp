@@ -172,7 +172,8 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
                                         std::vector<std::string> extra_args,
                                         std::string extra_config) {
   // Binary paths are populated by CMake
-  std::string targetExe = std::string(TARGET_EXE_PATH) + " " + opts.targetArgs;
+  std::string targetExe =
+      std::string(TARGET_EXE_PATH) + " " + opts.targetArgs + " 1000";
 
   /* Spawn the target process with all IOs redirected to /dev/null to not polute
    * the terminal */
@@ -256,8 +257,8 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
   // clang-format off
   bp::child oidProcess(
       oidExe,
-      bp::env["OID_METRICS_TRACE"] = "time",
       bp::args(oid_args),
+      bp::env["OID_METRICS_TRACE"] = "time",
       bp::std_in  < bp::null,
       bp::std_out > std_out_pipe,
       bp::std_err > std_err_pipe,
@@ -337,7 +338,10 @@ std::string OilIntegration::TmpDirStr() {
 }
 
 Proc OilIntegration::runOilTarget(OidOpts opts, std::string extra_config) {
-  std::string targetExe = std::string(TARGET_EXE_PATH) + " " + opts.targetArgs;
+  fs::path thisConfig = createCustomConfig(extra_config);
+
+  std::string targetExe = std::string(TARGET_EXE_PATH) + " " + opts.targetArgs +
+                          " " + thisConfig.string();
 
   if (verbose) {
     std::cerr << "Running: " << targetExe << std::endl;
@@ -375,8 +379,6 @@ Proc OilIntegration::runOilTarget(OidOpts opts, std::string extra_config) {
     // clang-format on
   }
 
-  fs::path thisConfig = createCustomConfig(extra_config);
-
   /* Spawn target with tracing on and IOs redirected in custom pipes to be read
    * later */
   // clang-format off
@@ -385,7 +387,6 @@ Proc OilIntegration::runOilTarget(OidOpts opts, std::string extra_config) {
       bp::std_in  < bp::null,
       bp::std_out > std_out_pipe,
       bp::std_err > std_err_pipe,
-      bp::env["CONFIG_FILE_PATH"] = thisConfig.string(),
       opts.ctx);
   // clang-format on
 
