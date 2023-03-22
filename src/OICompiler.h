@@ -110,7 +110,7 @@ class OICompiler {
      * Create a disassembler from anything that resemble a std::span.
      */
     template <typename... Args>
-    Disassembler(Args &&...args) : funcText(std::forward<Args>(args)...) {
+    Disassembler(Args&&... args) : funcText(std::forward<Args>(args)...) {
     }
 
     /*
@@ -137,7 +137,7 @@ class OICompiler {
    *
    * @return true if the compilation succeeded, false otherwise.
    */
-  bool compile(const std::string &, const fs::path &, const fs::path &);
+  bool compile(const std::string&, const fs::path&, const fs::path&);
 
   /**
    * Load the @param objectFiles in memory and apply relocation at
@@ -157,8 +157,8 @@ class OICompiler {
    * another call.
    */
   std::optional<RelocResult> applyRelocs(
-      uintptr_t, const std::set<fs::path> &,
-      const std::unordered_map<std::string, uintptr_t> &);
+      uintptr_t, const std::set<fs::path>&,
+      const std::unordered_map<std::string, uintptr_t>&);
 
   /**
    * Locates all the offsets of the given @param insts opcodes
@@ -173,13 +173,13 @@ class OICompiler {
    */
   template <class FuncTextRange, class NeedlesRange>
   static std::optional<std::vector<uintptr_t>> locateOpcodes(
-      const FuncTextRange &funcText, const NeedlesRange &needles);
+      const FuncTextRange& funcText, const NeedlesRange& needles);
 
   /**
    * @return a string representation of the opcode(s) of the instruction found
    * at @param offset within function's binary instructions @param funcText.
    */
-  static std::optional<std::string> decodeInst(const std::vector<std::byte> &,
+  static std::optional<std::string> decodeInst(const std::vector<std::byte>&,
                                                uintptr_t);
 
  private:
@@ -200,13 +200,13 @@ class OICompiler {
 
 template <class FuncTextRange, class NeedlesRange>
 std::optional<std::vector<uintptr_t>> OICompiler::locateOpcodes(
-    const FuncTextRange &funcText, const NeedlesRange &needles) {
-  auto DG = Disassembler((uint8_t *)std::data(funcText), std::size(funcText));
+    const FuncTextRange& funcText, const NeedlesRange& needles) {
+  auto DG = Disassembler((uint8_t*)std::data(funcText), std::size(funcText));
 
   std::vector<uintptr_t> locs;
   while (auto inst = DG()) {
     auto it = std::find_if(
-        std::begin(needles), std::end(needles), [&](const auto &needle) {
+        std::begin(needles), std::end(needles), [&](const auto& needle) {
           // Inst->opcodes.starts_with(needle);
           return 0 ==
                  inst->opcodes.find(OICompiler::Disassembler::Span<uint8_t>(

@@ -52,10 +52,10 @@ using namespace llvm;
 using namespace llvm::object;
 using namespace ObjectIntrospection;
 
-static const char *symbolLookupCallback(
-    [[maybe_unused]] void *disInfo, [[maybe_unused]] uint64_t referenceValue,
-    uint64_t *referenceType, [[maybe_unused]] uint64_t referencePC,
-    [[maybe_unused]] const char **referenceName) {
+static const char* symbolLookupCallback(
+    [[maybe_unused]] void* disInfo, [[maybe_unused]] uint64_t referenceValue,
+    uint64_t* referenceType, [[maybe_unused]] uint64_t referencePC,
+    [[maybe_unused]] const char** referenceName) {
   *referenceType = LLVMDisassembler_ReferenceType_InOut_None;
   return nullptr;
 }
@@ -101,7 +101,7 @@ OICompiler::Disassembler::operator()() {
   }
 
   size_t instSize = LLVMDisasmInstruction(
-      disassemblerContext, const_cast<uint8_t *>(std::data(funcText)),
+      disassemblerContext, const_cast<uint8_t*>(std::data(funcText)),
       std::size(funcText), 0, std::data(disassemblyBuffer),
       std::size(disassemblyBuffer));
   if (instSize == 0) {
@@ -192,8 +192,8 @@ class OIMemoryManager : public RTDyldMemoryManager {
     uintptr_t dataSegBase = 0;
     const uintptr_t dataSegLimit = 0;
 
-    uint8_t *allocate(uintptr_t Size, unsigned Alignment, bool isCode) {
-      auto *allocOffset = isCode ? &textSegBase : &dataSegBase;
+    uint8_t* allocate(uintptr_t Size, unsigned Alignment, bool isCode) {
+      auto* allocOffset = isCode ? &textSegBase : &dataSegBase;
       auto allocLimit = isCode ? textSegLimit : dataSegLimit;
 
       VLOG(1) << "allocateFromSlab " << (isCode ? "Code " : "Data ") << " Size "
@@ -211,19 +211,19 @@ class OIMemoryManager : public RTDyldMemoryManager {
         report_fatal_error("Can't allocate enough memory from slab");
       }
 
-      auto &sections = isCode ? functionSections : dataSections;
-      sections.emplace_back((void *)allocAddr, Size);
+      auto& sections = isCode ? functionSections : dataSections;
+      sections.emplace_back((void*)allocAddr, Size);
 
       *allocOffset = newAllocOffset;
 
       VLOG(1) << "allocateFromSlab return: " << std::hex << allocAddr;
-      return (uint8_t *)allocAddr;
+      return (uint8_t*)allocAddr;
     }
   };
 
   SmallVector<Slab, 4> Slabs{};
   OIMemoryManager(std::shared_ptr<SymbolService> ss,
-                  const std::unordered_map<std::string, uintptr_t> &synths)
+                  const std::unordered_map<std::string, uintptr_t>& synths)
       : RTDyldMemoryManager{},
         symbols{std::move(ss)},
         syntheticSymbols{synths} {
@@ -236,33 +236,33 @@ class OIMemoryManager : public RTDyldMemoryManager {
   void reserveAllocationSpace(uintptr_t, uint32_t, uintptr_t, uint32_t,
                               uintptr_t, uint32_t) override;
 
-  uint8_t *allocateCodeSection(uintptr_t, unsigned, unsigned,
+  uint8_t* allocateCodeSection(uintptr_t, unsigned, unsigned,
                                StringRef) override;
-  uint8_t *allocateDataSection(uintptr_t, unsigned, unsigned, StringRef,
+  uint8_t* allocateDataSection(uintptr_t, unsigned, unsigned, StringRef,
                                bool) override;
 
   /* Hook to set up proper memory permission. We don't handle that */
-  bool finalizeMemory(std::string *) override {
+  bool finalizeMemory(std::string*) override {
     return false;
   }
 
   /* Hook to locate symbols in the remote process */
-  JITSymbol findSymbol(const std::string &) override;
+  JITSymbol findSymbol(const std::string&) override;
 
   /*
    * We don't use EH frames in this context, as we generate then copy to another
    * process, and enabling them causes issues with folly crashing on oid exit.
    */
-  void registerEHFrames(uint8_t *, uint64_t, size_t) override {
+  void registerEHFrames(uint8_t*, uint64_t, size_t) override {
   }
   void deregisterEHFrames() override {
   }
 
  private:
   std::shared_ptr<SymbolService> symbols;
-  const std::unordered_map<std::string, uintptr_t> &syntheticSymbols;
+  const std::unordered_map<std::string, uintptr_t>& syntheticSymbols;
 
-  Slab &currentSlab() {
+  Slab& currentSlab() {
     assert(!Slabs.empty());
     return Slabs.back();
   }
@@ -285,7 +285,7 @@ void OIMemoryManager::reserveAllocationSpace(
 
   Slabs.emplace_back(totalSz, codeSize, roDataSize + rwDataSize + 128);
 
-  const auto &currSlab = currentSlab();
+  const auto& currSlab = currentSlab();
   VLOG(1) << "reserveAllocationSpace: " << std::hex << "SlabBase "
           << currSlab.memBlock.base() << " textSegBaseAlloc "
           << currSlab.textSegBase << " textSegLimit " << currSlab.textSegLimit
@@ -293,7 +293,7 @@ void OIMemoryManager::reserveAllocationSpace(
           << currSlab.dataSegLimit;
 }
 
-uint8_t *OIMemoryManager::allocateCodeSection(
+uint8_t* OIMemoryManager::allocateCodeSection(
     uintptr_t size, unsigned alignment, [[maybe_unused]] unsigned sectionID,
     StringRef sectionName) {
   VLOG(1) << "allocateCodeSection(Size = " << size
@@ -303,7 +303,7 @@ uint8_t *OIMemoryManager::allocateCodeSection(
   return currentSlab().allocate(size, alignment, true /* isCode */);
 }
 
-uint8_t *OIMemoryManager::allocateDataSection(
+uint8_t* OIMemoryManager::allocateDataSection(
     uintptr_t size, unsigned alignment, [[maybe_unused]] unsigned sectionID,
     StringRef sectionName, [[maybe_unused]] bool isReadOnly) {
   VLOG(1) << "allocateDataSection(Size = " << size
@@ -321,7 +321,7 @@ uint8_t *OIMemoryManager::allocateDataSection(
  * We can't rely on LLVM to do this job because we are resolving symbols of a
  * remote process. LLVM only handles resolving symbols for the current process.
  */
-JITSymbol OIMemoryManager::findSymbol(const std::string &name) {
+JITSymbol OIMemoryManager::findSymbol(const std::string& name) {
   if (auto synth = syntheticSymbols.find(name);
       synth != end(syntheticSymbols)) {
     VLOG(1) << "findSymbol(" << name << ") = Synth " << std::hex
@@ -365,8 +365,8 @@ JITSymbol OIMemoryManager::findSymbol(const std::string &name) {
 }
 
 std::optional<std::string> OICompiler::decodeInst(
-    const std::vector<std::byte> &funcText, uintptr_t offset) {
-  auto disassembler = Disassembler((const uint8_t *)funcText.data() + offset,
+    const std::vector<std::byte>& funcText, uintptr_t offset) {
+  auto disassembler = Disassembler((const uint8_t*)funcText.data() + offset,
                                    funcText.size() - offset);
 
   auto inst = disassembler();
@@ -398,17 +398,17 @@ OICompiler::~OICompiler() = default;
 static constexpr size_t kMaxInterFuncInstrPadding = 16;
 
 static void debugDisAsm(
-    const SmallVector<OIMemoryManager::Slab, 4> &Slabs,
-    const OICompiler::RelocResult::RelocInfos &ObjectRelocInfos) {
+    const SmallVector<OIMemoryManager::Slab, 4>& Slabs,
+    const OICompiler::RelocResult::RelocInfos& ObjectRelocInfos) {
   VLOG(1) << "\nDisassembled Code";
 
   /* Outer loop on each Object files that has been loaded */
   assert(Slabs.size() == ObjectRelocInfos.size());
-  for (const auto &S : boost::combine(Slabs, ObjectRelocInfos)) {
-    const auto &[ObjFile, ObjRelInfo] = std::tie(S.get<0>(), S.get<1>());
+  for (const auto& S : boost::combine(Slabs, ObjectRelocInfos)) {
+    const auto& [ObjFile, ObjRelInfo] = std::tie(S.get<0>(), S.get<1>());
 
     /* Inner loop on each Function Section of a given Object file */
-    for (const auto &textSec : ObjFile.functionSections) {
+    for (const auto& textSec : ObjFile.functionSections) {
       const auto offset =
           (uintptr_t)textSec.base() - (uintptr_t)ObjFile.memBlock.base();
       const auto baseRelocAddress = ObjRelInfo.RelocAddr + offset;
@@ -416,7 +416,7 @@ static void debugDisAsm(
       size_t instrCnt = 0;
       size_t byteCnt = 0;
       size_t consNop = 0;
-      auto dg = OICompiler::Disassembler((uint8_t *)textSec.base(),
+      auto dg = OICompiler::Disassembler((uint8_t*)textSec.base(),
                                          textSec.allocatedSize());
       while (auto inst = dg()) {
         instrCnt++;
@@ -451,8 +451,8 @@ static void debugDisAsm(
   }
 }
 
-bool OICompiler::compile(const std::string &code, const fs::path &sourcePath,
-                         const fs::path &objectPath) {
+bool OICompiler::compile(const std::string& code, const fs::path& sourcePath,
+                         const fs::path& objectPath) {
   Metrics::Tracing _("compile");
 
   /*
@@ -488,15 +488,15 @@ bool OICompiler::compile(const std::string &code, const fs::path &sourcePath,
   compInv->getFrontendOpts().OutputFile = objectPath.string();
   compInv->getFrontendOpts().ProgramAction = clang::frontend::EmitObj;
 
-  auto &headerSearchOptions = compInv->getHeaderSearchOpts();
+  auto& headerSearchOptions = compInv->getHeaderSearchOpts();
 
-  for (const auto &path : config.userHeaderPaths) {
+  for (const auto& path : config.userHeaderPaths) {
     headerSearchOptions.AddPath(
         path.c_str(), clang::frontend::IncludeDirGroup::IndexHeaderMap, false,
         false);
   }
 
-  for (const auto &path : config.sysHeaderPaths) {
+  for (const auto& path : config.sysHeaderPaths) {
     headerSearchOptions.AddPath(
         path.c_str(), clang::frontend::IncludeDirGroup::System, false, false);
   }
@@ -554,15 +554,15 @@ bool OICompiler::compile(const std::string &code, const fs::path &sourcePath,
 }
 
 std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
-    uintptr_t baseRelocAddress, const std::set<fs::path> &objectFiles,
-    const std::unordered_map<std::string, uintptr_t> &syntheticSymbols) {
+    uintptr_t baseRelocAddress, const std::set<fs::path>& objectFiles,
+    const std::unordered_map<std::string, uintptr_t>& syntheticSymbols) {
   Metrics::Tracing relocationTracing("relocation");
 
   memMgr = std::make_unique<OIMemoryManager>(symbols, syntheticSymbols);
   RuntimeDyld dyld(*memMgr, *memMgr);
 
   /* Load all the object files into the MemoryManager */
-  for (const auto &objPath : objectFiles) {
+  for (const auto& objPath : objectFiles) {
     VLOG(1) << "Loading object file " << objPath;
     auto objFile = ObjectFile::createObjectFile(objPath.c_str());
     if (!objFile) {
@@ -583,8 +583,8 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
 
   /* Provides mapping addresses to the MemoryManager */
   uintptr_t currentRelocAddress = baseRelocAddress;
-  for (const auto &slab : memMgr->Slabs) {
-    for (const auto &funcSection : slab.functionSections) {
+  for (const auto& slab : memMgr->Slabs) {
+    for (const auto& funcSection : slab.functionSections) {
       auto offset =
           (uintptr_t)funcSection.base() - (uintptr_t)slab.memBlock.base();
       dyld.mapSectionAddress(funcSection.base(), currentRelocAddress + offset);
@@ -593,7 +593,7 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
               << currentRelocAddress + offset;
     }
 
-    for (const auto &dataSection : slab.dataSections) {
+    for (const auto& dataSection : slab.dataSections) {
       auto offset =
           (uintptr_t)dataSection.base() - (uintptr_t)slab.memBlock.base();
       dyld.mapSectionAddress(dataSection.base(), currentRelocAddress + offset);
@@ -622,7 +622,7 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
   /* Copy symbol table into `res` */
   auto symbolTable = dyld.getSymbolTable();
   res.symbols.reserve(symbolTable.size());
-  for (const auto &[symName, sym] : symbolTable) {
+  for (const auto& [symName, sym] : symbolTable) {
     res.symbols.emplace(symName.str(), sym.getAddress());
   }
 

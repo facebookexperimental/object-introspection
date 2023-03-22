@@ -122,13 +122,13 @@ class trapInfo {
   }
 };
 
-inline std::ostream &operator<<(std::ostream &out, const trapInfo &t) {
-  static const char *trapTypeDescs[] = {
+inline std::ostream& operator<<(std::ostream& out, const trapInfo& t) {
+  static const char* trapTypeDescs[] = {
       "JIT Code Return",      // OID_TRAP_JITCODERET
       "Vector Entry",         // OID_TRAP_VECT_ENTRY
       "Vector Entry Return",  // OID_TRAP_VECT_ENTRYRET
       "Vector Return",        // OID_TRAP_VECT_RET
   };
   return out << "Trap " << trapTypeDescs[t.trapKind] << " @"
-             << (void *)t.trapAddr;
+             << (void*)t.trapAddr;
 }

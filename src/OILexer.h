@@ -31,21 +31,21 @@ namespace ObjectIntrospection {
 
 class OIScanner : public yyFlexLexer {
  public:
-  OIScanner(std::istream *in) : yyFlexLexer(in){};
+  OIScanner(std::istream* in) : yyFlexLexer(in){};
 
   virtual ~OIScanner(){};
 
   // get rid of override virtual function warning
   using FlexLexer::yylex;
 
-  virtual int yylex(OIParser::semantic_type *const lval,
-                    OIParser::location_type *location);
+  virtual int yylex(OIParser::semantic_type* const lval,
+                    OIParser::location_type* location);
   // YY_DECL defined in OILexer.l
   // Method body created by flex in OILexer.yy.cc
 
  private:
   /* yyval ptr */
-  OIParser::semantic_type *yylval = nullptr;
+  OIParser::semantic_type* yylval = nullptr;
 };
 
 }  // namespace ObjectIntrospection

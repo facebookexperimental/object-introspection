@@ -69,8 +69,8 @@ enum ContainerTypeEnum {
   LIST_OF_CONTAINER_TYPES
 #undef X
 };
-ContainerTypeEnum containerTypeEnumFromStr(std::string &str);
-const char *containerTypeEnumToStr(ContainerTypeEnum ty);
+ContainerTypeEnum containerTypeEnumFromStr(std::string& str);
+const char* containerTypeEnumToStr(ContainerTypeEnum ty);
 
 struct ContainerInfo {
   std::string typeName;
@@ -85,9 +85,9 @@ struct ContainerInfo {
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
 
-  static std::unique_ptr<ContainerInfo> loadFromFile(const fs::path &path);
+  static std::unique_ptr<ContainerInfo> loadFromFile(const fs::path& path);
 
-  bool operator<(const ContainerInfo &rhs) const {
+  bool operator<(const ContainerInfo& rhs) const {
     return (typeName < rhs.typeName);
   }
 };

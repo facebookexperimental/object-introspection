@@ -66,10 +66,10 @@ struct Syscall {
  * The types passed to `struct Syscall` come directly from `man 2 <SYSCALL>`.
  * Don't hesitate to expand this list if you need more syscalls!
  */
-using SysOpen = Syscall<"open", SYS_open, int, const char *, int, mode_t>;
+using SysOpen = Syscall<"open", SYS_open, int, const char*, int, mode_t>;
 using SysClose = Syscall<"close", SYS_close, int, int>;
 using SysFsync = Syscall<"fsync", SYS_fsync, int, int>;
 
 using SysMmap =
-    Syscall<"mmap", SYS_mmap, void *, void *, size_t, int, int, int, off_t>;
-using SysMunmap = Syscall<"munmap", SYS_munmap, int, void *, size_t>;
+    Syscall<"mmap", SYS_mmap, void*, void*, size_t, int, int, int, off_t>;
+using SysMunmap = Syscall<"munmap", SYS_munmap, int, void*, size_t>;

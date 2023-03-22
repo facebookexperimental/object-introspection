@@ -12,13 +12,13 @@ struct OIDTestingTwoString {
 };
 
 struct customTwoStringEq {
-  bool operator()(const OIDTestingTwoString &a, const OIDTestingTwoString &b) {
+  bool operator()(const OIDTestingTwoString& a, const OIDTestingTwoString& b) {
     return (a.first == a.first && a.second == b.second);
   }
 };
 
 struct customHash {
-  std::size_t operator()(const OIDTestingTwoString &two) const {
+  std::size_t operator()(const OIDTestingTwoString& two) const {
     return ((std::hash<std::string>()(two.first) ^
              (std::hash<std::string>()(two.second))));
   }

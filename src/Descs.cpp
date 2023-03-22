@@ -28,8 +28,8 @@ extern "C" {
 #include <sys/user.h>
 }
 
-std::ostream &operator<<(std::ostream &os, const FuncDesc::Range &r) {
-  return os << (void *)r.start << ':' << (void *)r.end;
+std::ostream& operator<<(std::ostream& os, const FuncDesc::Range& r) {
+  return os << (void*)r.start << ':' << (void*)r.end;
 }
 
 /*
@@ -38,7 +38,7 @@ std::ostream &operator<<(std::ostream &os, const FuncDesc::Range &r) {
  * location?).
  */
 std::optional<uintptr_t> FuncDesc::Arg::findAddress(
-    struct user_regs_struct *regs, uintptr_t pc) const {
+    struct user_regs_struct* regs, uintptr_t pc) const {
   auto prevRip = std::exchange(regs->rip, pc);
   BOOST_SCOPE_EXIT_ALL(&) {
     regs->rip = prevRip;
@@ -49,7 +49,7 @@ std::optional<uintptr_t> FuncDesc::Arg::findAddress(
     drgn_object_deinit(&object);
   };
 
-  if (auto *err = drgn_object_locate(&locator, regs, &object)) {
+  if (auto* err = drgn_object_locate(&locator, regs, &object)) {
     LOG(ERROR) << "Error while finding address of argument: " << err->message;
     drgn_error_destroy(err);
     return std::nullopt;
@@ -58,7 +58,7 @@ std::optional<uintptr_t> FuncDesc::Arg::findAddress(
   return object.address;
 }
 
-std::optional<uint8_t> FuncDesc::getArgumentIndex(const std::string &arg,
+std::optional<uint8_t> FuncDesc::getArgumentIndex(const std::string& arg,
                                                   bool validateIndex) const {
   if (arg == "retval") {
     return std::nullopt;
@@ -79,8 +79,8 @@ std::optional<uint8_t> FuncDesc::getArgumentIndex(const std::string &arg,
     return std::nullopt;
   }
 
-  const auto *argIdxBegin = arg.data() + it;
-  const auto *argIdxEnd = arg.data() + arg.size();
+  const auto* argIdxBegin = arg.data() + it;
+  const auto* argIdxEnd = arg.data() + arg.size();
 
   uint8_t argIdx = 0;
   if (auto res = std::from_chars(argIdxBegin, argIdxEnd, argIdx);
@@ -105,7 +105,7 @@ std::optional<uint8_t> FuncDesc::getArgumentIndex(const std::string &arg,
 }
 
 std::shared_ptr<FuncDesc::TargetObject> FuncDesc::getArgument(
-    const std::string &arg) {
+    const std::string& arg) {
   std::shared_ptr<FuncDesc::TargetObject> outArg;
 
   if (arg == "retval") {

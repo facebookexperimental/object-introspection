@@ -19,6 +19,6 @@
 using time_hr = std::chrono::high_resolution_clock;
 
 template <typename Duration>
-auto time_ns(Duration const &d) {
+auto time_ns(Duration const& d) {
   return std::chrono::duration_cast<std::chrono::nanoseconds>(d).count();
 }

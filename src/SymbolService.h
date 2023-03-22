@@ -41,16 +41,16 @@ class SymbolService {
   SymbolService(std::variant<pid_t, fs::path>);
   ~SymbolService();
 
-  struct drgn_program *getDrgnProgram();
+  struct drgn_program* getDrgnProgram();
 
   std::optional<std::string> locateBuildID();
-  std::optional<SymbolInfo> locateSymbol(const std::string &,
+  std::optional<SymbolInfo> locateSymbol(const std::string&,
                                          bool demangle = false);
 
-  std::shared_ptr<FuncDesc> findFuncDesc(const irequest &);
-  std::shared_ptr<GlobalDesc> findGlobalDesc(const std::string &);
-  static std::string getTypeName(struct drgn_type *);
-  std::optional<RootInfo> getRootType(const irequest &);
+  std::shared_ptr<FuncDesc> findFuncDesc(const irequest&);
+  std::shared_ptr<GlobalDesc> findGlobalDesc(const std::string&);
+  static std::string getTypeName(struct drgn_type*);
+  std::optional<RootInfo> getRootType(const irequest&);
 
   std::unordered_map<std::string, std::shared_ptr<FuncDesc>> funcDescs;
   std::unordered_map<std::string, std::shared_ptr<GlobalDesc>> globalDescs;
@@ -61,7 +61,7 @@ class SymbolService {
 
  private:
   std::variant<pid_t, fs::path> target{0};
-  struct drgn_program *prog{nullptr};
+  struct drgn_program* prog{nullptr};
 
   std::vector<std::pair<uint64_t, uint64_t>> executableAddrs{};
   bool hardDisableDrgn = false;

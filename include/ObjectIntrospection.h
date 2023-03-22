@@ -92,8 +92,8 @@ struct options {
   bool chaseRawPointers = false;
   bool generateJitDebugInfo = false;
 
-  friend bool operator==(const options &lhs, const options &rhs);
-  friend bool operator!=(const options &lhs, const options &rhs);
+  friend bool operator==(const options& lhs, const options& rhs);
+  friend bool operator!=(const options& lhs, const options& rhs);
 };
 
 constexpr std::string_view OI_SECTION_PREFIX = ".oi.";
@@ -102,29 +102,29 @@ class OILibrary {
   friend class OILibraryImpl;
 
  public:
-  OILibrary(void *TemplateFunc, options opt);
+  OILibrary(void* TemplateFunc, options opt);
   ~OILibrary();
   int init();
-  int getObjectSize(void *objectAddr, size_t &size);
+  int getObjectSize(void* objectAddr, size_t& size);
 
   options opts;
 
  private:
-  class OILibraryImpl *pimpl_;
+  class OILibraryImpl* pimpl_;
 
-  size_t (*fp)(const void *) = nullptr;
+  size_t (*fp)(const void*) = nullptr;
 };
 
 template <class T>
 class CodegenHandler {
  public:
-  static int init(const options &opts = {}, bool checkOptions = true) {
-    OILibrary *lib;
+  static int init(const options& opts = {}, bool checkOptions = true) {
+    OILibrary* lib;
     return getLibrary(lib, opts, checkOptions);
   }
 
   static void teardown() {
-    OILibrary *lib;
+    OILibrary* lib;
     if (int responseCode = getLibrary(lib);
         responseCode != Response::OIL_SUCCESS) {
       return;
@@ -135,44 +135,44 @@ class CodegenHandler {
     delete lib;
   }
 
-  static int getObjectSize(const T &objectAddr, size_t &objectSize) {
-    OILibrary *lib;
+  static int getObjectSize(const T& objectAddr, size_t& objectSize) {
+    OILibrary* lib;
     if (int responseCode = getLibrary(lib);
         responseCode != Response::OIL_SUCCESS) {
       return responseCode;
     }
 
-    return lib->getObjectSize((void *)&objectAddr, objectSize);
+    return lib->getObjectSize((void*)&objectAddr, objectSize);
   }
 
-  static int getObjectSize(const T &objectAddr, size_t &objectSize,
-                           const options &opts, bool checkOptions = true) {
-    OILibrary *lib;
+  static int getObjectSize(const T& objectAddr, size_t& objectSize,
+                           const options& opts, bool checkOptions = true) {
+    OILibrary* lib;
     if (int responseCode = getLibrary(lib, opts, checkOptions);
         responseCode != Response::OIL_SUCCESS) {
       return responseCode;
     }
 
-    return lib->getObjectSize((void *)&objectAddr, objectSize);
+    return lib->getObjectSize((void*)&objectAddr, objectSize);
   }
 
  private:
-  static std::atomic<OILibrary *> *getLib() {
-    static std::atomic<OILibrary *> lib = nullptr;
+  static std::atomic<OILibrary*>* getLib() {
+    static std::atomic<OILibrary*> lib = nullptr;
     return &lib;
   }
 
-  static std::atomic<std::atomic<OILibrary *> *> *getBoxedLib() {
-    static std::atomic<std::atomic<OILibrary *> *> boxedLib = nullptr;
+  static std::atomic<std::atomic<OILibrary*>*>* getBoxedLib() {
+    static std::atomic<std::atomic<OILibrary*>*> boxedLib = nullptr;
     return &boxedLib;
   }
 
-  static int getLibrary(OILibrary *&result) {
-    std::atomic<OILibrary *> *curBoxedLib = getBoxedLib()->load();
+  static int getLibrary(OILibrary*& result) {
+    std::atomic<OILibrary*>* curBoxedLib = getBoxedLib()->load();
     if (curBoxedLib == nullptr)
       return Response::OIL_UNINITIALISED;
 
-    OILibrary *curLib = curBoxedLib->load();
+    OILibrary* curLib = curBoxedLib->load();
     if (curLib == nullptr)
       return Response::OIL_UNINITIALISED;
 
@@ -180,9 +180,9 @@ class CodegenHandler {
     return Response::OIL_SUCCESS;
   }
 
-  static int getLibrary(OILibrary *&result, const options &opts,
+  static int getLibrary(OILibrary*& result, const options& opts,
                         bool checkOptions) {
-    std::atomic<OILibrary *> *curBoxedLib = getBoxedLib()->load();
+    std::atomic<OILibrary*>* curBoxedLib = getBoxedLib()->load();
 
     if (curBoxedLib == nullptr) {
       if (!getBoxedLib()->compare_exchange_strong(curBoxedLib, getLib())) {
@@ -190,9 +190,9 @@ class CodegenHandler {
       }
       curBoxedLib = getLib();
 
-      int (*sizeFp)(const T &, size_t &) = &getObjectSize;
-      void *typedFp = reinterpret_cast<void *>(sizeFp);
-      OILibrary *newLib = new OILibrary(typedFp, opts);
+      int (*sizeFp)(const T&, size_t&) = &getObjectSize;
+      void* typedFp = reinterpret_cast<void*>(sizeFp);
+      OILibrary* newLib = new OILibrary(typedFp, opts);
 
       if (int initCode = newLib->init(); initCode != Response::OIL_SUCCESS) {
         delete newLib;
@@ -203,7 +203,7 @@ class CodegenHandler {
       getLib()->store(newLib);
     }
 
-    OILibrary *curLib = curBoxedLib->load();
+    OILibrary* curLib = curBoxedLib->load();
     if (curLib == nullptr) {
       return Response::OIL_INITIALISING;
     }
@@ -224,7 +224,7 @@ class CodegenHandler {
  * Ahead-Of-Time (AOT) compilation.
  */
 template <class T>
-int getObjectSize(const T &objectAddr, size_t &objectSize, const options &opts,
+int getObjectSize(const T& objectAddr, size_t& objectSize, const options& opts,
                   bool checkOptions = true) {
   return CodegenHandler<T>::getObjectSize(objectAddr, objectSize, opts,
                                           checkOptions);
@@ -234,7 +234,7 @@ int getObjectSize(const T &objectAddr, size_t &objectSize, const options &opts,
 
 template <class T>
 int __attribute__((weak))
-getObjectSizeImpl(const T &objectAddr, size_t &objectSize);
+getObjectSizeImpl(const T& objectAddr, size_t& objectSize);
 
 #endif
 
@@ -249,7 +249,7 @@ getObjectSizeImpl(const T &objectAddr, size_t &objectSize);
  */
 template <class T>
 int __attribute__((noinline))
-getObjectSize(const T &objectAddr, size_t &objectSize) {
+getObjectSize(const T& objectAddr, size_t& objectSize) {
 #ifdef OIL_AOT_COMPILATION
   if (!getObjectSizeImpl<T>) {
     return Response::OIL_UNINITIALISED;

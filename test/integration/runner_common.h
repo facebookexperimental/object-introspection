@@ -11,14 +11,14 @@
 #include <string>
 
 struct OidOpts {
-  boost::asio::io_context &ctx;
+  boost::asio::io_context& ctx;
   std::string targetArgs;
   std::string script;
   std::string scriptSource;
 };
 
 struct Proc {
-  boost::asio::io_context &ctx;
+  boost::asio::io_context& ctx;
   boost::process::child proc;
   boost::process::child tee_stdout;
   boost::process::child tee_stderr;
@@ -37,8 +37,8 @@ class IntegrationBase : public ::testing::Test {
 
   void TearDown() override;
   void SetUp() override;
-  int exit_code(Proc &proc);
-  std::filesystem::path createCustomConfig(const std::string &extra);
+  int exit_code(Proc& proc);
+  std::filesystem::path createCustomConfig(const std::string& extra);
 
   std::filesystem::path workingDir;
 
@@ -59,9 +59,9 @@ class OidIntegration : public IntegrationBase {
    * Compares two JSON objects for equality if "expect_eq" is true, or for
    * inequality if "expect_eq" is false.
    */
-  void compare_json(const boost::property_tree::ptree &expected_json,
-                    const boost::property_tree::ptree &actual_json,
-                    const std::string &full_key = "root",
+  void compare_json(const boost::property_tree::ptree& expected_json,
+                    const boost::property_tree::ptree& actual_json,
+                    const std::string& full_key = "root",
                     bool expect_eq = true);
 };
 

@@ -40,7 +40,7 @@ namespace std {
 
 template <>
 struct hash<irequest> {
-  std::size_t operator()(const irequest &req) const noexcept {
+  std::size_t operator()(const irequest& req) const noexcept {
     auto h = hash<std::string>();
     return h(req.type) ^ h(req.func) ^ h(req.arg);
   }
@@ -48,7 +48,7 @@ struct hash<irequest> {
 
 template <>
 struct equal_to<irequest> {
-  bool operator()(const irequest &lhs, const irequest &rhs) const noexcept {
+  bool operator()(const irequest& lhs, const irequest& rhs) const noexcept {
     return lhs.type == rhs.type && lhs.func == rhs.func && lhs.arg == rhs.arg;
   }
 };
@@ -89,7 +89,7 @@ class ParseData {
     return reqs.size();
   }
 
-  [[nodiscard]] const prequest &getReq(size_t idx = 0) const noexcept {
+  [[nodiscard]] const prequest& getReq(size_t idx = 0) const noexcept {
     assert(idx < reqs.size());
     return reqs[idx];
   }

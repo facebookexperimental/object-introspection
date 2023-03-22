@@ -12,7 +12,7 @@ using ::testing::HasSubstr;
 using namespace ObjectIntrospection;
 
 // Utilities
-static ParseData parseString(const std::string &script) {
+static ParseData parseString(const std::string& script) {
   ParseData pdata;
   std::istringstream input{script};
   OIScanner scanner{&input};
@@ -23,7 +23,7 @@ static ParseData parseString(const std::string &script) {
   return pdata;
 }
 
-static std::string parseBadString(const std::string &script) {
+static std::string parseBadString(const std::string& script) {
   ParseData pdata;
   std::istringstream input{script};
   OIScanner scanner{&input};
@@ -34,9 +34,9 @@ static std::string parseBadString(const std::string &script) {
   return testing::internal::GetCapturedStderr();
 }
 
-static void EXPECT_REQ_EQ(const prequest &req, const std::string &type,
-                          const std::string &func,
-                          const std::vector<std::string> &args) {
+static void EXPECT_REQ_EQ(const prequest& req, const std::string& type,
+                          const std::string& func,
+                          const std::vector<std::string>& args) {
   EXPECT_EQ(req.type, type);
   EXPECT_EQ(req.func, func);
   EXPECT_EQ(req.args, args);

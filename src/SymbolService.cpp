@@ -35,7 +35,7 @@ extern "C" {
 }
 
 static bool LoadExecutableAddressRange(
-    pid_t pid, std::vector<std::pair<uint64_t, uint64_t>> &exeAddrs) {
+    pid_t pid, std::vector<std::pair<uint64_t, uint64_t>>& exeAddrs) {
   std::ifstream f("/proc/" + std::to_string(pid) + "/maps");
 
   if (f.is_open()) {
@@ -74,13 +74,13 @@ static bool LoadExecutableAddressRange(
 #undef PREMISSIONS_LEN
 
 static bool isExecutableAddr(
-    uint64_t addr, const std::vector<std::pair<uint64_t, uint64_t>> &exeAddrs) {
+    uint64_t addr, const std::vector<std::pair<uint64_t, uint64_t>>& exeAddrs) {
   assert(std::is_sorted(begin(exeAddrs), end(exeAddrs)));
 
   // Find the smallest exeAddrs range where addr < range.end
   auto it = std::upper_bound(
       begin(exeAddrs), end(exeAddrs), std::make_pair(addr, addr),
-      [](const auto &r1, const auto &r2) { return r1.second < r2.second; });
+      [](const auto& r1, const auto& r2) { return r1.second < r2.second; });
 
   return it != end(exeAddrs) && addr >= it->first;
 }
@@ -104,7 +104,7 @@ struct ModParams {
   std::string_view symName;
   GElf_Sym sym;
   GElf_Addr value;
-  std::vector<std::pair<uint64_t, uint64_t>> &exeAddrs;
+  std::vector<std::pair<uint64_t, uint64_t>>& exeAddrs;
   bool demangle;
 };
 
@@ -119,9 +119,9 @@ struct ModParams {
  *
  */
 
-static int moduleCallback(Dwfl_Module *mod, void ** /* userData */,
-                          const char *name, Dwarf_Addr /* start */, void *arg) {
-  ModParams *m = (ModParams *)arg;
+static int moduleCallback(Dwfl_Module* mod, void** /* userData */,
+                          const char* name, Dwarf_Addr /* start */, void* arg) {
+  ModParams* m = (ModParams*)arg;
 
   int nsym = dwfl_module_getsymtab(mod);
   VLOG(1) << "mod name: " << name << " "
@@ -144,10 +144,10 @@ static int moduleCallback(Dwfl_Module *mod, void ** /* userData */,
 
   /* I think the first entry is always UNDEF */
   for (int i = 1; i < nsym; ++i) {
-    Elf *elf = nullptr;
+    Elf* elf = nullptr;
     GElf_Word shndxp = 0;
 
-    const char *lookupResult = dwfl_module_getsym_info(
+    const char* lookupResult = dwfl_module_getsym_info(
         mod, i, &m->sym, &m->value, &shndxp, &elf, nullptr);
     if (lookupResult == nullptr || lookupResult[0] == '\0') {
       continue;
@@ -204,8 +204,8 @@ static int moduleCallback(Dwfl_Module *mod, void ** /* userData */,
  * @return - A std::optional with the symbol's information
  */
 std::optional<SymbolInfo> SymbolService::locateSymbol(
-    const std::string &symName, bool demangle) {
-  static char *debuginfo_path;
+    const std::string& symName, bool demangle) {
+  static char* debuginfo_path;
   static const Dwfl_Callbacks proc_callbacks{
       .find_elf = dwfl_linux_proc_find_elf,
       .find_debuginfo = dwfl_standard_find_debuginfo,
@@ -213,7 +213,7 @@ std::optional<SymbolInfo> SymbolService::locateSymbol(
       .debuginfo_path = &debuginfo_path,
   };
 
-  Dwfl *dwfl = dwfl_begin(&proc_callbacks);
+  Dwfl* dwfl = dwfl_begin(&proc_callbacks);
   if (dwfl == nullptr) {
     LOG(ERROR) << "dwfl_begin: " << dwfl_errmsg(dwfl_errno());
     return std::nullopt;
@@ -232,8 +232,8 @@ std::optional<SymbolInfo> SymbolService::locateSymbol(
       break;
     }
     case 1: {
-      const auto &exe = std::get<fs::path>(target);
-      Dwfl_Module *mod =
+      const auto& exe = std::get<fs::path>(target);
+      Dwfl_Module* mod =
           dwfl_report_offline(dwfl, exe.c_str(), exe.c_str(), -1);
       if (mod == nullptr) {
         LOG(ERROR) << "dwfl_report_offline: " << dwfl_errmsg(dwfl_errno());
@@ -268,7 +268,7 @@ std::optional<SymbolInfo> SymbolService::locateSymbol(
                  .exeAddrs = executableAddrs,
                  .demangle = demangle};
 
-  dwfl_getmodules(dwfl, moduleCallback, (void *)&m, 0);
+  dwfl_getmodules(dwfl, moduleCallback, (void*)&m, 0);
 
   if (m.value == 0) {
     return std::nullopt;
@@ -276,7 +276,7 @@ std::optional<SymbolInfo> SymbolService::locateSymbol(
   return SymbolInfo{m.value, m.sym.st_size};
 }
 
-static std::string bytesToHexString(const unsigned char *bytes, int nbbytes) {
+static std::string bytesToHexString(const unsigned char* bytes, int nbbytes) {
   static const char characters[] = "0123456789abcdef";
 
   std::string ret(nbbytes * 2, 0);
@@ -296,21 +296,21 @@ static std::string bytesToHexString(const unsigned char *bytes, int nbbytes) {
  * to this callback. So we always return DWARF_CB_ABORT, as this is
  * the only build ID we are interested in.
  */
-static int buildIDCallback(Dwfl_Module *mod, void ** /* userData */,
-                           const char *name, Dwarf_Addr /* start */,
-                           void *arg) {
-  auto *buildID = static_cast<std::optional<std::string> *>(arg);
+static int buildIDCallback(Dwfl_Module* mod, void** /* userData */,
+                           const char* name, Dwarf_Addr /* start */,
+                           void* arg) {
+  auto* buildID = static_cast<std::optional<std::string>*>(arg);
 
   // We must call dwfl_module_getelf before using dwfl_module_build_id
   GElf_Addr bias = 0;
-  Elf *elf = dwfl_module_getelf(mod, &bias);
+  Elf* elf = dwfl_module_getelf(mod, &bias);
   if (elf == nullptr) {
     LOG(ERROR) << "Failed to getelf for " << name << ": " << dwfl_errmsg(-1);
     return DWARF_CB_ABORT;
   }
 
   GElf_Addr vaddr = 0;
-  const unsigned char *bytes = nullptr;
+  const unsigned char* bytes = nullptr;
 
   int nbbytes = dwfl_module_build_id(mod, &bytes, &vaddr);
   if (nbbytes <= 0) {
@@ -326,7 +326,7 @@ static int buildIDCallback(Dwfl_Module *mod, void ** /* userData */,
 }
 
 std::optional<std::string> SymbolService::locateBuildID() {
-  static char *debuginfoPath;
+  static char* debuginfoPath;
   static const Dwfl_Callbacks procCallbacks = {
       .find_elf = dwfl_linux_proc_find_elf,
       .find_debuginfo = dwfl_standard_find_debuginfo,
@@ -334,7 +334,7 @@ std::optional<std::string> SymbolService::locateBuildID() {
       .debuginfo_path = &debuginfoPath,
   };
 
-  Dwfl *dwfl = dwfl_begin(&procCallbacks);
+  Dwfl* dwfl = dwfl_begin(&procCallbacks);
   if (dwfl == nullptr) {
     LOG(ERROR) << "dwfl_begin: " << dwfl_errmsg(dwfl_errno());
     return std::nullopt;
@@ -353,7 +353,7 @@ std::optional<std::string> SymbolService::locateBuildID() {
       break;
     }
     case 1: {
-      const auto &exe = std::get<fs::path>(target);
+      const auto& exe = std::get<fs::path>(target);
       if (dwfl_report_offline(dwfl, exe.c_str(), exe.c_str(), -1) == nullptr) {
         LOG(ERROR) << "dwfl_report_offline: " << dwfl_errmsg(dwfl_errno());
         return std::nullopt;
@@ -367,12 +367,12 @@ std::optional<std::string> SymbolService::locateBuildID() {
   }
 
   std::optional<std::string> buildID;
-  dwfl_getmodules(dwfl, buildIDCallback, (void *)&buildID, 0);
+  dwfl_getmodules(dwfl, buildIDCallback, (void*)&buildID, 0);
 
   return buildID;
 }
 
-struct drgn_program *SymbolService::getDrgnProgram() {
+struct drgn_program* SymbolService::getDrgnProgram() {
   if (hardDisableDrgn) {
     LOG(ERROR) << "drgn is disabled, refusing to initialize";
     return nullptr;
@@ -385,15 +385,15 @@ struct drgn_program *SymbolService::getDrgnProgram() {
   LOG(INFO) << "Initialising drgn. This might take a while";
   switch (target.index()) {
     case 0: {
-      if (auto *err = drgn_program_from_pid(std::get<pid_t>(target), &prog)) {
+      if (auto* err = drgn_program_from_pid(std::get<pid_t>(target), &prog)) {
         LOG(ERROR) << "Failed to initialize drgn: " << err->code << " "
                    << err->message;
         return nullptr;
       }
       auto executable = fs::read_symlink(
           "/proc/" + std::to_string(std::get<pid_t>(target)) + "/exe");
-      const auto *executableCStr = executable.c_str();
-      if (auto *err = drgn_program_load_debug_info(prog, &executableCStr, 1,
+      const auto* executableCStr = executable.c_str();
+      if (auto* err = drgn_program_load_debug_info(prog, &executableCStr, 1,
                                                    false, false)) {
         LOG(ERROR) << "Error loading debug info: " << err->message;
         return nullptr;
@@ -401,14 +401,14 @@ struct drgn_program *SymbolService::getDrgnProgram() {
       break;
     }
     case 1: {
-      if (auto *err = drgn_program_create(nullptr, &prog)) {
+      if (auto* err = drgn_program_create(nullptr, &prog)) {
         LOG(ERROR) << "Failed to create empty drgn program: " << err->code
                    << " " << err->message;
         return nullptr;
       }
 
-      const char *path = std::get<fs::path>(target).c_str();
-      if (auto *err =
+      const char* path = std::get<fs::path>(target).c_str();
+      if (auto* err =
               drgn_program_load_debug_info(prog, &path, 1, false, false)) {
         LOG(ERROR) << "Failed to read debug info: " << err->code << " "
                    << err->message;
@@ -430,9 +430,9 @@ struct drgn_program *SymbolService::getDrgnProgram() {
  * Although 'parseFormalParam' has an all-encompassing sounding name, its sole
  * task is to extract the location information for this parameter if any exist.
  */
-static void parseFormalParam(Dwarf_Die &param, struct drgn_module *module,
-                             struct drgn_program *prog, Dwarf_Die &funcDie,
-                             std::shared_ptr<FuncDesc> &fd) {
+static void parseFormalParam(Dwarf_Die& param, struct drgn_module* module,
+                             struct drgn_program* prog, Dwarf_Die& funcDie,
+                             std::shared_ptr<FuncDesc>& fd) {
   /*
    * NOTE: It is vital that the function descriptors list of arguments
    * are in order and that an entry exists for each argument position
@@ -441,7 +441,7 @@ static void parseFormalParam(Dwarf_Die &param, struct drgn_module *module,
    * any new error handling.
    */
   auto farg = fd->addArgument();
-  auto *err =
+  auto* err =
       drgn_object_locator_init(prog, module, &funcDie, &param, &farg->locator);
   if (err) {
     LOG(ERROR) << "Could not initialize drgn_object_locator for parameter: "
@@ -450,7 +450,7 @@ static void parseFormalParam(Dwarf_Die &param, struct drgn_module *module,
     return;
   }
 
-  const char *name = nullptr;
+  const char* name = nullptr;
   Dwarf_Attribute attr;
   if (dwarf_attr_integrate(&param, DW_AT_name, &attr)) {
     if (!(name = dwarf_formstring(&attr))) {
@@ -473,14 +473,14 @@ static void parseFormalParam(Dwarf_Die &param, struct drgn_module *module,
   VLOG(1) << "Adding function arg address: " << farg;
 }
 
-static bool handleInlinedFunction(const irequest &request,
+static bool handleInlinedFunction(const irequest& request,
                                   std::shared_ptr<FuncDesc> funcDesc,
-                                  struct drgn_qualified_type &funcType,
-                                  Dwarf_Die &funcDie,
-                                  struct drgn_module *&module) {
+                                  struct drgn_qualified_type& funcType,
+                                  Dwarf_Die& funcDie,
+                                  struct drgn_module*& module) {
   VLOG(1) << "Function '" << funcDesc->symName << "' has been inlined";
-  struct drgn_type_inlined_instances_iterator *iter = nullptr;
-  auto *err = drgn_type_inlined_instances_iterator_init(funcType.type, &iter);
+  struct drgn_type_inlined_instances_iterator* iter = nullptr;
+  auto* err = drgn_type_inlined_instances_iterator_init(funcType.type, &iter);
   if (err) {
     LOG(ERROR) << "Error creating inlined instances iterator: " << err->message;
     return false;
@@ -492,8 +492,8 @@ static bool handleInlinedFunction(const irequest &request,
   if (!index.has_value()) {
     return false;
   }
-  auto *argumentName = drgn_type_parameters(funcType.type)[index.value()].name;
-  struct drgn_type *inlinedInstance = nullptr;
+  auto* argumentName = drgn_type_parameters(funcType.type)[index.value()].name;
+  struct drgn_type* inlinedInstance = nullptr;
   bool foundInstance = false;
   // The index at which the parameter was actually found in the inlined
   // instance. This may differ from the index of the parameter in the function
@@ -515,7 +515,7 @@ static bool handleInlinedFunction(const irequest &request,
     }
 
     auto numParameters = drgn_type_num_parameters(inlinedInstance);
-    auto *parameters = drgn_type_parameters(inlinedInstance);
+    auto* parameters = drgn_type_parameters(inlinedInstance);
     for (size_t i = 0; i < numParameters; i++) {
       if (strcmp(argumentName, parameters[i].name) == 0) {
         foundInstance = true;
@@ -535,7 +535,7 @@ static bool handleInlinedFunction(const irequest &request,
         drgn_type_num_parameters(funcType.type);
     // Allocating with `calloc` since `drgn` manages the lifetimes of its
     // own structures, and it is written in C.
-    inlinedInstance->_private.parameters = (struct drgn_type_parameter *)calloc(
+    inlinedInstance->_private.parameters = (struct drgn_type_parameter*)calloc(
         inlinedInstance->_private.num_parameters,
         sizeof(*inlinedInstance->_private.parameters));
     inlinedInstance->_private.parameters[index.value()] = targetParameter;
@@ -552,14 +552,14 @@ static bool handleInlinedFunction(const irequest &request,
 }
 
 static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
-    struct drgn_program *prog, const irequest &request) {
+    struct drgn_program* prog, const irequest& request) {
   VLOG(1) << "Creating function description for: " << request.func;
 
   Dwarf_Die funcDie;
   struct drgn_qualified_type ft {};
-  struct drgn_module *module = nullptr;
+  struct drgn_module* module = nullptr;
 
-  if (auto *err = drgn_program_find_type_by_symbol_name(
+  if (auto* err = drgn_program_find_type_by_symbol_name(
           prog, request.func.c_str(), &ft, &funcDie, &module)) {
     LOG(ERROR) << "Error when finding type by symbol: " << err->code << " "
                << err->message;
@@ -662,13 +662,13 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
  * one if it doesn't exist. Just take the
  * up front hit of looking everything up now.
  */
-std::shared_ptr<FuncDesc> SymbolService::findFuncDesc(const irequest &request) {
+std::shared_ptr<FuncDesc> SymbolService::findFuncDesc(const irequest& request) {
   if (auto it = funcDescs.find(request.func); it != end(funcDescs)) {
     VLOG(1) << "Found funcDesc for " << request.func;
     return it->second;
   }
 
-  struct drgn_program *drgnProg = getDrgnProgram();
+  struct drgn_program* drgnProg = getDrgnProgram();
   if (drgnProg == nullptr) {
     return nullptr;
   }
@@ -685,7 +685,7 @@ std::shared_ptr<FuncDesc> SymbolService::findFuncDesc(const irequest &request) {
 }
 
 std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
-    const std::string &global) {
+    const std::string& global) {
   if (auto it = globalDescs.find(global); it != end(globalDescs)) {
     VLOG(1) << "Found globalDesc for " << global;
     return it->second;
@@ -700,7 +700,7 @@ std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
   VLOG(1) << "locateGlobal: address of " << global << " " << std::hex
           << sym->addr;
 
-  struct drgn_program *drgnProg = getDrgnProgram();
+  struct drgn_program* drgnProg = getDrgnProgram();
   if (drgnProg == nullptr) {
     return nullptr;
   }
@@ -713,7 +713,7 @@ std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
     drgn_object_deinit(&globalObj);
   };
 
-  if (auto *err = drgn_program_find_object(drgnProg, global.c_str(), nullptr,
+  if (auto* err = drgn_program_find_object(drgnProg, global.c_str(), nullptr,
                                            DRGN_FIND_OBJECT_ANY, &globalObj)) {
     LOG(ERROR) << "Failed to lookup global variable '" << global
                << "': " << err->code << " " << err->message;
@@ -729,14 +729,14 @@ std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
   return gd;
 }
 
-std::string SymbolService::getTypeName(struct drgn_type *type) {
+std::string SymbolService::getTypeName(struct drgn_type* type) {
   if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
     type = drgn_type_type(type).type;
   }
   return drgn_utils::typeToName(type);
 }
 
-std::optional<RootInfo> SymbolService::getRootType(const irequest &req) {
+std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
   if (req.type == "global") {
     /*
      * This is super simple as all we have to do is locate assign the
@@ -749,14 +749,14 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest &req) {
       return std::nullopt;
     }
 
-    auto *prog = getDrgnProgram();
+    auto* prog = getDrgnProgram();
     if (prog == nullptr) {
       return std::nullopt;
     }
 
     drgn_object global{};
     drgn_object_init(&global, prog);
-    if (auto *err = drgn_program_find_object(prog, req.func.c_str(), nullptr,
+    if (auto* err = drgn_program_find_object(prog, req.func.c_str(), nullptr,
                                              DRGN_FIND_OBJECT_ANY, &global);
         err != nullptr) {
       LOG(ERROR) << "Failed to lookup global variable '" << req.func
@@ -781,13 +781,13 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest &req) {
   // auto tmp = boost::core::demangle(req->func.c_str());
   // auto demangledName = tmp.substr(0, tmp.find("("));
 
-  auto *prog = getDrgnProgram();
+  auto* prog = getDrgnProgram();
   if (prog == nullptr) {
     return std::nullopt;
   }
 
   drgn_qualified_type ft{};
-  if (auto *err = drgn_program_find_type_by_symbol_name(prog, req.func.c_str(),
+  if (auto* err = drgn_program_find_type_by_symbol_name(prog, req.func.c_str(),
                                                         &ft, nullptr, nullptr);
       err != nullptr) {
     LOG(ERROR) << "Error when finding type by symbol " << err->code << " "
@@ -806,7 +806,7 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest &req) {
     return std::nullopt;
   }
 
-  auto *params = drgn_type_parameters(ft.type);
+  auto* params = drgn_type_parameters(ft.type);
   auto paramsCount = drgn_type_num_parameters(ft.type);
   if (paramsCount == 0) {
     LOG(ERROR) << "Function " << req.func << " has no parameters";
@@ -833,7 +833,7 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest &req) {
   }
 
   drgn_qualified_type paramType{};
-  if (auto *err = drgn_parameter_type(&params[argIdx], &paramType);
+  if (auto* err = drgn_parameter_type(&params[argIdx], &paramType);
       err != nullptr) {
     LOG(ERROR) << "Failed to get params: " << err->code << " " << err->message;
     drgn_error_destroy(err);

@@ -33,7 +33,7 @@ class Metrics {
   friend class Tracing;
 
  public:
-  Metrics(ObjectIntrospection::options opts, const std::string &savePath);
+  Metrics(ObjectIntrospection::options opts, const std::string& savePath);
   ~Metrics();
 
   void enable() {
@@ -41,7 +41,7 @@ class Metrics {
   }
 
  private:
-  static std::atomic<Metrics *> singleton;
+  static std::atomic<Metrics*> singleton;
 
   ObjectIntrospection::options opts;
   std::fstream writer;
@@ -49,7 +49,7 @@ class Metrics {
   bool hasWritten = false;
   bool enableAll = false;
 
-  static ObjectIntrospection::options &getOptions() {
+  static ObjectIntrospection::options& getOptions() {
     return singleton.load()->opts;
   }
 
@@ -58,39 +58,39 @@ class Metrics {
   }
 
   static void save(std::string object);
-  static void saveArg(const char *name, const char *argName, ArgTiming timing,
+  static void saveArg(const char* name, const char* argName, ArgTiming timing,
                       size_t size);
-  static void saveDuration(const char *name,
+  static void saveDuration(const char* name,
                            std::chrono::milliseconds duration);
 };
 
 class Tracing {
  public:
-  Tracing(const char *name, bool enabled = false);
+  Tracing(const char* name, bool enabled = false);
   ~Tracing();
 
   void start();
 
   template <class T>
-  void registerArg(const char *argName, T *value);
+  void registerArg(const char* argName, T* value);
 
  private:
   bool isTimingEnabled();
-  bool isArgEnabled(const char *argName, ArgTiming timing);
-  void saveArg(const char *argName, ArgTiming timing, size_t size);
+  bool isArgEnabled(const char* argName, ArgTiming timing);
+  void saveArg(const char* argName, ArgTiming timing, size_t size);
   void saveDuration(std::chrono::milliseconds duration);
 
   template <class T>
-  void inspectArg(const char *argName, ArgTiming timing, T *value);
+  void inspectArg(const char* argName, ArgTiming timing, T* value);
 
-  const char *name;
+  const char* name;
   bool enabled;
   std::chrono::high_resolution_clock::time_point startTime;
   std::vector<std::function<void()>> exitFuncs;
 };
 
 template <class T>
-void Tracing::registerArg(const char *argName, T *value) {
+void Tracing::registerArg(const char* argName, T* value) {
   if (isArgEnabled(argName, ArgTiming::ENTRY)) {
     inspectArg(argName, ArgTiming::ENTRY, value);
   }
@@ -108,7 +108,7 @@ void Tracing::registerArg(const char *argName, T *value) {
 }
 
 template <class T>
-void Tracing::inspectArg(const char *argName, ArgTiming timing, T *value) {
+void Tracing::inspectArg(const char* argName, ArgTiming timing, T* value) {
   size_t size;
   if (int responseCode = ObjectIntrospection::getObjectSize(
           value, &size, Metrics::getOptions(), false);

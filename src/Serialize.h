@@ -59,7 +59,7 @@ namespace boost::serialization {
 
 #define DECL_SERIALIZE(Type) \
   template <class Archive>   \
-  void serialize(Archive &, Type &, const unsigned int)
+  void serialize(Archive&, Type&, const unsigned int)
 
 DECL_SERIALIZE(PaddingInfo);
 DECL_SERIALIZE(ContainerInfo);

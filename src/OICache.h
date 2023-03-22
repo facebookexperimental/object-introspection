@@ -50,21 +50,21 @@ class OICache {
     PaddingInfo,
     MAX
   };
-  static constexpr std::array<const char *, static_cast<size_t>(Entity::MAX)>
+  static constexpr std::array<const char*, static_cast<size_t>(Entity::MAX)>
       extensions{".cc", ".o", ".fd", ".gd", ".th", ".pd"};
 
   bool isEnabled() const {
     return !basePath.empty();
   }
-  std::optional<fs::path> getPath(const irequest &, Entity) const;
+  std::optional<fs::path> getPath(const irequest&, Entity) const;
   template <typename T>
-  bool store(const irequest &, Entity, const T &);
+  bool store(const irequest&, Entity, const T&);
   template <typename T>
-  bool load(const irequest &, Entity, T &);
+  bool load(const irequest&, Entity, T&);
 
-  bool upload(const irequest &req);
-  bool download(const irequest &req);
+  bool upload(const irequest& req);
+  bool download(const irequest& req);
 
  private:
-  std::string generateRemoteHash(const irequest &);
+  std::string generateRemoteHash(const irequest&);
 };

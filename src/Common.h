@@ -38,7 +38,7 @@ struct ClassMember {
 };
 
 struct DrgnClassMemberInfo {
-  struct drgn_type *type;
+  struct drgn_type* type;
   std::string member_name;
   uint64_t bit_offset;
   uint64_t bit_field_size;
@@ -46,16 +46,14 @@ struct DrgnClassMemberInfo {
 };
 
 struct TypeHierarchy {
-  std::map<struct drgn_type *, std::vector<DrgnClassMemberInfo>>
-      classMembersMap;
-  std::map<struct drgn_type *,
+  std::map<struct drgn_type*, std::vector<DrgnClassMemberInfo>> classMembersMap;
+  std::map<struct drgn_type*,
            std::pair<ContainerInfo, std::vector<struct drgn_qualified_type>>>
       containerTypeMap;
-  std::map<struct drgn_type *, struct drgn_type *> typedefMap;
+  std::map<struct drgn_type*, struct drgn_type*> typedefMap;
   std::map<std::string, size_t> sizeMap;
-  std::set<struct drgn_type *> knownDummyTypeList;
-  std::map<struct drgn_type *, struct drgn_type *> pointerToTypeMap;
-  std::set<struct drgn_type *> thriftIssetStructTypes;
-  std::map<struct drgn_type *, std::vector<struct drgn_type *>>
-      descendantClasses;
+  std::set<struct drgn_type*> knownDummyTypeList;
+  std::map<struct drgn_type*, struct drgn_type*> pointerToTypeMap;
+  std::set<struct drgn_type*> thriftIssetStructTypes;
+  std::map<struct drgn_type*, std::vector<struct drgn_type*>> descendantClasses;
 };
