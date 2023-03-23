@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <glog/logging.h>
+
 #include <filesystem>
 #include <fstream>
 
@@ -84,6 +86,15 @@ class OIDebugger {
     cache.enableUpload = upload;
     cache.enableDownload = download;
     cache.abortOnLoadFail = download && !upload;
+  }
+
+  bool validateCache() {
+    if ((cache.enableUpload || cache.enableDownload) && !cache.isEnabled()) {
+      LOG(ERROR) << "Cache download/upload option specified when cache is "
+                    "disabled - aborting!";
+      return false;
+    }
+    return true;
   }
 
   void setHardDisableDrgn(bool val) {
