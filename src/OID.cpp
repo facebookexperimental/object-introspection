@@ -293,6 +293,9 @@ static ExitStatus::ExitStatus runScript(const std::string &fileName,
 
   oid->setCacheRemoteEnabled(oidConfig.cacheRemoteUpload,
                              oidConfig.cacheRemoteDownload);
+  if (!oid->validateCache()) {
+    return ExitStatus::UsageError;
+  }
   oid->setCustomCodeFile(oidConfig.customCodeFile);
   oid->setEnableJitLogging(oidConfig.enableJitLogging);
   oid->setGenerateJitDebugInfo(oidConfig.generateJitDebug);
