@@ -618,6 +618,9 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
         return;
       }
       break;
+    case WEAK_PTR_TYPE:
+      // Do not handle weak pointers beyond their static size for now.
+      break;
     case SHRD_PTR_TYPE:
     case UNIQ_PTR_TYPE:
       node.pointer = next();

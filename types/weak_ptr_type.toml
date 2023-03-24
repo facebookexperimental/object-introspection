@@ -1,0 +1,22 @@
+[info]
+typeName = "std::weak_ptr"
+numTemplateParams = 1
+ctype = "WEAK_PTR_TYPE"
+header = "memory"
+ns = ["namespace std"]
+replaceTemplateParamIndex = []
+
+[codegen]
+decl = """
+template<typename T>
+void getSizeType(const %1%<T> &s_ptr, size_t& returnArg);
+"""
+
+# Weak pointers do not have ownership, so let's not follow them (for now)
+func = """
+template<typename T>
+void getSizeType(const %1%<T> &s_ptr, size_t& returnArg)
+{
+    SAVE_SIZE(sizeof(%1%<T>));
+}
+"""

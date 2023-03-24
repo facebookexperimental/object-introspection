@@ -62,7 +62,8 @@ namespace fs = std::filesystem;
   X(ENUM_MAP_TYPE)               \
   X(BOOST_BIMAP_TYPE)            \
   X(STD_VARIANT_TYPE)            \
-  X(THRIFT_ISSET_TYPE)
+  X(THRIFT_ISSET_TYPE)           \
+  X(WEAK_PTR_TYPE)
 
 enum ContainerTypeEnum {
 #define X(name) name,
