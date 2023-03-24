@@ -761,10 +761,11 @@ bool OICodeGen::enumerateTemplateParamIdxs(drgn_type* type,
     }
   }
 
-  // Do not add `shared_ptr<void>` or `unique_ptr<void>`
+  // Do not add `shared_ptr<void>`, `unique_ptr<void>`, or `weak_ptr<void>`
   // to `containerTypeMapDrgn`.
   if (containerInfo.ctype == SHRD_PTR_TYPE ||
-      containerInfo.ctype == UNIQ_PTR_TYPE) {
+      containerInfo.ctype == UNIQ_PTR_TYPE ||
+      containerInfo.ctype == WEAK_PTR_TYPE) {
     drgn_qualified_type t{};
     // We checked that this succeeded in the previous loop
     drgn_template_parameter_type(&tParams[0], &t);
