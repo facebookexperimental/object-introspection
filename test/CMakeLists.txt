@@ -37,16 +37,15 @@ function(cpp_unittest)
   gtest_discover_tests(${TEST_NAME} PROPERTIES ${TEST_PROPERTIES})
 endfunction()
 
-# Integration tests
-# These tests can't be run in parallel with the other tests.
-# There is some sort of conflict triggering the following error:
-#   dwfl_linux_proc_report: bzip2 decompression failed
-# The integration tests are now triggered by the main Makefile.
-#add_test(
-#  NAME integration
-#  COMMAND make test-integration
-#  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-#)
+add_executable(integration_mttest
+  integration_mttest.cpp
+)
+target_link_libraries(integration_mttest folly_headers)
+
+add_executable(integration_sleepy
+  integration_sleepy.cpp
+)
+target_link_libraries(integration_sleepy folly_headers)
 
 # Unit tests
 cpp_unittest(
@@ -61,5 +60,19 @@ cpp_unittest(
   DEPS oicore
 )
 
+# Integration tests
+if (WITH_FLAKY_TESTS)
+  add_test(
+    NAME integration_py
+    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/integration.py
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  )
+  set_tests_properties(integration_py PROPERTIES
+    TIMEOUT 90
+    ENVIRONMENT "OID=$<TARGET_FILE:oid>"
+  )
+endif()
+
 include_directories("${PROJECT_SOURCE_DIR}/extern/drgn/build")
 add_subdirectory("integration")
+
