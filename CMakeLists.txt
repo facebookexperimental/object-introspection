@@ -23,6 +23,7 @@ option(STATIC_LINK "Statically link oid" OFF)
 option(ASAN "Enable address sanitizer" OFF)
 option(CODE_COVERAGE "Enable code coverage" OFF)
 option(WITH_TESTS "Build with tests" Off)
+option(WITH_FLAKY_TESTS "Build with flaky tests" OFF)
 option(FORCE_BOOST_STATIC "Build with static boost" On)
 option(FORCE_LLVM_STATIC "Build with static llvm and clang" On)
 
@@ -123,6 +124,7 @@ FetchContent_Populate(folly)
 
 add_library(folly_headers INTERFACE)
 target_include_directories(folly_headers SYSTEM INTERFACE ${folly_SOURCE_DIR})
+target_link_libraries(folly_headers INTERFACE Boost::headers)
 
 ### bison & flex (for oid_parser)
 find_package(BISON 3.5 REQUIRED)

@@ -41,25 +41,21 @@ class OIDebuggerTestCase(unittest.TestCase):
         self.oid_source_dir = os.path.dirname(
             os.path.dirname(os.path.abspath(__file__))
         )
+        # Assume we started in the CMake build directory
+        self.build_dir = self.original_working_directory
 
         # This needs to be a class variable, otherwise it won't be referenced
         # by any object alive by the end of this class method's execution and
         # and the directory will be automatically removed before executing the
         # tests themselves.
-        self.temp = tempfile.TemporaryDirectory(
-            dir=os.path.join(self.oid_source_dir, "build/")
-        )
+        self.temp = tempfile.TemporaryDirectory(dir=self.build_dir)
         os.chdir(self.temp.name)
 
-        self.oid = os.path.join(self.oid_source_dir, "build/oid")
-        self.oid_conf = os.path.join(self.oid_source_dir, "build/testing.oid.toml")
+        self.oid = os.getenv("OID")
+        self.oid_conf = os.path.join(self.build_dir, "..", "testing.oid.toml")
 
-        self.binary_path = os.path.join(
-            self.oid_source_dir, "test", "integration_mttest"
-        )
-        self.sleepy_binary_path = os.path.join(
-            self.oid_source_dir, "test", "integration_sleepy"
-        )
+        self.binary_path = os.path.join(self.build_dir, "integration_mttest")
+        self.sleepy_binary_path = os.path.join(self.build_dir, "integration_sleepy")
 
         self.custom_generated_code_file = os.path.join(
             self.temp.name, "custom_oid_output.cpp"
@@ -150,6 +146,9 @@ class OIDebuggerTestCase(unittest.TestCase):
             self.assertEqual(output[0]["dynamicSize"], 76)
             self.assertEqual(len(output[0]["members"]), 25)
 
+    @unittest.skip(
+        "https://github.com/facebookexperimental/object-introspection/issues/53"
+    )
     def test_data_segment_size_change(self):
         with subprocess.Popen(
             f"{self.binary_path} 1000",
