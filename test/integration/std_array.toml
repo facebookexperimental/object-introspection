@@ -1,6 +1,6 @@
 includes = ["array", "cstdint", "vector"]
 [cases]
-  [cases.array_uint64_length_0]
+  [cases.uint64_length_0]
     param_types = ["std::array<std::uint64_t, 0>&"]
     setup = "return {{}};"
     expect_json = '''
@@ -15,7 +15,7 @@ includes = ["array", "cstdint", "vector"]
       }
     ]
     '''
-  [cases.array_uint64_length_1]
+  [cases.uint64_length_1]
     param_types = ["std::array<std::uint64_t, 1>&"]
     setup = "return {{1}};"
     expect_json = '''
@@ -30,7 +30,7 @@ includes = ["array", "cstdint", "vector"]
       }
     ]
     '''
-  [cases.array_uint64_length_8]
+  [cases.uint64_length_8]
     param_types = ["std::array<std::uint64_t, 8>&"]
     setup = "return {{0,1,2,3,4,5,6,7}};"
     expect_json = '''
@@ -44,7 +44,7 @@ includes = ["array", "cstdint", "vector"]
       }
     ]
     '''
-  [cases.array_vector_length_1]
+  [cases.vector_length_1]
     param_types = ["std::array<std::vector<std::uint64_t>, 1>&"]
     setup = "return {{std::initializer_list<std::uint64_t>({1,2,3,4,5})}};"
     expect_json = '''
@@ -64,7 +64,7 @@ includes = ["array", "cstdint", "vector"]
       }
     ]
     '''
-  [cases.array_vector_length_2]
+  [cases.vector_length_2]
     param_types = ["std::array<std::vector<std::uint64_t>, 2>&"]
     setup = "return {{std::initializer_list<std::uint64_t>({1,2,3,4,5}), std::initializer_list<std::uint64_t>({6,7,8,9})}};"
     expect_json = '''
