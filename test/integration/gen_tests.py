@@ -114,11 +114,12 @@ def add_test_setup(f, config):
             get_param_str(param, i) for i, param in enumerate(case["param_types"])
         )
 
-        oid_func_body = "".join(
-            f"    std::cout << (uintptr_t)(&a{i}) << std::endl;\n"
-            for i in range(len(case["param_types"]))
+        oid_func_body = (
+            '    std::cout << "(" << getpid() << ") " << BOOST_CURRENT_FUNCTION << " ["'
         )
-        oid_func_body += "    std::cout << BOOST_CURRENT_FUNCTION << std::endl;\n"
+        for i in range(len(case["param_types"])):
+            oid_func_body += f' << " " << (uintptr_t)&a{i}'
+        oid_func_body += ' << "]" << std::endl;\n'
 
         f.write(
             define_traceable_func(
