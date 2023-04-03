@@ -102,16 +102,27 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/facebook/rocksdb.git
     GIT_TAG        444b3f4845dd01b0d127c4b420fdd3b50ad56682
 )
-FetchContent_Populate(rocksdb)
-add_custom_target(librocksdb ALL
-  WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
-  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On
-  COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
-  BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
-  COMMENT "Building RocksDB"
-  USES_TERMINAL
-)
-include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
+
+function(find_rocksdb)
+  set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
+  set(CMAKE_BUILD_TYPE Release)
+  set(WITH_GFLAGS Off)
+  set(WITH_LIBURING Off)
+  set(WITH_ZSTD On)
+  set(WITH_TESTS Off)
+  set(ROCKSDB_BUILD_SHARED Off)
+
+  FetchContent_MakeAvailable(rocksdb)
+
+  unset(CMAKE_BUILD_TYPE)
+  unset(WITH_GFLAGS)
+  unset(WITH_LIBURING)
+  unset(WITH_ZSTD)
+  unset(WITH_TESTS)
+  unset(ROCKSDB_BUILD_SHARED)
+endfunction()
+
+find_rocksdb()
 
 ### folly
 ### use folly as a header only library. some features won't be supported.
@@ -291,12 +302,12 @@ target_link_libraries(oicore
 
 ### TreeBuilder
 add_library(treebuilder src/TreeBuilder.cpp)
-add_dependencies(treebuilder librocksdb)
 target_link_libraries(treebuilder
-  ${rocksdb_BINARY_DIR}/librocksdb.a
   oicore # overkill but it does need a lot of stuff
+  rocksdb
   zstd::zstd
 )
+target_include_directories(treebuilder PRIVATE ${rocksdb_SOURCE_DIR}/include)
 
 
 
