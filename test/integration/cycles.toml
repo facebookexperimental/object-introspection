@@ -1,17 +1,17 @@
 includes = ["functional", "memory"]
 definitions = '''
   struct RawNode {
-    uint64_t value;
+    int value;
     struct RawNode* next;
   };
 
   struct UniqueNode {
-    uint64_t value;
+    int value;
     std::unique_ptr<struct UniqueNode> next;
   };
 
   struct SharedNode {
-    uint64_t value;
+    int value;
     std::shared_ptr<struct SharedNode> next;
   };
 '''
@@ -37,8 +37,8 @@ definitions = '''
         "dynamicSize": 32,
         "members": [
           {
-            "typeName": "uint64_t",
-            "staticSize": 8,
+            "typeName": "int",
+            "staticSize": 4,
             "dynamicSize": 0
           },
           {
@@ -52,8 +52,8 @@ definitions = '''
                 "dynamicSize": 16,
                 "members": [
                   {
-                    "typeName": "uint64_t",
-                    "staticSize": 8,
+                    "typeName": "int",
+                    "staticSize": 4,
                     "dynamicSize": 0
                   },
                   {
@@ -67,8 +67,8 @@ definitions = '''
                         "dynamicSize": 0,
                         "members": [
                           {
-                            "typeName": "uint64_t",
-                            "staticSize": 8,
+                            "typeName": "int",
+                            "staticSize": 4,
                             "dynamicSize": 0
                           },
                           {
@@ -113,8 +113,8 @@ definitions = '''
             "dynamicSize": 32,
             "members": [
               {
-                "typeName": "uint64_t",
-                "staticSize": 8,
+                "typeName": "int",
+                "staticSize": 4,
                 "dynamicSize": 0
               },
               {
@@ -128,8 +128,8 @@ definitions = '''
                     "dynamicSize": 16,
                     "members": [
                       {
-                        "typeName": "uint64_t",
-                        "staticSize": 8,
+                        "typeName": "int",
+                        "staticSize": 4,
                         "dynamicSize": 0
                       },
                       {
@@ -143,8 +143,8 @@ definitions = '''
                             "dynamicSize": 0,
                             "members": [
                               {
-                                "typeName": "uint64_t",
-                                "staticSize": 8,
+                                "typeName": "int",
+                                "staticSize": 4,
                                 "dynamicSize": 0
                               },
                               {
@@ -191,8 +191,8 @@ definitions = '''
             "dynamicSize": 48,
             "members": [
               {
-                "typeName": "uint64_t",
-                "staticSize": 8,
+                "typeName": "int",
+                "staticSize": 4,
                 "dynamicSize": 0
               },
               {
@@ -206,8 +206,8 @@ definitions = '''
                     "dynamicSize": 24,
                     "members": [
                       {
-                        "typeName": "uint64_t",
-                        "staticSize": 8,
+                        "typeName": "int",
+                        "staticSize": 4,
                         "dynamicSize": 0
                       },
                       {
@@ -221,8 +221,8 @@ definitions = '''
                             "dynamicSize": 0,
                             "members": [
                               {
-                                "typeName": "uint64_t",
-                                "staticSize": 8,
+                                "typeName": "int",
+                                "staticSize": 4,
                                 "dynamicSize": 0
                               },
                               {
