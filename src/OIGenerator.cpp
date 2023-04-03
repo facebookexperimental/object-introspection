@@ -85,7 +85,7 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
   for (auto& func : drgnplusplus::func_iterator(prog)) {
     std::string strongLinkageName;
     {
-      char* linkageNameCstr;
+      const char* linkageNameCstr;
       if (auto err = drgnplusplus::error(
               drgn_type_linkage_name(func.type, &linkageNameCstr))) {
         // throw err;
