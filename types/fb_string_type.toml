@@ -24,12 +24,15 @@ void getSizeType(const %1%<E, T, A, Storage> &t, size_t& returnArg)
     SAVE_DATA((uintptr_t)t.capacity());
     SAVE_DATA((uintptr_t)t.size());
 
-    // Check if the string is contained within the type (inlined) so as not to double count.
-    SAVE_SIZE(
-      ((uintptr_t)t.data() < (uintptr_t)(&t + sizeof(%1%<E, T, A, Storage>)))
+    bool inlined = ((uintptr_t)t.data() < (uintptr_t)(&t + sizeof(%1%<E, T, A, Storage>)))
         &&
-      ((uintptr_t)t.data() >= (uintptr_t)&t)
-        ? 0 : (t.capacity() * sizeof(T))
-    );
+      ((uintptr_t)t.data() >= (uintptr_t)&t);
+
+    if (!inlined && pointers.add((uintptr_t)t.data())) {
+      SAVE_SIZE(t.capacity() * sizeof(T));
+      SAVE_DATA(1);
+    } else {
+      SAVE_DATA(0);
+    }
 }
 """

@@ -39,6 +39,17 @@ extern "C" {
 #include <sys/types.h>
 }
 
+/* Tag indicating if the pointer has  been followed or skipped */
+enum class TrackPointerTag: uint64_t {
+  /* The content has been skipped.
+   * It prevents double counting the footprint of a node the JIT code has seen
+   * before, double counting content being stored inline, or getting stuck in an
+   * infinite loop when processing circular linked list.
+   */
+  skipped = 0,
+  followed = 1,
+};
+
 TreeBuilder::TreeBuilder(Config c) : config{std::move(c)} {
   buffer = std::make_unique<msgpack::sbuffer>();
 
@@ -205,7 +216,6 @@ void TreeBuilder::build(const std::vector<uint64_t>& data,
   th = &typeHierarchy;
   oidData = &data;
 
-  pointers.clear();
   oidDataIndex = 3;  // HACK: OID's first 3 outputs are dummy 0s
 
   ObjectIntrospection::Metrics::Tracing _("build_tree");
@@ -215,8 +225,9 @@ void TreeBuilder::build(const std::vector<uint64_t>& data,
     auto& rootID = rootIDs.emplace_back(nextNodeID++);
 
     try {
-      // The first value is the address of the root object
-      pointers.insert(next());
+      // The first value is the address of the root object. Drop it as we don't
+      // need to manage pointer deduplication anymore.
+      next();
       process(rootID, {.type = type, .name = argName, .typePath = argName});
     } catch (...) {
       // Mark the failure using the error node ID
@@ -367,15 +378,6 @@ bool TreeBuilder::isPrimitive(struct drgn_type* type) {
   return drgn_type_primitive(type) != DRGN_NOT_PRIMITIVE_TYPE;
 }
 
-bool TreeBuilder::shouldProcess(uintptr_t pointer) {
-  if (pointer == 0U) {
-    return false;
-  }
-
-  auto [_, unprocessed] = pointers.emplace(pointer);
-  return unprocessed;
-}
-
 static std::string_view drgnKindStr(struct drgn_type* type) {
   auto kind = OICodeGen::drgnKindStr(type);
   // -1 is for the null terminator
@@ -427,8 +429,10 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
             auto innerTypeKind = drgn_type_kind(entry->second);
             if (innerTypeKind != DRGN_TYPE_FUNCTION) {
               node.pointer = next();
-              if (innerTypeKind == DRGN_TYPE_VOID ||
-                  !shouldProcess(*node.pointer)) {
+              if (innerTypeKind == DRGN_TYPE_VOID) {
+                break;
+              }
+              if (next() == (uint64_t)TrackPointerTag::skipped) {
                 break;
               }
             }
@@ -626,7 +630,7 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
       node.pointer = next();
       containerStats.length = *node.pointer ? 1 : 0;
       containerStats.capacity = 1;
-      if (!shouldProcess(*node.pointer)) {
+      if (next() == (uint64_t)TrackPointerTag::skipped) {
         return;
       }
       break;
@@ -634,7 +638,7 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
     case REF_WRAPPER_TYPE:
       node.pointer = next();
       containerStats.length = containerStats.capacity = 1;
-      if (!shouldProcess(*node.pointer)) {
+      if (next() == (uint64_t)TrackPointerTag::skipped) {
         return;
       }
       break;
@@ -723,7 +727,7 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
     case FOLLY_IOBUFQUEUE_TYPE:
       node.pointer = next();
       containerStats.length = containerStats.capacity = 0;
-      if (!shouldProcess(*node.pointer)) {
+      if (next() == (uint64_t)TrackPointerTag::skipped) {
         return;
       }
       // Fallthrough to the IOBuf data if we have a valid pointer
@@ -736,20 +740,17 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
       node.pointer = next();
       containerStats.capacity = next();
       containerStats.length = next();
-      // If this string's data is potentially shared (cutoff for sharing is 255)
-      if (containerStats.capacity >= 255) {
-        // Contents aren't actually stored inline in this case,
-        // but we set this to `true` so that we don't double-count
-        // this string's data if we have seen it before.
-        contentsStoredInline = !shouldProcess(*node.pointer);
-      } else {
-        // No sense in recording the pointer value if the string isn't
-        // potentially shared
-        node.pointer.reset();
-        // Account for Small String Optimization (SSO)
-        const int fbStringSsoCutOff = 23;
-        constexpr size_t ssoCutoff = fbStringSsoCutOff;
-        contentsStoredInline = containerStats.capacity <= ssoCutoff;
+      // Contents are either stored inline or have been seen before in the JIT
+      // code. Set to true either way so as not to double count.
+      contentsStoredInline = next() == 0;
+
+      {
+        constexpr int sharedCutOff = 255;
+        if (containerStats.capacity < sharedCutOff) {
+          // No sense in recording the pointer value if the string isn't
+          // potentially shared.
+          node.pointer.reset();
+        }
       }
       break;
     case STRING_TYPE:

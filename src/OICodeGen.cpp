@@ -3284,7 +3284,10 @@ bool OICodeGen::generateJitCode(std::string& code) {
       JLOGPTR(s_ptr);
       StoreData((uintptr_t)(s_ptr), returnArg);
       if (s_ptr && pointers.add((uintptr_t)s_ptr)) {
-          getSizeType(*(s_ptr), returnArg);
+        StoreData(1, returnArg);
+        getSizeType(*(s_ptr), returnArg);
+      } else {
+        StoreData(0, returnArg);
       }
     }
 
