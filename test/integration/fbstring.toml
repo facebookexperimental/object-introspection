@@ -76,7 +76,6 @@ includes = ["folly/FBString.h"]
     '''
 
   [cases.string_pooled]
-    skip = "Potentially incorrect dynamic size"
     param_types = ["folly::fbstring&"]
     setup = "return folly::fbstring(1024, 'c');"
     expect_json = '''

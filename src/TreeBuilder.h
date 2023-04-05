@@ -99,13 +99,11 @@ class TreeBuilder {
    */
   std::unique_ptr<msgpack::sbuffer> buffer;
   rocksdb::DB* db = nullptr;
-  std::unordered_set<uintptr_t> pointers{};
 
   uint64_t getDrgnTypeSize(struct drgn_type* type);
   uint64_t next();
   bool isContainer(const Variable& variable);
   bool isPrimitive(struct drgn_type* type);
-  bool shouldProcess(uintptr_t pointer);
   Node process(NodeID id, Variable variable);
   void processContainer(const Variable& variable, Node& node);
   template <class T>

@@ -21,7 +21,11 @@ void getSizeType(const %1% &t, size_t& returnArg)
 
     const IOBuf *head = t.front();
     SAVE_DATA((uintptr_t)head);
-    if (head)
-    getSizeType(*head, returnArg);
+    if (head && pointers.add((uintptr_t)head)) {
+        SAVE_DATA(1);
+        getSizeType(*head, returnArg);
+    } else {
+        SAVE_DATA(0);
+    }
 }
 """
