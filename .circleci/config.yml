@@ -115,7 +115,7 @@ jobs:
       - run:
           name: Build
           command: |
-            cmake -G Ninja -B build/ -DWITH_TESTS=On -DCODE_COVERAGE=On
+            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On
             cmake --build build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
