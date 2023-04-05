@@ -14,7 +14,7 @@ First ensure your system has all the dependencies installed. We have tested on U
 $ sudo apt-get update
 $ sudo apt-get install -y bison autopoint build-essential clang-12 cmake flex gawk libboost-all-dev libbz2-dev libcap2-bin libclang-12-dev libcurl4-gnutls-dev libdouble-conversion-dev libdw-dev libfmt-dev libgflags-dev libgmock-dev libgoogle-glog-dev libgtest-dev libjemalloc-dev libmsgpack-dev libzstd-dev llvm-12-dev ninja-build pkg-config python3-setuptools sudo xsltproc libboost-all-dev
 $ sudo pip3 install toml
-$ cmake -G Ninja -B build/ -DWITH_TESTS=On
+$ cmake -G Ninja -B build/
 ```
 
 ### OpenSuse Tumbleweed
