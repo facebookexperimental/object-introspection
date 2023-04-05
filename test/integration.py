@@ -261,7 +261,7 @@ class OIDebuggerTestCase(unittest.TestCase):
             beforeSegs = int(numsegs.stdout.decode("ascii"))
 
             proc = subprocess.run(
-                f"{self.oid} --script {self.script()} -t 1 --pid {pid}",
+                f"{self.oid} --config-file {self.oid_conf} --script {self.script()} -t 1 --pid {pid} -d 3",
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -279,7 +279,7 @@ class OIDebuggerTestCase(unittest.TestCase):
 
             # remove both the text and data segments
             proc = subprocess.run(
-                f"{self.oid} -r --pid {pid}",
+                f"{self.oid} --config-file {self.oid_conf} -r --pid {pid}",
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
