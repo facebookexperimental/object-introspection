@@ -1,0 +1,102 @@
+includes = ["folly/FBString.h"]
+[cases]
+  [cases.empty]
+    param_types = ["folly::fbstring&"]
+    setup = "return {};"
+    expect_json = '''
+    [
+      {
+        "typeName": "fbstring",
+        "isTypedef": true,
+        "staticSize": 24,
+        "dynamicSize": 0,
+        "exclusiveSize": 0,
+        "members": [
+          {
+            "staticSize": 24,
+            "dynamicSize": 0,
+            "exclusiveSize": 24,
+            "length": 0,
+            "capacity": 23,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+    '''
+
+  [cases.inline]
+    param_types = ["folly::fbstring&"]
+    setup = 'return {"012345"};'
+    expect_json = '''
+    [
+      {
+        "typeName": "fbstring",
+        "isTypedef": true,
+        "staticSize": 24,
+        "dynamicSize": 0,
+        "exclusiveSize": 0,
+        "members": [
+          {
+            "staticSize": 24,
+            "dynamicSize": 0,
+            "exclusiveSize": 24,
+            "length": 6,
+            "capacity": 23,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+    '''
+
+  [cases.heap_allocated]
+    param_types = ["folly::fbstring&"]
+    setup = 'return {"abcdefghijklmnopqrstuvwxzy"};'
+    expect_json = '''
+    [
+      {
+        "typeName": "fbstring",
+        "isTypedef": true,
+        "staticSize": 24,
+        "dynamicSize": 26,
+        "exclusiveSize": 0,
+        "members": [
+          {
+            "staticSize": 24,
+            "dynamicSize": 26,
+            "exclusiveSize": 50,
+            "length": 26,
+            "capacity": 26,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+    '''
+
+  [cases.string_pooled]
+    skip = "Potentially incorrect dynamic size"
+    param_types = ["folly::fbstring&"]
+    setup = "return folly::fbstring(1024, 'c');"
+    expect_json = '''
+    [
+      {
+        "typeName": "fbstring",
+        "isTypedef": true,
+        "staticSize": 24,
+        "dynamicSize": 1024,
+        "exclusiveSize": 0,
+        "members": [
+          {
+            "staticSize": 24,
+            "dynamicSize": 1024,
+            "exclusiveSize": 1048,
+            "length": 1024,
+            "capacity": 1024,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+    '''

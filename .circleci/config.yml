@@ -141,7 +141,9 @@ jobs:
               clang-12 \
               libboost-all-dev \
               libgflags-dev \
-              llvm-12-dev
+              llvm-12-dev \
+              libfmt-dev \
+              libjemalloc-dev
       - run:
           name: Test
           environment:

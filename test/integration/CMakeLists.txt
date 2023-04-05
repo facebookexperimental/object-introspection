@@ -5,6 +5,7 @@ set(INTEGRATION_TEST_CONFIGS
   container_enums.toml
   cycles.toml
   enums.toml
+  fbstring.toml
   ignored.toml
   inheritance_access.toml
   inheritance_multiple.toml
