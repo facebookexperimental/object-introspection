@@ -3,7 +3,7 @@ typeName = "folly::basic_fbstring<"
 numTemplateParams = 1
 ctype = "FB_STRING_TYPE"
 header = "folly/FBString.h"
-ns = ["folly::basic_fbstring"]
+ns = ["folly::basic_fbstring", "folly::fbstring_core"]
 replaceTemplateParamIndex = []
 # allocatorIndex = 0
 # underlyingContainerIndex = 0
@@ -18,8 +18,18 @@ func = """
 template <typename E,class T,class A,class Storage>
 void getSizeType(const %1%<E, T, A, Storage> &t, size_t& returnArg)
 {
+    SAVE_SIZE(sizeof(%1%<E, T, A, Storage>));
+
     SAVE_DATA((uintptr_t)(t.data()));
     SAVE_DATA((uintptr_t)t.capacity());
     SAVE_DATA((uintptr_t)t.size());
+
+    // Check if the string is contained within the type (inlined) so as not to double count.
+    SAVE_SIZE(
+      ((uintptr_t)t.data() < (uintptr_t)(&t + sizeof(%1%<E, T, A, Storage>)))
+        &&
+      ((uintptr_t)t.data() >= (uintptr_t)&t)
+        ? 0 : (t.capacity() * sizeof(T))
+    );
 }
 """
