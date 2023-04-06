@@ -40,7 +40,7 @@ extern "C" {
 }
 
 /* Tag indicating if the pointer has  been followed or skipped */
-enum class TrackPointerTag: uint64_t {
+enum class TrackPointerTag : uint64_t {
   /* The content has been skipped.
    * It prevents double counting the footprint of a node the JIT code has seen
    * before, double counting content being stored inline, or getting stuck in an
@@ -225,9 +225,6 @@ void TreeBuilder::build(const std::vector<uint64_t>& data,
     auto& rootID = rootIDs.emplace_back(nextNodeID++);
 
     try {
-      // The first value is the address of the root object. Drop it as we don't
-      // need to manage pointer deduplication anymore.
-      next();
       process(rootID, {.type = type, .name = argName, .typePath = argName});
     } catch (...) {
       // Mark the failure using the error node ID

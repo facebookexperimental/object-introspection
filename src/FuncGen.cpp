@@ -251,7 +251,6 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
       data[2] = 0;
 
       size_t dataSegOffset = 3 * sizeof(uintptr_t);
-      OIInternal::StoreData((uintptr_t)(&t), dataSegOffset);
       JLOG("%1% @");
       JLOGPTR(&t);
       OIInternal::getSizeType(t, dataSegOffset);
@@ -279,7 +278,6 @@ void FuncGen::DefineTopLevelGetSizeRefRet(std::string& testCode,
       pointers.initialize();
       size_t ret = 0;
       pointers.add((uintptr_t)&t);
-      SAVE_DATA((uintptr_t)t);
       OIInternal::getSizeType(t, ret);
       return ret;
     }
@@ -305,7 +303,6 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
       data[2] = 0;
 
       size_t dataSegOffset = 3 * sizeof(uintptr_t);
-      OIInternal::StoreData((uintptr_t)(&t), dataSegOffset);
 
       OIInternal::getSizeType(t, dataSegOffset);
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
