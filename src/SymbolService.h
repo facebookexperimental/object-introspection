@@ -28,6 +28,7 @@
 
 namespace fs = std::filesystem;
 
+struct Dwfl;
 struct drgn_program;
 struct irequest;
 
@@ -38,7 +39,10 @@ struct SymbolInfo {
 
 class SymbolService {
  public:
-  SymbolService(std::variant<pid_t, fs::path>);
+  SymbolService(pid_t);
+  SymbolService(fs::path);
+  SymbolService(const SymbolService&) = delete;
+  SymbolService& operator=(const SymbolService&) = delete;
   ~SymbolService();
 
   struct drgn_program* getDrgnProgram();
@@ -60,8 +64,13 @@ class SymbolService {
   }
 
  private:
-  std::variant<pid_t, fs::path> target{0};
+  std::variant<pid_t, fs::path> target;
+  struct Dwfl* dwfl{nullptr};
   struct drgn_program* prog{nullptr};
+
+  bool loadModules();
+  bool loadModulesFromPid(pid_t);
+  bool loadModulesFromPath(const fs::path&);
 
   std::vector<std::pair<uint64_t, uint64_t>> executableAddrs{};
   bool hardDisableDrgn = false;
