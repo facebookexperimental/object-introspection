@@ -85,16 +85,28 @@ static bool isExecutableAddr(
   return it != end(exeAddrs) && addr >= it->first;
 }
 
-SymbolService::SymbolService(std::variant<pid_t, fs::path> newTarget) {
-  target = std::move(newTarget);
+SymbolService::SymbolService(pid_t pid) : target{pid} {
+  // Update target processes memory map
+  LoadExecutableAddressRange(pid, executableAddrs);
+  if (!loadModules()) {
+    throw std::runtime_error("Failed to load modules for process " +
+                             std::to_string(pid));
+  }
+}
 
-  if (target.index() == 0) {
-    // Update target processes memory map
-    LoadExecutableAddressRange(std::get<pid_t>(target), executableAddrs);
+SymbolService::SymbolService(fs::path executablePath)
+    : target{std::move(executablePath)} {
+  if (!loadModules()) {
+    throw std::runtime_error("Failed to load modules for executable " +
+                             executablePath.string());
   }
 }
 
 SymbolService::~SymbolService() {
+  if (dwfl != nullptr) {
+    dwfl_end(dwfl);
+  }
+
   if (prog != nullptr) {
     drgn_program_destroy(prog);
   }
@@ -197,14 +209,42 @@ static int moduleCallback(Dwfl_Module* mod, void** /* userData */,
   return DWARF_CB_OK;
 }
 
-/**
- * Resolve a symbol to its location in the target ELF binary.
- *
- * @param[in] symName - symbol to resolve
- * @return - A std::optional with the symbol's information
- */
-std::optional<SymbolInfo> SymbolService::locateSymbol(
-    const std::string& symName, bool demangle) {
+/* Load modules from a live process */
+bool SymbolService::loadModulesFromPid(pid_t target) {
+  if (int err = dwfl_linux_proc_report(dwfl, target)) {
+    LOG(ERROR) << "dwfl_linux_proc_report: " << dwfl_errmsg(err);
+    return false;
+  }
+
+  return true;
+}
+
+/* Load modules from an ELF binary */
+bool SymbolService::loadModulesFromPath(const fs::path& target) {
+  auto* mod = dwfl_report_offline(dwfl, target.c_str(), target.c_str(), -1);
+  if (mod == nullptr) {
+    LOG(ERROR) << "dwfl_report_offline: " << dwfl_errmsg(dwfl_errno());
+    return false;
+  }
+
+  Dwarf_Addr start = 0;
+  Dwarf_Addr end = 0;
+  if (dwfl_module_info(mod, nullptr, &start, &end, nullptr, nullptr, nullptr,
+                       nullptr) == nullptr) {
+    LOG(ERROR) << "dwfl_module_info: " << dwfl_errmsg(dwfl_errno());
+    return false;
+  }
+
+  VLOG(1) << "Module info for " << target << ": start= " << std::hex << start
+          << ", end=" << end;
+
+  // Add module's boundary to executableAddrs
+  executableAddrs = {{start, end}};
+
+  return true;
+}
+
+bool SymbolService::loadModules() {
   static char* debuginfo_path;
   static const Dwfl_Callbacks proc_callbacks{
       .find_elf = dwfl_linux_proc_find_elf,
@@ -213,55 +253,42 @@ std::optional<SymbolInfo> SymbolService::locateSymbol(
       .debuginfo_path = &debuginfo_path,
   };
 
-  Dwfl* dwfl = dwfl_begin(&proc_callbacks);
+  dwfl = dwfl_begin(&proc_callbacks);
   if (dwfl == nullptr) {
     LOG(ERROR) << "dwfl_begin: " << dwfl_errmsg(dwfl_errno());
-    return std::nullopt;
+    return false;
   }
-  BOOST_SCOPE_EXIT_ALL(&) {
-    dwfl_end(dwfl);
-  };
 
-  switch (target.index()) {
-    case 0: {
-      auto pid = std::get<pid_t>(target);
-      if (int err = dwfl_linux_proc_report(dwfl, pid)) {
-        LOG(ERROR) << "dwfl_linux_proc_report: " << dwfl_errmsg(err);
-        return std::nullopt;
-      }
-      break;
-    }
-    case 1: {
-      const auto& exe = std::get<fs::path>(target);
-      Dwfl_Module* mod =
-          dwfl_report_offline(dwfl, exe.c_str(), exe.c_str(), -1);
-      if (mod == nullptr) {
-        LOG(ERROR) << "dwfl_report_offline: " << dwfl_errmsg(dwfl_errno());
-        return std::nullopt;
-      }
+  dwfl_report_begin(dwfl);
 
-      Dwarf_Addr start = 0;
-      Dwarf_Addr end = 0;
-      if (dwfl_module_info(mod, nullptr, &start, &end, nullptr, nullptr,
-                           nullptr, nullptr) == nullptr) {
-        LOG(ERROR) << "dwfl_module_info: " << dwfl_errmsg(dwfl_errno());
-        return std::nullopt;
-      }
+  bool ok = std::visit(
+      visitor{[this](pid_t target) { return loadModulesFromPid(target); },
+              [this](const fs::path& target) {
+                return loadModulesFromPath(target);
+              }},
+      target);
 
-      VLOG(1) << "Module info for " << exe << ": start= " << std::hex << start
-              << ", end=" << end;
-
-      // Add module's boundary to executableAddrs
-      executableAddrs = {{start, end}};
-
-      break;
-    }
+  if (!ok) {
+    // The loadModules* function above already logged the error message
+    return false;
   }
 
   if (dwfl_report_end(dwfl, nullptr, nullptr) != 0) {
     LOG(ERROR) << "dwfl_report_end: " << dwfl_errmsg(-1);
+    return false;
   }
 
+  return true;
+}
+
+/**
+ * Resolve a symbol to its location in the target ELF binary.
+ *
+ * @param[in] symName - symbol to resolve
+ * @return - A std::optional with the symbol's information
+ */
+std::optional<SymbolInfo> SymbolService::locateSymbol(
+    const std::string& symName, bool demangle) {
   ModParams m = {.symName = symName,
                  .sym = {},
                  .value = 0,
@@ -326,46 +353,6 @@ static int buildIDCallback(Dwfl_Module* mod, void** /* userData */,
 }
 
 std::optional<std::string> SymbolService::locateBuildID() {
-  static char* debuginfoPath;
-  static const Dwfl_Callbacks procCallbacks = {
-      .find_elf = dwfl_linux_proc_find_elf,
-      .find_debuginfo = dwfl_standard_find_debuginfo,
-      .section_address = dwfl_offline_section_address,
-      .debuginfo_path = &debuginfoPath,
-  };
-
-  Dwfl* dwfl = dwfl_begin(&procCallbacks);
-  if (dwfl == nullptr) {
-    LOG(ERROR) << "dwfl_begin: " << dwfl_errmsg(dwfl_errno());
-    return std::nullopt;
-  }
-
-  BOOST_SCOPE_EXIT_ALL(&) {
-    dwfl_end(dwfl);
-  };
-
-  switch (target.index()) {
-    case 0: {
-      auto pid = std::get<pid_t>(target);
-      if (auto err = dwfl_linux_proc_report(dwfl, pid)) {
-        LOG(ERROR) << "dwfl_linux_proc_report: " << dwfl_errmsg(err);
-      }
-      break;
-    }
-    case 1: {
-      const auto& exe = std::get<fs::path>(target);
-      if (dwfl_report_offline(dwfl, exe.c_str(), exe.c_str(), -1) == nullptr) {
-        LOG(ERROR) << "dwfl_report_offline: " << dwfl_errmsg(dwfl_errno());
-        return std::nullopt;
-      }
-      break;
-    }
-  }
-
-  if (dwfl_report_end(dwfl, nullptr, nullptr) != 0) {
-    LOG(ERROR) << "dwfl_report_end: " << dwfl_errmsg(-1);
-  }
-
   std::optional<std::string> buildID;
   dwfl_getmodules(dwfl, buildIDCallback, (void*)&buildID, 0);
 

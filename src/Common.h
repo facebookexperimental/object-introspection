@@ -105,3 +105,14 @@ struct TypeHierarchy {
   std::set<struct drgn_type*> thriftIssetStructTypes;
   std::map<struct drgn_type*, std::vector<struct drgn_type*>> descendantClasses;
 };
+
+// Helper for std::variant and std::visit
+// https://en.cppreference.com/w/cpp/utility/variant/visit
+template <class... Ts>
+struct visitor : Ts... {
+  using Ts::operator()...;
+};
+
+// Type deduction for the helper above
+template <class... Ts>
+visitor(Ts...) -> visitor<Ts...>;
