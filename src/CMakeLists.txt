@@ -23,6 +23,7 @@ target_link_libraries(symbol_service
 
 add_library(codegen
   ContainerInfo.cpp
+  Features.cpp
   FuncGen.cpp
   OICodeGen.cpp
 )

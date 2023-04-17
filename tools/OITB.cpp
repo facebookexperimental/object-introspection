@@ -30,6 +30,8 @@
 
 namespace fs = std::filesystem;
 
+using namespace ObjectIntrospection;
+
 constexpr static OIOpts opts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit"},
     OIOpt{'a', "log-all-structs", no_argument, nullptr,
@@ -118,8 +120,10 @@ static std::ostream&
 operator<<(std::ostream& out, TreeBuilder::Config tbc) {
   out << "TreeBuilde::Config = [";
   out << "\n  logAllStructs = " << tbc.logAllStructs;
-  out << "\n  chaseRawPointers = " << tbc.chaseRawPointers;
-  out << "\n  genPaddingStats = " << tbc.genPaddingStats;
+  out << "\n  chaseRawPointers = "
+      << tbc.features.contains(Feature::ChaseRawPointers);
+  out << "\n  genPaddingStats = "
+      << tbc.features.contains(Feature::GenPaddingStats);
   out << "\n  dumpDataSegment = " << tbc.dumpDataSegment;
   out << "\n  jsonPath = " << (tbc.jsonPath ? *tbc.jsonPath : "NONE");
   out << "\n]\n";
@@ -134,9 +138,8 @@ int main(int argc, char* argv[]) {
 
   /* Reflects `oid`'s defaults for TreeBuilder::Config */
   TreeBuilder::Config tbConfig{
+      .features = {Feature::PackStructs, Feature::GenPaddingStats},
       .logAllStructs = true,
-      .chaseRawPointers = false,
-      .genPaddingStats = true,
       .dumpDataSegment = false,
       .jsonPath = std::nullopt,
   };
@@ -154,10 +157,10 @@ int main(int argc, char* argv[]) {
             true;  // Weird that we're setting it to true, again...
         break;
       case 'n':
-        tbConfig.chaseRawPointers = true;
+        tbConfig.features.insert(Feature::ChaseRawPointers);
         break;
       case 'w':
-        tbConfig.genPaddingStats = false;
+        tbConfig.features.erase(Feature::GenPaddingStats);
         break;
       case 'J':
         tbConfig.jsonPath = optarg ? optarg : "oid_out.json";
@@ -186,7 +189,7 @@ int main(int argc, char* argv[]) {
 
   TreeBuilder typeTree(tbConfig);
 
-  if (tbConfig.genPaddingStats) {
+  if (tbConfig.features.contains(Feature::GenPaddingStats)) {
     LOG(INFO) << "Setting-up PaddingHunter...";
     typeTree.setPaddedStructs(&paddingInfos);
   }

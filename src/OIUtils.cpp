@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "OIUtils.h"
+
 #include <glog/logging.h>
 #include <toml++/toml.h>
 
@@ -22,18 +24,16 @@
 #include <boost/property_tree/ptree.hpp>
 #include <filesystem>
 
-#include "OICodeGen.h"
-#include "OICompiler.h"
-
 namespace fs = std::filesystem;
 
 namespace OIUtils {
 
+using namespace ObjectIntrospection;
 using namespace std::literals;
 
-bool processConfigFile(const std::string& configFilePath,
-                       OICompiler::Config& compilerConfig,
-                       OICodeGen::Config& generatorConfig) {
+std::optional<std::set<Feature>> processConfigFile(
+    const std::string& configFilePath, std::map<Feature, bool> featureMap,
+    OICompiler::Config& compilerConfig, OICodeGen::Config& generatorConfig) {
   fs::path configDirectory = fs::path(configFilePath).remove_filename();
 
   toml::table config;
@@ -42,7 +42,29 @@ bool processConfigFile(const std::string& configFilePath,
   } catch (const toml::parse_error& ex) {
     LOG(ERROR) << "processConfigFileToml: " << configFilePath << " : "
                << ex.description();
-    return false;
+    return {};
+  }
+
+  if (toml::array* features = config["features"].as_array()) {
+    for (auto&& el : *features) {
+      auto* featureStr = el.as_string();
+      if (!featureStr) {
+        LOG(ERROR) << "enabled features must be strings";
+        return {};
+      }
+
+      if (auto f = featureFromStr(featureStr->get());
+          f != Feature::UnknownFeature) {
+        // Inserts element(s) into the container, if the container doesn't
+        // already contain an element with an equivalent key. Hence prefer
+        // command line enabling/disabling.
+        featureMap.insert({f, true});
+      } else {
+        LOG(ERROR) << "unrecognised feature: " << featureStr->get()
+                   << " specified in config";
+        return {};
+      }
+    }
   }
 
   if (toml::table* types = config["types"].as_table()) {
@@ -111,7 +133,7 @@ bool processConfigFile(const std::string& configFilePath,
           auto* type = (*ignore)["type"].as_string();
           if (!type) {
             LOG(ERROR) << "Config entry 'ignore' must specify a type";
-            return false;
+            return {};
           }
 
           auto* members = (*ignore)["members"].as_array();
@@ -129,7 +151,13 @@ bool processConfigFile(const std::string& configFilePath,
     }
   }
 
-  return true;
+  std::set<Feature> featuresSet;
+  for (auto [k, v] : featureMap) {
+    if (v) {
+      featuresSet.insert(k);
+    }
+  }
+  return featuresSet;
 }
 
 }  // namespace OIUtils

@@ -32,11 +32,13 @@
 namespace fs = std::filesystem;
 
 class OIDebugger {
-  OIDebugger(std::string, OICodeGen::Config, TreeBuilder::Config);
+  OIDebugger(OICodeGen::Config, OICompiler::Config, TreeBuilder::Config);
 
  public:
-  OIDebugger(pid_t, std::string, OICodeGen::Config, TreeBuilder::Config);
-  OIDebugger(fs::path, std::string, OICodeGen::Config, TreeBuilder::Config);
+  OIDebugger(pid_t, OICodeGen::Config, OICompiler::Config, TreeBuilder::Config);
+  OIDebugger(fs::path, OICodeGen::Config, OICompiler::Config,
+             TreeBuilder::Config);
+
   bool segmentInit(void);
   bool stopTarget(void);
   bool interruptTarget(void);
@@ -142,7 +144,6 @@ class OIDebugger {
   }
 
  private:
-  std::string configFilePath;
   bool debug = false;
   bool enableJitLogging = false;
   pid_t traceePid{};

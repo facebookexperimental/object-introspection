@@ -22,15 +22,18 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <map>
 
 extern "C" {
 #include <getopt.h>
 #include <libgen.h>
 }
 
+#include "Features.h"
 #include "Metrics.h"
 #include "OIDebugger.h"
 #include "OIOpts.h"
+#include "OIUtils.h"
 #include "PaddingHunter.h"
 #include "TimeUtils.h"
 #include "TreeBuilder.h"
@@ -156,6 +159,18 @@ constexpr static OIOpts opts{
           "Follow runtime polymorphic inheritance hierarchies"},
     OIOpt{'m', "mode", required_argument, "[prod]",
           "Allows to specify a mode of operation/group of settings"},
+    OIOpt{'f', "enable-feature", required_argument, nullptr,
+          "Enable a specific feature: ["
+#define X(name, str) str ","
+          OI_FEATURE_LIST
+#undef X
+          "]"},
+    OIOpt{'F', "disable-feature", required_argument, nullptr,
+          "Disable a specific feature: ["
+#define X(name, str) str ","
+          OI_FEATURE_LIST
+#undef X
+          "]"},
 };
 
 void usage() {
@@ -266,11 +281,11 @@ struct Config {
 
 }  // namespace Oid
 
-static ExitStatus::ExitStatus runScript(const std::string& fileName,
-                                        std::istream& script,
-                                        const Oid::Config& oidConfig,
-                                        const OICodeGen::Config& codeGenConfig,
-                                        const TreeBuilder::Config& tbConfig) {
+static ExitStatus::ExitStatus runScript(
+    const std::string& fileName, std::istream& script,
+    const Oid::Config& oidConfig, const OICodeGen::Config& codeGenConfig,
+    const OICompiler::Config& compilerConfig,
+    const TreeBuilder::Config& tbConfig) {
   if (!fileName.empty()) {
     VLOG(1) << "SCR FILE: " << fileName;
   }
@@ -279,11 +294,11 @@ static ExitStatus::ExitStatus runScript(const std::string& fileName,
 
   std::shared_ptr<OIDebugger> oid;  // share oid with the global signal handler
   if (oidConfig.pid != 0) {
-    oid = std::make_shared<OIDebugger>(oidConfig.pid, oidConfig.configFile,
-                                       codeGenConfig, tbConfig);
+    oid = std::make_shared<OIDebugger>(oidConfig.pid, codeGenConfig,
+                                       compilerConfig, tbConfig);
   } else {
-    oid = std::make_shared<OIDebugger>(
-        oidConfig.debugInfoFile, oidConfig.configFile, codeGenConfig, tbConfig);
+    oid = std::make_shared<OIDebugger>(oidConfig.debugInfoFile, codeGenConfig,
+                                       compilerConfig, tbConfig);
   }
   weak_oid = oid;  // set the weak_ptr for signal handlers
 
@@ -463,12 +478,13 @@ int main(int argc, char* argv[]) {
   std::string configGenOption;
   std::optional<fs::path> jsonPath{std::nullopt};
 
+  std::map<Feature, bool> features = {
+      {Feature::PackStructs, true},
+      {Feature::GenPaddingStats, true},
+  };
+
   bool logAllStructs = true;
-  bool chaseRawPointers = false;
-  bool packStructs = true;
   bool dumpDataSegment = false;
-  bool captureThriftIsset = false;
-  bool polymorphicInheritance = false;
 
   Metrics::Tracing _("main");
 #ifndef OSS_ENABLE
@@ -485,13 +501,25 @@ int main(int argc, char* argv[]) {
   while ((c = getopt_long(argc, argv, opts.shortOpts(), opts.longOpts(),
                           nullptr)) != -1) {
     switch (c) {
+      case 'F':
+        [[fallthrough]];
+      case 'f':
+        if (auto f = featureFromStr(optarg); f != Feature::UnknownFeature) {
+          features[f] = c == 'f';  // '-f' enables, '-F' disables
+        } else {
+          LOG(ERROR) << "Invalid feature: " << optarg << " specified!";
+          usage();
+          return ExitStatus::UsageError;
+        }
+        break;
+
       case 'm': {
         if (strcmp("prod", optarg) == 0) {
           // change default settings for prod
           oidConfig.hardDisableDrgn = true;
           oidConfig.cacheRemoteDownload = true;
           oidConfig.cacheBasePath = "/tmp/oid-cache";
-          chaseRawPointers = true;
+          features[Feature::ChaseRawPointers] = true;
         } else {
           LOG(ERROR) << "Invalid mode: " << optarg << " specified!";
           usage();
@@ -616,13 +644,13 @@ int main(int argc, char* argv[]) {
         oidConfig.removeMappings = true;
         break;
       case 'n':
-        chaseRawPointers = true;
+        features[Feature::ChaseRawPointers] = true;
         break;
       case 'a':
         logAllStructs = true;
         break;
       case 'z':
-        packStructs = false;
+        features[Feature::PackStructs] = false;
         break;
       case 'B':
         dumpDataSegment = true;
@@ -637,16 +665,16 @@ int main(int argc, char* argv[]) {
         oidConfig.timeout_s = atoi(optarg);
         break;
       case 'w':
-        oidConfig.genPaddingStats = false;
+        features[Feature::GenPaddingStats] = false;
         break;
       case 'J':
         jsonPath = optarg != nullptr ? optarg : "oid_out.json";
         break;
       case 'T':
-        captureThriftIsset = true;
+        features[Feature::CaptureThriftIsset] = true;
         break;
       case 'P':
-        polymorphicInheritance = true;
+        features[Feature::PolymorphicInheritance] = true;
         break;
       case 'h':
       default:
@@ -694,22 +722,27 @@ int main(int argc, char* argv[]) {
     scriptSource = "entry:unknown_function:arg0";
   }
 
+  OICompiler::Config compilerConfig{};
+
   OICodeGen::Config codeGenConfig{
       .useDataSegment = true,
-      .chaseRawPointers = chaseRawPointers,
-      .packStructs = packStructs,
-      .genPaddingStats = oidConfig.genPaddingStats,
-      .captureThriftIsset = captureThriftIsset,
-      .polymorphicInheritance = polymorphicInheritance,
+      .features = {},  // fill in after processing the config file
   };
 
   TreeBuilder::Config tbConfig{
+      .features = {},  // fill in after processing the config file
       .logAllStructs = logAllStructs,
-      .chaseRawPointers = chaseRawPointers,
-      .genPaddingStats = oidConfig.genPaddingStats,
       .dumpDataSegment = dumpDataSegment,
       .jsonPath = jsonPath,
   };
+
+  auto featureSet = OIUtils::processConfigFile(oidConfig.configFile, features,
+                                               compilerConfig, codeGenConfig);
+  if (!featureSet) {
+    return ExitStatus::UsageError;
+  }
+  codeGenConfig.features = *featureSet;
+  tbConfig.features = *featureSet;
 
   if (!scriptFile.empty()) {
     if (!std::filesystem::exists(scriptFile)) {
@@ -717,15 +750,15 @@ int main(int argc, char* argv[]) {
       return ExitStatus::FileNotFoundError;
     }
     std::ifstream script(scriptFile);
-    auto status =
-        runScript(scriptFile, script, oidConfig, codeGenConfig, tbConfig);
+    auto status = runScript(scriptFile, script, oidConfig, codeGenConfig,
+                            compilerConfig, tbConfig);
     if (status != ExitStatus::Success) {
       return status;
     }
   } else if (!scriptSource.empty()) {
     std::istringstream script(scriptSource);
-    auto status =
-        runScript(scriptFile, script, oidConfig, codeGenConfig, tbConfig);
+    auto status = runScript(scriptFile, script, oidConfig, codeGenConfig,
+                            compilerConfig, tbConfig);
     if (status != ExitStatus::Success) {
       return status;
     }

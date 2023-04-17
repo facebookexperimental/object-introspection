@@ -225,3 +225,24 @@ namespace cpp2 {
         {"name":"__fbthrift_field_e", "staticSize":4, "NOT":"isset"},
         {"name":"__isset", "staticSize":3}
       ]}]'''
+
+  [cases.feature_flag]
+    param_types = ["const cpp2::MyThriftStructBoxed&"]
+    setup = '''
+      cpp2::MyThriftStructBoxed ret;
+      ret.d_ref() = 1;
+      ret.e_ref() = 1;
+      return ret;
+    '''
+    cli_options = ["-fcapture-thrift-isset"]
+    expect_json = '''[{
+      "staticSize":32,
+      "dynamicSize":0,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":8, "NOT":"isset"},
+        {"name":"__fbthrift_field_b", "staticSize":8, "NOT":"isset"},
+        {"name":"__fbthrift_field_c", "staticSize":4, "isset":false},
+        {"name":"__fbthrift_field_d", "staticSize":4, "isset":true},
+        {"name":"__fbthrift_field_e", "staticSize":4, "isset":true},
+        {"name":"__isset", "staticSize":3}
+      ]}]'''

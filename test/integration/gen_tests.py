@@ -270,13 +270,16 @@ def add_oid_integration_test(f, config, case_name, case):
     cli_options = (
         "{" + ", ".join(f'"{option}"' for option in case.get("cli_options", ())) + "}"
     )
-    config_extra = case.get("config", "")
+
+    config_prefix = case.get("config_prefix", "")
+    config_suffix = case.get("config_suffix", "")
 
     f.write(
         f"\n"
         f"TEST_F(OidIntegration, {case_str}) {{\n"
         f"{generate_skip(case, 'oid')}"
-        f'  std::string configOptions = R"--({config_extra})--";\n'
+        f'  std::string configPrefix = R"--({config_prefix})--";\n'
+        f'  std::string configSuffix = R"--({config_suffix})--";\n'
         f"  ba::io_context ctx;\n"
         f"  auto [target, oid] = runOidOnProcess(\n"
         f"        {{\n"
@@ -285,7 +288,7 @@ def add_oid_integration_test(f, config, case_name, case):
         f'          .scriptSource = "{probe_str}",\n'
         f"        }},\n"
         f"        {cli_options},\n"
-        f"        std::move(configOptions));\n"
+        f"        std::move(configPrefix), std::move(configSuffix));\n"
         f"  ASSERT_EQ(exit_code(oid), {exit_code});\n"
         f"  EXPECT_EQ(target.proc.running(), true);\n"
     )
@@ -341,18 +344,20 @@ def add_oil_integration_test(f, config, case_name, case):
     if case.get("oil_disable", False):
         return
 
-    config_extra = case.get("config", "")
+    config_prefix = case.get("config_prefix", "")
+    config_suffix = case.get("config_suffix", "")
 
     f.write(
         f"\n"
         f"TEST_F(OilIntegration, {case_str}) {{\n"
         f"{generate_skip(case, 'oil')}"
-        f'  std::string configOptions = R"--({config_extra})--";\n'
+        f'  std::string configPrefix = R"--({config_prefix})--";\n'
+        f'  std::string configSuffix = R"--({config_suffix})--";\n'
         f"  ba::io_context ctx;\n"
         f"  auto target = runOilTarget({{\n"
         f"    .ctx = ctx,\n"
         f'    .targetArgs = "oil {case_str}",\n'
-        f"  }}, std::move(configOptions));\n\n"
+        f"  }}, std::move(configPrefix), std::move(configSuffix));\n\n"
         f"  ASSERT_EQ(exit_code(target), {exit_code});\n"
         f"\n"
         f"  bpt::ptree result_json;\n"

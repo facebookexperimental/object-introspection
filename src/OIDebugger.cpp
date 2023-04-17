@@ -272,7 +272,7 @@ bool OIDebugger::segmentInit(void) {
     VLOG(1) << "segConfig size " << sizeof(segConfig);
 
     if (segmentConfigFile.fail()) {
-      LOG(ERROR) << "init: error in writing configFile" << configFilePath
+      LOG(ERROR) << "init: error in writing configFile" << segConfigFilePath
                  << strerror(errno);
     }
     VLOG(1) << "About to flush segment config file";
@@ -1868,28 +1868,21 @@ bool OIDebugger::removeTrap(pid_t pid, const trapInfo& t) {
   return true;
 }
 
-OIDebugger::OIDebugger(std::string configFile, OICodeGen::Config genConfig,
+OIDebugger::OIDebugger(OICodeGen::Config genConfig, OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : configFilePath{configFile},
+    : compilerConfig{std::move(ccConfig)},
       generatorConfig{std::move(genConfig)},
       treeBuilderConfig{std::move(tbConfig)} {
-  if (configFilePath.empty()) {
-    configFilePath = fs::current_path() / "oid.toml";
-  }
-
-  VLOG(1) << "config file: " << configFilePath;
-
   debug = true;
-  OIUtils::processConfigFile(configFilePath, compilerConfig, generatorConfig);
 
   cache.generatorConfig = generatorConfig;
   VLOG(1) << "CodeGen config: " << generatorConfig.toString();
 }
 
-OIDebugger::OIDebugger(pid_t pid, std::string configFile,
-                       OICodeGen::Config genConfig,
+OIDebugger::OIDebugger(pid_t pid, OICodeGen::Config genConfig,
+                       OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : OIDebugger(std::move(configFile), std::move(genConfig),
+    : OIDebugger(std::move(genConfig), std::move(ccConfig),
                  std::move(tbConfig)) {
   traceePid = pid;
   symbols = std::make_shared<SymbolService>(traceePid);
@@ -1898,10 +1891,10 @@ OIDebugger::OIDebugger(pid_t pid, std::string configFile,
   cache.symbols = symbols;
 }
 
-OIDebugger::OIDebugger(fs::path debugInfo, std::string configFile,
-                       OICodeGen::Config genConfig,
+OIDebugger::OIDebugger(fs::path debugInfo, OICodeGen::Config genConfig,
+                       OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : OIDebugger(std::move(configFile), std::move(genConfig),
+    : OIDebugger(std::move(genConfig), std::move(ccConfig),
                  std::move(tbConfig)) {
   symbols = std::make_shared<SymbolService>(std::move(debugInfo));
   cache.symbols = symbols;
@@ -2848,7 +2841,7 @@ bool OIDebugger::processTargetData() {
     const auto& [rootType, typeHierarchy, paddingInfos] = typeInfo->second;
     VLOG(1) << "Root type addr: " << (void*)rootType.type.type;
 
-    if (treeBuilderConfig.genPaddingStats) {
+    if (treeBuilderConfig.features.contains(Feature::GenPaddingStats)) {
       paddingHunter.localPaddedStructs = paddingInfos;
       typeTree.setPaddedStructs(&paddingHunter.localPaddedStructs);
     }
@@ -2872,7 +2865,7 @@ bool OIDebugger::processTargetData() {
       continue;
     }
 
-    if (treeBuilderConfig.genPaddingStats) {
+    if (treeBuilderConfig.features.contains(Feature::GenPaddingStats)) {
       paddingHunter.processLocalPaddingInfo();
     }
   }
@@ -2886,7 +2879,7 @@ bool OIDebugger::processTargetData() {
     typeTree.dumpJson();
   }
 
-  if (treeBuilderConfig.genPaddingStats) {
+  if (treeBuilderConfig.features.contains(Feature::GenPaddingStats)) {
     paddingHunter.outputPaddingInfo();
   }
 

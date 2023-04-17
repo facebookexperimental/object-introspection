@@ -28,6 +28,7 @@ struct irequest;
 
 #include "Common.h"
 #include "ContainerInfo.h"
+#include "Features.h"
 #include "FuncGen.h"
 #include "PaddingHunter.h"
 
@@ -35,6 +36,7 @@ extern "C" {
 #include <drgn.h>
 }
 
+using namespace ObjectIntrospection;
 namespace fs = std::filesystem;
 
 struct ParentMember {
@@ -54,11 +56,8 @@ class OICodeGen {
      * uninitialized field" warning if they missed any.
      */
     bool useDataSegment;
-    bool chaseRawPointers;
-    bool packStructs;
-    bool genPaddingStats;
-    bool captureThriftIsset;
-    bool polymorphicInheritance;
+
+    std::set<Feature> features{};
 
     std::set<fs::path> containerConfigPaths{};
     std::set<std::string> defaultHeaders{};
@@ -113,6 +112,12 @@ class OICodeGen {
  private:
   Config config{};
   FuncGen funcGen;
+
+  bool chaseRawPointers;
+  bool packStructs;
+  bool genPaddingStats;
+  bool captureThriftIsset;
+  bool polymorphicInheritance;
 
   using ContainerTypeMapEntry =
       std::pair<std::reference_wrapper<const ContainerInfo>,

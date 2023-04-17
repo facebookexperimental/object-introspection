@@ -122,9 +122,10 @@ int IntegrationBase::exit_code(Proc& proc) {
   return proc.proc.exit_code();
 }
 
-fs::path IntegrationBase::createCustomConfig(const std::string& extraConfig) {
+fs::path IntegrationBase::createCustomConfig(const std::string& prefix,
+                                             const std::string& suffix) {
   // If no extra config provided, return the config path unaltered.
-  if (extraConfig.empty()) {
+  if (prefix.empty() && suffix.empty()) {
     return configFile;
   }
 
@@ -157,9 +158,17 @@ fs::path IntegrationBase::createCustomConfig(const std::string& extraConfig) {
   }
 
   std::ofstream customConfig(customConfigFile, std::ios_base::app);
+  if (!prefix.empty()) {
+    customConfig << "\n\n# Test custom config start\n\n";
+    customConfig << prefix;
+    customConfig << "\n\n# Test custom config end\n\n";
+  }
   customConfig << config;
-  customConfig << "\n\n# Test custom config\n\n";
-  customConfig << extraConfig;
+  if (!suffix.empty()) {
+    customConfig << "\n\n# Test custom config start\n\n";
+    customConfig << suffix;
+    customConfig << "\n\n# Test custom config end\n\n";
+  }
 
   return customConfigFile;
 }
@@ -170,7 +179,8 @@ std::string OidIntegration::TmpDirStr() {
 
 OidProc OidIntegration::runOidOnProcess(OidOpts opts,
                                         std::vector<std::string> extra_args,
-                                        std::string extra_config) {
+                                        std::string configPrefix,
+                                        std::string configSuffix) {
   // Binary paths are populated by CMake
   std::string targetExe =
       std::string(TARGET_EXE_PATH) + " " + opts.targetArgs + " 1000";
@@ -195,7 +205,7 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
     std::ofstream touch(segconfigPath);
   }
 
-  fs::path thisConfig = createCustomConfig(extra_config);
+  fs::path thisConfig = createCustomConfig(configPrefix, configSuffix);
 
   // Keep PID as the last argument to make it easier for users to directly copy
   // and modify the command from the verbose mode output.
@@ -337,8 +347,9 @@ std::string OilIntegration::TmpDirStr() {
   return std::string("/tmp/oil-integration-XXXXXX");
 }
 
-Proc OilIntegration::runOilTarget(OidOpts opts, std::string extra_config) {
-  fs::path thisConfig = createCustomConfig(extra_config);
+Proc OilIntegration::runOilTarget(OidOpts opts, std::string configPrefix,
+                                  std::string configSuffix) {
+  fs::path thisConfig = createCustomConfig(configPrefix, configSuffix);
 
   std::string targetExe = std::string(TARGET_EXE_PATH) + " " + opts.targetArgs +
                           " " + thisConfig.string();
