@@ -184,13 +184,20 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   std::vector<std::tuple<drgn_qualified_type, std::string>> oilTypes =
       findOilTypesAndNames(prog);
 
+  std::map<Feature, bool> featuresMap = {
+      {Feature::PackStructs, true},
+  };
+
   OICodeGen::Config generatorConfig{};
   OICompiler::Config compilerConfig{};
-  if (!OIUtils::processConfigFile(configFilePath, compilerConfig,
-                                  generatorConfig)) {
+
+  auto features = OIUtils::processConfigFile(configFilePath, featuresMap,
+                                             compilerConfig, generatorConfig);
+  if (!features) {
     LOG(ERROR) << "failed to process config file";
     return -1;
   }
+  generatorConfig.features = *features;
   generatorConfig.useDataSegment = false;
 
   size_t failures = 0;

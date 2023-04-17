@@ -19,6 +19,7 @@
 #include <glog/logging.h>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/format.hpp>
@@ -61,6 +62,13 @@ std::unique_ptr<OICodeGen> OICodeGen::buildFromConfig(const Config& c,
 
 OICodeGen::OICodeGen(const Config& c, SymbolService& s)
     : config{c}, symbols{s} {
+  chaseRawPointers = config.features.contains(Feature::ChaseRawPointers);
+  packStructs = config.features.contains(Feature::PackStructs);
+  genPaddingStats = config.features.contains(Feature::GenPaddingStats);
+  captureThriftIsset = config.features.contains(Feature::CaptureThriftIsset);
+  polymorphicInheritance =
+      config.features.contains(Feature::PolymorphicInheritance);
+
   // TODO: Should folly::Range just be added as a container?
   auto typesToStub = std::array{
       "SharedMutex",
@@ -985,7 +993,7 @@ bool OICodeGen::recordChildren(drgn_type* type) {
  * types in the program to build the reverse mapping.
  */
 bool OICodeGen::enumerateChildClasses() {
-  if (!config.polymorphicInheritance) {
+  if (!polymorphicInheritance) {
     return true;
   }
 
@@ -1314,7 +1322,7 @@ bool OICodeGen::isEmptyClassOrFunctionType(drgn_type* type,
  *   one or more virtual member functions or virtual base classes).
  */
 bool OICodeGen::isDynamic(drgn_type* type) const {
-  if (!config.polymorphicInheritance || !drgn_type_has_virtuality(type)) {
+  if (!polymorphicInheritance || !drgn_type_has_virtuality(type)) {
     return false;
   }
 
@@ -1992,7 +2000,7 @@ bool OICodeGen::getDrgnTypeNameInt(drgn_type* type, std::string& outName) {
     name.assign(drgn_type_name(type));
   } else if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
     drgn_type* underlyingType = getPtrUnderlyingType(type);
-    if (config.chaseRawPointers &&
+    if (chaseRawPointers &&
         drgn_type_kind(underlyingType) != DRGN_TYPE_FUNCTION) {
       // For pointers, figure out name for the underlying type then add
       // appropriate number of '*'
@@ -2262,7 +2270,7 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
 
   std::string structDefinition;
 
-  if (paddingInfo.paddingSize != 0 && config.genPaddingStats) {
+  if (paddingInfo.paddingSize != 0 && genPaddingStats) {
     structDefinition.append("/* offset    |  size */ ");
   }
 
@@ -2278,8 +2286,7 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
                             std::to_string(*alignment / CHAR_BIT) + ")");
   }
 
-  if (config.packStructs &&
-      (kind == DRGN_TYPE_STRUCT || kind == DRGN_TYPE_CLASS) &&
+  if (packStructs && (kind == DRGN_TYPE_STRUCT || kind == DRGN_TYPE_CLASS) &&
       violatesAlignmentRequirement && paddingInfo.paddingSize == 0) {
     structDefinition.append(" __attribute__((__packed__))");
   }
@@ -2298,7 +2305,7 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
 
   structDefinition.append("};\n");
 
-  if (config.genPaddingStats) {
+  if (genPaddingStats) {
     auto paddedStructFound = paddedStructs.find(*tmpStr);
 
     if (paddedStructFound == paddedStructs.end()) {
@@ -2490,7 +2497,7 @@ std::optional<uint64_t> OICodeGen::generateMember(
       currOffsetBits = 0;
       VLOG(1) << "Member size: " << memberSize;
     } else {
-      addSizeComment(config.genPaddingStats, code, currOffsetBits, memberSize);
+      addSizeComment(genPaddingStats, code, currOffsetBits, memberSize);
       currOffsetBits = currOffsetBits + memberSize;
     }
 
@@ -2683,12 +2690,12 @@ bool OICodeGen::generateStructMembers(
       bool isThriftIssetStruct =
           typeName.starts_with("isset_bitset<") && memberName == "__isset";
 
-      if (config.captureThriftIsset && isThriftIssetStruct &&
+      if (captureThriftIsset && isThriftIssetStruct &&
           memberIndex == members.size() - 1) {
         thriftIssetStructTypes.insert(e);
       }
 
-      if (config.genPaddingStats) {
+      if (genPaddingStats) {
         paddingInfo.isThriftStruct = isThriftIssetStruct;
 
         /*
@@ -3232,12 +3239,12 @@ bool OICodeGen::generateJitCode(std::string& code) {
   functionsCode.append("namespace OIInternal {\nnamespace {\n");
   functionsCode.append("// functions -----\n");
   if (!funcGen.DeclareGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                   config.chaseRawPointers)) {
+                                   chaseRawPointers)) {
     LOG(ERROR) << "declaring get size for containers failed";
     return false;
   }
 
-  if (config.chaseRawPointers) {
+  if (chaseRawPointers) {
     functionsCode.append(R"(
     template<typename T>
     void getSizeType(const T* t, size_t& returnArg);
@@ -3258,7 +3265,7 @@ bool OICodeGen::generateJitCode(std::string& code) {
     }
   }
 
-  if (config.useDataSegment || config.chaseRawPointers) {
+  if (config.useDataSegment || chaseRawPointers) {
     funcGen.DeclareStoreData(functionsCode);
   }
 
@@ -3270,12 +3277,12 @@ bool OICodeGen::generateJitCode(std::string& code) {
   }
 
   if (!funcGen.DefineGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                  config.chaseRawPointers)) {
+                                  chaseRawPointers)) {
     LOG(ERROR) << "defining get size for containers failed";
     return false;
   }
 
-  if (config.chaseRawPointers) {
+  if (chaseRawPointers) {
     functionsCode.append(R"(
     template<typename T>
     void getSizeType(const T* s_ptr, size_t& returnArg)
@@ -3744,22 +3751,22 @@ std::string OICodeGen::Config::toString() const {
     ignoreMembers += ';';
   }
 
-  return (useDataSegment ? "" : "Dont") + "UseDataSegment,"s +
-         (chaseRawPointers ? "" : "Dont") + "ChaseRawPointers,"s +
-         (packStructs ? "" : "Dont") + "PackStructs,"s +
-         (genPaddingStats ? "" : "Dont") + "GenPaddingStats,"s +
-         (captureThriftIsset ? "" : "Dont") + "CaptureThriftIsset,"s +
-         (polymorphicInheritance ? "" : "Dont") + "PolymorphicInheritance,"s +
-         ignoreMembers;
+  return boost::algorithm::join(toOptions(), ",") + "," + ignoreMembers;
 }
 
 std::vector<std::string> OICodeGen::Config::toOptions() const {
-  return {"",  // useDataSegment is always true?
-          (chaseRawPointers ? "-n" : ""),
-          (packStructs ? "" : "-z"),
-          (genPaddingStats ? "" : "-w"),
-          (captureThriftIsset ? "-T" : ""),
-          (polymorphicInheritance ? "-P" : "")};
+  std::vector<std::string> options;
+  options.reserve(allFeatures.size());
+
+  for (const auto f : allFeatures) {
+    if (features.contains(f)) {
+      options.emplace_back(std::string("-f") + featureToStr(f));
+    } else {
+      options.emplace_back(std::string("-F") + featureToStr(f));
+    }
+  }
+
+  return options;
 }
 
 void OICodeGen::initializeCodeGen() {

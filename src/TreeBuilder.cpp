@@ -53,6 +53,9 @@ enum class TrackPointerTag : uint64_t {
 TreeBuilder::TreeBuilder(Config c) : config{std::move(c)} {
   buffer = std::make_unique<msgpack::sbuffer>();
 
+  chaseRawPointers = config.features.contains(Feature::ChaseRawPointers);
+  genPaddingStats = config.features.contains(Feature::GenPaddingStats);
+
   auto testdbPath = "/tmp/testdb_" + std::to_string(getpid());
   if (auto status = rocksdb::DestroyDB(testdbPath, {}); !status.ok()) {
     LOG(FATAL) << "RocksDB error while destroying database: "
@@ -414,7 +417,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
   if (!variable.isStubbed) {
     switch (drgn_type_kind(variable.type)) {
       case DRGN_TYPE_POINTER:
-        if (config.chaseRawPointers) {
+        if (chaseRawPointers) {
           // Pointers to incomplete types are stubbed out
           // See OICodeGen::enumeratePointerType
           if (th->knownDummyTypeList.contains(variable.type)) {
@@ -529,7 +532,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
         break;
     }
 
-    if (config.genPaddingStats) {
+    if (genPaddingStats) {
       auto entry = paddedStructs->find(node.typeName);
       if (entry != paddedStructs->end()) {
         entry->second.instancesCnt++;

@@ -18,7 +18,7 @@ definitions = '''
         "The 3rd member of the struct Bar"
       };
     """
-    config = """
+    config_suffix = """
     [[codegen.ignore]]
     type = "Foo"
     members = ["a"]

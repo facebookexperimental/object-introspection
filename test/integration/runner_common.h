@@ -38,7 +38,8 @@ class IntegrationBase : public ::testing::Test {
   void TearDown() override;
   void SetUp() override;
   int exit_code(Proc& proc);
-  std::filesystem::path createCustomConfig(const std::string& extra);
+  std::filesystem::path createCustomConfig(const std::string& prefix,
+                                           const std::string& suffix);
 
   std::filesystem::path workingDir;
 
@@ -51,7 +52,7 @@ class OidIntegration : public IntegrationBase {
   std::string TmpDirStr() override;
 
   OidProc runOidOnProcess(OidOpts opts, std::vector<std::string> extra_args,
-                          std::string extra_config);
+                          std::string configPrefix, std::string configSuffix);
 
   /*
    * compare_json
@@ -69,5 +70,6 @@ class OilIntegration : public IntegrationBase {
  protected:
   std::string TmpDirStr() override;
 
-  Proc runOilTarget(OidOpts opts, std::string extra_config);
+  Proc runOilTarget(OidOpts opts, std::string configPrefix,
+                    std::string configSuffix);
 };

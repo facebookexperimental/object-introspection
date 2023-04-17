@@ -12,7 +12,7 @@ OilVectorOfStrings.o: OilVectorOfStrings.cpp
 
 oilgen:
 	rm -f oilgen
-	(cd ../../ && make oid-devel)
+	(cd ../../ && make oid)
 	ln -s ../../build/oilgen oilgen
 
 OilVectorOfStrings: oilgen OilVectorOfStrings.o
