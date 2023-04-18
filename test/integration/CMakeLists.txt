@@ -68,6 +68,7 @@ list(TRANSFORM INTEGRATION_TEST_CONFIGS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie")
 
 set(INTEGRATION_TEST_TARGET_SRC integration_test_target.cpp)
+set(INTEGRATION_TEST_TARGET_SHLIB_SRC integration_test_target_shlib.cpp)
 set(INTEGRATION_TEST_RUNNER_SRC integration_test_runner.cpp)
 
 find_program(PYTHON_CMD NAMES python3.6 python3)
@@ -81,19 +82,25 @@ list(TRANSFORM INTEGRATION_TEST_THRIFT_SRCS APPEND ".thrift")
 add_custom_command(
   OUTPUT
     ${INTEGRATION_TEST_TARGET_SRC}
+    ${INTEGRATION_TEST_TARGET_SHLIB_SRC}
     ${INTEGRATION_TEST_RUNNER_SRC}
     ${INTEGRATION_TEST_THRIFT_SRCS}
   COMMAND ${PYTHON_CMD}
     ${CMAKE_CURRENT_SOURCE_DIR}/gen_tests.py
     ${INTEGRATION_TEST_TARGET_SRC}
+    ${INTEGRATION_TEST_TARGET_SHLIB_SRC}
     ${INTEGRATION_TEST_RUNNER_SRC}
     ${INTEGRATION_TEST_CONFIGS}
   MAIN_DEPENDENCY gen_tests.py
   DEPENDS ${INTEGRATION_TEST_CONFIGS})
 
+add_library(integration_test_target_shlib SHARED ${INTEGRATION_TEST_TARGET_SHLIB_SRC})
+target_compile_options(integration_test_target_shlib PRIVATE -O1)
+target_link_libraries(integration_test_target_shlib PRIVATE oil Boost::headers ${Boost_LIBRARIES})
+
 add_executable(integration_test_target ${INTEGRATION_TEST_TARGET_SRC})
 target_compile_options(integration_test_target PRIVATE -O1)
-target_link_libraries(integration_test_target PRIVATE oil Boost::headers ${Boost_LIBRARIES})
+target_link_libraries(integration_test_target PRIVATE oil integration_test_target_shlib Boost::headers ${Boost_LIBRARIES})
 
 add_executable(integration_test_runner ${INTEGRATION_TEST_RUNNER_SRC} runner_common.cpp)
 target_include_directories(integration_test_runner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
