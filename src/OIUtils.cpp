@@ -32,8 +32,10 @@ using namespace ObjectIntrospection;
 using namespace std::literals;
 
 std::optional<std::set<Feature>> processConfigFile(
-    const std::string& configFilePath, std::map<Feature, bool> featureMap,
-    OICompiler::Config& compilerConfig, OICodeGen::Config& generatorConfig) {
+    const std::string& configFilePath,
+    std::map<Feature, bool> featureMap,
+    OICompiler::Config& compilerConfig,
+    OICodeGen::Config& generatorConfig) {
   fs::path configDirectory = fs::path(configFilePath).remove_filename();
 
   toml::table config;

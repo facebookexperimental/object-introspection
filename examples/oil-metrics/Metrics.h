@@ -58,7 +58,9 @@ class Metrics {
   }
 
   static void save(std::string object);
-  static void saveArg(const char* name, const char* argName, ArgTiming timing,
+  static void saveArg(const char* name,
+                      const char* argName,
+                      ArgTiming timing,
                       size_t size);
   static void saveDuration(const char* name,
                            std::chrono::milliseconds duration);

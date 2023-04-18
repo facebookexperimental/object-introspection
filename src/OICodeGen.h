@@ -224,7 +224,8 @@ class OICodeGen {
   bool isKnownType(const std::string& type, std::string& matched);
 
   static bool getTemplateParams(
-      drgn_type* type, size_t numTemplateParams,
+      drgn_type* type,
+      size_t numTemplateParams,
       std::vector<std::pair<drgn_qualified_type, std::string>>& v);
 
   bool enumerateTemplateParamIdxs(drgn_type* type,
@@ -233,7 +234,8 @@ class OICodeGen {
                                   bool& ifStub);
   bool getContainerTemplateParams(drgn_type* type, bool& ifStub);
   void enumerateDescendants(drgn_type* type, drgn_type* baseType);
-  void getFuncDefinitionStr(std::string& code, drgn_type* type,
+  void getFuncDefinitionStr(std::string& code,
+                            drgn_type* type,
                             const std::string& typeName);
   std::optional<uint64_t> getDrgnTypeSize(drgn_type* type);
 
@@ -251,19 +253,24 @@ class OICodeGen {
   std::optional<uint64_t> generateMember(
       const DrgnClassMemberInfo& m,
       std::unordered_map<std::string, int>& memberNames,
-      uint64_t currOffsetBits, std::string& code, bool isInUnion);
+      uint64_t currOffsetBits,
+      std::string& code,
+      bool isInUnion);
   bool generateParent(drgn_type* p,
                       std::unordered_map<std::string, int>& memberNames,
-                      uint64_t& currOffsetBits, std::string& code,
+                      uint64_t& currOffsetBits,
+                      std::string& code,
                       size_t offsetToNextMember);
   std::optional<uint64_t> getAlignmentRequirements(drgn_type* e);
   bool generateStructMembers(drgn_type* e,
                              std::unordered_map<std::string, int>& memberNames,
-                             std::string& code, uint64_t& out_offset_bits,
+                             std::string& code,
+                             uint64_t& out_offset_bits,
                              PaddingInfo& paddingInfo,
                              bool& violatesAlignmentRequirement,
                              size_t offsetToNextMember);
-  void getFuncDefClassMembers(std::string& code, drgn_type* type,
+  void getFuncDefClassMembers(std::string& code,
+                              drgn_type* type,
                               std::unordered_map<std::string, int>& memberNames,
                               bool skipPadding = false);
   bool isDrgnSizeComplete(drgn_type* type);
@@ -274,7 +281,8 @@ class OICodeGen {
   bool ifEnumerateClass(const std::string& typeName);
 
   bool enumerateClassParents(drgn_type* type, const std::string& typeName);
-  bool enumerateClassMembers(drgn_type* type, const std::string& typeName,
+  bool enumerateClassMembers(drgn_type* type,
+                             const std::string& typeName,
                              bool& isStubbed);
   bool enumerateClassTemplateParams(drgn_type* type,
                                     const std::string& typeName,
@@ -308,17 +316,21 @@ class OICodeGen {
   void getClassMembersIncludingParent(drgn_type* type,
                                       std::vector<DrgnClassMemberInfo>& out);
   bool staticAssertMemberOffsets(
-      const std::string& struct_name, drgn_type* struct_type,
+      const std::string& struct_name,
+      drgn_type* struct_type,
       std::string& assert_str,
       std::unordered_map<std::string, int>& member_names,
       uint64_t base_offset = 0);
-  bool addStaticAssertsForType(drgn_type* type, bool generateAssertsForOffsets,
+  bool addStaticAssertsForType(drgn_type* type,
+                               bool generateAssertsForOffsets,
                                std::string& code);
-  bool buildNameInt(drgn_type* type, std::string& nameWithoutTemplate,
+  bool buildNameInt(drgn_type* type,
+                    std::string& nameWithoutTemplate,
                     std::string& outName);
   void replaceTemplateOperator(
       std::vector<std::pair<drgn_qualified_type, std::string>>& template_params,
-      std::vector<std::string>& template_params_strings, size_t index);
+      std::vector<std::string>& template_params_strings,
+      size_t index);
   void replaceTemplateParameters(
       drgn_type* type,
       std::vector<std::pair<drgn_qualified_type, std::string>>& template_params,

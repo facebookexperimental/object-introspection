@@ -25,7 +25,9 @@
 namespace OIUtils {
 
 std::optional<std::set<Feature>> processConfigFile(
-    const std::string& configFilePath, std::map<Feature, bool> featureMap,
-    OICompiler::Config& compilerConfig, OICodeGen::Config& generatorConfig);
+    const std::string& configFilePath,
+    std::map<Feature, bool> featureMap,
+    OICompiler::Config& compilerConfig,
+    OICodeGen::Config& generatorConfig);
 
 }  // namespace OIUtils

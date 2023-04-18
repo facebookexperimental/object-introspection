@@ -34,7 +34,8 @@ static std::string parseBadString(const std::string& script) {
   return testing::internal::GetCapturedStderr();
 }
 
-static void EXPECT_REQ_EQ(const prequest& req, const std::string& type,
+static void EXPECT_REQ_EQ(const prequest& req,
+                          const std::string& type,
                           const std::string& func,
                           const std::vector<std::string>& args) {
   EXPECT_EQ(req.type, type);

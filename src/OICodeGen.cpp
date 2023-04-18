@@ -330,7 +330,8 @@ std::string OICodeGen::stripFullyQualifiedNameWithSeparators(
 // Replace a specific template parameter with a generic DummySizedOperator
 void OICodeGen::replaceTemplateOperator(
     TemplateParamList& template_params,
-    std::vector<std::string>& template_params_strings, size_t index) {
+    std::vector<std::string>& template_params_strings,
+    size_t index) {
   if (index >= template_params.size()) {
     // Should this happen?
     return;
@@ -365,7 +366,8 @@ void OICodeGen::replaceTemplateOperator(
 }
 
 void OICodeGen::replaceTemplateParameters(
-    drgn_type* type, TemplateParamList& template_params,
+    drgn_type* type,
+    TemplateParamList& template_params,
     std::vector<std::string>& template_params_strings,
     const std::string& nameWithoutTemplate) {
   auto optContainerInfo = getContainerInfo(type);
@@ -393,7 +395,8 @@ void OICodeGen::replaceTemplateParameters(
   }
 }
 
-bool OICodeGen::buildName(drgn_type* type, std::string& text,
+bool OICodeGen::buildName(drgn_type* type,
+                          std::string& text,
                           std::string& outName) {
   int ptrDepth = 0;
   drgn_type* ut = type;
@@ -418,7 +421,8 @@ bool OICodeGen::buildName(drgn_type* type, std::string& text,
   return true;
 }
 
-bool OICodeGen::buildNameInt(drgn_type* type, std::string& nameWithoutTemplate,
+bool OICodeGen::buildNameInt(drgn_type* type,
+                             std::string& nameWithoutTemplate,
                              std::string& outName) {
   // Calling buildName only makes sense if a type is a container and has
   // template parameters. For a generic template class, we just flatten the
@@ -588,7 +592,8 @@ bool OICodeGen::buildNameInt(drgn_type* type, std::string& nameWithoutTemplate,
 }
 
 bool OICodeGen::getTemplateParams(
-    drgn_type* type, size_t numTemplateParams,
+    drgn_type* type,
+    size_t numTemplateParams,
     std::vector<std::pair<drgn_qualified_type, std::string>>& v) {
   drgn_type_template_parameter* tParams = drgn_type_template_parameters(type);
 
@@ -1662,8 +1667,10 @@ std::optional<std::string> OICodeGen::getNameForType(drgn_type* type) {
 }
 
 void OICodeGen::getFuncDefClassMembers(
-    std::string& code, drgn_type* type,
-    std::unordered_map<std::string, int>& memberNames, bool skipPadding) {
+    std::string& code,
+    drgn_type* type,
+    std::unordered_map<std::string, int>& memberNames,
+    bool skipPadding) {
   if (drgn_type_kind(type) == DRGN_TYPE_TYPEDEF) {
     // Handle case where parent is a typedef
     getFuncDefClassMembers(code, drgnUnderlyingType(type), memberNames);
@@ -1761,7 +1768,8 @@ void OICodeGen::enumerateDescendants(drgn_type* type, drgn_type* baseType) {
   }
 }
 
-void OICodeGen::getFuncDefinitionStr(std::string& code, drgn_type* type,
+void OICodeGen::getFuncDefinitionStr(std::string& code,
+                                     drgn_type* type,
                                      const std::string& typeName) {
   if (classMembersMap.find(type) == classMembersMap.end()) {
     return;
@@ -2380,8 +2388,10 @@ bool OICodeGen::addPadding(uint64_t padding_bits, std::string& code) {
   return true;
 }
 
-static inline void addSizeComment(bool genPaddingStats, std::string& code,
-                                  size_t offset, size_t sizeInBits) {
+static inline void addSizeComment(bool genPaddingStats,
+                                  std::string& code,
+                                  size_t offset,
+                                  size_t sizeInBits) {
   if (!genPaddingStats) {
     return;
   }
@@ -2417,8 +2427,10 @@ void OICodeGen::deduplicateMemberName(
 
 std::optional<uint64_t> OICodeGen::generateMember(
     const DrgnClassMemberInfo& m,
-    std::unordered_map<std::string, int>& memberNames, uint64_t currOffsetBits,
-    std::string& code, bool isInUnion) {
+    std::unordered_map<std::string, int>& memberNames,
+    uint64_t currOffsetBits,
+    std::string& code,
+    bool isInUnion) {
   // Generate unique name for member
   std::string memberName = m.member_name;
   deduplicateMemberName(memberNames, memberName);
@@ -2513,8 +2525,11 @@ std::optional<uint64_t> OICodeGen::generateMember(
 }
 
 bool OICodeGen::generateParent(
-    drgn_type* p, std::unordered_map<std::string, int>& memberNames,
-    uint64_t& currOffsetBits, std::string& code, size_t offsetToNextMember) {
+    drgn_type* p,
+    std::unordered_map<std::string, int>& memberNames,
+    uint64_t& currOffsetBits,
+    std::string& code,
+    size_t offsetToNextMember) {
   // Parent class could be a typedef
   PaddingInfo paddingInfo{};
   bool violatesAlignmentRequirement = false;
@@ -2606,9 +2621,13 @@ std::optional<uint64_t> OICodeGen::getAlignmentRequirements(drgn_type* e) {
 }
 
 bool OICodeGen::generateStructMembers(
-    drgn_type* e, std::unordered_map<std::string, int>& memberNames,
-    std::string& code, uint64_t& out_offset_bits, PaddingInfo& paddingInfo,
-    bool& violatesAlignmentRequirement, size_t offsetToNextMemberInSubclass) {
+    drgn_type* e,
+    std::unordered_map<std::string, int>& memberNames,
+    std::string& code,
+    uint64_t& out_offset_bits,
+    PaddingInfo& paddingInfo,
+    bool& violatesAlignmentRequirement,
+    size_t offsetToNextMemberInSubclass) {
   if (classMembersMap.find(e) == classMembersMap.end()) {
     VLOG(1) << "Failed to find type in classMembersMap: " << e;
   }
@@ -3632,8 +3651,10 @@ bool OICodeGen::generate(std::string& code) {
  * Generate static_asserts for the offsets of each member of the given type
  */
 bool OICodeGen::staticAssertMemberOffsets(
-    const std::string& struct_name, drgn_type* struct_type,
-    std::string& assert_str, std::unordered_map<std::string, int>& memberNames,
+    const std::string& struct_name,
+    drgn_type* struct_type,
+    std::string& assert_str,
+    std::unordered_map<std::string, int>& memberNames,
     uint64_t base_offset) {
   if (knownDummyTypeList.find(struct_type) != knownDummyTypeList.end()) {
     return true;

@@ -51,8 +51,10 @@ class OidIntegration : public IntegrationBase {
  protected:
   std::string TmpDirStr() override;
 
-  OidProc runOidOnProcess(OidOpts opts, std::vector<std::string> extra_args,
-                          std::string configPrefix, std::string configSuffix);
+  OidProc runOidOnProcess(OidOpts opts,
+                          std::vector<std::string> extra_args,
+                          std::string configPrefix,
+                          std::string configSuffix);
 
   /*
    * compare_json
@@ -70,6 +72,7 @@ class OilIntegration : public IntegrationBase {
  protected:
   std::string TmpDirStr() override;
 
-  Proc runOilTarget(OidOpts opts, std::string configPrefix,
+  Proc runOilTarget(OidOpts opts,
+                    std::string configPrefix,
                     std::string configSuffix);
 };

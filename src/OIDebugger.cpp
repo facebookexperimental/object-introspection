@@ -143,7 +143,8 @@ uint64_t OIDebugger::singlestepInst(pid_t pid, struct user_regs_struct& regs) {
   return regs.rip;
 }
 
-void OIDebugger::dumpRegs(const char* text, pid_t pid,
+void OIDebugger::dumpRegs(const char* text,
+                          pid_t pid,
                           struct user_regs_struct* regs) {
   VLOG(1) << "(" << text << ")"
           << " dumpRegs: pid: " << std::dec << pid << std::hex << " rip "
@@ -457,7 +458,8 @@ bool OIDebugger::contTargetThread(bool detach) const {
   return true;
 }
 
-bool OIDebugger::replayTrappedInstr(const trapInfo& t, pid_t pid,
+bool OIDebugger::replayTrappedInstr(const trapInfo& t,
+                                    pid_t pid,
                                     struct user_regs_struct& regs,
                                     struct user_fpregs_struct& fpregs) const {
   /*
@@ -558,7 +560,9 @@ bool OIDebugger::locateObjectsAddresses(const trapInfo& tInfo,
 }
 
 OIDebugger::processTrapRet OIDebugger::processFuncTrap(
-    const trapInfo& tInfo, pid_t pid, struct user_regs_struct& regs,
+    const trapInfo& tInfo,
+    pid_t pid,
+    struct user_regs_struct& regs,
     struct user_fpregs_struct& fpregs) {
   assert(tInfo.trapKind != OID_TRAP_JITCODERET);
 
@@ -904,7 +908,8 @@ bool OIDebugger::canProcessTrapForThread(pid_t thread_pid) const {
  * (default) we wait for any thread to stop, if false we wait for the thread
  * specified by the first parameter 'pid' to stop.
  */
-OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid, bool blocking,
+OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
+                                                   bool blocking,
                                                    bool anyPid) {
   int status = 0;
   pid_t newpid = 0;
@@ -1868,7 +1873,8 @@ bool OIDebugger::removeTrap(pid_t pid, const trapInfo& t) {
   return true;
 }
 
-OIDebugger::OIDebugger(OICodeGen::Config genConfig, OICompiler::Config ccConfig,
+OIDebugger::OIDebugger(OICodeGen::Config genConfig,
+                       OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
     : compilerConfig{std::move(ccConfig)},
       generatorConfig{std::move(genConfig)},
@@ -1879,11 +1885,12 @@ OIDebugger::OIDebugger(OICodeGen::Config genConfig, OICompiler::Config ccConfig,
   VLOG(1) << "CodeGen config: " << generatorConfig.toString();
 }
 
-OIDebugger::OIDebugger(pid_t pid, OICodeGen::Config genConfig,
+OIDebugger::OIDebugger(pid_t pid,
+                       OICodeGen::Config genConfig,
                        OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : OIDebugger(std::move(genConfig), std::move(ccConfig),
-                 std::move(tbConfig)) {
+    : OIDebugger(
+          std::move(genConfig), std::move(ccConfig), std::move(tbConfig)) {
   traceePid = pid;
   symbols = std::make_shared<SymbolService>(traceePid);
   setDataSegmentSize(dataSegSize);
@@ -1891,11 +1898,12 @@ OIDebugger::OIDebugger(pid_t pid, OICodeGen::Config genConfig,
   cache.symbols = symbols;
 }
 
-OIDebugger::OIDebugger(fs::path debugInfo, OICodeGen::Config genConfig,
+OIDebugger::OIDebugger(fs::path debugInfo,
+                       OICodeGen::Config genConfig,
                        OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : OIDebugger(std::move(genConfig), std::move(ccConfig),
-                 std::move(tbConfig)) {
+    : OIDebugger(
+          std::move(genConfig), std::move(ccConfig), std::move(tbConfig)) {
   symbols = std::make_shared<SymbolService>(std::move(debugInfo));
   cache.symbols = symbols;
 }
@@ -1910,7 +1918,8 @@ OIDebugger::OIDebugger(fs::path debugInfo, OICodeGen::Config genConfig,
  * @param[in] target_addr - target address where new data are to be written
  * @param[in] bufsz - length of 'target_addr' buffer in bytes
  */
-bool OIDebugger::writeTargetMemory(void* local_buffer, void* target_addr,
+bool OIDebugger::writeTargetMemory(void* local_buffer,
+                                   void* target_addr,
                                    size_t bufsz) const {
   VLOG(1) << "Writing buffer " << std::hex << local_buffer << ", bufsz "
           << std::dec << bufsz << " into target " << std::hex << target_addr;
@@ -1953,7 +1962,8 @@ bool OIDebugger::writeTargetMemory(void* local_buffer, void* target_addr,
  * @param[in] local_addr - local address where new data are to be written
  * @param[in] bufsz - length of 'local_addr' buffer in bytes
  */
-bool OIDebugger::readTargetMemory(void* remote_buffer, void* local_addr,
+bool OIDebugger::readTargetMemory(void* remote_buffer,
+                                  void* local_addr,
                                   size_t bufsz) const {
   VLOG(1) << "Reading buffer " << std::hex << remote_buffer << ", bufsz "
           << std::dec << bufsz << " into local " << std::hex << local_addr;
