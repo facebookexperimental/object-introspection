@@ -50,8 +50,10 @@ class TreeBuilder {
   TreeBuilder(Config);
   ~TreeBuilder();
 
-  void build(const std::vector<uint64_t>&, const std::string&,
-             struct drgn_type*, const TypeHierarchy&);
+  void build(const std::vector<uint64_t>&,
+             const std::string&,
+             struct drgn_type*,
+             const TypeHierarchy&);
   void dumpJson();
   void setPaddedStructs(std::map<std::string, PaddingInfo>* paddedStructs);
   bool emptyOutput() const;
@@ -114,6 +116,7 @@ class TreeBuilder {
   std::string_view serialize(const T&);
   void JSON(NodeID id, std::ofstream& output);
 
-  static void setSize(TreeBuilder::Node& node, uint64_t dynamicSize,
+  static void setSize(TreeBuilder::Node& node,
+                      uint64_t dynamicSize,
                       uint64_t memberSizes);
 };

@@ -282,8 +282,10 @@ struct Config {
 }  // namespace Oid
 
 static ExitStatus::ExitStatus runScript(
-    const std::string& fileName, std::istream& script,
-    const Oid::Config& oidConfig, const OICodeGen::Config& codeGenConfig,
+    const std::string& fileName,
+    std::istream& script,
+    const Oid::Config& oidConfig,
+    const OICodeGen::Config& codeGenConfig,
     const OICompiler::Config& compilerConfig,
     const TreeBuilder::Config& tbConfig) {
   if (!fileName.empty()) {

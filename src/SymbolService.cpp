@@ -119,8 +119,11 @@ struct ModParams {
  *
  */
 
-static int moduleCallback(Dwfl_Module* mod, void** /* userData */,
-                          const char* name, Dwarf_Addr /* start */, void* arg) {
+static int moduleCallback(Dwfl_Module* mod,
+                          void** /* userData */,
+                          const char* name,
+                          Dwarf_Addr /* start */,
+                          void* arg) {
   ModParams* m = (ModParams*)arg;
 
   int nsym = dwfl_module_getsymtab(mod);
@@ -296,8 +299,10 @@ static std::string bytesToHexString(const unsigned char* bytes, int nbbytes) {
  * to this callback. So we always return DWARF_CB_ABORT, as this is
  * the only build ID we are interested in.
  */
-static int buildIDCallback(Dwfl_Module* mod, void** /* userData */,
-                           const char* name, Dwarf_Addr /* start */,
+static int buildIDCallback(Dwfl_Module* mod,
+                           void** /* userData */,
+                           const char* name,
+                           Dwarf_Addr /* start */,
                            void* arg) {
   auto* buildID = static_cast<std::optional<std::string>*>(arg);
 
@@ -430,8 +435,10 @@ struct drgn_program* SymbolService::getDrgnProgram() {
  * Although 'parseFormalParam' has an all-encompassing sounding name, its sole
  * task is to extract the location information for this parameter if any exist.
  */
-static void parseFormalParam(Dwarf_Die& param, struct drgn_module* module,
-                             struct drgn_program* prog, Dwarf_Die& funcDie,
+static void parseFormalParam(Dwarf_Die& param,
+                             struct drgn_module* module,
+                             struct drgn_program* prog,
+                             Dwarf_Die& funcDie,
                              std::shared_ptr<FuncDesc>& fd) {
   /*
    * NOTE: It is vital that the function descriptors list of arguments

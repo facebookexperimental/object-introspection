@@ -55,8 +55,10 @@ class OIGenerator {
 
   std::filesystem::path generateForType(
       const OICodeGen::Config& generatorConfig,
-      const OICompiler::Config& compilerConfig, const drgn_qualified_type& type,
-      const std::string& linkageName, SymbolService& symbols);
+      const OICompiler::Config& compilerConfig,
+      const drgn_qualified_type& type,
+      const std::string& linkageName,
+      SymbolService& symbols);
 };
 
 }  // namespace ObjectIntrospection

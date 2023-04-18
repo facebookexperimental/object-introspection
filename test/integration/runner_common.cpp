@@ -295,7 +295,8 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
 
 void OidIntegration::compare_json(const bpt::ptree& expected_json,
                                   const bpt::ptree& actual_json,
-                                  const std::string& full_key, bool expect_eq) {
+                                  const std::string& full_key,
+                                  bool expect_eq) {
   if (expected_json.empty()) {
     if (expect_eq) {
       ASSERT_EQ(expected_json.data(), actual_json.data())
@@ -358,7 +359,8 @@ std::string OilIntegration::TmpDirStr() {
   return std::string("/tmp/oil-integration-XXXXXX");
 }
 
-Proc OilIntegration::runOilTarget(OidOpts opts, std::string configPrefix,
+Proc OilIntegration::runOilTarget(OidOpts opts,
+                                  std::string configPrefix,
                                   std::string configSuffix) {
   fs::path thisConfig = createCustomConfig(configPrefix, configSuffix);
 

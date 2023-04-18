@@ -43,7 +43,9 @@ struct StringLiteral {
  * know how to use the _Args to also statically check the type of the arguments.
  * In the meantime, I can use the size of _Args to do a simple count check.
  */
-template <StringLiteral _Name, unsigned long _SysNum, typename _RetType,
+template <StringLiteral _Name,
+          unsigned long _SysNum,
+          typename _RetType,
           typename... _Args>
 struct Syscall {
   /* User friendly syscall name */

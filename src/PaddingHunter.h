@@ -21,8 +21,12 @@
 struct PaddingInfo {
  public:
   PaddingInfo() = default;
-  PaddingInfo(size_t strSize, int saveSz, size_t paddSz, size_t issetSz,
-              std::string def, size_t instCnt)
+  PaddingInfo(size_t strSize,
+              int saveSz,
+              size_t paddSz,
+              size_t issetSz,
+              std::string def,
+              size_t instCnt)
       : structSize{strSize},
         alignmentRequirement{8},
         savingSize{static_cast<size_t>(saveSz)},

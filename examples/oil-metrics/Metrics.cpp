@@ -54,7 +54,9 @@ void Metrics::save(std::string object) {
   }
 }
 
-void Metrics::saveArg(const char* name, const char* argName, ArgTiming timing,
+void Metrics::saveArg(const char* name,
+                      const char* argName,
+                      ArgTiming timing,
                       size_t size) {
   std::string out = "{\"type\": \"size\", \"traceName\": \"";
   out += name;

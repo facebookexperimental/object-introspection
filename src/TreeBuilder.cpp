@@ -177,9 +177,19 @@ struct TreeBuilder::Node {
    */
   size_t exclusiveSize{};
 
-  MSGPACK_DEFINE_ARRAY(id, name, typeName, typePath, isTypedef, staticSize,
-                       dynamicSize, paddingSavingsSize, containerStats, pointer,
-                       children, isset, exclusiveSize)
+  MSGPACK_DEFINE_ARRAY(id,
+                       name,
+                       typeName,
+                       typePath,
+                       isTypedef,
+                       staticSize,
+                       dynamicSize,
+                       paddingSavingsSize,
+                       containerStats,
+                       pointer,
+                       children,
+                       isset,
+                       exclusiveSize)
 };
 
 TreeBuilder::~TreeBuilder() {
@@ -214,7 +224,8 @@ bool TreeBuilder::emptyOutput() const {
 }
 
 void TreeBuilder::build(const std::vector<uint64_t>& data,
-                        const std::string& argName, struct drgn_type* type,
+                        const std::string& argName,
+                        struct drgn_type* type,
                         const TypeHierarchy& typeHierarchy) {
   th = &typeHierarchy;
   oidData = &data;
@@ -385,7 +396,8 @@ static std::string_view drgnKindStr(struct drgn_type* type) {
   return kind;
 }
 
-void TreeBuilder::setSize(TreeBuilder::Node& node, uint64_t dynamicSize,
+void TreeBuilder::setSize(TreeBuilder::Node& node,
+                          uint64_t dynamicSize,
                           uint64_t memberSizes) {
   node.dynamicSize = dynamicSize;
   if (memberSizes > node.staticSize + node.dynamicSize) {
