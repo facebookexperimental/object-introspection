@@ -26,6 +26,7 @@
   X(GenPaddingStats, "gen-padding-stats")       \
   X(CaptureThriftIsset, "capture-thrift-isset") \
   X(TypeGraph, "type-graph")                    \
+  X(TypedDataSegment, "typed-data-segment")     \
   X(PolymorphicInheritance, "polymorphic-inheritance")
 
 namespace ObjectIntrospection {

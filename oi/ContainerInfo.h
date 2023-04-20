@@ -30,6 +30,7 @@ struct ContainerInfo {
   struct Codegen {
     std::string decl;
     std::string func;
+    std::string handler = "";
   };
 
   explicit ContainerInfo(const std::filesystem::path& path);  // Throws
