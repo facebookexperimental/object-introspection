@@ -91,7 +91,9 @@ add_custom_command(
   MAIN_DEPENDENCY gen_tests.py
   DEPENDS ${INTEGRATION_TEST_CONFIGS})
 
-add_executable(integration_test_target ${INTEGRATION_TEST_TARGET_SRC})
+add_executable(integration_test_target
+  ${INTEGRATION_TEST_TARGET_SRC}
+  folly_shims.cpp)
 target_compile_options(integration_test_target PRIVATE -O1)
 target_link_libraries(integration_test_target PRIVATE oil Boost::headers ${Boost_LIBRARIES})
 
