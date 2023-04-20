@@ -19,6 +19,8 @@
 
 #include <boost/format.hpp>
 #include <iostream>
+#include <set>
+#include <string_view>
 
 #include "oi/FuncGen.h"
 #include "oi/Headers.h"
@@ -51,7 +53,26 @@ void defineMacros(std::string& code) {
     code += R"(
 #define SAVE_SIZE(val)
 #define SAVE_DATA(val)    StoreData(val, returnArg)
+)";
+  } else {
+    code += R"(
+#define SAVE_SIZE(val)    AddData(val, returnArg)
+#define SAVE_DATA(val)
+)";
+  }
+}
 
+void defineArray(std::string& code) {
+  code += R"(
+template<typename T, int N>
+struct OIArray {
+  T vals[N];
+};
+)";
+}
+
+void defineJitLog(std::string& code) {
+  code += R"(
 #define JLOG(str)                           \
   do {                                      \
     if (__builtin_expect(logFile, 0)) {     \
@@ -65,31 +86,25 @@ void defineMacros(std::string& code) {
       __jlogptr((uintptr_t)ptr);        \
     }                                   \
   } while (false)
-
-template<typename T, int N>
-struct OIArray {
-  T vals[N];
-};
 )";
-  } else {
-    code += R"(
-#define SAVE_SIZE(val)    AddData(val, returnArg)
-#define SAVE_DATA(val)
-#define JLOG(str)
-#define JLOGPTR(ptr)
-)";
-  }
 }
 
-void addIncludes(const TypeGraph& typeGraph, std::string& code) {
-  // Required for the offsetof() macro
-  code += "#include <cstddef>\n";
-
-  // TODO deduplicate containers
+void addIncludes(const TypeGraph& typeGraph,
+                 FeatureSet features,
+                 std::string& code) {
+  std::set<std::string_view> includes{"cstddef"};
+  if (features[Feature::TypedDataSegment]) {
+    includes.emplace("functional");
+  }
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Container*>(&t)) {
-      code += "#include <" + c->containerInfo_.header + ">\n";
+      includes.emplace(c->containerInfo_.header);
     }
+  }
+  for (const auto& include : includes) {
+    code += "#include <";
+    code += include;
+    code += ">\n";
   }
 }
 
@@ -367,10 +382,9 @@ void getContainerSizeFuncDef(const Container& c, std::string& code) {
   //   - implement hash for ContainerInfo
   //   - use ref<ContainerInfo>
   static std::unordered_set<const ContainerInfo*> usedContainers{};
-  if (usedContainers.find(&c.containerInfo_) != usedContainers.end()) {
+  if (!usedContainers.insert(&c.containerInfo_).second) {
     return;
   }
-  usedContainers.insert(&c.containerInfo_);
 
   auto fmt =
       boost::format(c.containerInfo_.codegen.func) % c.containerInfo_.typeName;
@@ -396,6 +410,136 @@ void addGetSizeFuncDefs(const TypeGraph& typeGraph,
       getClassSizeFuncDef(*c, symbols, polymorphicInheritance, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
       getContainerSizeFuncDef(*con, code);
+    }
+  }
+}
+
+void addStandardTypeHandlers(std::string& code) {
+  code += R"(
+    template <typename DB, typename T>
+    StaticTypes::Unit<DB>
+    getSizeType(const T &t, typename TypeHandler<DB, T>::type returnArg) {
+      JLOG("obj @");
+      JLOGPTR(&t);
+      return TypeHandler<DB, T>::getSizeType(t, returnArg);
+    }
+  )";
+
+  code += R"(
+    template<typename DB, typename T0, long unsigned int N>
+    struct TypeHandler<DB, OIArray<T0, N>> {
+      using type = StaticTypes::List<DB, typename TypeHandler<DB, T0>::type>;
+      static StaticTypes::Unit<DB> getSizeType(
+          const OIArray<T0, N> &container,
+          typename TypeHandler<DB, OIArray<T0,N>>::type returnArg) {
+        auto tail = returnArg.write(N);
+        for (size_t i=0; i<N; i++) {
+          tail = tail.delegate([&container, i](auto ret) {
+              return TypeHandler<DB, T0>::getSizeType(container.vals[i], ret);
+          });
+        }
+        return tail.finish();
+      }
+    };
+  )";
+}
+
+void getClassTypeHandler(const Class& c, std::string& code) {
+  std::string funcName = "getSizeType";
+
+  std::string typeStaticType;
+  {
+    size_t pairs = 0;
+
+    for (size_t i = 0; i < c.members.size(); i++) {
+      const auto& member = c.members[i];
+
+      if (i != c.members.size() - 1) {
+        typeStaticType += "StaticTypes::Pair<DB, ";
+        pairs++;
+      }
+
+      typeStaticType +=
+          (boost::format("typename TypeHandler<DB, decltype(%1%::%2%)>::type") %
+           c.name() % member.name)
+              .str();
+
+      if (i != c.members.size() - 1) {
+        typeStaticType += ", ";
+      }
+    }
+    typeStaticType += std::string(pairs, '>');
+
+    if (typeStaticType.empty()) {
+      typeStaticType = "StaticTypes::Unit<DB>";
+    }
+  }
+
+  std::string traverser;
+  {
+    if (!c.members.empty()) {
+      traverser = "auto ret = returnArg";
+    }
+    for (size_t i = 0; i < c.members.size(); i++) {
+      const auto& member = c.members[i];
+
+      if (i != c.members.size() - 1) {
+        traverser += "\n  .delegate([&t](auto ret) {";
+        traverser += "\n    return OIInternal::getSizeType<DB>(t." +
+                     member.name + ", ret);";
+        traverser += "\n})";
+      } else {
+        traverser += ";";
+        traverser +=
+            "\nreturn OIInternal::getSizeType<DB>(t." + member.name + ", ret);";
+      }
+    }
+
+    if (traverser.empty()) {
+      traverser = "return returnArg;";
+    }
+  }
+
+  code += (boost::format(R"(
+template <typename DB>
+class TypeHandler<DB, %1%> {
+ public:
+  using type = %2%;
+  static StaticTypes::Unit<DB> %3%(
+      const %1%& t,
+      typename TypeHandler<DB, %1%>::type returnArg) {
+    %4%
+  }
+};
+)") % c.name() %
+           typeStaticType % funcName % traverser)
+              .str();
+}
+
+void getContainerTypeHandler(const Container& c, std::string& code) {
+  static std::unordered_set<const ContainerInfo*> usedContainers{};
+  if (!usedContainers.insert(&c.containerInfo_).second) {
+    return;
+  }
+
+  const auto& handler = c.containerInfo_.codegen.handler;
+  if (handler.empty()) {
+    LOG(ERROR) << "`codegen.handler` must be specified for all containers "
+                  "under \"-ftyped-data-segment\", not specified for \"" +
+                      c.containerInfo_.typeName + "\"";
+    throw std::runtime_error("missing `codegen.handler`");
+  }
+  auto fmt = boost::format(c.containerInfo_.codegen.handler) %
+             c.containerInfo_.typeName;
+  code += fmt.str();
+}
+
+void addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
+  for (const Type& t : typeGraph.finalTypes) {
+    if (const auto* c = dynamic_cast<const Class*>(&t)) {
+      getClassTypeHandler(*c, code);
+    } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
+      getContainerTypeHandler(*con, code);
     }
   }
 }
@@ -435,8 +579,22 @@ bool CodeGen::generate(drgn_type* drgnType, std::string& code) {
   };
 
   code = headers::OITraceCode_cpp;
-  defineMacros(code);
-  addIncludes(typeGraph_, code);
+  if (!config_.features[Feature::TypedDataSegment]) {
+    defineMacros(code);
+  }
+  addIncludes(typeGraph_, config_.features, code);
+  defineArray(code);
+  defineJitLog(code);  // TODO: feature gate this
+
+  if (config_.features[Feature::TypedDataSegment]) {
+    FuncGen::DefineDataSegmentDataBuffer(code);
+    FuncGen::DefineStaticTypes(code);
+    code += "using namespace ObjectIntrospection;\n";
+
+    code += "namespace OIInternal {\nnamespace {\n";
+    FuncGen::DefineBasicTypeHandlers(code);
+    code += "} // namespace\n} // namespace OIInternal\n";
+  }
 
   /*
    * The purpose of the anonymous namespace within `OIInternal` is that
@@ -448,29 +606,42 @@ bool CodeGen::generate(drgn_type* drgnType, std::string& code) {
    * process faster.
    */
   code += "namespace OIInternal {\nnamespace {\n";
-  FuncGen::DefineEncodeData(code);
-  FuncGen::DefineEncodeDataSize(code);
-  FuncGen::DefineStoreData(code);
-  FuncGen::DefineAddData(code);
+  if (!config_.features[Feature::TypedDataSegment]) {
+    FuncGen::DefineEncodeData(code);
+    FuncGen::DefineEncodeDataSize(code);
+    FuncGen::DefineStoreData(code);
+    FuncGen::DefineAddData(code);
+  }
   FuncGen::DeclareGetContainer(code);
 
   genDecls(typeGraph_, code);
   genDefs(typeGraph_, code);
   genStaticAsserts(typeGraph_, code);
 
-  addStandardGetSizeFuncDecls(code);
-  addGetSizeFuncDecls(typeGraph_, code);
+  if (config_.features[Feature::TypedDataSegment]) {
+    addStandardTypeHandlers(code);
+    addTypeHandlers(typeGraph_, code);
+  } else {
+    addStandardGetSizeFuncDecls(code);
+    addGetSizeFuncDecls(typeGraph_, code);
 
-  addStandardGetSizeFuncDefs(code);
-  addGetSizeFuncDefs(typeGraph_, symbols_,
-                     config_.features[Feature::PolymorphicInheritance], code);
+    addStandardGetSizeFuncDefs(code);
+    addGetSizeFuncDefs(typeGraph_, symbols_,
+                       config_.features[Feature::PolymorphicInheritance], code);
+  }
 
   assert(typeGraph_.rootTypes().size() == 1);
   Type& rootType = typeGraph_.rootTypes()[0];
   code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
   code += "} // namespace\n} // namespace OIInternal\n";
 
-  FuncGen::DefineTopLevelGetSizeRef(code, SymbolService::getTypeName(drgnType));
+  if (config_.features[Feature::TypedDataSegment]) {
+    FuncGen::DefineTopLevelGetSizeRefTyped(
+        code, SymbolService::getTypeName(drgnType));
+  } else {
+    FuncGen::DefineTopLevelGetSizeRef(code,
+                                      SymbolService::getTypeName(drgnType));
+  }
 
   if (VLOG_IS_ON(3)) {
     VLOG(3) << "Generated trace code:\n";

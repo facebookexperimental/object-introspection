@@ -35,7 +35,7 @@
 #define C10_USING_CUSTOM_GENERATED_MACROS
 
 // These globals are set by oid, see end of OIDebugger::compileCode()
-extern uintptr_t dataBase;
+extern uint8_t* dataBase;
 extern size_t dataSize;
 extern uintptr_t cookieValue;
 extern int logFile;

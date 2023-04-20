@@ -160,6 +160,14 @@ std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
       featuresSet[k] = true;
     }
   }
+
+  if (featuresSet[Feature::TypedDataSegment] &&
+      !featuresSet[Feature::TypeGraph]) {
+    featuresSet[Feature::TypeGraph] = true;
+    LOG(WARNING) << "TypedDataSegment feature requires TypeGraph feature to be "
+                    "enabled, enabling now.";
+  }
+
   return featuresSet;
 }
 

@@ -259,6 +259,10 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   } else {
     throw std::runtime_error("`codegen.decl` is a required field");
   }
+  if (std::optional<std::string> str =
+          codegenToml["handler"].value<std::string>()) {
+    codegen.handler = std::move(*str);
+  }
 }
 
 ContainerInfo::ContainerInfo(std::string typeName_,

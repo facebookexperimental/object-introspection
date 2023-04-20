@@ -56,6 +56,8 @@ class FuncGen {
 
   static void DefineTopLevelGetSizeRef(std::string& testCode,
                                        const std::string& rawType);
+  static void DefineTopLevelGetSizeRefTyped(std::string& testCode,
+                                            const std::string& rawType);
 
   static void DefineTopLevelGetSizeRefRet(std::string& testCode,
                                           const std::string& type);
@@ -65,4 +67,8 @@ class FuncGen {
 
   static void DefineGetSizeTypedValueFunc(std::string& testCode,
                                           const std::string& ctype);
+
+  static void DefineDataSegmentDataBuffer(std::string& testCode);
+  static void DefineStaticTypes(std::string& testCode);
+  static void DefineBasicTypeHandlers(std::string& testCode);
 };
