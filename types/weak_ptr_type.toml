@@ -23,3 +23,16 @@ void getSizeType(const %1%<T> &s_ptr, size_t& returnArg)
     SAVE_SIZE(sizeof(%1%<T>));
 }
 """
+
+handler = """
+template <typename DB, typename T0>
+struct TypeHandler<DB, %1%<T0>> {
+  using type = StaticTypes::Unit<DB>;
+
+  static StaticTypes::Unit<DB> getSizeType(
+      const %1%<T0>& container,
+      typename TypeHandler<DB, %1%<T0>>::type returnArg) {
+    return returnArg;
+  }
+};
+"""
