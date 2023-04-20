@@ -35,6 +35,42 @@ This document describes the format of the container definition files contained i
 
   C++ code for the definition of a `getSizeType` function for this container.
 
+- `handler`
+
+  C++ code for the definition of a `TypeHandler` class for this container. See
+  further down for a description.
+
+
+## Changes introduced with Typed Data Segment
+- `decl` and `func` fields are ignored when using `-ftyped-data-segment` and the
+  `handler` field is used instead.
+
+### TypeHandler Classes
+A `TypeHandler` class describes both what a type will write into the data segment
+and how to write it. It consists of two major parts:
+- `using type = ...;` - describe what it will write into the data segment.
+- `static StaticTypes::Unit<DB> getSizeType(...)` - a function which takes a
+  const reference to a container and a `::type` by value and fills in the type.
+
+Example:
+```cpp
+template <typename DB, typename T0>
+struct TypeHandler<DB, std::string<T0>> {
+  using type =
+      StaticTypes::Pair<DB, StaticTypes::VarInt<DB>, StaticTypes::VarInt<DB>>;
+
+  static StaticTypes::Unit<DB> getSizeType(
+      const std::string<T0> & container,
+      typename TypeHandler<DB, std::string<T0>>::type returnArg) {
+    bool sso = ((uintptr_t)container.data() <
+                (uintptr_t)(&container + sizeof(std::string<T0>))) &&
+               ((uintptr_t)container.data() >= (uintptr_t)&container);
+
+    return returnArg.write(container.capacity()).write(container.size());
+  }
+};
+```
+
 
 ## Changes introduced with TypeGraph
 - `typeName` and `matcher` fields have been merged into the single field `type_name`.
