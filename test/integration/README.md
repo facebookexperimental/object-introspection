@@ -112,6 +112,13 @@ definitions = '''
   required for a specific test to compile, avoiding the need to add new
   dependencies to the build system for one-off tests.
 
+- `definitions_shlib`, `raw_definitions_shlib`
+
+  Same as above, but the definitions are put into a shared library linked with the target program.
+  It enables testing how Object Introspection handles shared libraries.
+
+  **WARNING:** The shared library doesn't handle Thrift definitions.
+
 - `cases` **Required**
 
   A list of individual test cases, each with their own setup, OI probe

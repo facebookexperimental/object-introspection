@@ -250,6 +250,32 @@ def gen_target(output_target_name, test_configs):
         add_footer(f)
 
 
+def gen_target_shlib(output_target_name, test_configs):
+    with open(output_target_name, "w") as f:
+        headers = set()
+        for config in test_configs:
+            headers.update(config.get("includes_shlib", []))
+        add_headers(f, custom_headers=headers, thrift_headers=[])
+
+        from textwrap import dedent
+
+        for config in test_configs:
+            ns = config["suite"]
+            f.write(
+                dedent(
+                    f"""
+                    {config.get("raw_definitions_shlib", "")}
+                    namespace {ns} {{
+                    #pragma clang diagnostic push
+                    #pragma clang diagnostic ignored \"-Wunused-private-field\"
+                    {config.get("definitions_shlib", "")}
+                    #pragma clang diagnostic pop
+                    }} // namespace {ns}
+                    """
+                )
+            )
+
+
 def get_probe_name(probe_type, test_suite, test_case, args):
     func_name = get_target_oid_func_name(test_suite, test_case)
     return probe_type + ":" + func_name + ":" + args
@@ -447,15 +473,19 @@ def gen_thrift(test_configs):
 
 
 def main():
-    if len(sys.argv) < 4:
-        print("Usage: gen_tests.py OUTPUT_TARGET OUTPUT_RUNNER INPUT1 [INPUT2 ...]")
+    if len(sys.argv) < 5:
+        print(
+            "Usage: gen_tests.py OUTPUT_TARGET OUTPUT_SHLIB OUTPUT_RUNNER INPUT1 [INPUT2 ...]"
+        )
         exit(1)
 
     output_target = sys.argv[1]
-    output_runner = sys.argv[2]
-    inputs = sys.argv[3:]
+    output_target_shlib = sys.argv[2]
+    output_runner = sys.argv[3]
+    inputs = sys.argv[4:]
 
     print(f"Output target: {output_target}")
+    print(f"Output shlib: {output_target_shlib}")
     print(f"Output runner: {output_runner}")
     print(f"Input files: {inputs}")
 
@@ -484,6 +514,7 @@ def main():
             )
 
     gen_target(output_target, test_configs)
+    gen_target_shlib(output_target_shlib, test_configs)
     gen_runner(output_runner, test_configs)
     gen_thrift(test_configs)
 
