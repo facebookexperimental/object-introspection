@@ -2286,7 +2286,7 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
 
   structDefinition.append(" ");
   structDefinition.append(*tmpStr);
-  structDefinition.append("{\n");
+  structDefinition.append(" {\n");
   if (kind == DRGN_TYPE_UNION) {
     // Pad out unions
     structDefinition.append("char union_padding[" + std::to_string(*sz) +
@@ -2490,8 +2490,8 @@ std::optional<uint64_t> OICodeGen::generateMember(
       currOffsetBits = 0;
       VLOG(1) << "Member size: " << memberSize;
     } else {
-      currOffsetBits = currOffsetBits + memberSize;
       addSizeComment(config.genPaddingStats, code, currOffsetBits, memberSize);
+      currOffsetBits = currOffsetBits + memberSize;
     }
 
     code.append(*tmpStr);
