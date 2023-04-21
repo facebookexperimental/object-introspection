@@ -29,6 +29,7 @@ bool verbose = false;
 bool preserve = false;
 bool preserve_on_failure = false;
 bool run_skipped_tests = false;
+std::vector<std::string> extra_feature_args{};
 
 constexpr static OIOpts opts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit"},
@@ -42,6 +43,8 @@ constexpr static OIOpts opts{
           "Force running tests, even if they are marked as skipped"},
     OIOpt{'x', "oid", required_argument, nullptr,
           "Path to OID executable to test"},
+    OIOpt{'\0', "enable-feature", required_argument, nullptr,
+          "Enable extra OID feature."},
 };
 
 void usage(std::string_view progname) {
@@ -72,6 +75,9 @@ int main(int argc, char* argv[]) {
         // Must convert to absolute path so it continues to work after working
         // directory is changed
         oidExe = fs::absolute(optarg);
+        break;
+      case '\0':
+        extra_feature_args.push_back(std::string("-f") + optarg);
         break;
       case 'h':
       default:
@@ -218,8 +224,13 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
       "--script-source"s, opts.scriptSource,
       "--pid"s, std::to_string(targetProcess.id()),
   };
+
   // clang-format on
-  auto oid_args = extra_args;
+
+  // Specify feature args first so they can be overridden by extra_args of
+  // specific tests.
+  auto oid_args = extra_feature_args;
+  oid_args.insert(oid_args.end(), extra_args.begin(), extra_args.end());
   oid_args.insert(oid_args.end(), default_args.begin(), default_args.end());
 
   if (verbose) {
