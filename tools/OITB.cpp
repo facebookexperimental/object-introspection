@@ -120,10 +120,8 @@ static std::ostream&
 operator<<(std::ostream& out, TreeBuilder::Config tbc) {
   out << "TreeBuilde::Config = [";
   out << "\n  logAllStructs = " << tbc.logAllStructs;
-  out << "\n  chaseRawPointers = "
-      << tbc.features.contains(Feature::ChaseRawPointers);
-  out << "\n  genPaddingStats = "
-      << tbc.features.contains(Feature::GenPaddingStats);
+  out << "\n  chaseRawPointers = " << tbc.features[Feature::ChaseRawPointers];
+  out << "\n  genPaddingStats = " << tbc.features[Feature::GenPaddingStats];
   out << "\n  dumpDataSegment = " << tbc.dumpDataSegment;
   out << "\n  jsonPath = " << (tbc.jsonPath ? *tbc.jsonPath : "NONE");
   out << "\n]\n";
@@ -157,10 +155,10 @@ int main(int argc, char* argv[]) {
             true;  // Weird that we're setting it to true, again...
         break;
       case 'n':
-        tbConfig.features.insert(Feature::ChaseRawPointers);
+        tbConfig.features[Feature::ChaseRawPointers] = true;
         break;
       case 'w':
-        tbConfig.features.erase(Feature::GenPaddingStats);
+        tbConfig.features[Feature::GenPaddingStats] = false;
         break;
       case 'J':
         tbConfig.jsonPath = optarg ? optarg : "oid_out.json";
@@ -189,7 +187,7 @@ int main(int argc, char* argv[]) {
 
   TreeBuilder typeTree(tbConfig);
 
-  if (tbConfig.features.contains(Feature::GenPaddingStats)) {
+  if (tbConfig.features[Feature::GenPaddingStats]) {
     LOG(INFO) << "Setting-up PaddingHunter...";
     typeTree.setPaddedStructs(&paddingInfos);
   }

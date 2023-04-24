@@ -41,7 +41,7 @@ class TreeBuilder {
   struct Config {
     // Don't set default values for the config so the user gets
     // an "unitialized field" warning if he missed any.
-    std::set<ObjectIntrospection::Feature> features;
+    ObjectIntrospection::FeatureSet features;
     bool logAllStructs;
     bool dumpDataSegment;
     std::optional<std::string> jsonPath;
@@ -68,9 +68,6 @@ class TreeBuilder {
   const TypeHierarchy* th = nullptr;
   const std::vector<uint64_t>* oidData = nullptr;
   std::map<std::string, PaddingInfo>* paddedStructs = nullptr;
-
-  bool genPaddingStats;
-  bool chaseRawPointers;
 
   /*
    * The RocksDB output needs versioning so they are imported correctly in

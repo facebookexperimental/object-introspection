@@ -24,7 +24,7 @@
 
 namespace OIUtils {
 
-std::optional<std::set<Feature>> processConfigFile(
+std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
     const std::string& configFilePath,
     std::map<Feature, bool> featureMap,
     OICompiler::Config& compilerConfig,

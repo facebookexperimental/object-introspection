@@ -57,7 +57,7 @@ class OICodeGen {
      */
     bool useDataSegment;
 
-    std::set<Feature> features{};
+    FeatureSet features{};
 
     std::set<fs::path> containerConfigPaths{};
     std::set<std::string> defaultHeaders{};
@@ -112,12 +112,6 @@ class OICodeGen {
  private:
   Config config{};
   FuncGen funcGen;
-
-  bool chaseRawPointers;
-  bool packStructs;
-  bool genPaddingStats;
-  bool captureThriftIsset;
-  bool polymorphicInheritance;
 
   using ContainerTypeMapEntry =
       std::pair<std::reference_wrapper<const ContainerInfo>,
@@ -185,6 +179,9 @@ class OICodeGen {
     std::unique_ptr<char, FreeDeleter> _data;
   };
 
+  bool feature(Feature f) const {
+    return config.features[f];
+  }
   static void prependQualifiers(enum drgn_qualifiers, std::string& sb);
   static std::string stripFullyQualifiedName(
       const std::string& fullyQualifiedName);

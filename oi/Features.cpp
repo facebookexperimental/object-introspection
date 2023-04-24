@@ -45,4 +45,10 @@ const char* featureToStr(Feature f) {
   }
 }
 
+FeatureSet::FeatureSet(std::initializer_list<Feature> features) {
+  for (auto f : features) {
+    (*this)[f] = true;
+  }
+}
+
 }  // namespace ObjectIntrospection
