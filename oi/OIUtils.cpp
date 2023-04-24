@@ -31,7 +31,7 @@ namespace OIUtils {
 using namespace ObjectIntrospection;
 using namespace std::literals;
 
-std::optional<std::set<Feature>> processConfigFile(
+std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
     const std::string& configFilePath,
     std::map<Feature, bool> featureMap,
     OICompiler::Config& compilerConfig,
@@ -153,10 +153,10 @@ std::optional<std::set<Feature>> processConfigFile(
     }
   }
 
-  std::set<Feature> featuresSet;
+  ObjectIntrospection::FeatureSet featuresSet;
   for (auto [k, v] : featureMap) {
     if (v) {
-      featuresSet.insert(k);
+      featuresSet[k] = true;
     }
   }
   return featuresSet;

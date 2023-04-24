@@ -2852,7 +2852,7 @@ bool OIDebugger::processTargetData() {
     const auto& [rootType, typeHierarchy, paddingInfos] = typeInfo->second;
     VLOG(1) << "Root type addr: " << (void*)rootType.type.type;
 
-    if (treeBuilderConfig.features.contains(Feature::GenPaddingStats)) {
+    if (treeBuilderConfig.features[Feature::GenPaddingStats]) {
       paddingHunter.localPaddedStructs = paddingInfos;
       typeTree.setPaddedStructs(&paddingHunter.localPaddedStructs);
     }
@@ -2876,7 +2876,7 @@ bool OIDebugger::processTargetData() {
       continue;
     }
 
-    if (treeBuilderConfig.features.contains(Feature::GenPaddingStats)) {
+    if (treeBuilderConfig.features[Feature::GenPaddingStats]) {
       paddingHunter.processLocalPaddingInfo();
     }
   }
@@ -2890,7 +2890,7 @@ bool OIDebugger::processTargetData() {
     typeTree.dumpJson();
   }
 
-  if (treeBuilderConfig.features.contains(Feature::GenPaddingStats)) {
+  if (treeBuilderConfig.features[Feature::GenPaddingStats]) {
     paddingHunter.outputPaddingInfo();
   }
 

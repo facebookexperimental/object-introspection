@@ -16,6 +16,7 @@
 #pragma once
 
 #include <array>
+#include <bitset>
 #include <string_view>
 
 #define OI_FEATURE_LIST                         \
@@ -41,6 +42,25 @@ constexpr std::array allFeatures = {
 #define X(name, _) Feature::name,
     OI_FEATURE_LIST
 #undef X
+};
+
+class FeatureSet {
+ private:
+  using BitsetType = std::bitset<allFeatures.size() + 1>;
+
+ public:
+  FeatureSet() = default;
+  FeatureSet(std::initializer_list<Feature>);
+
+  constexpr bool operator[](Feature f) const {
+    return bitset[(size_t)f];
+  }
+  BitsetType::reference operator[](Feature f) {
+    return bitset[(size_t)f];
+  }
+
+ private:
+  BitsetType bitset;
 };
 
 }  // namespace ObjectIntrospection
