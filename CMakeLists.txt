@@ -212,8 +212,6 @@ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(SYSTEM "${DRGN_PATH}")
 
-
-
 if (STATIC_LINK)
   # glog links against the `gflags` target, which is an alias for `gflags_shared`
   # For static builds, we force it to link against `gflags_static` instead
@@ -223,15 +221,15 @@ endif()
 # FIXME: LLVM 12's source code is not compatible with C++20.
 # We should check with the compiler team if we could apply a fix to our LLVM.
 # In the meantime, we can compile OICompiler with C++17.
-set_source_files_properties(src/OICompiler.cpp PROPERTIES COMPILE_FLAGS -std=c++17 SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(oi/OICompiler.cpp PROPERTIES COMPILE_FLAGS -std=c++17 SKIP_PRECOMPILE_HEADERS ON)
 
 
 
 ## OI Dependencies (linked to by output libraries and executables)
 ### OI Language Parser
-BISON_TARGET(Parser src/OIParser.yy ${CMAKE_CURRENT_BINARY_DIR}/OIParser.tab.cpp
+BISON_TARGET(Parser oi/OIParser.yy ${CMAKE_CURRENT_BINARY_DIR}/OIParser.tab.cpp
   DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/OIParser.tab.hh)
-FLEX_TARGET(Lexer src/OILexer.l ${CMAKE_CURRENT_BINARY_DIR}/OILexer.cpp)
+FLEX_TARGET(Lexer oi/OILexer.l ${CMAKE_CURRENT_BINARY_DIR}/OILexer.cpp)
 
 ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
 
@@ -239,17 +237,17 @@ add_library(oid_parser STATIC ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS})
 target_link_libraries(oid_parser glog::glog)
 
 ### Core OI
-add_subdirectory(src)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+add_subdirectory(oi)
 add_library(oicore
-  src/Descs.cpp
-  src/Metrics.cpp
-  src/OICache.cpp
-  src/OICompiler.cpp
-  src/OIUtils.cpp
-  src/PaddingHunter.cpp
-  src/Serialize.cpp
+  oi/Descs.cpp
+  oi/Metrics.cpp
+  oi/OICache.cpp
+  oi/OICompiler.cpp
+  oi/OIUtils.cpp
+  oi/PaddingHunter.cpp
+  oi/Serialize.cpp
 )
 add_dependencies(oicore libdrgn)
 set_project_warnings(oicore)
@@ -290,7 +288,7 @@ target_link_libraries(oicore
 )
 
 ### TreeBuilder
-add_library(treebuilder src/TreeBuilder.cpp)
+add_library(treebuilder oi/TreeBuilder.cpp)
 add_dependencies(treebuilder librocksdb)
 target_link_libraries(treebuilder
   ${rocksdb_BINARY_DIR}/librocksdb.a
@@ -302,15 +300,16 @@ target_link_libraries(treebuilder
 
 ## OI Outputs
 ### Object Introspection as a Library (OIL)
-add_library(oil src/OILibrary.cpp src/OILibraryImpl.cpp)
+add_library(oil oi/OILibrary.cpp oi/OILibraryImpl.cpp)
 target_include_directories(oil PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(oil oicore)
 
 ### Object Introspection as a Library Generator (OILGen)
 add_executable(oilgen
   tools/OILGen.cpp
-  src/OIGenerator.cpp
+  oi/OIGenerator.cpp
 )
+
 target_link_libraries(oilgen
   drgn_utils
   oicore
@@ -327,7 +326,7 @@ set_project_warnings(oitb)
 target_link_libraries(oitb oicore treebuilder)
 
 ### Object Introspection Debugger (OID)
-add_executable(oid src/OID.cpp src/OIDebugger.cpp)
+add_executable(oid oi/OID.cpp oi/OIDebugger.cpp)
 set_project_warnings(oid)
 
 target_link_libraries(oid oicore oid_parser treebuilder)

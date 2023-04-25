@@ -4,8 +4,8 @@
 
 #include <sstream>
 
-#include "OILexer.h"
-#include "OIParser.h"
+#include "oi/OILexer.h"
+#include "oi/OIParser.h"
 
 using ::testing::HasSubstr;
 

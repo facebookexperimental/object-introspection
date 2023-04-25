@@ -14,7 +14,7 @@
 #include <string>
 #include <utility>
 
-#include "OIOpts.h"
+#include "oi/OIOpts.h"
 
 using namespace std::literals;
 

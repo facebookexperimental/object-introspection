@@ -21,12 +21,12 @@
 #include <map>
 #include <span>
 
-#include "Common.h"
-#include "OIOpts.h"
-#include "PaddingHunter.h"
-#include "Serialize.h"
-#include "TreeBuilder.h"
 #include "glog/vlog_is_on.h"
+#include "oi/Common.h"
+#include "oi/OIOpts.h"
+#include "oi/PaddingHunter.h"
+#include "oi/Serialize.h"
+#include "oi/TreeBuilder.h"
 
 namespace fs = std::filesystem;
 
