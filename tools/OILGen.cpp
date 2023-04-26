@@ -20,9 +20,9 @@
 #include <filesystem>
 #include <iostream>
 
-#include "OICodeGen.h"
-#include "OIGenerator.h"
-#include "OIOpts.h"
+#include "oi/OICodeGen.h"
+#include "oi/OIGenerator.h"
+#include "oi/OIOpts.h"
 
 namespace fs = std::filesystem;
 using namespace ObjectIntrospection;

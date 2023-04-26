@@ -19,9 +19,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "OICompiler.h"
-#include "PaddingHunter.h"
-#include "Serialize.h"
+#include "oi/OICompiler.h"
+#include "oi/PaddingHunter.h"
+#include "oi/Serialize.h"
 
 namespace fs = std::filesystem;
 

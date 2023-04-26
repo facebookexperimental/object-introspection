@@ -7,7 +7,7 @@
 #include <cstring>
 #include <filesystem>
 
-#include "OICompiler.h"
+#include "oi/OICompiler.h"
 
 namespace fs = std::filesystem;
 
