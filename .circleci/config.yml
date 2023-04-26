@@ -204,4 +204,4 @@ jobs:
             # forever. Delete it for a speedup.
             rm -rf extern
 
-            ./codecov -Z -f coverage.info
+            ./codecov -Z -f coverage.info -t $CODECOV_TOKEN

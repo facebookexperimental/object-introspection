@@ -32,11 +32,15 @@
 namespace fs = std::filesystem;
 
 class OIDebugger {
-  OIDebugger(std::string, OICodeGen::Config, TreeBuilder::Config);
+  OIDebugger(OICodeGen::Config, OICompiler::Config, TreeBuilder::Config);
 
  public:
-  OIDebugger(pid_t, std::string, OICodeGen::Config, TreeBuilder::Config);
-  OIDebugger(fs::path, std::string, OICodeGen::Config, TreeBuilder::Config);
+  OIDebugger(pid_t, OICodeGen::Config, OICompiler::Config, TreeBuilder::Config);
+  OIDebugger(fs::path,
+             OICodeGen::Config,
+             OICompiler::Config,
+             TreeBuilder::Config);
+
   bool segmentInit(void);
   bool stopTarget(void);
   bool interruptTarget(void);
@@ -142,7 +146,6 @@ class OIDebugger {
   }
 
  private:
-  std::string configFilePath;
   bool debug = false;
   bool enableJitLogging = false;
   pid_t traceePid{};
@@ -185,8 +188,9 @@ class OIDebugger {
   std::unordered_map<pid_t, std::shared_ptr<trapInfo>> threadTrapState;
   std::unordered_map<uintptr_t, uintptr_t> replayInstMap;
 
-  std::unordered_map<irequest, std::tuple<RootInfo, TypeHierarchy,
-                                          std::map<std::string, PaddingInfo>>>
+  std::unordered_map<
+      irequest,
+      std::tuple<RootInfo, TypeHierarchy, std::map<std::string, PaddingInfo>>>
       typeInfos;
 
   template <typename Sys, typename... Args>
@@ -216,10 +220,13 @@ class OIDebugger {
                                                         const uint64_t);
   bool functionPatch(const prequest&);
   bool canProcessTrapForThread(pid_t) const;
-  bool replayTrappedInstr(const trapInfo&, pid_t, struct user_regs_struct&,
+  bool replayTrappedInstr(const trapInfo&,
+                          pid_t,
+                          struct user_regs_struct&,
                           struct user_fpregs_struct&) const;
   bool locateObjectsAddresses(const trapInfo&, struct user_regs_struct&);
-  processTrapRet processFuncTrap(const trapInfo&, pid_t,
+  processTrapRet processFuncTrap(const trapInfo&,
+                                 pid_t,
                                  struct user_regs_struct&,
                                  struct user_fpregs_struct&);
   processTrapRet processJitCodeRet(const trapInfo&, pid_t);

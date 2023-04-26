@@ -18,11 +18,13 @@
 #include <memory>
 #include <msgpack/sbuffer_decl.hpp>
 #include <optional>
+#include <set>
 #include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "oi/Common.h"
+#include "oi/Features.h"
 
 // The rocksdb includes are extremely heavy and bloat compile times,
 // so we just forward-declare `DB` to avoid making other compile units
@@ -39,9 +41,8 @@ class TreeBuilder {
   struct Config {
     // Don't set default values for the config so the user gets
     // an "unitialized field" warning if he missed any.
+    std::set<ObjectIntrospection::Feature> features;
     bool logAllStructs;
-    bool chaseRawPointers;
-    bool genPaddingStats;
     bool dumpDataSegment;
     std::optional<std::string> jsonPath;
   };
@@ -49,8 +50,10 @@ class TreeBuilder {
   TreeBuilder(Config);
   ~TreeBuilder();
 
-  void build(const std::vector<uint64_t>&, const std::string&,
-             struct drgn_type*, const TypeHierarchy&);
+  void build(const std::vector<uint64_t>&,
+             const std::string&,
+             struct drgn_type*,
+             const TypeHierarchy&);
   void dumpJson();
   void setPaddedStructs(std::map<std::string, PaddingInfo>* paddedStructs);
   bool emptyOutput() const;
@@ -65,6 +68,9 @@ class TreeBuilder {
   const TypeHierarchy* th = nullptr;
   const std::vector<uint64_t>* oidData = nullptr;
   std::map<std::string, PaddingInfo>* paddedStructs = nullptr;
+
+  bool genPaddingStats;
+  bool chaseRawPointers;
 
   /*
    * The RocksDB output needs versioning so they are imported correctly in
@@ -110,6 +116,7 @@ class TreeBuilder {
   std::string_view serialize(const T&);
   void JSON(NodeID id, std::ofstream& output);
 
-  static void setSize(TreeBuilder::Node& node, uint64_t dynamicSize,
+  static void setSize(TreeBuilder::Node& node,
+                      uint64_t dynamicSize,
                       uint64_t memberSizes);
 };

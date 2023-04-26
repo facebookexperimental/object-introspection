@@ -238,3 +238,47 @@ definitions = '''
         {"staticSize":8, "dynamicSize":0, "pointer":0},
         {"staticSize":8, "dynamicSize":0, "NOT": {"pointer":0}}
       ]}]'''
+  [cases.feature_flag]
+    oil_disable = "oil can't chase raw pointers safely"
+    param_types = ["const std::vector<int*>&"]
+    setup = "return {{new int(1), nullptr, new int(3)}};"
+    cli_options = ["-fchase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":32,
+      "length":3,
+      "capacity":3,
+      "elementStaticSize":8,
+      "members":[
+        {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}},
+        {"staticSize":8, "dynamicSize":0, "pointer":0},
+        {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}}
+      ]}]'''
+  [cases.feature_flag_disabled]
+    param_types = ["const PrimitivePtrs&"]
+    setup = "return PrimitivePtrs{0, new int(0), new int(0)};"
+    cli_options = ["-fchase-raw-pointers", "-Fchase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":8, "dynamicSize":0},
+        {"name":"c", "staticSize":8, "dynamicSize":0}
+      ]}]'''
+  [cases.feature_config]
+    oil_disable = "oil can't chase raw pointers safely"
+    param_types = ["const std::vector<int*>&"]
+    setup = "return {{new int(1), nullptr, new int(3)}};"
+    config_prefix = 'features = ["chase-raw-pointers"]'
+    expect_json = '''[{
+      "staticSize":24,
+      "dynamicSize":32,
+      "length":3,
+      "capacity":3,
+      "elementStaticSize":8,
+      "members":[
+        {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}},
+        {"staticSize":8, "dynamicSize":0, "pointer":0},
+        {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}}
+      ]}]'''

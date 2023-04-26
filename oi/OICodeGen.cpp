@@ -19,6 +19,7 @@
 #include <glog/logging.h>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/algorithm/string/join.hpp>
 #include <boost/algorithm/string/regex.hpp>
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/format.hpp>
@@ -61,6 +62,13 @@ std::unique_ptr<OICodeGen> OICodeGen::buildFromConfig(const Config& c,
 
 OICodeGen::OICodeGen(const Config& c, SymbolService& s)
     : config{c}, symbols{s} {
+  chaseRawPointers = config.features.contains(Feature::ChaseRawPointers);
+  packStructs = config.features.contains(Feature::PackStructs);
+  genPaddingStats = config.features.contains(Feature::GenPaddingStats);
+  captureThriftIsset = config.features.contains(Feature::CaptureThriftIsset);
+  polymorphicInheritance =
+      config.features.contains(Feature::PolymorphicInheritance);
+
   // TODO: Should folly::Range just be added as a container?
   auto typesToStub = std::array{
       "SharedMutex",
@@ -322,7 +330,8 @@ std::string OICodeGen::stripFullyQualifiedNameWithSeparators(
 // Replace a specific template parameter with a generic DummySizedOperator
 void OICodeGen::replaceTemplateOperator(
     TemplateParamList& template_params,
-    std::vector<std::string>& template_params_strings, size_t index) {
+    std::vector<std::string>& template_params_strings,
+    size_t index) {
   if (index >= template_params.size()) {
     // Should this happen?
     return;
@@ -357,7 +366,8 @@ void OICodeGen::replaceTemplateOperator(
 }
 
 void OICodeGen::replaceTemplateParameters(
-    drgn_type* type, TemplateParamList& template_params,
+    drgn_type* type,
+    TemplateParamList& template_params,
     std::vector<std::string>& template_params_strings,
     const std::string& nameWithoutTemplate) {
   auto optContainerInfo = getContainerInfo(type);
@@ -385,7 +395,8 @@ void OICodeGen::replaceTemplateParameters(
   }
 }
 
-bool OICodeGen::buildName(drgn_type* type, std::string& text,
+bool OICodeGen::buildName(drgn_type* type,
+                          std::string& text,
                           std::string& outName) {
   int ptrDepth = 0;
   drgn_type* ut = type;
@@ -410,7 +421,8 @@ bool OICodeGen::buildName(drgn_type* type, std::string& text,
   return true;
 }
 
-bool OICodeGen::buildNameInt(drgn_type* type, std::string& nameWithoutTemplate,
+bool OICodeGen::buildNameInt(drgn_type* type,
+                             std::string& nameWithoutTemplate,
                              std::string& outName) {
   // Calling buildName only makes sense if a type is a container and has
   // template parameters. For a generic template class, we just flatten the
@@ -580,7 +592,8 @@ bool OICodeGen::buildNameInt(drgn_type* type, std::string& nameWithoutTemplate,
 }
 
 bool OICodeGen::getTemplateParams(
-    drgn_type* type, size_t numTemplateParams,
+    drgn_type* type,
+    size_t numTemplateParams,
     std::vector<std::pair<drgn_qualified_type, std::string>>& v) {
   drgn_type_template_parameter* tParams = drgn_type_template_parameters(type);
 
@@ -985,7 +998,7 @@ bool OICodeGen::recordChildren(drgn_type* type) {
  * types in the program to build the reverse mapping.
  */
 bool OICodeGen::enumerateChildClasses() {
-  if (!config.polymorphicInheritance) {
+  if (!polymorphicInheritance) {
     return true;
   }
 
@@ -1314,7 +1327,7 @@ bool OICodeGen::isEmptyClassOrFunctionType(drgn_type* type,
  *   one or more virtual member functions or virtual base classes).
  */
 bool OICodeGen::isDynamic(drgn_type* type) const {
-  if (!config.polymorphicInheritance || !drgn_type_has_virtuality(type)) {
+  if (!polymorphicInheritance || !drgn_type_has_virtuality(type)) {
     return false;
   }
 
@@ -1654,8 +1667,10 @@ std::optional<std::string> OICodeGen::getNameForType(drgn_type* type) {
 }
 
 void OICodeGen::getFuncDefClassMembers(
-    std::string& code, drgn_type* type,
-    std::unordered_map<std::string, int>& memberNames, bool skipPadding) {
+    std::string& code,
+    drgn_type* type,
+    std::unordered_map<std::string, int>& memberNames,
+    bool skipPadding) {
   if (drgn_type_kind(type) == DRGN_TYPE_TYPEDEF) {
     // Handle case where parent is a typedef
     getFuncDefClassMembers(code, drgnUnderlyingType(type), memberNames);
@@ -1753,7 +1768,8 @@ void OICodeGen::enumerateDescendants(drgn_type* type, drgn_type* baseType) {
   }
 }
 
-void OICodeGen::getFuncDefinitionStr(std::string& code, drgn_type* type,
+void OICodeGen::getFuncDefinitionStr(std::string& code,
+                                     drgn_type* type,
                                      const std::string& typeName) {
   if (classMembersMap.find(type) == classMembersMap.end()) {
     return;
@@ -1992,7 +2008,7 @@ bool OICodeGen::getDrgnTypeNameInt(drgn_type* type, std::string& outName) {
     name.assign(drgn_type_name(type));
   } else if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
     drgn_type* underlyingType = getPtrUnderlyingType(type);
-    if (config.chaseRawPointers &&
+    if (chaseRawPointers &&
         drgn_type_kind(underlyingType) != DRGN_TYPE_FUNCTION) {
       // For pointers, figure out name for the underlying type then add
       // appropriate number of '*'
@@ -2262,7 +2278,7 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
 
   std::string structDefinition;
 
-  if (paddingInfo.paddingSize != 0 && config.genPaddingStats) {
+  if (paddingInfo.paddingSize != 0 && genPaddingStats) {
     structDefinition.append("/* offset    |  size */ ");
   }
 
@@ -2278,15 +2294,14 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
                             std::to_string(*alignment / CHAR_BIT) + ")");
   }
 
-  if (config.packStructs &&
-      (kind == DRGN_TYPE_STRUCT || kind == DRGN_TYPE_CLASS) &&
+  if (packStructs && (kind == DRGN_TYPE_STRUCT || kind == DRGN_TYPE_CLASS) &&
       violatesAlignmentRequirement && paddingInfo.paddingSize == 0) {
     structDefinition.append(" __attribute__((__packed__))");
   }
 
   structDefinition.append(" ");
   structDefinition.append(*tmpStr);
-  structDefinition.append("{\n");
+  structDefinition.append(" {\n");
   if (kind == DRGN_TYPE_UNION) {
     // Pad out unions
     structDefinition.append("char union_padding[" + std::to_string(*sz) +
@@ -2298,7 +2313,7 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
 
   structDefinition.append("};\n");
 
-  if (config.genPaddingStats) {
+  if (genPaddingStats) {
     auto paddedStructFound = paddedStructs.find(*tmpStr);
 
     if (paddedStructFound == paddedStructs.end()) {
@@ -2373,8 +2388,10 @@ bool OICodeGen::addPadding(uint64_t padding_bits, std::string& code) {
   return true;
 }
 
-static inline void addSizeComment(bool genPaddingStats, std::string& code,
-                                  size_t offset, size_t sizeInBits) {
+static inline void addSizeComment(bool genPaddingStats,
+                                  std::string& code,
+                                  size_t offset,
+                                  size_t sizeInBits) {
   if (!genPaddingStats) {
     return;
   }
@@ -2410,8 +2427,10 @@ void OICodeGen::deduplicateMemberName(
 
 std::optional<uint64_t> OICodeGen::generateMember(
     const DrgnClassMemberInfo& m,
-    std::unordered_map<std::string, int>& memberNames, uint64_t currOffsetBits,
-    std::string& code, bool isInUnion) {
+    std::unordered_map<std::string, int>& memberNames,
+    uint64_t currOffsetBits,
+    std::string& code,
+    bool isInUnion) {
   // Generate unique name for member
   std::string memberName = m.member_name;
   deduplicateMemberName(memberNames, memberName);
@@ -2490,8 +2509,8 @@ std::optional<uint64_t> OICodeGen::generateMember(
       currOffsetBits = 0;
       VLOG(1) << "Member size: " << memberSize;
     } else {
+      addSizeComment(genPaddingStats, code, currOffsetBits, memberSize);
       currOffsetBits = currOffsetBits + memberSize;
-      addSizeComment(config.genPaddingStats, code, currOffsetBits, memberSize);
     }
 
     code.append(*tmpStr);
@@ -2506,8 +2525,11 @@ std::optional<uint64_t> OICodeGen::generateMember(
 }
 
 bool OICodeGen::generateParent(
-    drgn_type* p, std::unordered_map<std::string, int>& memberNames,
-    uint64_t& currOffsetBits, std::string& code, size_t offsetToNextMember) {
+    drgn_type* p,
+    std::unordered_map<std::string, int>& memberNames,
+    uint64_t& currOffsetBits,
+    std::string& code,
+    size_t offsetToNextMember) {
   // Parent class could be a typedef
   PaddingInfo paddingInfo{};
   bool violatesAlignmentRequirement = false;
@@ -2599,9 +2621,13 @@ std::optional<uint64_t> OICodeGen::getAlignmentRequirements(drgn_type* e) {
 }
 
 bool OICodeGen::generateStructMembers(
-    drgn_type* e, std::unordered_map<std::string, int>& memberNames,
-    std::string& code, uint64_t& out_offset_bits, PaddingInfo& paddingInfo,
-    bool& violatesAlignmentRequirement, size_t offsetToNextMemberInSubclass) {
+    drgn_type* e,
+    std::unordered_map<std::string, int>& memberNames,
+    std::string& code,
+    uint64_t& out_offset_bits,
+    PaddingInfo& paddingInfo,
+    bool& violatesAlignmentRequirement,
+    size_t offsetToNextMemberInSubclass) {
   if (classMembersMap.find(e) == classMembersMap.end()) {
     VLOG(1) << "Failed to find type in classMembersMap: " << e;
   }
@@ -2683,12 +2709,12 @@ bool OICodeGen::generateStructMembers(
       bool isThriftIssetStruct =
           typeName.starts_with("isset_bitset<") && memberName == "__isset";
 
-      if (config.captureThriftIsset && isThriftIssetStruct &&
+      if (captureThriftIsset && isThriftIssetStruct &&
           memberIndex == members.size() - 1) {
         thriftIssetStructTypes.insert(e);
       }
 
-      if (config.genPaddingStats) {
+      if (genPaddingStats) {
         paddingInfo.isThriftStruct = isThriftIssetStruct;
 
         /*
@@ -3232,12 +3258,12 @@ bool OICodeGen::generateJitCode(std::string& code) {
   functionsCode.append("namespace OIInternal {\nnamespace {\n");
   functionsCode.append("// functions -----\n");
   if (!funcGen.DeclareGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                   config.chaseRawPointers)) {
+                                   chaseRawPointers)) {
     LOG(ERROR) << "declaring get size for containers failed";
     return false;
   }
 
-  if (config.chaseRawPointers) {
+  if (chaseRawPointers) {
     functionsCode.append(R"(
     template<typename T>
     void getSizeType(const T* t, size_t& returnArg);
@@ -3258,7 +3284,7 @@ bool OICodeGen::generateJitCode(std::string& code) {
     }
   }
 
-  if (config.useDataSegment || config.chaseRawPointers) {
+  if (config.useDataSegment || chaseRawPointers) {
     funcGen.DeclareStoreData(functionsCode);
   }
 
@@ -3270,12 +3296,12 @@ bool OICodeGen::generateJitCode(std::string& code) {
   }
 
   if (!funcGen.DefineGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                  config.chaseRawPointers)) {
+                                  chaseRawPointers)) {
     LOG(ERROR) << "defining get size for containers failed";
     return false;
   }
 
-  if (config.chaseRawPointers) {
+  if (chaseRawPointers) {
     functionsCode.append(R"(
     template<typename T>
     void getSizeType(const T* s_ptr, size_t& returnArg)
@@ -3625,8 +3651,10 @@ bool OICodeGen::generate(std::string& code) {
  * Generate static_asserts for the offsets of each member of the given type
  */
 bool OICodeGen::staticAssertMemberOffsets(
-    const std::string& struct_name, drgn_type* struct_type,
-    std::string& assert_str, std::unordered_map<std::string, int>& memberNames,
+    const std::string& struct_name,
+    drgn_type* struct_type,
+    std::string& assert_str,
+    std::unordered_map<std::string, int>& memberNames,
     uint64_t base_offset) {
   if (knownDummyTypeList.find(struct_type) != knownDummyTypeList.end()) {
     return true;
@@ -3744,22 +3772,22 @@ std::string OICodeGen::Config::toString() const {
     ignoreMembers += ';';
   }
 
-  return (useDataSegment ? "" : "Dont") + "UseDataSegment,"s +
-         (chaseRawPointers ? "" : "Dont") + "ChaseRawPointers,"s +
-         (packStructs ? "" : "Dont") + "PackStructs,"s +
-         (genPaddingStats ? "" : "Dont") + "GenPaddingStats,"s +
-         (captureThriftIsset ? "" : "Dont") + "CaptureThriftIsset,"s +
-         (polymorphicInheritance ? "" : "Dont") + "PolymorphicInheritance,"s +
-         ignoreMembers;
+  return boost::algorithm::join(toOptions(), ",") + "," + ignoreMembers;
 }
 
 std::vector<std::string> OICodeGen::Config::toOptions() const {
-  return {"",  // useDataSegment is always true?
-          (chaseRawPointers ? "-n" : ""),
-          (packStructs ? "" : "-z"),
-          (genPaddingStats ? "" : "-w"),
-          (captureThriftIsset ? "-T" : ""),
-          (polymorphicInheritance ? "-P" : "")};
+  std::vector<std::string> options;
+  options.reserve(allFeatures.size());
+
+  for (const auto f : allFeatures) {
+    if (features.contains(f)) {
+      options.emplace_back(std::string("-f") + featureToStr(f));
+    } else {
+      options.emplace_back(std::string("-F") + featureToStr(f));
+    }
+  }
+
+  return options;
 }
 
 void OICodeGen::initializeCodeGen() {

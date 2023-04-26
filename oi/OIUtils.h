@@ -15,13 +15,19 @@
  */
 #pragma once
 
+#include <optional>
+#include <set>
+
+#include "oi/Features.h"
 #include "oi/OICodeGen.h"
 #include "oi/OICompiler.h"
 
 namespace OIUtils {
 
-bool processConfigFile(const std::string& configFilePath,
-                       OICompiler::Config& compilerConfig,
-                       OICodeGen::Config& generatorConfig);
+std::optional<std::set<Feature>> processConfigFile(
+    const std::string& configFilePath,
+    std::map<Feature, bool> featureMap,
+    OICompiler::Config& compilerConfig,
+    OICodeGen::Config& generatorConfig);
 
 }  // namespace OIUtils

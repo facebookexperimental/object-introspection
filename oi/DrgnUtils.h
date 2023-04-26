@@ -137,7 +137,8 @@ namespace drgn_utils {
  * data can be moved here.
  */
 
-void getDrgnArrayElementType(drgn_type* type, drgn_type** outElemType,
+void getDrgnArrayElementType(drgn_type* type,
+                             drgn_type** outElemType,
                              size_t& outNumElems);
 std::string typeToName(drgn_type* type);
 

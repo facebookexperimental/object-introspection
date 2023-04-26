@@ -157,7 +157,8 @@ class OICompiler {
    * another call.
    */
   std::optional<RelocResult> applyRelocs(
-      uintptr_t, const std::set<fs::path>&,
+      uintptr_t,
+      const std::set<fs::path>&,
       const std::unordered_map<std::string, uintptr_t>&);
 
   /**

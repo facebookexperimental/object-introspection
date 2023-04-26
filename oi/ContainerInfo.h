@@ -36,9 +36,11 @@ struct ContainerInfo {
   ContainerInfo& operator=(const ContainerInfo& other) = delete;
 
   ContainerInfo() = default;
-  ContainerInfo(std::string typeName_, std::regex matcher_,
+  ContainerInfo(std::string typeName_,
+                std::regex matcher_,
                 std::optional<size_t> numTemplateParams_,
-                ContainerTypeEnum ctype_, std::string header_,
+                ContainerTypeEnum ctype_,
+                std::string header_,
                 std::vector<std::string> ns_,
                 std::vector<size_t> replaceTemplateParamIndex_,
                 std::optional<size_t> allocatorIndex_,

@@ -53,8 +53,10 @@ using namespace llvm::object;
 using namespace ObjectIntrospection;
 
 static const char* symbolLookupCallback(
-    [[maybe_unused]] void* disInfo, [[maybe_unused]] uint64_t referenceValue,
-    uint64_t* referenceType, [[maybe_unused]] uint64_t referencePC,
+    [[maybe_unused]] void* disInfo,
+    [[maybe_unused]] uint64_t referenceValue,
+    uint64_t* referenceType,
+    [[maybe_unused]] uint64_t referencePC,
     [[maybe_unused]] const char** referenceName) {
   *referenceType = LLVMDisassembler_ReferenceType_InOut_None;
   return nullptr;
@@ -233,13 +235,15 @@ class OIMemoryManager : public RTDyldMemoryManager {
   bool needsToReserveAllocationSpace(void) override {
     return true;
   }
-  void reserveAllocationSpace(uintptr_t, uint32_t, uintptr_t, uint32_t,
-                              uintptr_t, uint32_t) override;
+  void reserveAllocationSpace(
+      uintptr_t, uint32_t, uintptr_t, uint32_t, uintptr_t, uint32_t) override;
 
-  uint8_t* allocateCodeSection(uintptr_t, unsigned, unsigned,
+  uint8_t* allocateCodeSection(uintptr_t,
+                               unsigned,
+                               unsigned,
                                StringRef) override;
-  uint8_t* allocateDataSection(uintptr_t, unsigned, unsigned, StringRef,
-                               bool) override;
+  uint8_t* allocateDataSection(
+      uintptr_t, unsigned, unsigned, StringRef, bool) override;
 
   /* Hook to set up proper memory permission. We don't handle that */
   bool finalizeMemory(std::string*) override {
@@ -268,9 +272,12 @@ class OIMemoryManager : public RTDyldMemoryManager {
   }
 };
 
-void OIMemoryManager::reserveAllocationSpace(
-    uintptr_t codeSize, uint32_t codeAlign, uintptr_t roDataSize,
-    uint32_t roDataAlign, uintptr_t rwDataSize, uint32_t rwDataAlign) {
+void OIMemoryManager::reserveAllocationSpace(uintptr_t codeSize,
+                                             uint32_t codeAlign,
+                                             uintptr_t roDataSize,
+                                             uint32_t roDataAlign,
+                                             uintptr_t rwDataSize,
+                                             uint32_t rwDataAlign) {
   /*
    * It looks like the sizes given to us already take into account the
    * alignment restrictions the different type of sections may have. Aligning
@@ -294,7 +301,9 @@ void OIMemoryManager::reserveAllocationSpace(
 }
 
 uint8_t* OIMemoryManager::allocateCodeSection(
-    uintptr_t size, unsigned alignment, [[maybe_unused]] unsigned sectionID,
+    uintptr_t size,
+    unsigned alignment,
+    [[maybe_unused]] unsigned sectionID,
     StringRef sectionName) {
   VLOG(1) << "allocateCodeSection(Size = " << size
           << ", Alignment = " << alignment
@@ -304,8 +313,11 @@ uint8_t* OIMemoryManager::allocateCodeSection(
 }
 
 uint8_t* OIMemoryManager::allocateDataSection(
-    uintptr_t size, unsigned alignment, [[maybe_unused]] unsigned sectionID,
-    StringRef sectionName, [[maybe_unused]] bool isReadOnly) {
+    uintptr_t size,
+    unsigned alignment,
+    [[maybe_unused]] unsigned sectionID,
+    StringRef sectionName,
+    [[maybe_unused]] bool isReadOnly) {
   VLOG(1) << "allocateDataSection(Size = " << size
           << ", Alignment = " << alignment
           << ", SectionName = " << sectionName.data() << ")";
@@ -451,7 +463,8 @@ static void debugDisAsm(
   }
 }
 
-bool OICompiler::compile(const std::string& code, const fs::path& sourcePath,
+bool OICompiler::compile(const std::string& code,
+                         const fs::path& sourcePath,
                          const fs::path& objectPath) {
   Metrics::Tracing _("compile");
 
@@ -554,7 +567,8 @@ bool OICompiler::compile(const std::string& code, const fs::path& sourcePath,
 }
 
 std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
-    uintptr_t baseRelocAddress, const std::set<fs::path>& objectFiles,
+    uintptr_t baseRelocAddress,
+    const std::set<fs::path>& objectFiles,
     const std::unordered_map<std::string, uintptr_t>& syntheticSymbols) {
   Metrics::Tracing relocationTracing("relocation");
 

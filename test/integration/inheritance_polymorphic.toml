@@ -136,3 +136,23 @@ definitions = '''
         {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
         {"name":"int_c", "staticSize":4, "dynamicSize":0}
       ]}]'''
+  [cases.feature_flag]
+    oil_skip = "Polymorphic inheritance disabled in OIL"
+    cli_options = ["-fpolymorphic-inheritance"]
+    param_types = ["const B&"]
+    arg_types = ["C"]
+    setup = '''
+      C c;
+      c.vec_b = {1,2,3};
+      return c;
+    '''
+    expect_json = '''[{
+      "typeName":"C",
+      "staticSize":48,
+      "dynamicSize":12,
+      "members":[
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"name":"int_c", "staticSize":4, "dynamicSize":0}
+      ]}]'''

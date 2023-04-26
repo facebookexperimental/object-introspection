@@ -145,8 +145,10 @@ class CodegenHandler {
     return lib->getObjectSize((void*)&objectAddr, objectSize);
   }
 
-  static int getObjectSize(const T& objectAddr, size_t& objectSize,
-                           const options& opts, bool checkOptions = true) {
+  static int getObjectSize(const T& objectAddr,
+                           size_t& objectSize,
+                           const options& opts,
+                           bool checkOptions = true) {
     OILibrary* lib;
     if (int responseCode = getLibrary(lib, opts, checkOptions);
         responseCode != Response::OIL_SUCCESS) {
@@ -180,7 +182,8 @@ class CodegenHandler {
     return Response::OIL_SUCCESS;
   }
 
-  static int getLibrary(OILibrary*& result, const options& opts,
+  static int getLibrary(OILibrary*& result,
+                        const options& opts,
                         bool checkOptions) {
     std::atomic<OILibrary*>* curBoxedLib = getBoxedLib()->load();
 
@@ -224,7 +227,9 @@ class CodegenHandler {
  * Ahead-Of-Time (AOT) compilation.
  */
 template <class T>
-int getObjectSize(const T& objectAddr, size_t& objectSize, const options& opts,
+int getObjectSize(const T& objectAddr,
+                  size_t& objectSize,
+                  const options& opts,
                   bool checkOptions = true) {
   return CodegenHandler<T>::getObjectSize(objectAddr, objectSize, opts,
                                           checkOptions);

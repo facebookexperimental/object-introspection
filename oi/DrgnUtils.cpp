@@ -98,7 +98,8 @@ const char* symbol::name(drgn_symbol* sym) {
 
 namespace drgn_utils {
 
-void getDrgnArrayElementType(drgn_type* type, drgn_type** outElemType,
+void getDrgnArrayElementType(drgn_type* type,
+                             drgn_type** outElemType,
                              size_t& outNumElems) {
   size_t elems = 1;
 

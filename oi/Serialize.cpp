@@ -67,7 +67,8 @@ void serialize(Archive& ar, PaddingInfo& p, const unsigned int version) {
 INSTANCIATE_SERIALIZE(PaddingInfo)
 
 template <class Archive>
-void serialize(Archive& ar, struct drgn_location_description& location,
+void serialize(Archive& ar,
+               struct drgn_location_description& location,
                const unsigned int version) {
   verify_version<struct drgn_location_description>(version);
   ar& location.start;
@@ -86,7 +87,8 @@ void serialize(Archive& ar, struct drgn_location_description& location,
 INSTANCIATE_SERIALIZE(struct drgn_location_description)
 
 template <class Archive>
-void serialize(Archive& ar, struct drgn_object_locator& locator,
+void serialize(Archive& ar,
+               struct drgn_object_locator& locator,
                const unsigned int version) {
   verify_version<struct drgn_object_locator>(version);
   ar& locator.module_start;
@@ -124,7 +126,8 @@ void serialize(Archive& ar, FuncDesc::Arg& arg, const unsigned int version) {
 INSTANCIATE_SERIALIZE(FuncDesc::Arg)
 
 template <class Archive>
-void serialize(Archive& ar, FuncDesc::Retval& retval,
+void serialize(Archive& ar,
+               FuncDesc::Retval& retval,
                const unsigned int version) {
   verify_version<FuncDesc::Retval>(version);
   ar& retval.typeName;
@@ -134,7 +137,8 @@ void serialize(Archive& ar, FuncDesc::Retval& retval,
 INSTANCIATE_SERIALIZE(FuncDesc::Retval)
 
 template <class Archive>
-void serialize(Archive& ar, FuncDesc::Range& range,
+void serialize(Archive& ar,
+               FuncDesc::Range& range,
                const unsigned int version) {
   verify_version<FuncDesc::Range>(version);
   ar& range.start;
@@ -188,7 +192,8 @@ static void serialize_c_string(Archive& ar, char** string) {
 // what you're doing (or ask someone who does) before touching anything.
 // ###########################################################################
 template <class Archive>
-void serialize(Archive& ar, struct drgn_type& type,
+void serialize(Archive& ar,
+               struct drgn_type& type,
                const unsigned int version) {
 #define assert_in_same_union(member_1, member_2)               \
   do {                                                         \
@@ -307,7 +312,8 @@ void serialize(Archive& ar, struct drgn_type& type,
 INSTANCIATE_SERIALIZE(struct drgn_type)
 
 template <class Archive>
-void serialize(Archive& ar, struct DrgnClassMemberInfo& m,
+void serialize(Archive& ar,
+               struct DrgnClassMemberInfo& m,
                const unsigned int version) {
   verify_version<struct DrgnClassMemberInfo>(version);
   ar& m.type;
@@ -319,7 +325,8 @@ void serialize(Archive& ar, struct DrgnClassMemberInfo& m,
 INSTANCIATE_SERIALIZE(DrgnClassMemberInfo)
 
 template <class Archive>
-void serialize(Archive& ar, struct drgn_qualified_type& type,
+void serialize(Archive& ar,
+               struct drgn_qualified_type& type,
                const unsigned int version) {
   verify_version<struct drgn_qualified_type>(version);
   ar& type.type;
@@ -338,7 +345,8 @@ void serialize(Archive& ar, RootInfo& rootInfo, const unsigned int version) {
 INSTANCIATE_SERIALIZE(RootInfo)
 
 template <class Archive>
-void serialize(Archive& ar, struct TypeHierarchy& th,
+void serialize(Archive& ar,
+               struct TypeHierarchy& th,
                const unsigned int version) {
   verify_version<TypeHierarchy>(version);
   ar& th.classMembersMap;

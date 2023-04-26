@@ -80,16 +80,22 @@ void OILibraryImpl::initCompiler() {
   symbols = std::make_shared<SymbolService>(getpid());
 
   compilerConfig.generateJitDebugInfo = _self->opts.generateJitDebugInfo;
-
   generatorConfig.useDataSegment = false;
-  generatorConfig.chaseRawPointers = _self->opts.chaseRawPointers;
-  generatorConfig.packStructs = true;
-  generatorConfig.genPaddingStats = false;
 }
 
 bool OILibraryImpl::processConfigFile() {
-  return OIUtils::processConfigFile(_self->opts.configFilePath, compilerConfig,
-                                    generatorConfig);
+  auto features = OIUtils::processConfigFile(
+      _self->opts.configFilePath,
+      {
+          {Feature::ChaseRawPointers, _self->opts.chaseRawPointers},
+          {Feature::PackStructs, true},
+      },
+      compilerConfig, generatorConfig);
+  if (!features) {
+    return false;
+  }
+  generatorConfig.features = *features;
+  return true;
 }
 
 template <class T, class F>

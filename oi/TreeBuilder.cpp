@@ -53,6 +53,9 @@ enum class TrackPointerTag : uint64_t {
 TreeBuilder::TreeBuilder(Config c) : config{std::move(c)} {
   buffer = std::make_unique<msgpack::sbuffer>();
 
+  chaseRawPointers = config.features.contains(Feature::ChaseRawPointers);
+  genPaddingStats = config.features.contains(Feature::GenPaddingStats);
+
   auto testdbPath = "/tmp/testdb_" + std::to_string(getpid());
   if (auto status = rocksdb::DestroyDB(testdbPath, {}); !status.ok()) {
     LOG(FATAL) << "RocksDB error while destroying database: "
@@ -174,9 +177,19 @@ struct TreeBuilder::Node {
    */
   size_t exclusiveSize{};
 
-  MSGPACK_DEFINE_ARRAY(id, name, typeName, typePath, isTypedef, staticSize,
-                       dynamicSize, paddingSavingsSize, containerStats, pointer,
-                       children, isset, exclusiveSize)
+  MSGPACK_DEFINE_ARRAY(id,
+                       name,
+                       typeName,
+                       typePath,
+                       isTypedef,
+                       staticSize,
+                       dynamicSize,
+                       paddingSavingsSize,
+                       containerStats,
+                       pointer,
+                       children,
+                       isset,
+                       exclusiveSize)
 };
 
 TreeBuilder::~TreeBuilder() {
@@ -211,7 +224,8 @@ bool TreeBuilder::emptyOutput() const {
 }
 
 void TreeBuilder::build(const std::vector<uint64_t>& data,
-                        const std::string& argName, struct drgn_type* type,
+                        const std::string& argName,
+                        struct drgn_type* type,
                         const TypeHierarchy& typeHierarchy) {
   th = &typeHierarchy;
   oidData = &data;
@@ -382,7 +396,8 @@ static std::string_view drgnKindStr(struct drgn_type* type) {
   return kind;
 }
 
-void TreeBuilder::setSize(TreeBuilder::Node& node, uint64_t dynamicSize,
+void TreeBuilder::setSize(TreeBuilder::Node& node,
+                          uint64_t dynamicSize,
                           uint64_t memberSizes) {
   node.dynamicSize = dynamicSize;
   if (memberSizes > node.staticSize + node.dynamicSize) {
@@ -414,7 +429,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
   if (!variable.isStubbed) {
     switch (drgn_type_kind(variable.type)) {
       case DRGN_TYPE_POINTER:
-        if (config.chaseRawPointers) {
+        if (chaseRawPointers) {
           // Pointers to incomplete types are stubbed out
           // See OICodeGen::enumeratePointerType
           if (th->knownDummyTypeList.contains(variable.type)) {
@@ -529,7 +544,7 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
         break;
     }
 
-    if (config.genPaddingStats) {
+    if (genPaddingStats) {
       auto entry = paddedStructs->find(node.typeName);
       if (entry != paddedStructs->end()) {
         entry->second.instancesCnt++;
