@@ -284,6 +284,39 @@ bool SymbolService::loadModules() {
   return true;
 }
 
+static std::optional<drgn_qualified_type> findTypeOfSymbol(
+    drgn_program* prog, const std::string& symbolName) {
+  drgn_symbol* sym;
+  if (auto* err =
+          drgn_program_find_symbol_by_name(prog, symbolName.c_str(), &sym);
+      err != nullptr) {
+    LOG(ERROR) << "Failed to lookup symbol '" << symbolName
+               << "': " << err->code << " " << err->message;
+    drgn_error_destroy(err);
+    return std::nullopt;
+  }
+
+  uint64_t addr = drgn_symbol_address(sym);
+  drgn_symbol_destroy(sym);
+
+  drgn_object obj;
+  drgn_object_init(&obj, prog);
+
+  const char* name;
+  if (auto* err =
+          drgn_program_find_function_by_address(prog, addr, &name, &obj);
+      err != nullptr) {
+    LOG(ERROR) << "Failed to lookup function '" << symbolName
+               << "': " << err->code << " " << err->message;
+    drgn_error_destroy(err);
+    return std::nullopt;
+  }
+
+  auto type = drgn_object_qualified_type(&obj);
+  drgn_object_deinit(&obj);
+  return type;
+}
+
 /**
  * Resolve a symbol to its location in the target ELF binary.
  *
@@ -549,18 +582,12 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
     struct drgn_program* prog, const irequest& request) {
   VLOG(1) << "Creating function description for: " << request.func;
 
-  Dwarf_Die funcDie;
-  struct drgn_qualified_type ft {};
-  struct drgn_module* module = nullptr;
-
-  if (auto* err = drgn_program_find_type_by_symbol_name(
-          prog, request.func.c_str(), &ft, &funcDie, &module)) {
-    LOG(ERROR) << "Error when finding type by symbol: " << err->code << " "
-               << err->message;
+  auto ft = findTypeOfSymbol(prog, request.func);
+  if (!ft) {
     return std::nullopt;
   }
 
-  if (drgn_type_kind(ft.type) != DRGN_TYPE_FUNCTION) {
+  if (drgn_type_kind(ft->type) != DRGN_TYPE_FUNCTION) {
     LOG(ERROR) << "Type corresponding to symbol '" << request.func
                << "' is not a function";
     return std::nullopt;
@@ -568,8 +595,15 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
 
   auto fd = std::make_shared<FuncDesc>(request.func);
 
+  drgn_module* module = ft->type->_private.module;
+  Dwarf_Die funcDie;
+  if (auto* err = drgn_type_dwarf_die(ft->type, &funcDie); err != nullptr) {
+    LOG(ERROR) << "Error obtaining DWARF DIE from type: " << err->message;
+    return std::nullopt;
+  }
+
   if (dwarf_func_inline(&funcDie) == 1) {
-    if (!handleInlinedFunction(request, fd, ft, funcDie, module)) {
+    if (!handleInlinedFunction(request, fd, *ft, funcDie, module)) {
       return std::nullopt;
     }
   }
@@ -589,7 +623,7 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
     return std::nullopt;
   }
 
-  auto retType = drgn_type_type(ft.type);
+  auto retType = drgn_type_type(ft->type);
   auto retTypeName = SymbolService::getTypeName(retType.type);
   VLOG(1) << "Retval has type: " << retTypeName;
 
@@ -615,7 +649,7 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
 
   // Add params
   bool isVariadic = false;
-  fd->arguments.reserve(drgn_type_num_parameters(ft.type));
+  fd->arguments.reserve(drgn_type_num_parameters(ft->type));
   Dwarf_Die child;
   int r = dwarf_child(&funcDie, &child);
 
@@ -780,28 +814,23 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
     return std::nullopt;
   }
 
-  drgn_qualified_type ft{};
-  if (auto* err = drgn_program_find_type_by_symbol_name(prog, req.func.c_str(),
-                                                        &ft, nullptr, nullptr);
-      err != nullptr) {
-    LOG(ERROR) << "Error when finding type by symbol " << err->code << " "
-               << err->message;
-    drgn_error_destroy(err);
+  auto ft = findTypeOfSymbol(prog, req.func);
+  if (!ft) {
     return std::nullopt;
   }
 
   if (req.isReturnRetVal()) {
     VLOG(1) << "Processing return retval";
-    return RootInfo{std::string("return"), drgn_type_type(ft.type)};
+    return RootInfo{std::string("return"), drgn_type_type(ft->type)};
   }
 
-  if (!drgn_type_has_parameters(ft.type)) {
+  if (!drgn_type_has_parameters(ft->type)) {
     LOG(ERROR) << "Error: Object is not function?";
     return std::nullopt;
   }
 
-  auto* params = drgn_type_parameters(ft.type);
-  auto paramsCount = drgn_type_num_parameters(ft.type);
+  auto* params = drgn_type_parameters(ft->type);
+  auto paramsCount = drgn_type_num_parameters(ft->type);
   if (paramsCount == 0) {
     LOG(ERROR) << "Function " << req.func << " has no parameters";
     return std::nullopt;
