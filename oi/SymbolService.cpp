@@ -500,6 +500,7 @@ static void parseFormalParam(Dwarf_Die& param,
   VLOG(1) << "Adding function arg address: " << farg;
 }
 
+/*
 static bool handleInlinedFunction(const irequest& request,
                                   std::shared_ptr<FuncDesc> funcDesc,
                                   struct drgn_qualified_type& funcType,
@@ -577,6 +578,7 @@ static bool handleInlinedFunction(const irequest& request,
   module = inlinedInstance->_private.module;
   return true;
 }
+*/
 
 static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
     struct drgn_program* prog, const irequest& request) {
@@ -603,9 +605,11 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
   }
 
   if (dwarf_func_inline(&funcDie) == 1) {
-    if (!handleInlinedFunction(request, fd, *ft, funcDie, module)) {
-      return std::nullopt;
-    }
+    // if (!handleInlinedFunction(request, fd, *ft, funcDie, module)) {
+    //   return std::nullopt;
+    // }
+    LOG(ERROR) << "inlined functions are not supported";
+    return std::nullopt;
   }
 
   ptrdiff_t offset = 0;
