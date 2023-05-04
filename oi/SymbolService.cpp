@@ -456,7 +456,7 @@ struct drgn_program* SymbolService::getDrgnProgram() {
  * task is to extract the location information for this parameter if any exist.
  */
 static void parseFormalParam(Dwarf_Die& param,
-                             struct drgn_module* module,
+                             struct drgn_elf_file* file,
                              struct drgn_program* prog,
                              Dwarf_Die& funcDie,
                              std::shared_ptr<FuncDesc>& fd) {
@@ -469,7 +469,7 @@ static void parseFormalParam(Dwarf_Die& param,
    */
   auto farg = fd->addArgument();
   auto* err =
-      drgn_object_locator_init(prog, module, &funcDie, &param, &farg->locator);
+      drgn_object_locator_init(prog, file, &funcDie, &param, &farg->locator);
   if (err) {
     LOG(ERROR) << "Could not initialize drgn_object_locator for parameter: "
                << err->code << ", " << err->message;
@@ -597,7 +597,7 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
 
   auto fd = std::make_shared<FuncDesc>(request.func);
 
-  drgn_module* module = ft->type->_private.module;
+  drgn_elf_file* file = ft->type->_private.file;
   Dwarf_Die funcDie;
   if (auto* err = drgn_type_dwarf_die(ft->type, &funcDie); err != nullptr) {
     LOG(ERROR) << "Error obtaining DWARF DIE from type: " << err->message;
@@ -665,7 +665,7 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
                           "parameters tag!";
         }
 
-        parseFormalParam(child, module, prog, funcDie, fd);
+        parseFormalParam(child, file, prog, funcDie, fd);
         break;
 
       case DW_TAG_unspecified_parameters:
