@@ -180,6 +180,21 @@ definitions = '''
     args = "arg0,arg1"
     ```
 
+  - `target_function`
+
+    Symbol of the target function to be traced, when the auto-generated target
+    function is not sufficient.
+
+    The fields `param_types` and `setup` are no longer required if
+    `target_function` is defined.
+
+    Example:
+    ```
+    target_function = "my_function"
+    ```
+
+    Implies `oil_disable`.
+
   - `cli_options`
 
     Additional command line arguments passed to oid.

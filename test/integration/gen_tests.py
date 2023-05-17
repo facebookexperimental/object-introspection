@@ -61,7 +61,6 @@ def add_test_setup(f, config):
         f'{config.get("definitions", "")}\n'
         f"#pragma clang diagnostic pop\n"
     )
-
     # fmt: on
 
     def get_param_str(param, i):
@@ -93,6 +92,11 @@ def add_test_setup(f, config):
 
     cases = config["cases"]
     for case_name, case in cases.items():
+        if "target_function" in case:
+            # This test case is using a custom function - don't generate a
+            # target func for it
+            continue
+
         # generate getter for an object of this type
         param_types = ", ".join(
             f"std::remove_cvref_t<{param}>" for param in case["param_types"]
@@ -250,8 +254,7 @@ def gen_target(output_target_name, test_configs):
         add_footer(f)
 
 
-def get_probe_name(probe_type, test_suite, test_case, args):
-    func_name = get_target_oid_func_name(test_suite, test_case)
+def get_probe_name(probe_type, func_name, args):
     return probe_type + ":" + func_name + ":" + args
 
 
@@ -264,7 +267,12 @@ def add_tests(f, config):
 def add_oid_integration_test(f, config, case_name, case):
     probe_type = case.get("type", "entry")
     args = case.get("args", "arg0")
-    probe_str = get_probe_name(probe_type, config["suite"], case_name, args)
+
+    func_name = get_target_oid_func_name(config["suite"], case_name)
+    if "target_function" in case:
+        func_name = case["target_function"]
+
+    probe_str = get_probe_name(probe_type, func_name, args)
     case_str = get_case_name(config["suite"], case_name)
     exit_code = case.get("expect_oid_exit_code", 0)
     cli_options = (
@@ -341,7 +349,7 @@ def add_oil_integration_test(f, config, case_name, case):
     case_str = get_case_name(config["suite"], case_name)
     exit_code = case.get("expect_oil_exit_code", 0)
 
-    if case.get("oil_disable", False):
+    if "oil_disable" in case or "target_function" in case:
         return
 
     config_prefix = case.get("config_prefix", "")
