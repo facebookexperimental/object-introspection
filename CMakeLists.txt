@@ -240,6 +240,7 @@ target_link_libraries(oid_parser glog::glog)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(oi)
+add_subdirectory(resources)
 add_library(oicore
   oi/Descs.cpp
   oi/Metrics.cpp
@@ -261,6 +262,7 @@ target_link_libraries(oicore
   ${Boost_LIBRARIES}
   Boost::headers
   glog::glog
+  resources
 )
 if (FORCE_LLVM_STATIC)
   target_link_libraries(oicore

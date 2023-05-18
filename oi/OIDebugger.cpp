@@ -45,6 +45,7 @@ extern "C" {
 #include <glog/logging.h>
 
 #include "oi/ContainerInfo.h"
+#include "oi/Headers.h"
 #include "oi/Metrics.h"
 #include "oi/OILexer.h"
 #include "oi/OIUtils.h"
@@ -2902,9 +2903,7 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
     return std::nullopt;
   }
 
-  std::string code =
-#include "OITraceCode.cpp"
-      ;
+  std::string code(headers::OITraceCode_cpp);
 
   auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
   if (!codegen) {
