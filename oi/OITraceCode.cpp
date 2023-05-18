@@ -1,9 +1,8 @@
-R"(
 #define NDEBUG 1
 // Required for compatibility with new glibc headers
 #define __malloc__(x, y) __malloc__
 #if !__has_builtin(__builtin_free)
-  #define __builtin_free(x) free(x)
+#define __builtin_free(x) free(x)
 #endif
 #pragma clang diagnostic ignored "-Wunknown-attributes"
 
@@ -51,7 +50,9 @@ class {
   }
 
  public:
-  void initialize() noexcept { data.fill(0); }
+  void initialize() noexcept {
+    data.fill(0);
+  }
 
   // Adds the pointer to the set.
   // Returns `true` if the value was newly added,
@@ -74,21 +75,21 @@ class {
 } static pointers;
 
 void __jlogptr(uintptr_t ptr) {
-    static constexpr char hexdigits[] = "0123456789abcdef";
-    static constexpr size_t ptrlen = 2 * sizeof(ptr);
+  static constexpr char hexdigits[] = "0123456789abcdef";
+  static constexpr size_t ptrlen = 2 * sizeof(ptr);
 
-    static char hexstr[ptrlen + 1] = {};
+  static char hexstr[ptrlen + 1] = {};
 
-    size_t i = ptrlen;
-    while (i--) {
-        hexstr[i] = hexdigits[ptr & 0xf];
-        ptr = ptr >> 4;
-    }
-    hexstr[ptrlen] = '\n';
-    write(logFile, hexstr, sizeof(hexstr));
+  size_t i = ptrlen;
+  while (i--) {
+    hexstr[i] = hexdigits[ptr & 0xf];
+    ptr = ptr >> 4;
+  }
+  hexstr[ptrlen] = '\n';
+  write(logFile, hexstr, sizeof(hexstr));
 }
 
-} // namespace
+}  // namespace
 
 // Unforunately, this is a hack for AdFilterData.
 class PredictorInterface;
@@ -134,7 +135,9 @@ struct AllocAligned {
 // Deleter object for unique_ptr for an aligned object
 template <typename T>
 struct AlignedDeleter {
-  void operator()(T* p) const { AllocAligned<T>::release(p); }
+  void operator()(T* p) const {
+    AllocAligned<T>::release(p);
+  }
 };
 
 // alignas(0) is ignored according to docs so can be default
@@ -143,15 +146,12 @@ struct alignas(align) DummySizedOperator {
   char c[N];
 };
 
-// The empty class specialization is, unfortunately, necessary. When this operator
-// is passed as a template parameter to something like unordered_map, even though
-// an empty class and a class with a single character have size one, there is some
-// empty class optimization that changes the static size of the container if an
-// empty class is passed.
+// The empty class specialization is, unfortunately, necessary. When this
+// operator is passed as a template parameter to something like unordered_map,
+// even though an empty class and a class with a single character have size one,
+// there is some empty class optimization that changes the static size of the
+// container if an empty class is passed.
 
 // DummySizedOperator<0,0> also collapses to this
 template <>
-struct DummySizedOperator<0> {
-};
-
-)"
+struct DummySizedOperator<0> {};

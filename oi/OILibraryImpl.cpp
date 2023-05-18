@@ -25,6 +25,7 @@
 #include <boost/format.hpp>
 #include <fstream>
 
+#include "oi/Headers.h"
 #include "oi/OIParser.h"
 #include "oi/OIUtils.h"
 
@@ -159,9 +160,7 @@ int OILibraryImpl::compileCode() {
     return Response::OIL_COMPILATION_FAILURE;
   }
 
-  std::string code =
-#include "OITraceCode.cpp"
-      ;
+  std::string code(headers::OITraceCode_cpp);
 
   auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
   if (!codegen) {

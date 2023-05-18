@@ -25,6 +25,7 @@
 #include <variant>
 
 #include "oi/DrgnUtils.h"
+#include "oi/Headers.h"
 #include "oi/OIUtils.h"
 
 namespace ObjectIntrospection {
@@ -134,9 +135,7 @@ fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
     return {};
   }
 
-  std::string code =
-#include "OITraceCode.cpp"
-      ;
+  std::string code(headers::OITraceCode_cpp);
 
   codegen->setRootType(type);
   codegen->setLinkageName(linkageName);
