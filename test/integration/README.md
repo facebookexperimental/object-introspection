@@ -204,13 +204,27 @@ definitions = '''
     cli_options = ["--chase-raw-pointers"]
     ```
 
-  - `oid_skip`, `oil_skip`
+  - `skip`, `oid_skip`, `oil_skip`
 
-    Skip running this test. Defaults to false.
+    Skip running this test for oid and/or oil.
+
+    Pass in a string to provide a reason for skipping the test.
 
     Example:
     ```
-    oid_skip = true
+    oid_skip = "oid support not implemented yet"
+    ```
+
+  - `oil_disable`
+
+    Disable this test for oil.
+
+    When a test doesn't make sense for oil, disable it rather than skipping it,
+    to avoid it showing up in the aggregate test results entirely.
+
+    Example:
+    ```
+    oil_skip = "oil can't chase raw pointers safely"
     ```
 
   - `expect_oid_exit_code`, `expect_oil_exit_code`
