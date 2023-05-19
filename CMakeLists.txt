@@ -242,6 +242,7 @@ FLEX_TARGET(Lexer oi/OILexer.l ${CMAKE_CURRENT_BINARY_DIR}/OILexer.cpp)
 ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
 
 add_library(oid_parser STATIC ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS})
+target_compile_options(oid_parser PRIVATE "-w") # Disable warnings for generated code
 target_link_libraries(oid_parser glog::glog)
 
 ### Core OI
