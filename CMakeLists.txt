@@ -25,6 +25,61 @@ option(WITH_FLAKY_TESTS "Build with flaky tests" ON)
 option(FORCE_BOOST_STATIC "Build with static boost" ON)
 option(FORCE_LLVM_STATIC "Build with static llvm and clang" ON)
 
+# Fetch all external projects before we enable warnings globally
+
+### gflags (before glog)
+find_package(gflags REQUIRED)
+
+### tomlplusplus (for configuration files)
+FetchContent_Declare(
+    tomlplusplus
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG        4b166b69f28e70a416a1a04a98f365d2aeb90de8 # v3.2.0
+)
+FetchContent_MakeAvailable(tomlplusplus)
+
+### glog
+FetchContent_Declare(
+    glog
+    GIT_REPOSITORY https://github.com/google/glog.git
+    GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a
+)
+FetchContent_MakeAvailable(glog)
+
+# These glog executable targets still generate warnings - disable warnings for
+# them explicitly
+target_compile_options(demangle_unittest PRIVATE "-w")
+target_compile_options(logging_unittest PRIVATE "-w")
+target_compile_options(stl_logging_unittest PRIVATE "-w")
+target_compile_options(symbolize_unittest PRIVATE "-w")
+target_compile_options(utilities_unittest PRIVATE "-w")
+
+### rocksdb
+FetchContent_Declare(
+    rocksdb
+    GIT_REPOSITORY https://github.com/facebook/rocksdb.git
+    GIT_TAG        444b3f4845dd01b0d127c4b420fdd3b50ad56682
+)
+FetchContent_Populate(rocksdb)
+add_custom_target(librocksdb ALL
+  WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
+  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On
+  COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
+  BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
+  COMMENT "Building RocksDB"
+  USES_TERMINAL
+)
+include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
+
+### folly
+### use folly as a header only library. some features won't be supported.
+FetchContent_Declare(
+    folly
+    GIT_REPOSITORY https://github.com/JakeHillion/folly.git
+    GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
+)
+FetchContent_Populate(folly)
+
 set_project_warnings()
 
 if (ASAN)
@@ -74,52 +129,6 @@ endif()
 
 ### Select Python version
 find_program(PYTHON NAMES python3.8 python3)
-
-
-### gflags (before glog)
-find_package(gflags REQUIRED)
-
-### tomlplusplus (for configuration files)
-FetchContent_Declare(
-    tomlplusplus
-    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
-    GIT_TAG        4b166b69f28e70a416a1a04a98f365d2aeb90de8 # v3.2.0
-)
-FetchContent_MakeAvailable(tomlplusplus)
-
-### glog
-FetchContent_Declare(
-    glog
-    GIT_REPOSITORY https://github.com/google/glog.git
-    GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a
-)
-FetchContent_MakeAvailable(glog)
-
-### rocksdb
-FetchContent_Declare(
-    rocksdb
-    GIT_REPOSITORY https://github.com/facebook/rocksdb.git
-    GIT_TAG        444b3f4845dd01b0d127c4b420fdd3b50ad56682
-)
-FetchContent_Populate(rocksdb)
-add_custom_target(librocksdb ALL
-  WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
-  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On
-  COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
-  BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
-  COMMENT "Building RocksDB"
-  USES_TERMINAL
-)
-include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
-
-### folly
-### use folly as a header only library. some features won't be supported.
-FetchContent_Declare(
-    folly
-    GIT_REPOSITORY https://github.com/JakeHillion/folly.git
-    GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
-)
-FetchContent_Populate(folly)
 
 add_library(folly_headers INTERFACE)
 target_include_directories(folly_headers SYSTEM INTERFACE ${folly_SOURCE_DIR})
