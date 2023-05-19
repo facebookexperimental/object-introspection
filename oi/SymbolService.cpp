@@ -213,8 +213,8 @@ static int moduleCallback(Dwfl_Module* mod,
 }
 
 /* Load modules from a live process */
-bool SymbolService::loadModulesFromPid(pid_t target) {
-  if (int err = dwfl_linux_proc_report(dwfl, target)) {
+bool SymbolService::loadModulesFromPid(pid_t targetPid) {
+  if (int err = dwfl_linux_proc_report(dwfl, targetPid)) {
     LOG(ERROR) << "dwfl_linux_proc_report: " << dwfl_errmsg(err);
     return false;
   }
@@ -223,8 +223,9 @@ bool SymbolService::loadModulesFromPid(pid_t target) {
 }
 
 /* Load modules from an ELF binary */
-bool SymbolService::loadModulesFromPath(const fs::path& target) {
-  auto* mod = dwfl_report_offline(dwfl, target.c_str(), target.c_str(), -1);
+bool SymbolService::loadModulesFromPath(const fs::path& targetPath) {
+  auto* mod =
+      dwfl_report_offline(dwfl, targetPath.c_str(), targetPath.c_str(), -1);
   if (mod == nullptr) {
     LOG(ERROR) << "dwfl_report_offline: " << dwfl_errmsg(dwfl_errno());
     return false;
@@ -238,8 +239,8 @@ bool SymbolService::loadModulesFromPath(const fs::path& target) {
     return false;
   }
 
-  VLOG(1) << "Module info for " << target << ": start= " << std::hex << start
-          << ", end=" << end;
+  VLOG(1) << "Module info for " << targetPath << ": start= " << std::hex
+          << start << ", end=" << end;
 
   // Add module's boundary to executableAddrs
   executableAddrs = {{start, end}};
@@ -265,9 +266,9 @@ bool SymbolService::loadModules() {
   dwfl_report_begin(dwfl);
 
   bool ok = std::visit(
-      visitor{[this](pid_t target) { return loadModulesFromPid(target); },
-              [this](const fs::path& target) {
-                return loadModulesFromPath(target);
+      visitor{[this](pid_t targetPid) { return loadModulesFromPid(targetPid); },
+              [this](const fs::path& targetPath) {
+                return loadModulesFromPath(targetPath);
               }},
       target);
 
@@ -781,15 +782,15 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
       return std::nullopt;
     }
 
-    auto* prog = getDrgnProgram();
-    if (prog == nullptr) {
+    auto* drgnProg = getDrgnProgram();
+    if (drgnProg == nullptr) {
       return std::nullopt;
     }
 
     drgn_object global{};
-    drgn_object_init(&global, prog);
-    if (auto* err = drgn_program_find_object(prog, req.func.c_str(), nullptr,
-                                             DRGN_FIND_OBJECT_ANY, &global);
+    drgn_object_init(&global, drgnProg);
+    if (auto* err = drgn_program_find_object(
+            drgnProg, req.func.c_str(), nullptr, DRGN_FIND_OBJECT_ANY, &global);
         err != nullptr) {
       LOG(ERROR) << "Failed to lookup global variable '" << req.func
                  << "': " << err->code << " " << err->message;
@@ -813,12 +814,12 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
   // auto tmp = boost::core::demangle(req->func.c_str());
   // auto demangledName = tmp.substr(0, tmp.find("("));
 
-  auto* prog = getDrgnProgram();
-  if (prog == nullptr) {
+  auto* drgnProg = getDrgnProgram();
+  if (drgnProg == nullptr) {
     return std::nullopt;
   }
 
-  auto ft = findTypeOfSymbol(prog, req.func);
+  auto ft = findTypeOfSymbol(drgnProg, req.func);
   if (!ft) {
     return std::nullopt;
   }

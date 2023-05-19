@@ -40,7 +40,7 @@ OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
   std::unordered_map<std::string, std::pair<std::string, std::string>>
       templateArgsToSymbolsMap;
 
-  auto symbols = prog.find_symbols_by_name(nullptr);
+  auto symbols = prog.find_all_symbols();
   for (drgn_symbol* sym : *symbols) {
     auto symName = drgnplusplus::symbol::name(sym);
     auto demangled = boost::core::demangle(symName);

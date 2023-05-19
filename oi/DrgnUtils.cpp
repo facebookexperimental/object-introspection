@@ -76,7 +76,7 @@ void SymbolsDeleter::operator()(std::span<drgn_symbol*>* syms) noexcept {
   delete syms;
 }
 
-symbols program::find_symbols_by_name(const char* name) {
+symbols program::find_all_symbols() {
   drgn_symbol** syms;
   size_t count;
 

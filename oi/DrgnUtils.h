@@ -67,7 +67,7 @@ class program {
   program();
   program(drgn_program* prog) : ptr(prog){};
 
-  symbols find_symbols_by_name(const char* name);
+  symbols find_all_symbols();
 
   drgn_program* get() {
     return ptr.get();
