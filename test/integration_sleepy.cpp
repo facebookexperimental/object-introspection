@@ -69,7 +69,7 @@ class Foo {
     ref += n;
   }
   __attribute__((noinline)) void incVectSize(const std::vector<int> vect) {
-    ref += vect.size();
+    ref += (int)vect.size();
   }
 };
 
@@ -200,8 +200,6 @@ void* doit(void* arg) {
 }
 
 int main(int argc, char* argv[]) {
-  int i = 0;
-  int err;
   pthread_t tid[2];
   char* b;
 
@@ -238,14 +236,14 @@ int main(int argc, char* argv[]) {
   int size = 0;
 
   for (auto it = mapOfWords.begin(); it != mapOfWords.end(); ++it) {
-    size += it->first.size();
+    size += (int)it->first.size();
   }
 
   std::cout << "mapOfWords map addr = " << &mapOfWords << std::endl;
   std::cout << "nameList vector addr = " << &nameList << std::endl;
 
   for (int i = 0; i < 1; ++i) {
-    err = pthread_create(&(tid[i]), NULL, &doit, (void**)&loopcnt);
+    int err = pthread_create(&(tid[i]), NULL, &doit, &loopcnt);
 
     if (err != 0) {
       std::cout << "Failed to create thread:[ " << strerror(err) << " ]"
