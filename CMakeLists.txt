@@ -27,6 +27,8 @@ option(WITH_FLAKY_TESTS "Build with flaky tests" On)
 option(FORCE_BOOST_STATIC "Build with static boost" On)
 option(FORCE_LLVM_STATIC "Build with static llvm and clang" On)
 
+set_project_warnings()
+
 if (ASAN)
   add_compile_options(-fsanitize=address -fno-omit-frame-pointer)
   add_link_options(-fsanitize=address)
@@ -36,7 +38,6 @@ if (CODE_COVERAGE)
   add_compile_options(--coverage)
   add_link_options(--coverage)
 endif()
-
 
 
 ## System checks
@@ -251,7 +252,6 @@ add_library(oicore
   oi/Serialize.cpp
 )
 add_dependencies(oicore libdrgn)
-set_project_warnings(oicore)
 target_include_directories(oicore SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
 
@@ -311,7 +311,6 @@ add_executable(oilgen
   tools/OILGen.cpp
   oi/OIGenerator.cpp
 )
-
 target_link_libraries(oilgen
   drgn_utils
   oicore
@@ -319,17 +318,14 @@ target_link_libraries(oilgen
 
 ### Object Introspection cache Printer (OIP)
 add_executable(oip tools/OIP.cpp)
-set_project_warnings(oip)
 target_link_libraries(oip oicore)
 
 ### Object Introspection Tree Builder (OITB)
 add_executable(oitb tools/OITB.cpp)
-set_project_warnings(oitb)
 target_link_libraries(oitb oicore treebuilder)
 
 ### Object Introspection Debugger (OID)
 add_executable(oid oi/OID.cpp oi/OIDebugger.cpp)
-set_project_warnings(oid)
 
 target_link_libraries(oid oicore oid_parser treebuilder)
 if (STATIC_LINK)
