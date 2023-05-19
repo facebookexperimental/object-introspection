@@ -70,6 +70,7 @@ struct Destroyer {
 
 // POD - very important for testing tail padding
 class FooParent {
+ public:
   double doubleMember;
   bool boolMember;
 };
@@ -124,7 +125,6 @@ class Foo : FooParent {
   folly::Function<void(int)> testFuncFolly;
 
   std::queue<int, std::vector<int>> testQueue;
-  float zero[0];
 
   __attribute__((noinline)) void inc() {
     ref++;
@@ -133,7 +133,7 @@ class Foo : FooParent {
     ref += n;
   }
   __attribute__((noinline)) void incVectSize(const std::vector<int> vect) {
-    ref += vect.size();
+    ref += (int)vect.size();
   }
 
   Foo()
@@ -152,7 +152,7 @@ std::vector<int> doStuff(Foo& foo,
                          std::vector<std::pair<std::string, double>>& p) {
   std::vector<int> altvect = {1, 3, 5, 7};
   foo.inc();
-  foo.incN(altvect.size());
+  foo.incN((int)altvect.size());
   foo.incVectSize(altvect);
 
   std::cout << " doStuff entries: " << f.size() << std::endl;
@@ -278,8 +278,6 @@ void* doit(void* arg) {
 }
 
 int main(int argc, char* argv[]) {
-  int i = 0;
-  int err;
   pthread_t tid[2];
   char* b;
 
@@ -316,14 +314,14 @@ int main(int argc, char* argv[]) {
   int size = 0;
 
   for (auto it = mapOfWords.begin(); it != mapOfWords.end(); ++it) {
-    size += it->first.size();
+    size += (int)it->first.size();
   }
 
   std::cout << "mapOfWords map addr = " << &mapOfWords << std::endl;
   std::cout << "nameList vector addr = " << &nameList << std::endl;
 
   for (int i = 0; i < 1; ++i) {
-    err = pthread_create(&(tid[i]), NULL, &doit, (void**)&loopcnt);
+    int err = pthread_create(&(tid[i]), NULL, &doit, &loopcnt);
 
     if (err != 0) {
       std::cout << "Failed to create thread:[ " << strerror(err) << " ]"

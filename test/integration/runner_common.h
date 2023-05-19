@@ -13,8 +13,12 @@
 struct OidOpts {
   boost::asio::io_context& ctx;
   std::string targetArgs;
-  std::string script;
   std::string scriptSource;
+};
+
+struct OilOpts {
+  boost::asio::io_context& ctx;
+  std::string targetArgs;
 };
 
 struct Proc {
@@ -72,7 +76,7 @@ class OilIntegration : public IntegrationBase {
  protected:
   std::string TmpDirStr() override;
 
-  Proc runOilTarget(OidOpts opts,
+  Proc runOilTarget(OilOpts opts,
                     std::string configPrefix,
                     std::string configSuffix);
 };
