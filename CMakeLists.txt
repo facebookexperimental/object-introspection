@@ -7,8 +7,6 @@ cmake_policy(SET CMP0109 NEW)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-
-add_compile_options(-ggdb3)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 add_compile_definitions(OSS_ENABLE)
@@ -22,10 +20,10 @@ include(cmake/CompilerWarnings.cmake)
 option(STATIC_LINK "Statically link oid" OFF)
 option(ASAN "Enable address sanitizer" OFF)
 option(CODE_COVERAGE "Enable code coverage" OFF)
-option(WITH_TESTS "Build with tests" On)
-option(WITH_FLAKY_TESTS "Build with flaky tests" On)
-option(FORCE_BOOST_STATIC "Build with static boost" On)
-option(FORCE_LLVM_STATIC "Build with static llvm and clang" On)
+option(WITH_TESTS "Build with tests" ON)
+option(WITH_FLAKY_TESTS "Build with flaky tests" ON)
+option(FORCE_BOOST_STATIC "Build with static boost" ON)
+option(FORCE_LLVM_STATIC "Build with static llvm and clang" ON)
 
 set_project_warnings()
 
