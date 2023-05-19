@@ -8,11 +8,14 @@ namespace detail {
 // requires safe_assert_terminate() to be defined. To avoid building and
 // linking against folly, we define our own no-op version of this function here.
 template <>
-void safe_assert_terminate<false>(safe_assert_arg const* arg, ...) noexcept {
+void safe_assert_terminate<false>(safe_assert_arg const* /*arg*/,
+                                  ...) noexcept {
+  abort();
 }
 
 template <>
-void safe_assert_terminate<true>(safe_assert_arg const* arg, ...) noexcept {
+void safe_assert_terminate<true>(safe_assert_arg const* /*arg*/, ...) noexcept {
+  abort();
 }
 
 }  // namespace detail
