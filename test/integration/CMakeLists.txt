@@ -63,9 +63,8 @@ endif()
 
 list(TRANSFORM INTEGRATION_TEST_CONFIGS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
-# disable position independent executables that oid can't yet handle
-# todo: update to more modern cmake syntax
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -no-pie")
+# Disable position independent executables that oid can't yet handle
+add_link_options(-no-pie)
 
 set(INTEGRATION_TEST_TARGET_SRC integration_test_target.cpp)
 set(INTEGRATION_TEST_RUNNER_SRC integration_test_runner.cpp)
