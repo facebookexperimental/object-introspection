@@ -18,6 +18,8 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <map>
 #include <span>
 
