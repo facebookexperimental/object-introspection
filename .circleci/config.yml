@@ -9,6 +9,7 @@ workflows:
           name: build-gcc
           cc: /usr/bin/gcc
           cxx: /usr/bin/g++
+          warnings_as_errors: "OFF"
       - test:
           name: test-gcc
           requires:
@@ -21,6 +22,7 @@ workflows:
           name: build-clang
           cc: /usr/bin/clang-12
           cxx: /usr/bin/clang++-12
+          warnings_as_errors: "ON"
       - test:
           name: test-clang
           requires:
@@ -72,6 +74,8 @@ jobs:
         type: string
       cxx:
         type: string
+      warnings_as_errors:
+        type: string
     environment:
       CC: << parameters.cc >>
       CXX: << parameters.cxx >>
@@ -115,7 +119,7 @@ jobs:
       - run:
           name: Build
           command: |
-            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On
+            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
             cmake --build build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
