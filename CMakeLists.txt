@@ -359,25 +359,6 @@ if (STATIC_LINK)
   target_link_libraries(oitb -static)
 endif()
 
-
-
-## Performance improvements
-### Precompile headers
-target_precompile_headers(oicore
-  PUBLIC <fstream>
-  PUBLIC <iostream>
-  PUBLIC <map>
-  PUBLIC <memory>
-  PUBLIC <set>
-  PUBLIC <string>
-  PUBLIC <vector>
-  PUBLIC <glog/logging.h>
-)
-
-foreach(TARGET oil oip oid oitb)
-  target_precompile_headers(${TARGET} REUSE_FROM oicore)
-endforeach()
-
 # Add a hook for custom CMake rules
 if (DEFINED ENV{CMAKE_HOOK})
   include($ENV{CMAKE_HOOK})
