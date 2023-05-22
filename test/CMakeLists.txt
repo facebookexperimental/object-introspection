@@ -32,8 +32,6 @@ function(cpp_unittest)
     ${TEST_DEPS}
   )
 
-  target_precompile_headers(${TEST_NAME} REUSE_FROM oicore)
-
   gtest_discover_tests(${TEST_NAME} PROPERTIES ${TEST_PROPERTIES})
 endfunction()
 
