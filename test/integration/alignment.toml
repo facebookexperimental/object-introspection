@@ -1,0 +1,166 @@
+# Test cases are repeated with a custom wrapper class as well as with a
+# container, as CodeGen is not able to add padding members to container types.
+includes = ["optional"]
+definitions = '''
+  // This wrapper will allow us to infer the alignment of the contained type by
+  // looking at the wrapper's size.
+  template <typename T>
+  struct Wrapper {
+    int8_t c;
+    T t;
+  };
+
+  struct alignas(16) Align16 {
+    char c;
+  };
+
+  struct TwoStruct {
+    Align16 x1;
+    char c;
+    Align16 x2;
+  };
+
+  struct MemberAlignment {
+    char c;
+    alignas(32) char c32;
+  };
+
+  struct MemberAlignmentOverriden {
+    char c;
+    alignas(32) Align16 alignmentIncreased;
+  };
+
+  struct alignas(128) AlignedStructMemberAlignLower {
+    char c;
+    alignas(32) char c32;
+  };
+
+  enum class alignas(16) AlignedEnum16 : int8_t {
+    Val1,
+    Val2,
+    Val3,
+  };
+'''
+[cases]
+  [cases.wrapper_struct]
+    param_types = ["const Wrapper<Align16>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 32, "exclusiveSize": 15, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
+  [cases.container_struct]
+    skip = "container alignment is broken (#143)"
+    param_types = ["const std::optional<Align16>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 32, "exclusiveSize": 16, "members": [
+        {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
+  [cases.wrapper_two_members]
+    param_types = ["const Wrapper<TwoStruct>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 64, "exclusiveSize": 15, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "TwoStruct", "staticSize": 48, "exclusiveSize": 15, "members": [
+          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]},
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]}
+    ]}]}]'''
+  [cases.container_two_members]
+    skip = "container alignment is broken (#143)"
+    param_types = ["const std::optional<TwoStruct>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 64, "exclusiveSize": 16, "members": [
+        {"typeName": "TwoStruct", "staticSize": 48, "exclusiveSize": 15, "members": [
+          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]},
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]}
+    ]}]}]'''
+  [cases.wrapper_member_alignment]
+    param_types = ["const Wrapper<MemberAlignment>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 96, "exclusiveSize": 31, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "MemberAlignment", "staticSize": 64, "exclusiveSize": 62, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
+  [cases.container_member_alignment]
+    skip = "container alignment is broken (#143)"
+    param_types = ["const std::optional<MemberAlignment>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 96, "exclusiveSize": 32, "members": [
+        {"typeName": "MemberAlignment", "staticSize": 64, "exclusiveSize": 62, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
+  [cases.wrapper_member_override]
+    param_types = ["const Wrapper<MemberAlignmentOverriden>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 96, "exclusiveSize": 31, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "MemberAlignmentOverriden", "staticSize": 64, "exclusiveSize": 47, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]}]'''
+  [cases.container_member_override]
+    skip = "container alignment is broken (#143)"
+    param_types = ["const std::optional<MemberAlignmentOverriden>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 96, "exclusiveSize": 32, "members": [
+        {"typeName": "MemberAlignmentOverriden", "staticSize": 64, "exclusiveSize": 47, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]}]'''
+  [cases.wrapper_member_lower]
+    param_types = ["const Wrapper<AlignedStructMemberAlignLower>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 256, "exclusiveSize": 127, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "AlignedStructMemberAlignLower", "staticSize": 128, "exclusiveSize": 126, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
+  [cases.container_member_lower]
+    skip = "container alignment is broken (#143)"
+    param_types = ["const std::optional<AlignedStructMemberAlignLower>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 256, "exclusiveSize": 128, "members": [
+        {"typeName": "AlignedStructMemberAlignLower", "staticSize": 128, "exclusiveSize": 126, "members": [
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
+  [cases.wrapper_enum]
+    param_types = ["const Wrapper<AlignedEnum16>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 32, "exclusiveSize": 30, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "AlignedEnum16", "staticSize": 1, "exclusiveSize": 1}
+    ]}]'''
+  [cases.container_enum]
+    skip = "container alignment is broken (#143)"
+    param_types = ["const std::optional<AlignedEnum16>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 32, "exclusiveSize": 31, "members": [
+        {"typeName": "AlignedEnum16", "staticSize": 1, "exclusiveSize": 1}
+    ]}]'''
