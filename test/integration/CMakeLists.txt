@@ -1,5 +1,6 @@
 # Add new test definition files to this list:
 set(INTEGRATION_TEST_CONFIGS
+  alignment.toml
   anonymous.toml
   arrays.toml
   container_enums.toml
