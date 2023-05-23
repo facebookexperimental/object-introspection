@@ -1,31 +1,33 @@
 [info]
-typeName = "std::unique_ptr"
-numTemplateParams = 1
+type_name = "std::unique_ptr"
 ctype = "UNIQ_PTR_TYPE"
 header = "memory"
+stub_template_params = [1]
+
+# Old:
+typeName = "std::unique_ptr"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
 template<typename T, class Deleter>
-void getSizeType(const %1%<T,Deleter> &s_ptr, size_t& returnArg);
+void getSizeType(const %1%<T,Deleter> &container, size_t& returnArg);
 """
 
 func = """
 template<typename T, class Deleter>
-void getSizeType(const %1%<T,Deleter> &s_ptr, size_t& returnArg)
+void getSizeType(const %1%<T,Deleter> &u_ptr, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<T,Deleter>));
 
     if constexpr (!std::is_void<T>::value) {
-        SAVE_DATA((uintptr_t)(s_ptr.get()));
+        SAVE_DATA((uintptr_t)(u_ptr.get()));
 
-        if (s_ptr && pointers.add((uintptr_t)(s_ptr.get()))) {
+        if (u_ptr && pointers.add((uintptr_t)(u_ptr.get()))) {
             SAVE_DATA(1);
-            getSizeType(*(s_ptr.get()), returnArg);
+            getSizeType(*(u_ptr.get()), returnArg);
         } else {
             SAVE_DATA(0);
         }

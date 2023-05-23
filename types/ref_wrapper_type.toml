@@ -1,17 +1,18 @@
 [info]
-typeName = "std::reference_wrapper<"
-numTemplateParams = 1
+type_name = "std::reference_wrapper"
 ctype = "REF_WRAPPER_TYPE"
 header = "functional"
+
+# Old:
+typeName = "std::reference_wrapper<"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
 template<typename T>
-void getSizeType(const %1%<T> &s_ptr, size_t& returnArg);
+void getSizeType(const %1%<T> &ref, size_t& returnArg);
 """
 
 func = """

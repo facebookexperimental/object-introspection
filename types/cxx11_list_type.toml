@@ -1,12 +1,15 @@
 [info]
-typeName = "std::__cxx11::list"
-numTemplateParams = 1
+type_name = "std::__cxx11::list"
+stub_template_params = [1]
 ctype = "LIST_TYPE"
 header = "list"
+
+# Old:
+typeName = "std::__cxx11::list"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
 allocatorIndex = 1
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

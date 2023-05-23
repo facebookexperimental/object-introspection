@@ -1,11 +1,13 @@
 [info]
-typeName = "std::queue<"
-# numTemplateParams = 1
+type_name = "std::queue"
 ctype = "CONTAINER_ADAPTER_TYPE"
 header = "queue"
+underlying_container_index = 1
+
+# Old:
+typeName = "std::queue<"
 ns = ["namespace std"]
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
 underlyingContainerIndex = 1
 
 [codegen]

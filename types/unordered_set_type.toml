@@ -1,12 +1,15 @@
 [info]
-typeName = "std::unordered_set<"
-numTemplateParams = 1
+type_name = "std::unordered_set"
+stub_template_params = [1,2,3]
 ctype = "UNORDERED_SET_TYPE"
 header = "unordered_set"
+
+# Old:
+typeName = "std::unordered_set<"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = [1, 2]
 allocatorIndex = 3
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

@@ -1,22 +1,25 @@
 [info]
-typeName = "std::priority_queue<"
-# numTemplateParams = 1
+type_name = "std::priority_queue"
 ctype = "CONTAINER_ADAPTER_TYPE"
 header = "queue"
+underlying_container_index = 1
+stub_template_params = [2]
+
+# Old:
+typeName = "std::priority_queue<"
 ns = ["namespace std"]
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
 underlyingContainerIndex = 1
 
 [codegen]
 decl = """
-template<class T, class Container>
-void getSizeType(const %1%<T, Container> &container, size_t& returnArg);
+template<class T, class Container, class Cmp>
+void getSizeType(const %1%<T, Container, Cmp> &container, size_t& returnArg);
 """
 
 func = """
-template<class T, class Container>
-void getSizeType(const %1%<T, Container> &containerAdapter, size_t& returnArg)
+template<class T, class Container, class Cmp>
+void getSizeType(const %1%<T, Container, Cmp> &containerAdapter, size_t& returnArg)
 {
     SAVE_DATA((uintptr_t)&containerAdapter);
 

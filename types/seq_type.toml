@@ -1,12 +1,14 @@
 [info]
-typeName = "std::vector<"
-numTemplateParams = 1
+type_name = "std::vector"
+stub_template_params = [1]
 ctype = "SEQ_TYPE"
 header = "vector"
+
+# Old:
+typeName = "std::vector<"
 ns = ["namespace std"]
-replaceTemplateParamIndex = []
+numTemplateParams = 1
 allocatorIndex = 1
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

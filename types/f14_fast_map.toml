@@ -1,12 +1,15 @@
 [info]
-typeName = "folly::F14FastMap<"
-numTemplateParams = 2
+type_name = "folly::F14FastMap"
+stub_template_params = [2,3,4]
 ctype = "F14_MAP"
 header = "folly/container/F14Map.h"
+
+# Old:
+typeName = "folly::F14FastMap<"
 ns = ["folly::F14FastMap"]
+numTemplateParams = 2
 replaceTemplateParamIndex = [2, 3]
 allocatorIndex = 4
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

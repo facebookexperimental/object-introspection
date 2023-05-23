@@ -1,21 +1,22 @@
 [info]
-typeName = "folly::IOBuf"
-matcher = "^folly::IOBuf$"
-numTemplateParams = 0
+type_name = "folly::IOBuf"
 ctype = "FOLLY_IOBUF_TYPE"
 header = "folly/io/IOBuf.h"
+
+# Old:
+typeName = "folly::IOBuf"
+matcher = "^folly::IOBuf$"
 ns = ["folly::IOBuf"]
+numTemplateParams = 0
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
-void getSizeType(const %1% &t, size_t& returnArg);
+void getSizeType(const %1% &container, size_t& returnArg);
 """
 
 func = """
-void getSizeType(const %1% &t, size_t& returnArg)
+void getSizeType(const %1% &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%));
 
@@ -25,9 +26,9 @@ void getSizeType(const %1% &t, size_t& returnArg)
     // caused these functions to be removed which causes relocation
     // errors.
 
-    std::size_t fullLength = t.length();
-    std::size_t fullCapacity = t.capacity();
-    for (const IOBuf* current = t.next(); current != &t;
+    std::size_t fullLength = container.length();
+    std::size_t fullCapacity = container.capacity();
+    for (const IOBuf* current = container.next(); current != &container;
         current = current->next()) {
     fullLength += current->length();
     fullCapacity += current->capacity();

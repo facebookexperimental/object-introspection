@@ -1,12 +1,15 @@
 [info]
-typeName = "std::map<"
-numTemplateParams = 2
+type_name = "std::map"
+stub_template_params = [2,3]
 ctype = "STD_MAP_TYPE"
 header = "map"
+
+# Old:
+typeName = "std::map<"
 ns = ["namespace std"]
+numTemplateParams = 2
 replaceTemplateParamIndex = [2]
 allocatorIndex = 3
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

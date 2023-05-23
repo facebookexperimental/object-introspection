@@ -1,12 +1,13 @@
 [info]
-typeName = "folly::sorted_vector_map<"
-numTemplateParams = 2
+type_name = "folly::sorted_vector_map"
 ctype = "MAP_SEQ_TYPE"
 header = "folly/sorted_vector_types.h"
+
+# Old:
+typeName = "folly::sorted_vector_map<"
 ns = ["namespace std", "folly::sorted_vector_map"]
+numTemplateParams = 2
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

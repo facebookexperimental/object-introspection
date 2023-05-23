@@ -1,12 +1,15 @@
 [info]
-typeName = "std::unordered_map<"
-numTemplateParams = 2
+type_name = "std::unordered_map"
+stub_template_params = [2,3,4]
 ctype = "STD_UNORDERED_MAP_TYPE"
 header = "unordered_map"
+
+# Old:
+typeName = "std::unordered_map<"
 ns = ["namespace std"]
+numTemplateParams = 2
 replaceTemplateParamIndex = [2, 3]
 allocatorIndex = 4
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

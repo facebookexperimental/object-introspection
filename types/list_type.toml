@@ -1,12 +1,15 @@
 [info]
-typeName = "std::list<"
-numTemplateParams = 1
+type_name = "std::list"
+stub_template_params = [1]
 ctype = "LIST_TYPE"
 header = "list"
+
+# Old:
+typeName = "std::list<"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
 allocatorIndex = 1
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

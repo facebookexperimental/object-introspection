@@ -1,9 +1,12 @@
 [info]
-typeName = "std::weak_ptr"
-numTemplateParams = 1
+type_name = "std::weak_ptr"
 ctype = "WEAK_PTR_TYPE"
 header = "memory"
+
+# Old:
+typeName = "std::weak_ptr"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
 
 [codegen]

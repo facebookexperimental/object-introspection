@@ -1,12 +1,15 @@
 [info]
-typeName = "std::deque<"
-numTemplateParams = 1
+type_name = "std::deque"
+stub_template_params = [1]
 ctype = "LIST_TYPE"
 header = "deque"
+
+# Old:
+typeName = "std::deque<"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
 allocatorIndex = 1
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
