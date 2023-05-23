@@ -1,25 +1,26 @@
 [info]
-typeName = "folly::IOBufQueue"
-matcher = "^folly::IOBufQueue$"
-numTemplateParams = 0
+type_name = "folly::IOBufQueue"
 ctype = "FOLLY_IOBUFQUEUE_TYPE"
 header = "folly/io/IOBufQueue.h"
+
+# Old:
+typeName = "folly::IOBufQueue"
+matcher = "^folly::IOBufQueue$"
 ns = ["folly::IOBufQueue"]
+numTemplateParams = 0
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
-void getSizeType(const %1% &t, size_t& returnArg);
+void getSizeType(const %1% &container, size_t& returnArg);
 """
 
 func = """
-void getSizeType(const %1% &t, size_t& returnArg)
+void getSizeType(const %1% &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%));
 
-    const IOBuf *head = t.front();
+    const IOBuf *head = container.front();
     SAVE_DATA((uintptr_t)head);
     if (head && pointers.add((uintptr_t)head)) {
         SAVE_DATA(1);

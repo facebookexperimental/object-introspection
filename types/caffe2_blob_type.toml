@@ -1,13 +1,14 @@
 [info]
-typeName = "caffe2::Blob"
-matcher = "^caffe2::Blob$"
-numTemplateParams = 0
+type_name = "caffe2::Blob"
 ctype = "CAFFE2_BLOB_TYPE"
 header = "caffe2/core/blob.h"
+
+# Old:
+typeName = "caffe2::Blob"
+matcher = "^caffe2::Blob$"
 ns = ["caffe2::Blob", "caffe2::Tensor"]
+numTemplateParams = 0
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

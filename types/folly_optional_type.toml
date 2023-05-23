@@ -1,27 +1,28 @@
 [info]
-typeName = "folly::Optional<"
-numTemplateParams = 1
+type_name = "folly::Optional"
 ctype = "FOLLY_OPTIONAL_TYPE"
 header = "folly/Optional.h"
+
+# Old:
+typeName = "folly::Optional<"
 ns = ["folly::Optional"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
 template<typename T>
-void getSizeType(const %1%<T> &s_ptr, size_t& returnArg);
+void getSizeType(const %1%<T> &container, size_t& returnArg);
 """
 
 func = """
 template <typename T>
-void getSizeType(const %1%<T>& s_ptr, size_t& returnArg) {
-  if (s_ptr) {
+void getSizeType(const %1%<T>& container, size_t& returnArg) {
+  if (container) {
     SAVE_SIZE(sizeof(%1%<T>) - sizeof(T));
-    SAVE_DATA((uintptr_t)(s_ptr.get_pointer()));
+    SAVE_DATA((uintptr_t)(container.get_pointer()));
 
-    getSizeType(*(s_ptr.get_pointer()), returnArg);
+    getSizeType(*(container.get_pointer()), returnArg);
   } else {
     SAVE_SIZE(sizeof(%1%<T>));
     SAVE_DATA(0);

@@ -1,12 +1,12 @@
 [info]
-typeName = "boost::bimap"
-numTemplateParams = 2
+type_name = "boost::bimap"
 ctype = "BOOST_BIMAP_TYPE"
 header = "boost/bimap.hpp"
+
+# Old:
+numTemplateParams = 2
+typeName = "boost::bimap"
 ns = ["boost::bimap"]
-replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

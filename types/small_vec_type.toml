@@ -1,12 +1,13 @@
 [info]
-typeName = "folly::small_vector<"
-numTemplateParams = 1
+type_name = "folly::small_vector"
 ctype = "SMALL_VEC_TYPE"
 header = "folly/small_vector.h"
+
+# Old:
+typeName = "folly::small_vector<"
 ns = ["folly::small_vector_policy::policy_size_type", "folly::small_vector"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

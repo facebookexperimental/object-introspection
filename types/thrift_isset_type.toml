@@ -1,12 +1,13 @@
 [info]
-typeName = "apache::thrift::detail::isset_bitset<"
-numTemplateParams = 2
+type_name = "apache::thrift::detail::isset_bitset"
 ctype = "THRIFT_ISSET_TYPE"
 header = "thrift/lib/cpp2/gen/module_types_h.h"
+
+# Old:
+typeName = "apache::thrift::detail::isset_bitset<"
 ns = ["apache::thrift::detail::isset_bitset"]
+numTemplateParams = 2
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

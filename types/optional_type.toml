@@ -1,26 +1,26 @@
 [info]
-typeName = "std::optional<"
-numTemplateParams = 1
+type_name = "std::optional"
 ctype = "OPTIONAL_TYPE"
 header = "optional"
+
+# Old:
+typeName = "std::optional<"
 ns = ["namespace std"]
-replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
+numTemplateParams = 1
 
 [codegen]
 decl = """
 template<typename T>
-void getSizeType(const %1%<T> &s_ptr, size_t& returnArg);
+void getSizeType(const %1%<T> &container, size_t& returnArg);
 """
 
 func = """
 template <typename T>
-void getSizeType(const %1%<T>& s_ptr, size_t& returnArg) {
-  if (s_ptr) {
+void getSizeType(const %1%<T>& container, size_t& returnArg) {
+  if (container) {
     SAVE_SIZE(sizeof(%1%<T>) - sizeof(T));
     SAVE_DATA(true);
-    getSizeType(*s_ptr, returnArg);
+    getSizeType(*container, returnArg);
   } else {
     SAVE_SIZE(sizeof(%1%<T>));
     SAVE_DATA(false);

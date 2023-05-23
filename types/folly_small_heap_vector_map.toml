@@ -1,12 +1,13 @@
 [info]
-typeName = "folly::small_heap_vector_map"
-numTemplateParams = 2
+type_name = "folly::small_heap_vector_map"
 ctype = "FOLLY_SMALL_HEAP_VECTOR_MAP"
 header = "folly/container/heap_vector_types.h"
+
+# Old:
+typeName = "folly::small_heap_vector_map"
 ns = ["folly::small_heap_vector_map"]
+numTemplateParams = 2
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

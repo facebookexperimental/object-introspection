@@ -1,35 +1,37 @@
 [info]
-typeName = "std::__cxx11::basic_string<"
-numTemplateParams = 1
+type_name = "std::__cxx11::basic_string"
+stub_template_params = [1,2]
 ctype = "STRING_TYPE"
 header = "string"
+
+# Old:
+typeName = "std::__cxx11::basic_string<"
 ns = ["namespace std"]
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
 template<typename T>
-void getSizeType(const %1%<T> &t, size_t& returnArg);
+void getSizeType(const %1%<T> &container, size_t& returnArg);
 """
 
 func = """
 template<typename T>
-void getSizeType(const %1%<T> &t, size_t& returnArg)
+void getSizeType(const %1%<T> &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<T>));
 
-    SAVE_DATA((uintptr_t)t.capacity());
-    SAVE_DATA((uintptr_t)t.size());
+    SAVE_DATA((uintptr_t)container.capacity());
+    SAVE_DATA((uintptr_t)container.size());
 
     // Test for small string optimisation - whether the underlying string is
     // contained within the string object.
     SAVE_SIZE(
-      (((uintptr_t)t.data() < (uintptr_t)(&t + sizeof(%1%<T>)))
+      (((uintptr_t)container.data() < (uintptr_t)(&container + sizeof(%1%<T>)))
         &&
-      ((uintptr_t)t.data() >= (uintptr_t)&t))
-        ? 0 : (t.capacity() * sizeof(T))
+      ((uintptr_t)container.data() >= (uintptr_t)&container))
+        ? 0 : (container.capacity() * sizeof(T))
     );
 }
 """

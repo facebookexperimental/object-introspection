@@ -1,7 +1,12 @@
 [info]
-typeName = "folly::sorted_vector_set<"
+type_name = "folly::sorted_vector_set"
 ctype = "SORTED_VEC_SET_TYPE"
 header = "folly/sorted_vector_types.h"
+stub_template_params = [1,2]
+underlying_container_index = 4
+
+# Old
+typeName = "folly::sorted_vector_set<"
 ns = ["namespace std", "folly::sorted_vector_set"]
 replaceTemplateParamIndex = [1,2]
 underlyingContainerIndex = 4

@@ -1,7 +1,10 @@
 [info]
-typeName = "std::variant"
+type_name = "std::variant"
 ctype = "STD_VARIANT_TYPE"
 header = "variant"
+
+# Old:
+typeName = "std::variant"
 ns = ["namespace std"]
 
 [codegen]

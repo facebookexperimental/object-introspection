@@ -1,12 +1,12 @@
 [info]
-typeName = "std::array<"
-numTemplateParams = 1
+type_name = "std::array"
 ctype = "ARRAY_TYPE"
 header = "array"
+
+# Old:
+numTemplateParams = 1
 ns = ["namespace std"]
-replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
+typeName = "std::array<"
 
 [codegen]
 decl = """

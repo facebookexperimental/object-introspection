@@ -1,12 +1,15 @@
 [info]
-typeName = "folly::F14FastSet<"
-numTemplateParams = 1
+type_name = "folly::F14FastSet"
+stub_template_params = [1,2,3]
 ctype = "F14_SET"
 header = "folly/container/F14Set.h"
+
+# Old:
+typeName = "folly::F14FastSet<"
 ns = ["folly::F14FastSet"]
+numTemplateParams = 1
 replaceTemplateParamIndex = [1, 2]
 allocatorIndex = 3
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

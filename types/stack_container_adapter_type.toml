@@ -1,11 +1,13 @@
 [info]
-typeName = "std::stack<"
-# numTemplateParams = 1
+type_name = "std::stack"
 ctype = "CONTAINER_ADAPTER_TYPE"
 header = "stack"
+underlying_container_index = 1
+
+# Old:
+typeName = "std::stack<"
 ns = ["namespace std"]
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
 underlyingContainerIndex = 1
 
 [codegen]
