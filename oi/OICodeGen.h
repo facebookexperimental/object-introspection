@@ -98,8 +98,6 @@ class OICodeGen {
 
   bool isContainer(drgn_type* type);
 
-  static drgn_type* drgnUnderlyingType(drgn_type* type);
-
   bool buildName(drgn_type* type, std::string& text, std::string& outName);
 
   std::string typeToTransformedName(drgn_type* type);
