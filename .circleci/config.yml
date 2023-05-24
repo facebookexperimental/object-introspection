@@ -188,8 +188,10 @@ jobs:
           name: Code Coverage
           when: always
           command: |
-            lcov --directory . --capture --rc lcov_branch_coverage=1 --output-file coverage.info
-            lcov --extract coverage.info '/tmp/object-introspection/src/*' '/tmp/object-introspection/include/*' --rc lcov_branch_coverage=1 --output-file coverage.info
+            lcov --capture --directory . --rc lcov_branch_coverage=1 --output-file coverage.info
+            # Empirically, extract-then-remove is faster than remove-then-extract
+            lcov --extract coverage.info '/tmp/object-introspection/*' --rc lcov_branch_coverage=1 --output-file coverage.info
+            lcov --remove coverage.info '/tmp/object-introspection/build/*' '/tmp/object-introspection/extern/*'  --rc lcov_branch_coverage=1 --output-file coverage.info
             lcov --list --rc lcov_branch_coverage=1 coverage.info
 
             curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import
