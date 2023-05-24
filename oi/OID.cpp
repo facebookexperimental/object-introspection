@@ -546,32 +546,7 @@ int main(int argc, char* argv[]) {
         debugLevel = atoi(optarg);
         google::LogToStderr();
         google::SetStderrLogging(google::INFO);
-        // Enable debug logging for *only* our project,
-        // and not the rest of fbcode
-        google::SetVLOGLevel("Common", debugLevel);
-        google::SetVLOGLevel("Descs", debugLevel);
-        google::SetVLOGLevel("FuncGen", debugLevel);
-        google::SetVLOGLevel("GobsService", debugLevel);
-        google::SetVLOGLevel("ManifoldCache", debugLevel);
-        google::SetVLOGLevel("Metrics", debugLevel);
-        google::SetVLOGLevel("OICache", debugLevel);
-        google::SetVLOGLevel("OICodeGen", debugLevel);
-        google::SetVLOGLevel("OICompiler", debugLevel);
-        google::SetVLOGLevel("OID", debugLevel);
-        google::SetVLOGLevel("OIDebugger", debugLevel);
-        google::SetVLOGLevel("OILexer", debugLevel);
-        google::SetVLOGLevel("OILibrary", debugLevel);
-        google::SetVLOGLevel("OILibraryImpl", debugLevel);
-        google::SetVLOGLevel("OILogging", debugLevel);
-        google::SetVLOGLevel("OIOpts", debugLevel);
-        google::SetVLOGLevel("OIParser", debugLevel);
-        google::SetVLOGLevel("OIUtils", debugLevel);
-        google::SetVLOGLevel("PaddingHunter", debugLevel);
-        google::SetVLOGLevel("Serialize", debugLevel);
-        google::SetVLOGLevel("SymbolService", debugLevel);
-        google::SetVLOGLevel("TimeUtils", debugLevel);
-        google::SetVLOGLevel("TrapInfo", debugLevel);
-        google::SetVLOGLevel("TreeBuilder", debugLevel);
+        google::SetVLOGLevel("*", debugLevel);
         // Upstream glog defines `GLOG_INFO` as 0 https://fburl.com/ydjajhz0,
         // but internally it's defined as 1 https://fburl.com/code/9fwams75
         gflags::SetCommandLineOption("minloglevel", "0");
