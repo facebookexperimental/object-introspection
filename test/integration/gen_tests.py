@@ -401,7 +401,8 @@ def add_oil_integration_test(f, config, case_name, case):
             f"  for (auto it = expected_json.begin(); it != expected_json.end(); ++it, ++sizes_it) {{\n"
             f"    auto node = it->second;\n"
             f'    size_t expected_size = node.get<size_t>("staticSize");\n'
-            f'    expected_size += node.get<size_t>("dynamicSize");\n'
+            f'    if (node.find("dynamicSize") != node.not_found())\n'  # Assume dynamicSize is 0 if not set
+            f'      expected_size += node.get<size_t>("dynamicSize");\n'
             f"    EXPECT_EQ(*sizes_it, expected_size);\n"
             f"  }}\n"
         )
