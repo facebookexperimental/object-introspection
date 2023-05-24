@@ -141,5 +141,7 @@ void getDrgnArrayElementType(drgn_type* type,
                              drgn_type** outElemType,
                              size_t& outNumElems);
 std::string typeToName(drgn_type* type);
+bool isSizeComplete(struct drgn_type* type);
+drgn_type* underlyingType(drgn_type* type);
 
 }  // namespace drgn_utils

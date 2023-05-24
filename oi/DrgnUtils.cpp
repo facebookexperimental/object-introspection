@@ -160,4 +160,30 @@ std::string typeToName(drgn_type* type) {
   return typeName;
 }
 
+// This function is similar to OICodeGen::isDrgnSizeComplete(), but does not
+// special-case folly::SharedMutex. This needs some more investigation and may
+// need to be changed in the future.
+bool isSizeComplete(struct drgn_type* type) {
+  uint64_t sz;
+  struct drgn_error* err = drgn_type_sizeof(type, &sz);
+  bool isComplete = (err == nullptr);
+  drgn_error_destroy(err);
+  return isComplete;
+}
+
+/*
+ * underlyingType
+ *
+ * Recurses through typedefs to return the underlying concrete type.
+ */
+drgn_type* underlyingType(drgn_type* type) {
+  auto* underlyingType = type;
+
+  while (drgn_type_kind(underlyingType) == DRGN_TYPE_TYPEDEF) {
+    underlyingType = drgn_type_type(underlyingType).type;
+  }
+
+  return underlyingType;
+}
+
 }  // namespace drgn_utils

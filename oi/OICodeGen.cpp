@@ -957,7 +957,7 @@ bool OICodeGen::recordChildren(drgn_type* type) {
       continue;
     }
 
-    drgn_type* parent = drgnUnderlyingType(t.type);
+    drgn_type* parent = drgn_utils::underlyingType(t.type);
     if (!isDrgnSizeComplete(parent)) {
       VLOG(1) << "Incomplete size for parent class (" << drgn_type_tag(parent)
               << ") of " << drgn_type_tag(type);
@@ -1130,16 +1130,6 @@ bool OICodeGen::isDrgnSizeComplete(drgn_type* type) {
     VLOG(1) << "Failed to lookup size " << type << " " << name;
   }
   return false;
-}
-
-drgn_type* OICodeGen::drgnUnderlyingType(drgn_type* type) {
-  auto* underlyingType = type;
-
-  while (drgn_type_kind(underlyingType) == DRGN_TYPE_TYPEDEF) {
-    underlyingType = drgn_type_type(underlyingType).type;
-  }
-
-  return underlyingType;
 }
 
 bool OICodeGen::enumerateClassParents(drgn_type* type,
@@ -1531,7 +1521,7 @@ bool OICodeGen::enumeratePointerType(drgn_type* type) {
   }
 
   pointerToTypeMap.emplace(type, qtype.type);
-  drgn_type* underlyingType = drgnUnderlyingType(qtype.type);
+  drgn_type* underlyingType = drgn_utils::underlyingType(qtype.type);
 
   bool isComplete = isDrgnSizeComplete(underlyingType);
   if (drgn_type_kind(underlyingType) == DRGN_TYPE_FUNCTION || isComplete) {
@@ -1667,7 +1657,7 @@ void OICodeGen::getFuncDefClassMembers(
     bool skipPadding) {
   if (drgn_type_kind(type) == DRGN_TYPE_TYPEDEF) {
     // Handle case where parent is a typedef
-    getFuncDefClassMembers(code, drgnUnderlyingType(type), memberNames);
+    getFuncDefClassMembers(code, drgn_utils::underlyingType(type), memberNames);
     return;
   }
 
@@ -2089,7 +2079,7 @@ void OICodeGen::getClassMembersIncludingParent(
     drgn_type* type, std::vector<DrgnClassMemberInfo>& out) {
   if (drgn_type_kind(type) == DRGN_TYPE_TYPEDEF) {
     // Handle case where parent is a typedef
-    getClassMembersIncludingParent(drgnUnderlyingType(type), out);
+    getClassMembersIncludingParent(drgn_utils::underlyingType(type), out);
     return;
   }
 
@@ -2343,7 +2333,7 @@ bool OICodeGen::isNumMemberGreaterThanZero(drgn_type* type) {
 
   if (parentClasses.find(type) != parentClasses.end()) {
     for (auto& p : parentClasses[type]) {
-      auto* underlyingType = drgnUnderlyingType(p.type);
+      auto* underlyingType = drgn_utils::underlyingType(p.type);
       if (isNumMemberGreaterThanZero(underlyingType)) {
         return true;
       }
@@ -2529,7 +2519,7 @@ bool OICodeGen::generateParent(
   // Parent class could be a typedef
   PaddingInfo paddingInfo{};
   bool violatesAlignmentRequirement = false;
-  auto* underlyingType = drgnUnderlyingType(p);
+  auto* underlyingType = drgn_utils::underlyingType(p);
   uint64_t offsetBits = 0;
 
   if (!generateStructMembers(underlyingType, memberNames, code, offsetBits,
@@ -2915,7 +2905,7 @@ bool OICodeGen::generateStructDefs(std::string& code) {
       if (!skip) {
         auto& members = classMembersMap[e];
         for (auto& m : members) {
-          auto* underlyingType = drgnUnderlyingType(m.type);
+          auto* underlyingType = drgn_utils::underlyingType(m.type);
 
           if (underlyingType != e) {
             auto it2 = std::find(structDefTypeCopy.begin(),
@@ -3659,7 +3649,7 @@ bool OICodeGen::staticAssertMemberOffsets(
   if (drgn_type_kind(struct_type) == DRGN_TYPE_TYPEDEF) {
     // Operate on the underlying type for typedefs
     return staticAssertMemberOffsets(struct_name,
-                                     drgnUnderlyingType(struct_type),
+                                     drgn_utils::underlyingType(struct_type),
                                      assert_str, memberNames, base_offset);
   }
 
