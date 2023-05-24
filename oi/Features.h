@@ -24,6 +24,7 @@
   X(PackStructs, "pack-structs")                \
   X(GenPaddingStats, "gen-padding-stats")       \
   X(CaptureThriftIsset, "capture-thrift-isset") \
+  X(TypeGraph, "type-graph")                    \
   X(PolymorphicInheritance, "polymorphic-inheritance")
 
 namespace ObjectIntrospection {
