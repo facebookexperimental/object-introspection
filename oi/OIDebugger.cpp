@@ -44,6 +44,7 @@ extern "C" {
 
 #include <glog/logging.h>
 
+#include "oi/CodeGen.h"
 #include "oi/ContainerInfo.h"
 #include "oi/Headers.h"
 #include "oi/Metrics.h"
@@ -51,6 +52,7 @@ extern "C" {
 #include "oi/OIUtils.h"
 #include "oi/PaddingHunter.h"
 #include "oi/Syscall.h"
+#include "oi/type_graph/TypeGraph.h"
 
 #ifndef OSS_ENABLE
 #include "cea/object-introspection/internal/GobsService.h"
@@ -2918,14 +2920,23 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
     return std::nullopt;
   }
 
-  if (auto sourcePath = cache.getPath(req, OICache::Entity::Source)) {
-    std::ofstream(*sourcePath) << code;
-  }
-
   typeInfos.emplace(
       req,
       std::make_tuple(RootInfo{rootInfo.varName, codegen->getRootType()},
                       codegen->getTypeHierarchy(), codegen->getPaddingInfo()));
+
+  if (generatorConfig.features[Feature::TypeGraph]) {
+    type_graph::TypeGraph typeGraph;
+    CodeGen codegen2(typeGraph, generatorConfig, *symbols);
+    codegen2.loadConfig(generatorConfig.containerConfigPaths);
+    if (!codegen2.generate(root->type.type, code)) {
+      return nullopt;
+    }
+  }
+
+  if (auto sourcePath = cache.getPath(req, OICache::Entity::Source)) {
+    std::ofstream(*sourcePath) << code;
+  }
 
   if (!customCodeFile.empty()) {
     auto ifs = std::ifstream(customCodeFile);
