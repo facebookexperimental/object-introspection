@@ -46,4 +46,5 @@ containers = [
     "PWD/types/std_variant.toml",
     "PWD/types/thrift_isset_type.toml",
     "PWD/types/weak_ptr_type.toml",
+    "PWD/types/std_char_traits.toml",
 ]

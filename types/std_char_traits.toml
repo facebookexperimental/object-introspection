@@ -1,0 +1,17 @@
+[info]
+type_name = "std::char_traits"
+ctype = "DUMMY_TYPE"
+header = "string"
+
+# Old:
+typeName = "std::char_traits<"
+ns = ["namespace std"]
+numTemplateParams = 1
+
+[codegen]
+decl = """
+// DummyDecl %1%
+"""
+func = """
+// DummyFunc %1%
+"""

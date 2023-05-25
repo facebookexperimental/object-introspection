@@ -1,6 +1,6 @@
 [info]
 type_name = "std::__cxx11::basic_string"
-stub_template_params = [1,2]
+stub_template_params = [2]
 ctype = "STRING_TYPE"
 header = "string"
 

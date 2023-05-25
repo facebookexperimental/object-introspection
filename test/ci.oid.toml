@@ -42,6 +42,7 @@ containers = [
     "../types/std_variant.toml",
     "../types/thrift_isset_type.toml",
     "../types/weak_ptr_type.toml",
+    "../types/std_char_traits.toml",
 ]
 
 [headers]
