@@ -830,7 +830,7 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
     case BY_MULTI_QRT_TYPE:
       containerStats.length = containerStats.capacity = next();
       break;
-    case THRIFT_ISSET_TYPE:
+    case DUMMY_TYPE:
       // Dummy container
       containerStats.elementStaticSize = 0;
       break;
