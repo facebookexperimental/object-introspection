@@ -1,3 +1,8 @@
+add_library(toml
+  support/Toml.cpp
+)
+target_link_libraries(toml PUBLIC tomlplusplus::tomlplusplus)
+
 add_library(drgn_utils DrgnUtils.cpp)
 target_link_libraries(drgn_utils
   glog::glog
@@ -28,7 +33,7 @@ target_link_libraries(container_info
   drgn_utils # This shouldn't be needed! Clean up Commoh.h!
 
   glog::glog
-  tomlplusplus::tomlplusplus
+  toml
 )
 
 add_library(codegen

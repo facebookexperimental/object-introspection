@@ -1,7 +1,5 @@
 #include "runner_common.h"
 
-#include <toml++/toml.h>
-
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
@@ -15,6 +13,7 @@
 #include <utility>
 
 #include "oi/OIOpts.h"
+#include "oi/support/Toml.h"
 
 using namespace std::literals;
 
