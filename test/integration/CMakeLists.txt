@@ -22,6 +22,7 @@ endif()
 list(TRANSFORM INTEGRATION_TEST_CONFIGS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
 
 # Disable position independent executables that oid can't yet handle
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-pic")
 add_link_options(-no-pie)
 
 set(INTEGRATION_TEST_TARGET_SRC integration_test_target.cpp)

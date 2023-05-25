@@ -43,8 +43,8 @@ workflows:
 
       - build:
           name: build-clang
-          cc: /usr/bin/clang-12
-          cxx: /usr/bin/clang++-12
+          cc: /usr/bin/clang-15
+          cxx: /usr/bin/clang++-15
           warnings_as_errors: "ON"
       - test:
           name: test-clang
@@ -120,14 +120,14 @@ jobs:
             sudo apt-get install -y \
               bison \
               build-essential \
-              clang-12 \
+              clang-15 \
               cmake \
               flex \
               gawk \
               libboost-all-dev \
               libbz2-dev \
               libcap2-bin \
-              libclang-12-dev \
+              libclang-15-dev \
               libcurl4-gnutls-dev \
               libdouble-conversion-dev \
               libdw-dev \
@@ -139,7 +139,7 @@ jobs:
               libjemalloc-dev \
               libmsgpack-dev \
               libzstd-dev \
-              llvm-12-dev \
+              llvm-15-dev \
               ninja-build \
               pkg-config \
               python3-setuptools
@@ -183,10 +183,10 @@ jobs:
           command: |
             sudo apt-get update
             sudo apt-get install -y \
-              clang-12 \
+              clang-15 \
               libboost-all-dev \
               libgflags-dev \
-              llvm-12-dev \
+              llvm-15-dev \
               libfmt-dev \
               libjemalloc-dev
       - run:

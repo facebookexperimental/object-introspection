@@ -310,13 +310,6 @@ int main(int argc, char* argv[]) {
   }
 
   std::cout << "mapOfWords #elements: " << mapOfWords.size() << std::endl;
-
-  int size = 0;
-
-  for (auto it = mapOfWords.begin(); it != mapOfWords.end(); ++it) {
-    size += (int)it->first.size();
-  }
-
   std::cout << "mapOfWords map addr = " << &mapOfWords << std::endl;
   std::cout << "nameList vector addr = " << &nameList << std::endl;
 

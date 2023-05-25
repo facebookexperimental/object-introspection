@@ -63,7 +63,7 @@ FetchContent_Declare(
 FetchContent_Populate(rocksdb)
 add_custom_target(librocksdb ALL
   WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
-  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On
+  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On -DFAIL_ON_WARNINGS=Off
   COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
   BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
   COMMENT "Building RocksDB"
@@ -152,8 +152,8 @@ find_package(Boost REQUIRED COMPONENTS
 )
 message(STATUS "Linking Boost libraries: ${Boost_LIBRARIES}")
 
-### LLVM and Clang - Preferring Clang 12
-find_package(LLVM 12 REQUIRED CONFIG)
+### LLVM and Clang - Preferring Clang 15
+find_package(LLVM 15 REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
