@@ -33,6 +33,11 @@ struct ContainerInfo {
   };
 
   explicit ContainerInfo(const std::filesystem::path& path);  // Throws
+  ContainerInfo(std::string typeName,
+                ContainerTypeEnum ctype,
+                std::string header);
+
+  // Old ctors, remove with OICodeGen:
   ContainerInfo() = default;
   ContainerInfo(std::string typeName_,
                 std::regex matcher_,
@@ -84,10 +89,6 @@ struct ContainerInfo {
 
   bool operator<(const ContainerInfo& rhs) const {
     return (typeName < rhs.typeName);
-  }
-
-  std::regex getMatcher() const {
-    return std::regex("^" + typeName + "<|^" + typeName + "$");
   }
 };
 
