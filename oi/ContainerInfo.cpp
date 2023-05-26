@@ -172,6 +172,17 @@ const char* containerTypeEnumToStr(ContainerTypeEnum ty) {
   });
 }
 
+namespace {
+/*
+ * Create a regex to match a given type name.
+ *
+ * The type name "name" should match "name" and "name<xxx>".
+ */
+std::regex getMatcher(const std::string& typeName) {
+  return std::regex("^" + typeName + "$|^" + typeName + "<.*>$");
+}
+}  // namespace
+
 ContainerInfo::ContainerInfo(const fs::path& path) {
   toml::table container;
   try {
@@ -196,6 +207,8 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   } else {
     throw std::runtime_error("`info.type_name` is a required field");
   }
+
+  matcher = getMatcher(typeName);
 
   if (std::optional<std::string> str = info["ctype"].value<std::string>()) {
     ctype = containerTypeEnumFromStr(*str);
@@ -245,4 +258,13 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   } else {
     throw std::runtime_error("`codegen.decl` is a required field");
   }
+}
+
+ContainerInfo::ContainerInfo(std::string typeName_,
+                             ContainerTypeEnum ctype_,
+                             std::string header_)
+    : typeName(std::move(typeName_)),
+      matcher(getMatcher(typeName)),
+      ctype(ctype_),
+      header(std::move(header_)) {
 }

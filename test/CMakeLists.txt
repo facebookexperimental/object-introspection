@@ -58,6 +58,12 @@ cpp_unittest(
   DEPS oicore
 )
 
+cpp_unittest(
+  NAME test_container_info
+  SRCS test_container_info.cpp
+  DEPS oicore
+)
+
 # Integration tests
 if (WITH_FLAKY_TESTS)
   add_test(
