@@ -21,18 +21,29 @@ target_link_libraries(symbol_service
   dw
 )
 
-add_library(codegen
+add_library(container_info
   ContainerInfo.cpp
+)
+target_link_libraries(container_info
+  drgn_utils # This shouldn't be needed! Clean up Commoh.h!
+
+  glog::glog
+  tomlplusplus::tomlplusplus
+)
+
+add_library(codegen
   Features.cpp
   FuncGen.cpp
   OICodeGen.cpp
 )
 target_link_libraries(codegen
+  container_info
   symbol_service
 
   Boost::headers
   ${Boost_LIBRARIES}
   folly_headers
   glog::glog
-  tomlplusplus::tomlplusplus
 )
+
+add_subdirectory(type_graph)
