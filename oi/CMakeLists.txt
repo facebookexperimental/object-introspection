@@ -37,6 +37,7 @@ target_link_libraries(container_info
 )
 
 add_library(codegen
+  CodeGen.cpp
   Features.cpp
   FuncGen.cpp
   OICodeGen.cpp
@@ -44,6 +45,7 @@ add_library(codegen
 target_link_libraries(codegen
   container_info
   symbol_service
+  type_graph
 
   Boost::headers
   ${Boost_LIBRARIES}
