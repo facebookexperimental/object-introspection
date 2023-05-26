@@ -46,6 +46,30 @@ add_executable(integration_sleepy
 target_link_libraries(integration_sleepy folly_headers)
 
 # Unit tests
+
+add_executable(test_type_graph
+  test_add_padding.cpp
+  test_alignment_calc.cpp
+  test_drgn_parser.cpp
+  test_flattener.cpp
+  test_name_gen.cpp
+  test_remove_top_level_pointer.cpp
+  test_topo_sorter.cpp
+  test_type_identifier.cpp
+)
+add_dependencies(test_type_graph integration_test_target)
+target_compile_definitions(test_type_graph PRIVATE
+  TARGET_EXE_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration/integration_test_target"
+)
+target_link_libraries(test_type_graph
+  container_info
+  type_graph
+
+  ${GMOCK_MAIN_LIBS}
+)
+include(GoogleTest)
+gtest_discover_tests(test_type_graph)
+
 cpp_unittest(
   NAME test_parser
   SRCS test_parser.cpp

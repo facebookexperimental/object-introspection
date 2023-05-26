@@ -1,17 +1,18 @@
 includes = ["vector"]
 definitions = '''
-  typedef uint64_t UInt64;
+  typedef uint64_t TdUInt64;
+  using UsingUInt64 = uint64_t;
   using IntVector = std::vector<int>;
 '''
 [cases]
   [cases.c_style]
-    param_types = ["UInt64"]
+    param_types = ["TdUInt64"]
     setup = "return {};"
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":0,
       "isTypedef":true,
-      "typeName":"UInt64",
+      "typeName":"TdUInt64",
       "members":[
         {
           "staticSize":8,
@@ -22,6 +23,23 @@ definitions = '''
         }
       ]}]'''
   [cases.using]
+    param_types = ["UsingUInt64"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":8,
+      "dynamicSize":0,
+      "isTypedef":true,
+      "typeName":"UsingUInt64",
+      "members":[
+        {
+          "staticSize":8,
+          "dynamicSize":0,
+          "isTypedef":false,
+          "typeName":"uint64_t",
+          "NOT":"members"
+        }
+      ]}]'''
+  [cases.container]
     param_types = ["const IntVector&"]
     setup = "return {};"
     expect_json = '''[{
