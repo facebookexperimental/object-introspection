@@ -194,10 +194,21 @@ TEST(NameGenTest, Typedef) {
   NameGen nameGen;
   nameGen.generateNames({*mytypedef});
 
-  EXPECT_EQ(myparam1->name(), "MyParam_0");
-  EXPECT_EQ(myparam2->name(), "MyParam_1");
-  EXPECT_EQ(mycontainer.name(), "std::vector<MyParam_0, MyParam_1>");
-  EXPECT_EQ(mytypedef->name(), "MyTypedef");
+  EXPECT_EQ(myparam1->name(), "MyParam_1");
+  EXPECT_EQ(myparam2->name(), "MyParam_2");
+  EXPECT_EQ(mycontainer.name(), "std::vector<MyParam_1, MyParam_2>");
+  EXPECT_EQ(mytypedef->name(), "MyTypedef_0");
+}
+
+TEST(NameGenTest, TypedefAliasTemplate) {
+  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto mytypedef =
+      std::make_unique<Typedef>("MyTypedef<ParamA, ParamB>", myint.get());
+
+  NameGen nameGen;
+  nameGen.generateNames({*mytypedef});
+
+  EXPECT_EQ(mytypedef->name(), "MyTypedef_0");
 }
 
 TEST(NameGenTest, Pointer) {
