@@ -34,6 +34,7 @@ class NameGen final : public RecursiveVisitor {
 
   void visit(Class& c) override;
   void visit(Container& c) override;
+  void visit(Typedef& td) override;
 
  private:
   void visit(Type& type) override;

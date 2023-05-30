@@ -106,4 +106,24 @@ void NameGen::visit(Container& c) {
   c.setName(name);
 }
 
+void NameGen::visit(Typedef& td) {
+  /*
+   * Treat like class names.
+   *
+   * We must remove template parameters from typedef names because, although
+   * they won't have real (in DWARF) template parameters themselves, their names
+   * may still contain other type names surrounded by angle brackets.
+   *
+   * An alias template, e.g. std::conditional_t, will have this behaviour:
+   *     conditional_t<B,T,F> is a typedef for conditional<B,T,F>::type
+   */
+  std::string name = td.name();
+  removeTemplateParams(name);
+
+  // Append an incrementing number to ensure we don't get duplicates
+  td.setName(name + "_" + std::to_string(n++));
+
+  visit(*td.underlyingType());
+}
+
 }  // namespace type_graph
