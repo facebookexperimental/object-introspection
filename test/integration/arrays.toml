@@ -43,7 +43,8 @@ definitions = '''
         "staticSize":0,
         "dynamicSize":0
       }]}]'''
-  [cases.multidim]
+  [cases.multidim_legacy] # Test for legacy behaviour. Remove with OICodeGen
+    cli_options = ["-Ftype-graph"]
     param_types = ["const MultiDim&"]
     setup = "return {};"
     expect_json = '''[{
@@ -55,6 +56,16 @@ definitions = '''
         "length":6,
         "capacity":6,
         "elementStaticSize":4
+      }]}]'''
+  [cases.multidim]
+    cli_options = ["-ftype-graph"]
+    param_types = ["const MultiDim&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":24, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"staticSize":24, "dynamicSize":0, "exclusiveSize":0, "length":2, "capacity":2, "elementStaticSize":12, "members":[
+          {"staticSize":12, "dynamicSize":0, "exclusiveSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+          {"staticSize":12, "dynamicSize":0, "exclusiveSize":12, "length":3, "capacity":3, "elementStaticSize":4}]
       }]}]'''
   [cases.direct_int10]
     skip = "Direct array arguments don't work"

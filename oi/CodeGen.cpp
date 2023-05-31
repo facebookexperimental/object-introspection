@@ -81,6 +81,9 @@ struct OIArray {
 }
 
 void addIncludes(const TypeGraph& typeGraph, std::string& code) {
+  // Required for the offsetof() macro
+  code += "#include <cstddef>\n";
+
   // TODO deduplicate containers
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Container*>(&t)) {
