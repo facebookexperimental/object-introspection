@@ -13,36 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "Features.h"
+#pragma once
 
-#include <map>
+#include <bitset>
 
-namespace ObjectIntrospection {
+template <typename T, size_t N>
+class EnumBitset {
+ private:
+  using BitsetType = std::bitset<N>;
 
-Feature featureFromStr(std::string_view str) {
-  static const std::map<std::string_view, Feature> nameMap = {
-#define X(name, str) {str, Feature::name},
-      OI_FEATURE_LIST
-#undef X
-  };
-
-  if (auto search = nameMap.find(str); search != nameMap.end()) {
-    return search->second;
+ public:
+  EnumBitset() = default;
+  EnumBitset(std::initializer_list<T> values) {
+    for (auto v : values) {
+      (*this)[v] = true;
+    }
   }
-  return Feature::UnknownFeature;
-}
 
-const char* featureToStr(Feature f) {
-  switch (f) {
-#define X(name, str)  \
-  case Feature::name: \
-    return str;
-    OI_FEATURE_LIST
-#undef X
-
-    default:
-      return "UnknownFeature";
+  constexpr bool operator[](T v) const {
+    return bitset[static_cast<size_t>(v)];
   }
-}
+  typename BitsetType::reference operator[](T v) {
+    return bitset[static_cast<size_t>(v)];
+  }
 
-}  // namespace ObjectIntrospection
+ private:
+  BitsetType bitset;
+};
