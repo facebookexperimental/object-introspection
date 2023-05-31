@@ -16,8 +16,9 @@
 #pragma once
 
 #include <array>
-#include <bitset>
 #include <string_view>
+
+#include "oi/EnumBitset.h"
 
 #define OI_FEATURE_LIST                         \
   X(ChaseRawPointers, "chase-raw-pointers")     \
@@ -45,23 +46,7 @@ constexpr std::array allFeatures = {
 #undef X
 };
 
-class FeatureSet {
- private:
-  using BitsetType = std::bitset<allFeatures.size() + 1>;
-
- public:
-  FeatureSet() = default;
-  FeatureSet(std::initializer_list<Feature>);
-
-  constexpr bool operator[](Feature f) const {
-    return bitset[(size_t)f];
-  }
-  BitsetType::reference operator[](Feature f) {
-    return bitset[(size_t)f];
-  }
-
- private:
-  BitsetType bitset;
-};
+// Use "size+1" to account for UnknownFeature"
+using FeatureSet = EnumBitset<Feature, allFeatures.size() + 1>;
 
 }  // namespace ObjectIntrospection
