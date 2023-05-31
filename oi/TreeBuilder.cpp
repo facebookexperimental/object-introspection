@@ -571,8 +571,13 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
     kind = ARRAY_TYPE;
     struct drgn_type* arrayElementType = nullptr;
     size_t numElems = 0;
-    drgn_utils::getDrgnArrayElementType(variable.type, &arrayElementType,
-                                        numElems);
+    if (config.features[Feature::TypeGraph]) {
+      arrayElementType = drgn_type_type(variable.type).type;
+      numElems = drgn_type_length(variable.type);
+    } else {
+      drgn_utils::getDrgnArrayElementType(variable.type, &arrayElementType,
+                                          numElems);
+    }
     assert(numElems > 0);
     elementTypes.push_back(
         drgn_qualified_type{arrayElementType, (enum drgn_qualifiers)(0)});
