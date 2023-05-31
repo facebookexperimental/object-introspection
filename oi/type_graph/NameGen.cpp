@@ -95,6 +95,9 @@ void NameGen::visit(Container& c) {
     if (param.value) {
       name += *param.value;
     } else {
+      if (param.qualifiers[Qualifier::Const]) {
+        name += "const ";
+      }
       name += param.type->name();
     }
     name += ", ";

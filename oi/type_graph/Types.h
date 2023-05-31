@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "oi/ContainerInfo.h"
+#include "oi/EnumBitset.h"
 
 #define OI_TYPE_LIST \
   X(Class)           \
@@ -36,6 +37,12 @@
 struct ContainerInfo;
 
 namespace type_graph {
+
+enum class Qualifier {
+  Const,
+  Max,
+};
+using QualifierSet = EnumBitset<Qualifier, static_cast<size_t>(Qualifier::Max)>;
 
 class Visitor;
 class ConstVisitor;
@@ -92,14 +99,18 @@ struct Parent {
 };
 
 struct TemplateParam {
-  // TODO make ctors explicit?
+  // TODO make ctors explicit
   TemplateParam(Type* type) : type(type) {
+  }
+  TemplateParam(Type* type, QualifierSet qualifiers)
+      : type(type), qualifiers(qualifiers) {
   }
   TemplateParam(Type* type, std::string value)
       : type(type), value(std::move(value)) {
   }
 
   Type* type;
+  QualifierSet qualifiers;
   std::optional<std::string>
       value;  // TODO is there any reason not to store all values as strings?
 };

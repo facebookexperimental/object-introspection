@@ -291,8 +291,12 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter* tparams,
 
     struct drgn_type* tparamType = tparamQualType.type;
 
+    QualifierSet qualifiers;
+    qualifiers[Qualifier::Const] =
+        (tparamQualType.qualifiers & DRGN_QUALIFIER_CONST);
+
     auto ttype = enumerateType(tparamType);
-    params.emplace_back(ttype);
+    params.emplace_back(ttype, qualifiers);
   } else {
     // This template parameter is a value
     //    TODO why do we need the type of a value?
