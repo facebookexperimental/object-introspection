@@ -410,10 +410,8 @@ class DummyAllocator : public Type {
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return "std::allocator<" + type_.name() + ">";
-    // TODO custom sized allocators:
-    //    return "DummyAllocator<" + type_.name() + ", " + std::to_string(size_)
-    //    + "," + std::to_string(align_) + ">";
+    return "DummyAllocator<" + type_.name() + ", " + std::to_string(size_) +
+           ", " + std::to_string(align_) + ">";
   }
 
   virtual size_t size() const override {

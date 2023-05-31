@@ -155,3 +155,30 @@ struct alignas(align) DummySizedOperator {
 // DummySizedOperator<0,0> also collapses to this
 template <>
 struct DummySizedOperator<0> {};
+
+template <template <typename, size_t, size_t> typename DerivedT,
+          typename T,
+          size_t N,
+          size_t Align>
+struct DummyAllocatorBase {
+  using value_type = T;
+  T* allocate(std::size_t n) {
+    return nullptr;
+  }
+  void deallocate(T* p, std::size_t n) noexcept {
+  }
+
+  template <typename U>
+  struct rebind {
+    using other = DerivedT<U, N, Align>;
+  };
+};
+
+template <typename T, size_t N, size_t Align = 0>
+struct alignas(Align) DummyAllocator
+    : DummyAllocatorBase<DummyAllocator, T, N, Align> {
+  char c[N];
+};
+
+template <typename T>
+struct DummyAllocator<T, 0> : DummyAllocatorBase<DummyAllocator, T, 0, 0> {};
