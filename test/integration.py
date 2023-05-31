@@ -142,9 +142,9 @@ class OIDebuggerTestCase(unittest.TestCase):
         with open(OUTPUT_PATH, "r") as f:
             output = json.loads(f.read())
             self.assertEqual(output[0]["typeName"], "Foo")
-            self.assertEqual(output[0]["staticSize"], 2176)
+            self.assertEqual(output[0]["staticSize"], 2192)
             self.assertEqual(output[0]["dynamicSize"], 76)
-            self.assertEqual(len(output[0]["members"]), 25)
+            self.assertEqual(len(output[0]["members"]), 24)
 
     @unittest.skip(
         "https://github.com/facebookexperimental/object-introspection/issues/53"
@@ -172,9 +172,9 @@ class OIDebuggerTestCase(unittest.TestCase):
         with open(OUTPUT_PATH, "r") as f:
             output = json.loads(f.read())
             self.assertEqual(output[0]["typeName"], "Foo")
-            self.assertEqual(output[0]["staticSize"], 2176)
+            self.assertEqual(output[0]["staticSize"], 2192)
             self.assertEqual(output[0]["dynamicSize"], 76)
-            self.assertEqual(len(output[0]["members"]), 25)
+            self.assertEqual(len(output[0]["members"]), 24)
 
     def test_custom_generated_file(self):
         with subprocess.Popen(
