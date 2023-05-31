@@ -48,6 +48,7 @@ target_link_libraries(integration_sleepy folly_headers)
 # Unit tests
 
 add_executable(test_type_graph
+  main.cpp
   test_add_padding.cpp
   test_alignment_calc.cpp
   test_drgn_parser.cpp
@@ -56,6 +57,7 @@ add_executable(test_type_graph
   test_remove_top_level_pointer.cpp
   test_topo_sorter.cpp
   test_type_identifier.cpp
+  type_graph_utils.cpp
 )
 add_dependencies(test_type_graph integration_test_target)
 target_compile_definitions(test_type_graph PRIVATE
