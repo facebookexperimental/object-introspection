@@ -115,8 +115,9 @@ void Printer::visit(const Dummy& d) {
 
 void Printer::visit(const DummyAllocator& d) {
   prefix();
-  out_ << "DummyAllocatorTODO (size: " << d.size() << align_str(d.align())
-       << ")" << std::endl;
+  out_ << "DummyAllocator (size: " << d.size() << align_str(d.align()) << ")"
+       << std::endl;
+  print(d.allocType());
 }
 
 bool Printer::prefix(const Type* type) {

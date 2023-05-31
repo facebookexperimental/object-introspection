@@ -57,46 +57,47 @@ bool isAllocator(Type* t) {
 }  // namespace
 
 void TypeIdentifier::visit(Container& c) {
-  // TODO will containers exist at this point?
-  // maybe don't need this function
-
-  //  auto *c = make_type<Container>(containerInfo);
-
   const auto& stubParams = c.containerInfo_.stubTemplateParams;
   // TODO these two arrays could be looped over in sync for better performance
   for (size_t i = 0; i < c.templateParams.size(); i++) {
+    const auto& param = c.templateParams[i];
+    if (dynamic_cast<Dummy*>(param.type) ||
+        dynamic_cast<DummyAllocator*>(param.type)) {
+      // In case the TypeIdentifier pass is run multiple times, we don't want to
+      // replace dummies again as the context of the original replacement has
+      // been lost.
+      continue;
+    }
+
     if (std::find(stubParams.begin(), stubParams.end(), i) !=
         stubParams.end()) {
-      const auto& param = c.templateParams[i];
-      if (isAllocator(param.type)) {
-        //        auto *allocator = dynamic_cast<Class*>(param.type); // TODO
-        //        please don't do this... auto &typeToAllocate =
-        //        *allocator->templateParams.at(0).type; auto *dummy =
-        //        make_type<DummyAllocator>(typeToAllocate, param.type->size(),
-        //        param.type->align()); c.templateParams[i] = dummy;
+      size_t size = param.type->size();
+      if (size == 1) {
+        // Hack: when we get a reported size of 1 for these parameters, it
+        // turns out that a size of 0 is actually expected.
+        size = 0;
+      }
 
-        // TODO allocators are tricky... just remove them entirely for now
-        // The problem is a std::map<int, int> requires an allocator of type
-        // std::allocator<std::pair<const int, int>>, but we do not record
-        // constness of types.
-        if (i != c.templateParams.size() - 1) {
-          throw std::runtime_error("Unsupported allocator parameter");
+      if (isAllocator(param.type)) {
+        auto* allocator =
+            dynamic_cast<Class*>(param.type);  // TODO please don't do this...
+        Type* typeToAllocate;
+        if (!allocator->templateParams.empty()) {
+          typeToAllocate = allocator->templateParams.at(0).type;
+        } else {
+          // We've encountered some bad DWARF. Let's guess that the type to
+          // allocate is the first parameter of the container.
+          typeToAllocate = c.templateParams[0].type;
         }
-        c.templateParams.erase(c.templateParams.begin() + i,
-                               c.templateParams.end());
+        auto* dummy = typeGraph_.make_type<DummyAllocator>(
+            *typeToAllocate, size, param.type->align());
+        c.templateParams[i] = dummy;
       } else {
-        size_t size = param.type->size();
-        if (size == 1) {  // TODO this is a hack
-          size = 0;
-        }
         auto* dummy = typeGraph_.make_type<Dummy>(size, param.type->align());
         c.templateParams[i] = dummy;
       }
     }
   }
-
-  // TODO replace current node with "c" (if we want to transform classes into
-  // containers here)
 
   for (const auto& param : c.templateParams) {
     visit(*param.type);

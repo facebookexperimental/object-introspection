@@ -242,6 +242,15 @@ TEST(NameGenTest, Pointer) {
   EXPECT_EQ(mypointer->name(), "std::vector<MyParam_0, MyParam_1>*");
 }
 
+TEST(NameGenTest, Dummy) {
+  auto dummy = std::make_unique<Dummy>(12, 34);
+
+  NameGen nameGen;
+  nameGen.generateNames({*dummy});
+
+  EXPECT_EQ(dummy->name(), "DummySizedOperator<12, 34>");
+}
+
 TEST(NameGenTest, DummyAllocator) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
@@ -250,7 +259,7 @@ TEST(NameGenTest, DummyAllocator) {
   mycontainer.templateParams.push_back(myparam1.get());
   mycontainer.templateParams.push_back(myparam2.get());
 
-  auto myalloc = std::make_unique<DummyAllocator>(mycontainer, 0, 0);
+  auto myalloc = std::make_unique<DummyAllocator>(mycontainer, 12, 34);
 
   NameGen nameGen;
   nameGen.generateNames({*myalloc});
@@ -259,7 +268,7 @@ TEST(NameGenTest, DummyAllocator) {
   EXPECT_EQ(myparam2->name(), "MyParam_1");
   EXPECT_EQ(mycontainer.name(), "std::vector<MyParam_0, MyParam_1>");
   EXPECT_EQ(myalloc->name(),
-            "std::allocator<std::vector<MyParam_0, MyParam_1>>");
+            "DummyAllocator<std::vector<MyParam_0, MyParam_1>, 12, 34>");
 }
 
 TEST(NameGenTest, Cycle) {
