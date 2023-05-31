@@ -1,16 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "oi/ContainerInfo.h"
 #include "oi/type_graph/NameGen.h"
 #include "oi/type_graph/Types.h"
+#include "test/type_graph_utils.h"
 
 using namespace type_graph;
-
-Container getVector() {
-  ContainerInfo info{"std::vector", SEQ_TYPE, "vector"};
-
-  return Container{info, 24};
-}
 
 TEST(NameGenTest, ClassParams) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);

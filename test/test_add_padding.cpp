@@ -5,29 +5,9 @@
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "oi/type_graph/Types.h"
+#include "test/type_graph_utils.h"
 
 using namespace type_graph;
-
-void test(Pass pass,
-          std::vector<std::reference_wrapper<Type>> types,
-          std::string_view expected) {
-  TypeGraph typeGraph;
-  for (const auto& type : types) {
-    typeGraph.addRoot(type);
-  }
-
-  pass.run(typeGraph);
-
-  std::stringstream out;
-  Printer printer(out);
-
-  for (const auto& type : types) {
-    printer.print(type);
-  }
-
-  expected.remove_prefix(1);  // Remove initial '\n'
-  EXPECT_EQ(expected, out.str());
-}
 
 TEST(AddPaddingTest, BetweenMembers) {
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 16);
