@@ -28,6 +28,7 @@
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
+#include "type_graph/RemoveIgnored.h"
 #include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/TypeGraph.h"
@@ -420,6 +421,7 @@ bool CodeGen::generate(drgn_type* drgnType, std::string& code) {
     pm.addPass(type_graph::Flattener::createPass());
     pm.addPass(type_graph::TypeIdentifier::createPass());
   }
+  pm.addPass(type_graph::RemoveIgnored::createPass(config_.membersToStub));
   pm.addPass(type_graph::AddPadding::createPass());
   pm.addPass(type_graph::NameGen::createPass());
   pm.addPass(type_graph::AlignmentCalc::createPass());
