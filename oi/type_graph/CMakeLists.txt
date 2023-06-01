@@ -7,6 +7,7 @@ add_library(type_graph
   NameGen.cpp
   PassManager.cpp
   Printer.cpp
+  RemoveIgnored.cpp
   RemoveTopLevelPointer.cpp
   TopoSorter.cpp
   TypeIdentifier.cpp
