@@ -214,8 +214,18 @@ set(DRGN_PATH "${PROJECT_SOURCE_DIR}/extern/drgn/build")
 # to be set before add_executable() unfortunately. Maybe split libdrgn stuff
 # into a separate file later.
 set(CMAKE_SKIP_BUILD_RPATH FALSE)
-set(CMAKE_INSTALL_RPATH "${DRGN_PATH}/.libs")
-set(CMAKE_BUILD_RPATH "${DRGN_PATH}/.libs")
+set(CMAKE_INSTALL_RPATH
+  "${DRGN_PATH}/.libs"
+  "${DRGN_PATH}/velfutils/libdw"
+  "${DRGN_PATH}/velfutils/libelf"
+  "${DRGN_PATH}/velfutils/libdwelf"
+)
+set(CMAKE_BUILD_RPATH
+  "${DRGN_PATH}/.libs"
+  "${DRGN_PATH}/velfutils/libdw"
+  "${DRGN_PATH}/velfutils/libelf"
+  "${DRGN_PATH}/velfutils/libdwelf"
+)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 include_directories(SYSTEM "${DRGN_PATH}")
