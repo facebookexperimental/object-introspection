@@ -22,6 +22,10 @@
 #include "oi/DrgnUtils.h"
 #include "oi/SymbolService.h"
 
+extern "C" {
+#include <drgn.h>
+}
+
 template <typename T>
 using ref = std::reference_wrapper<T>;
 

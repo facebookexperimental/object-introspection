@@ -26,11 +26,11 @@
 class SymbolService;
 struct irequest;
 
-#include "oi/Common.h"
 #include "oi/ContainerInfo.h"
 #include "oi/Features.h"
 #include "oi/FuncGen.h"
 #include "oi/PaddingHunter.h"
+#include "oi/TypeHierarchy.h"
 
 extern "C" {
 #include <drgn.h>

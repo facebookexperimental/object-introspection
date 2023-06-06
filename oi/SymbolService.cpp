@@ -34,6 +34,15 @@ extern "C" {
 #include "dwarf.h"
 }
 
+template <typename... Ts>
+struct visitor : Ts... {
+  using Ts::operator()...;
+};
+
+// Type deduction for the helper above
+template <typename... Ts>
+visitor(Ts...) -> visitor<Ts...>;
+
 static bool LoadExecutableAddressRange(
     pid_t pid, std::vector<std::pair<uint64_t, uint64_t>>& exeAddrs) {
   std::ifstream f("/proc/" + std::to_string(pid) + "/maps");

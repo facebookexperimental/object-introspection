@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include "oi/Common.h"
+#include "oi/ContainerTypeEnum.h"
 
 ContainerTypeEnum containerTypeEnumFromStr(std::string& str);
 const char* containerTypeEnumToStr(ContainerTypeEnum ty);

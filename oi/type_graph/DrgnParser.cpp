@@ -439,6 +439,12 @@ bool DrgnParser::chasePointer() const {
   return chaseRawPointers_;
 }
 
+DrgnParserError::DrgnParserError(const std::string& msg, struct drgn_error* err)
+    : std::runtime_error{msg + ": " + std::to_string(err->code) + " " +
+                         err->message},
+      err_(err) {
+}
+
 DrgnParserError::~DrgnParserError() {
   drgn_error_destroy(err_);
 }

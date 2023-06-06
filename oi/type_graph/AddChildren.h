@@ -24,6 +24,7 @@
 #include "Visitor.h"
 
 class SymbolService;
+struct drgn_type;
 
 namespace type_graph {
 

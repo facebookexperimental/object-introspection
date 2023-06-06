@@ -30,8 +30,6 @@ add_library(container_info
   ContainerInfo.cpp
 )
 target_link_libraries(container_info
-  drgn_utils # This shouldn't be needed! Clean up Commoh.h!
-
   glog::glog
   toml
 )
