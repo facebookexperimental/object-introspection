@@ -10,6 +10,7 @@ workflows:
           cc: /usr/bin/gcc
           cxx: /usr/bin/g++
           warnings_as_errors: "OFF"
+          iwyu: "OFF"
       - test:
           name: test-gcc
           requires:
@@ -23,6 +24,7 @@ workflows:
           cc: /usr/bin/clang-12
           cxx: /usr/bin/clang++-12
           warnings_as_errors: "ON"
+          iwyu: "ON"
       - test:
           name: test-clang
           requires:
@@ -76,6 +78,8 @@ jobs:
         type: string
       warnings_as_errors:
         type: string
+      iwyu:
+        type: string
     environment:
       CC: << parameters.cc >>
       CXX: << parameters.cxx >>
@@ -111,7 +115,8 @@ jobs:
               llvm-12-dev \
               ninja-build \
               pkg-config \
-              python3-setuptools
+              python3-setuptools \
+              iwyu
             pip3 install toml
           environment:
             DEBIAN_FRONTEND: noninteractive
@@ -119,7 +124,7 @@ jobs:
       - run:
           name: Build
           command: |
-            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
+            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >> -DCMAKE_CXX_INCLUDE_WHAT_YOU_USE=iwyu
             cmake --build build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
