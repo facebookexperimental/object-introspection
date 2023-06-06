@@ -24,11 +24,11 @@
 #include <span>
 
 #include "glog/vlog_is_on.h"
-#include "oi/Common.h"
 #include "oi/OIOpts.h"
 #include "oi/PaddingHunter.h"
 #include "oi/Serialize.h"
 #include "oi/TreeBuilder.h"
+#include "oi/TypeHierarchy.h"
 
 namespace fs = std::filesystem;
 

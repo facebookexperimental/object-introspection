@@ -23,6 +23,8 @@
 
 struct drgn_type;
 struct drgn_type_template_parameter;
+struct drgn_error;
+
 struct ContainerInfo;
 
 namespace type_graph {
@@ -84,11 +86,7 @@ class DrgnParserError : public std::runtime_error {
  public:
   DrgnParserError(const std::string& msg) : std::runtime_error{msg} {
   }
-  DrgnParserError(const std::string& msg, struct drgn_error* err)
-      : std::runtime_error{msg + ": " + std::to_string(err->code) + " " +
-                           err->message},
-        err_(err) {
-  }
+  DrgnParserError(const std::string& msg, struct drgn_error* err);
 
   ~DrgnParserError();
 

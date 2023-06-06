@@ -24,9 +24,9 @@
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
 
-#include "oi/Common.h"
 #include "oi/PaddingHunter.h"
 #include "oi/SymbolService.h"
+#include "oi/TypeHierarchy.h"
 
 #define DEFINE_TYPE_VERSION(Type, size, version)                             \
   static_assert(                                                             \

@@ -23,8 +23,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "oi/Common.h"
 #include "oi/Features.h"
+#include "oi/TypeHierarchy.h"
 
 // The rocksdb includes are extremely heavy and bloat compile times,
 // so we just forward-declare `DB` to avoid making other compile units

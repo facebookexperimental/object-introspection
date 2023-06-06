@@ -23,8 +23,8 @@
 #include <variant>
 #include <vector>
 
-#include "oi/Common.h"
 #include "oi/Descs.h"
+#include "oi/TypeHierarchy.h"
 
 namespace fs = std::filesystem;
 

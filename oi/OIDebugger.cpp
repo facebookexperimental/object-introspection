@@ -61,6 +61,8 @@ extern "C" {
 using namespace std;
 using namespace ObjectIntrospection;
 
+constexpr int oidMagicId = 0x01DE8;
+
 bool OIDebugger::isGlobalDataProbeEnabled(void) const {
   return std::any_of(cbegin(pdata), cend(pdata),
                      [](const auto& r) { return r.type == "global"; });
