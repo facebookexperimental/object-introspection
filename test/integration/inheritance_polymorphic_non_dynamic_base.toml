@@ -33,6 +33,17 @@ definitions = '''
       "members":[
         {"name":"int_a", "staticSize":4, "dynamicSize":0}
       ]}]'''
+  [cases.a_no_polymorphic]
+    param_types = ["const A&"]
+    arg_types = ["A"]
+    setup = 'return {};'
+    expect_json = '''[{
+      "typeName":"A",
+      "staticSize":4,
+      "dynamicSize":0,
+      "members":[
+        {"name":"int_a", "staticSize":4, "dynamicSize":0}
+      ]}]'''
 
   [cases.b_as_a]
     oil_skip = "Polymorphic inheritance disabled in OIL"
@@ -54,6 +65,23 @@ definitions = '''
   [cases.b_as_b]
     oil_skip = "Polymorphic inheritance disabled in OIL"
     cli_options = ["--polymorphic-inheritance"]
+    param_types = ["const B&"]
+    arg_types = ["B"]
+    setup = '''
+      B b;
+      b.vec_b = {1,2,3};
+      return b;
+    '''
+    expect_json = '''[{
+      "typeName":"B",
+      "staticSize":40,
+      "dynamicSize":12,
+      "members":[
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}
+      ]}]'''
+  [cases.b_no_polymorphic]
     param_types = ["const B&"]
     arg_types = ["B"]
     setup = '''
@@ -111,6 +139,24 @@ definitions = '''
   [cases.c_as_c]
     oil_skip = "Polymorphic inheritance disabled in OIL"
     cli_options = ["--polymorphic-inheritance"]
+    param_types = ["const C&"]
+    arg_types = ["C"]
+    setup = '''
+      C c;
+      c.vec_b = {1,2,3};
+      return c;
+    '''
+    expect_json = '''[{
+      "typeName":"C",
+      "staticSize":48,
+      "dynamicSize":12,
+      "members":[
+        {"name":"int_a", "staticSize":4, "dynamicSize":0},
+        {"staticSize":8, "dynamicSize":0},
+        {"name":"vec_b", "staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"name":"int_c", "staticSize":4, "dynamicSize":0}
+      ]}]'''
+  [cases.c_no_polymorphic]
     param_types = ["const C&"]
     arg_types = ["C"]
     setup = '''
