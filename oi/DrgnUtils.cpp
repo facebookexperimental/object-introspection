@@ -122,8 +122,10 @@ std::string typeToName(drgn_type* type) {
     const char* typeTag = drgn_type_tag(type);
     if (typeTag != nullptr) {
       typeName = typeTag;
-    } else {
+    } else if (type->_private.oi_name != nullptr) {
       typeName = type->_private.oi_name;
+    } else {
+      typeName = "";
     }
     // TODO: Lookup unnamed union in type->string flag
   } else if (drgn_type_has_name(type)) {
