@@ -1516,6 +1516,7 @@ bool OICodeGen::enumeratePointerType(drgn_type* type) {
   drgn_type* utype = getPtrUnderlyingType(type);
   if (drgn_type_kind(utype) == DRGN_TYPE_FUNCTION) {
     VLOG(2) << "Type " << type << " is a function pointer to " << utype;
+    utype->_private.oi_name = nullptr;
     pointerToTypeMap.emplace(type, utype);
     return ret;
   }
