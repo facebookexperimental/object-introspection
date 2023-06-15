@@ -338,6 +338,15 @@ target_link_libraries(oilgen
 add_executable(oip tools/OIP.cpp)
 target_link_libraries(oip oicore)
 
+### Object Introspection RocksDB Printer (OIRP)
+add_executable(oirp tools/OIRP.cpp)
+add_dependencies(oirp librocksdb)
+target_link_libraries(oirp
+  ${rocksdb_BINARY_DIR}/librocksdb.a
+  zstd::zstd
+  msgpackc
+)
+
 ### Object Introspection Tree Builder (OITB)
 add_executable(oitb tools/OITB.cpp)
 target_link_libraries(oitb oicore treebuilder)
