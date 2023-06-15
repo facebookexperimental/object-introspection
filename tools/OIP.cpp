@@ -322,8 +322,7 @@ int main(int argc, char* argv[]) {
     cacheArchive >> globalDescs;
     printGlobalDescs(globalDescs);
   } else if (cachePath.extension() == ".th") {
-    std::pair<std::pair<std::string, struct drgn_type*>, TypeHierarchy>
-        typeHierarchy;
+    std::pair<RootInfo, TypeHierarchy> typeHierarchy;
     cacheArchive >> typeHierarchy;
     printTypeHierarchy(typeHierarchy.second);
   } else if (cachePath.extension() == ".pd") {
