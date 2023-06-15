@@ -46,6 +46,18 @@ constexpr static OIOpts opts{
     OIOpt{'J', "dump-json", optional_argument, "[oid_out.json]",
           "File to dump the results to, as JSON\n"
           "(in addition to the default RocksDB output)"},
+    OIOpt{'f', "enable-feature", required_argument, nullptr,
+          "Enable a specific feature: ["
+#define X(name, str) str ","
+          OI_FEATURE_LIST
+#undef X
+          "]"},
+    OIOpt{'F', "disable-feature", required_argument, nullptr,
+          "Disable a specific feature: ["
+#define X(name, str) str ","
+          OI_FEATURE_LIST
+#undef X
+          "]"},
 };
 
 static void usage(std::ostream& out) {
@@ -151,6 +163,15 @@ int main(int argc, char* argv[]) {
       case 'h':
         usage(std::cout);
         exit(EXIT_SUCCESS);
+
+      case 'F':
+        [[fallthrough]];
+      case 'f':
+        if (auto f = featureFromStr(optarg); f != Feature::UnknownFeature)
+          tbConfig.features[f] = c == 'f';  // '-f' enables, '-F' disables
+        else
+          fatal_error("Invalid feature specified: ", optarg);
+        break;
 
       case 'a':
         tbConfig.logAllStructs =
