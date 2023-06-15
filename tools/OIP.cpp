@@ -206,8 +206,16 @@ void printFuncArg(const std::shared_ptr<FuncDesc::TargetObject>& funcObj) {
         printf(",");
       }
       const auto& location = funcArg->locator.locations[i];
-      printf("{\"start\":\"0x%zx\",\"end\":\"0x%zx\",\"expr_size\":%zu}",
+      printf("{\"start\":\"0x%zx\",\"end\":\"0x%zx\",\"expr_size\":%zu,\"expr\":[",
              location.start, location.end, location.expr_size);
+      for (size_t j = 0; j < location.expr_size; j++) {
+        if (j > 0) {
+          printf(",");
+        }
+
+        printf("\"0x%hhx\"", location.expr[j]);
+      }
+      printf("]}");
     }
     printf("]");
   }
