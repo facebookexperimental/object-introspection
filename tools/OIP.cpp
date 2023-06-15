@@ -232,6 +232,11 @@ void printFuncDesc(const std::shared_ptr<FuncDesc>& funcDesc) {
   printf("\"funcArgs\":[");
 
   bool isFirstItem = true;
+  if (funcDesc->isMethod) {
+    printFuncArg(funcDesc->getThis());
+    isFirstItem = false;
+  }
+
   for (size_t i = 0; i < funcDesc->numArgs(); ++i) {
     if (!isFirstItem) {
       printf(",");
