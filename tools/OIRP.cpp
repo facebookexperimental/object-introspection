@@ -2,13 +2,12 @@
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
-#include <span>
-#include <memory>
 #include <iostream>
-#include <optional>
-#include <vector>
-
+#include <memory>
 #include <msgpack.hpp>
+#include <optional>
+#include <span>
+#include <vector>
 
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
@@ -35,11 +34,11 @@ struct DBHeader {
   MSGPACK_DEFINE_ARRAY(version, rootIDs)
 };
 
-std::ostream &operator<<(std::ostream &os, const DBHeader &header) {
+std::ostream& operator<<(std::ostream& os, const DBHeader& header) {
   os << "Database header:\n";
   os << "  Version: " << header.version << "\n";
   os << "  Root IDs: ";
-  for (const auto &id : header.rootIDs)
+  for (const auto& id : header.rootIDs)
     os << id << " ";
   return os;
 }
@@ -138,7 +137,7 @@ struct Node {
                        exclusiveSize)
 };
 
-std::ostream &operator<<(std::ostream &os, const Node &node) {
+std::ostream& operator<<(std::ostream& os, const Node& node) {
   os << "Node #" << node.id << ":\n";
   os << "  Name: " << node.name << "\n";
   os << "  Type name: " << node.typeName << "\n";
@@ -146,10 +145,10 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
   os << "  Is typedef node: " << node.isTypedef << "\n";
   os << "  Static size: " << node.staticSize << "\n";
   os << "  Dynamic size: " << node.dynamicSize << "\n";
-  os << "  Padding savings: " <<
-     (node.paddingSavingsSize ? *node.paddingSavingsSize : -1) << "\n";
+  os << "  Padding savings: "
+     << (node.paddingSavingsSize ? *node.paddingSavingsSize : -1) << "\n";
   if (node.containerStats) {
-    const auto &stats = *node.containerStats;
+    const auto& stats = *node.containerStats;
     os << "  Container stats:\n";
     os << "    Length: " << stats.length << "\n";
     os << "    Capacity: " << stats.capacity << "\n";
@@ -158,7 +157,7 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
     os << "  Container stats not available\n";
   }
   if (node.pointer.has_value()) {
-    os << "  Pointer: " << reinterpret_cast<void *>(node.pointer.value())
+    os << "  Pointer: " << reinterpret_cast<void*>(node.pointer.value())
        << "\n";
   } else {
     os << "  Pointer not available\n";
@@ -180,7 +179,7 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
   return os;
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, const char** argv) {
   if (argc < 3) {
     fprintf(stderr, "usage: %s <db_dir> <ranges>...\n", argv[0]);
     fprintf(stderr, "  where <ranges> are a single number\n");
@@ -202,25 +201,32 @@ int main(int argc, const char **argv) {
   options.statistics = rocksdb::CreateDBStatistics();
   options.OptimizeForSmallDb();
 
-  auto close_db = [](rocksdb::DB *db) { if (db) db->Close(); };
+  auto close_db = [](rocksdb::DB* db) {
+    if (db)
+      db->Close();
+  };
   auto db = std::unique_ptr<rocksdb::DB, decltype(close_db)>{nullptr};
 
-  { // Open the database, then safely store its pointer in a unique_ptr for lifetime management.
-    rocksdb::DB *_db = nullptr;
-    if (auto status = rocksdb::DB::Open(options, dbpath.string(), &_db); !status.ok()) {
-      fprintf(stderr, "Failed to open DB '%s' with error %s\n", dbpath.string().c_str(), status.ToString().c_str());
+  {  // Open the database, then safely store its pointer in a unique_ptr for
+     // lifetime management.
+    rocksdb::DB* _db = nullptr;
+    if (auto status = rocksdb::DB::Open(options, dbpath.string(), &_db);
+        !status.ok()) {
+      fprintf(stderr, "Failed to open DB '%s' with error %s\n",
+              dbpath.string().c_str(), status.ToString().c_str());
       return 1;
     }
     db.reset(_db);
   }
 
   // Iterate over the given ranges...
-  for (const auto &range : ranges) {
+  for (const auto& range : ranges) {
     NodeID start = 0, end = 0;
 
     // Parse the range into two integers; start and end.
-    // If the range contains a single integer, that integer becomes the whole range.
-    if (const char *dash = std::strchr(range, '-')) {
+    // If the range contains a single integer, that integer becomes the whole
+    // range.
+    if (const char* dash = std::strchr(range, '-')) {
       start = std::strtoul(range, nullptr, 10);
       end = std::strtoul(dash + 1, nullptr, 10);
     } else {
@@ -231,22 +237,27 @@ int main(int argc, const char **argv) {
     // Print the contents of the nodes...
     for (NodeID id = start; id <= end; id++) {
       std::string data;
-      if (auto status = db->Get(rocksdb::ReadOptions(), std::to_string(id), &data); !status.ok()) {
+      if (auto status =
+              db->Get(rocksdb::ReadOptions(), std::to_string(id), &data);
+          !status.ok()) {
         continue;
       }
 
       // Nodes with ID < FIRST_NODE_ID are reserved for internal use.
-      // We must display their corresponding type.
+      // They have their own type, so we need to unpack and print them
+      // appropriately.
       if (id == ROOT_NODE_ID) {
         DBHeader header;
         msgpack::unpack(data.data(), data.size()).get().convert(header);
         std::cout << header << "\n";
       } else if (id == ERROR_NODE_ID) {
         continue;
-      } else {
+      } else if (id >= FIRST_NODE_ID) {
         Node node;
         msgpack::unpack(data.data(), data.size()).get().convert(node);
         std::cout << node << "\n";
+      } else {
+        continue;
       }
 
       std::cout << std::endl;
