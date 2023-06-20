@@ -10,6 +10,10 @@ class Pass;
 class Type;
 }  // namespace type_graph
 
+void check(const std::vector<std::reference_wrapper<type_graph::Type>>& types,
+           std::string_view expected,
+           std::string_view comment);
+
 void test(type_graph::Pass pass,
           std::vector<std::reference_wrapper<type_graph::Type>> rootTypes,
           std::string_view expectedBefore,

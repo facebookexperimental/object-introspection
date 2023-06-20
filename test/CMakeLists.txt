@@ -51,6 +51,7 @@ add_executable(test_type_graph
   main.cpp
   test_add_padding.cpp
   test_alignment_calc.cpp
+  test_codegen.cpp
   test_drgn_parser.cpp
   test_flattener.cpp
   test_name_gen.cpp
@@ -65,6 +66,7 @@ target_compile_definitions(test_type_graph PRIVATE
   TARGET_EXE_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration/integration_test_target"
 )
 target_link_libraries(test_type_graph
+  codegen
   container_info
   type_graph
 
