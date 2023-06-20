@@ -15,7 +15,6 @@ using type_graph::TypeGraph;
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-namespace {
 void check(const std::vector<ref<Type>>& types,
            std::string_view expected,
            std::string_view comment) {
@@ -27,16 +26,14 @@ void check(const std::vector<ref<Type>>& types,
   }
 
   expected.remove_prefix(1);  // Remove initial '\n'
-  ASSERT_EQ(expected, out.str())
-      << "Test failure " << comment << " running pass";
+  ASSERT_EQ(expected, out.str()) << "Test failure " << comment;
 }
-}  // namespace
 
 void test(type_graph::Pass pass,
           std::vector<ref<Type>> rootTypes,
           std::string_view expectedBefore,
           std::string_view expectedAfter) {
-  check(rootTypes, expectedBefore, "before");
+  check(rootTypes, expectedBefore, "before running pass");
 
   TypeGraph typeGraph;
   for (const auto& type : rootTypes) {
@@ -45,7 +42,7 @@ void test(type_graph::Pass pass,
 
   pass.run(typeGraph);
 
-  check(rootTypes, expectedAfter, "after");
+  check(rootTypes, expectedAfter, "after running pass");
 }
 
 void test(type_graph::Pass pass,
