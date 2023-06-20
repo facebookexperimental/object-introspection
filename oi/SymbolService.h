@@ -74,4 +74,7 @@ class SymbolService {
 
   std::vector<std::pair<uint64_t, uint64_t>> executableAddrs{};
   bool hardDisableDrgn = false;
+
+ protected:
+  SymbolService() = default;  // For unit tests
 };
