@@ -24,6 +24,7 @@
 
 #include "oi/FuncGen.h"
 #include "oi/Headers.h"
+#include "oi/SymbolService.h"
 #include "type_graph/AddChildren.h"
 #include "type_graph/AddPadding.h"
 #include "type_graph/AlignmentCalc.h"
@@ -545,21 +546,51 @@ void addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
 }
 }  // namespace
 
-bool CodeGen::generate(drgn_type* drgnType, std::string& code) {
-  type_graph::DrgnParser drgnParser{
-      typeGraph_, containerInfos_, config_.features[Feature::ChaseRawPointers]};
+bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
   try {
-    Type* parsedRoot = drgnParser.parse(drgnType);
-    typeGraph_.addRoot(*parsedRoot);
+    containerInfos_.reserve(config_.containerConfigPaths.size());
+    for (const auto& path : config_.containerConfigPaths) {
+      registerContainer(path);
+    }
+  } catch (const ContainerInfoError& err) {
+    LOG(ERROR) << "Error reading container TOML file " << err.what();
+    return false;
+  }
+
+  type_graph::TypeGraph typeGraph;
+  try {
+    addDrgnRoot(drgnType, typeGraph);
   } catch (const type_graph::DrgnParserError& err) {
     LOG(ERROR) << "Error parsing DWARF: " << err.what();
     return false;
   }
 
+  transform(typeGraph);
+  generate(typeGraph, code, drgnType);
+  return true;
+}
+
+void CodeGen::registerContainer(const fs::path& path) {
+  const auto& info = containerInfos_.emplace_back(path);
+  VLOG(1) << "Registered container: " << info.typeName;
+}
+
+void CodeGen::addDrgnRoot(struct drgn_type* drgnType,
+                          type_graph::TypeGraph& typeGraph) {
+  type_graph::DrgnParser drgnParser{
+      typeGraph, containerInfos_, config_.features[Feature::ChaseRawPointers]};
+  Type* parsedRoot = drgnParser.parse(drgnType);
+  typeGraph.addRoot(*parsedRoot);
+}
+
+void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
   type_graph::PassManager pm;
   pm.addPass(type_graph::Flattener::createPass());
   pm.addPass(type_graph::TypeIdentifier::createPass());
   if (config_.features[Feature::PolymorphicInheritance]) {
+    type_graph::DrgnParser drgnParser{
+        typeGraph, containerInfos_,
+        config_.features[Feature::ChaseRawPointers]};
     pm.addPass(type_graph::AddChildren::createPass(drgnParser, symbols_));
     // Re-run passes over newly added children
     pm.addPass(type_graph::Flattener::createPass());
@@ -571,18 +602,24 @@ bool CodeGen::generate(drgn_type* drgnType, std::string& code) {
   pm.addPass(type_graph::AlignmentCalc::createPass());
   pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
   pm.addPass(type_graph::TopoSorter::createPass());
-  pm.run(typeGraph_);
+  pm.run(typeGraph);
 
   LOG(INFO) << "Sorted types:\n";
-  for (Type& t : typeGraph_.finalTypes) {
+  for (Type& t : typeGraph.finalTypes) {
     LOG(INFO) << "  " << t.name() << std::endl;
   };
+}
 
+void CodeGen::generate(
+    type_graph::TypeGraph& typeGraph,
+    std::string& code,
+    struct drgn_type* drgnType /* TODO: this argument should not be required */
+) {
   code = headers::OITraceCode_cpp;
   if (!config_.features[Feature::TypedDataSegment]) {
     defineMacros(code);
   }
-  addIncludes(typeGraph_, config_.features, code);
+  addIncludes(typeGraph, config_.features, code);
   defineArray(code);
   defineJitLog(code);  // TODO: feature gate this
 
@@ -614,24 +651,24 @@ bool CodeGen::generate(drgn_type* drgnType, std::string& code) {
   }
   FuncGen::DeclareGetContainer(code);
 
-  genDecls(typeGraph_, code);
-  genDefs(typeGraph_, code);
-  genStaticAsserts(typeGraph_, code);
+  genDecls(typeGraph, code);
+  genDefs(typeGraph, code);
+  genStaticAsserts(typeGraph, code);
 
   if (config_.features[Feature::TypedDataSegment]) {
     addStandardTypeHandlers(code);
-    addTypeHandlers(typeGraph_, code);
+    addTypeHandlers(typeGraph, code);
   } else {
     addStandardGetSizeFuncDecls(code);
-    addGetSizeFuncDecls(typeGraph_, code);
+    addGetSizeFuncDecls(typeGraph, code);
 
     addStandardGetSizeFuncDefs(code);
-    addGetSizeFuncDefs(typeGraph_, symbols_,
+    addGetSizeFuncDefs(typeGraph, symbols_,
                        config_.features[Feature::PolymorphicInheritance], code);
   }
 
-  assert(typeGraph_.rootTypes().size() == 1);
-  Type& rootType = typeGraph_.rootTypes()[0];
+  assert(typeGraph.rootTypes().size() == 1);
+  Type& rootType = typeGraph.rootTypes()[0];
   code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
   code += "} // namespace\n} // namespace OIInternal\n";
 
@@ -647,23 +684,5 @@ bool CodeGen::generate(drgn_type* drgnType, std::string& code) {
     VLOG(3) << "Generated trace code:\n";
     // VLOG truncates output, so use std::cout
     std::cout << code;
-  }
-  return true;
-}
-
-void CodeGen::loadConfig(const std::set<fs::path>& containerConfigPaths) {
-  containerInfos_.reserve(containerConfigPaths.size());
-  for (const auto& path : containerConfigPaths) {
-    registerContainer(path);
-  }
-}
-
-void CodeGen::registerContainer(const fs::path& path) {
-  try {
-    const auto& info = containerInfos_.emplace_back(path);
-    VLOG(1) << "Registered container: " << info.typeName;
-  } catch (const std::runtime_error& err) {
-    LOG(ERROR) << "Error reading container TOML file " << path << ": "
-               << err.what();
   }
 }

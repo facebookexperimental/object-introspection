@@ -21,33 +21,39 @@
 
 #include "ContainerInfo.h"
 #include "OICodeGen.h"
-#include "SymbolService.h"
 
 struct drgn_type;
 
+class SymbolService;
+
 namespace type_graph {
-class Class;
-class Container;
-class Type;
 class TypeGraph;
 }  // namespace type_graph
 
 class CodeGen {
  public:
-  CodeGen(type_graph::TypeGraph& typeGraph,
-          OICodeGen::Config& config,
-          SymbolService& symbols)
-      : typeGraph_(typeGraph), config_(config), symbols_(symbols) {
+  CodeGen(OICodeGen::Config& config, SymbolService& symbols)
+      : config_(config), symbols_(symbols) {
   }
 
-  bool generate(drgn_type* drgnType, std::string& code);
-  void loadConfig(const std::set<std::filesystem::path>& containerConfigPaths);
+  /*
+   * Helper function to perform all the steps required for code generation for a
+   * single drgn_type.
+   */
+  bool codegenFromDrgn(struct drgn_type* drgnType, std::string& code);
+
+  void registerContainer(const std::filesystem::path& path);
+  void addDrgnRoot(struct drgn_type* drgnType,
+                   type_graph::TypeGraph& typeGraph);
+  void transform(type_graph::TypeGraph& typeGraph);
+  void generate(type_graph::TypeGraph& typeGraph,
+                std::string& code,
+                struct drgn_type*
+                    drgnType /* TODO: this argument should not be required */
+  );
 
  private:
-  void registerContainer(const std::filesystem::path& path);
-
-  type_graph::TypeGraph& typeGraph_;
   OICodeGen::Config config_;
-  std::vector<ContainerInfo> containerInfos_;
   SymbolService& symbols_;
+  std::vector<ContainerInfo> containerInfos_;
 };

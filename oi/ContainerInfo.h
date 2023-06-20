@@ -93,6 +93,13 @@ struct ContainerInfo {
   }
 };
 
+class ContainerInfoError : public std::runtime_error {
+ public:
+  ContainerInfoError(const std::filesystem::path& path, const std::string& msg)
+      : std::runtime_error{std::string{path} + ": " + msg} {
+  }
+};
+
 using ContainerInfoRefSet =
     std::set<std::reference_wrapper<const ContainerInfo>,
              std::less<ContainerInfo>>;

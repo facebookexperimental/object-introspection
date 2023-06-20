@@ -52,6 +52,7 @@ extern "C" {
 #include "oi/OIUtils.h"
 #include "oi/PaddingHunter.h"
 #include "oi/Syscall.h"
+#include "oi/type_graph/DrgnParser.h"
 #include "oi/type_graph/TypeGraph.h"
 
 #ifndef OSS_ENABLE
@@ -2928,12 +2929,8 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
                       codegen->getTypeHierarchy(), codegen->getPaddingInfo()));
 
   if (generatorConfig.features[Feature::TypeGraph]) {
-    type_graph::TypeGraph typeGraph;
-    CodeGen codegen2(typeGraph, generatorConfig, *symbols);
-    codegen2.loadConfig(generatorConfig.containerConfigPaths);
-    if (!codegen2.generate(root->type.type, code)) {
-      return nullopt;
-    }
+    CodeGen codegen2{generatorConfig, *symbols};
+    codegen2.codegenFromDrgn(root->type.type, code);
   }
 
   if (auto sourcePath = cache.getPath(req, OICache::Entity::Source)) {
