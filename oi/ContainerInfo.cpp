@@ -189,16 +189,17 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   try {
     container = toml::parse_file(std::string(path));
   } catch (const toml::parse_error& err) {
-    // Convert into a std::runtime_error, just to avoid having to include
+    // Convert into a ContainerInfoError, just to avoid having to include
     // the huge TOML++ header in the caller's file. Use toml::parse_error's
     // operator<< to generate a pretty message with error location.
     std::stringstream ss;
     ss << err;
-    throw std::runtime_error(ss.str());
+    throw ContainerInfoError(path, ss.str());
   }
 
   if (!container["info"].is_table()) {
-    throw std::runtime_error("a container info file requires an `info` table");
+    throw ContainerInfoError(path,
+                             "a container info file requires an `info` table");
   }
 
   const auto& info = container["info"];
@@ -206,7 +207,7 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   if (std::optional<std::string> str = info["type_name"].value<std::string>()) {
     typeName = std::move(*str);
   } else {
-    throw std::runtime_error("`info.type_name` is a required field");
+    throw ContainerInfoError(path, "`info.type_name` is a required field");
   }
 
   matcher = getMatcher(typeName);
@@ -214,16 +215,17 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   if (std::optional<std::string> str = info["ctype"].value<std::string>()) {
     ctype = containerTypeEnumFromStr(*str);
     if (ctype == UNKNOWN_TYPE) {
-      throw std::runtime_error("`" + *str + "` is not a valid container type");
+      throw ContainerInfoError(path,
+                               "`" + *str + "` is not a valid container type");
     }
   } else {
-    throw std::runtime_error("`info.ctype` is a required field");
+    throw ContainerInfoError(path, "`info.ctype` is a required field");
   }
 
   if (std::optional<std::string> str = info["header"].value<std::string>()) {
     header = std::move(*str);
   } else {
-    throw std::runtime_error("`info.header` is a required field");
+    throw ContainerInfoError(path, "`info.header` is a required field");
   }
 
   if (toml::array* arr = info["stub_template_params"].as_array()) {
@@ -232,8 +234,8 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
       if constexpr (toml::is_integer<decltype(el)>) {
         stubTemplateParams.push_back(*el);
       } else {
-        throw std::runtime_error(
-            "stub_template_params should only contain integers");
+        throw ContainerInfoError(
+            path, "stub_template_params should only contain integers");
       }
     });
   }
@@ -241,8 +243,8 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   underlyingContainerIndex = info["underlying_container_index"].value<size_t>();
 
   if (!container["codegen"].is_table()) {
-    throw std::runtime_error(
-        "a container info file requires a `codegen` table");
+    throw ContainerInfoError(
+        path, "a container info file requires a `codegen` table");
   }
 
   const auto& codegenToml = container["codegen"];
@@ -251,13 +253,13 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
           codegenToml["func"].value<std::string>()) {
     codegen.func = std::move(*str);
   } else {
-    throw std::runtime_error("`codegen.func` is a required field");
+    throw ContainerInfoError(path, "`codegen.func` is a required field");
   }
   if (std::optional<std::string> str =
           codegenToml["decl"].value<std::string>()) {
     codegen.decl = std::move(*str);
   } else {
-    throw std::runtime_error("`codegen.decl` is a required field");
+    throw ContainerInfoError(path, "`codegen.decl` is a required field");
   }
   if (std::optional<std::string> str =
           codegenToml["handler"].value<std::string>()) {

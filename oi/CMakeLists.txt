@@ -42,6 +42,7 @@ add_library(codegen
 )
 target_link_libraries(codegen
   container_info
+  resources
   symbol_service
   type_graph
 
