@@ -177,10 +177,22 @@ jobs:
           command: |
             apt-get update
             apt-get install -y \
+              build-essential \
+              cpanminus \
               curl \
               git \
-              gpg \
-              lcov
+              gpg
+            # Install lcov 2.0 - required for the "--filter branch" option.
+            # This improves C++ branch coverage by excluding compiler-generated
+            # branches, which primarily come from exception handling in
+            # standard library functions.
+            cpanm --notest Capture::Tiny DateTime
+            pushd /tmp
+            curl -sLO https://github.com/linux-test-project/lcov/releases/download/v2.0/lcov-2.0.tar.gz
+            tar -xf lcov-2.0.tar.gz
+            cd lcov-2.0
+            make install
+            popd
       - checkout
       - attach_workspace:
           at: .
@@ -188,7 +200,7 @@ jobs:
           name: Code Coverage
           when: always
           command: |
-            lcov --capture --directory . --rc lcov_branch_coverage=1 --output-file coverage.info
+            lcov --capture --directory . --filter branch --no-external --ignore-errors mismatch --ignore-errors source --rc lcov_branch_coverage=1 --output-file coverage.info
             # Empirically, extract-then-remove is faster than remove-then-extract
             lcov --extract coverage.info '/tmp/object-introspection/*' --rc lcov_branch_coverage=1 --output-file coverage.info
             lcov --remove coverage.info '/tmp/object-introspection/build/*' '/tmp/object-introspection/extern/*'  --rc lcov_branch_coverage=1 --output-file coverage.info
