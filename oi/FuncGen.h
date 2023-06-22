@@ -20,6 +20,7 @@
 #include <string>
 
 #include "oi/ContainerInfo.h"
+#include "oi/Features.h"
 
 namespace fs = std::filesystem;
 
@@ -39,10 +40,10 @@ class FuncGen {
 
   bool DeclareGetSizeFuncs(std::string& testCode,
                            const ContainerInfoRefSet& containerInfo,
-                           bool chaseRawPointers);
+                           ObjectIntrospection::FeatureSet features);
   bool DefineGetSizeFuncs(std::string& testCode,
                           const ContainerInfoRefSet& containerInfo,
-                          bool chaseRawPointers);
+                          ObjectIntrospection::FeatureSet features);
 
   static void DeclareGetContainer(std::string& testCode);
 
@@ -54,16 +55,22 @@ class FuncGen {
                                           const std::string& type,
                                           const std::string& linkageName);
 
-  static void DefineTopLevelGetSizeRef(std::string& testCode,
-                                       const std::string& rawType);
-  static void DefineTopLevelGetSizeRefTyped(std::string& testCode,
-                                            const std::string& rawType);
+  static void DefineTopLevelGetSizeRef(
+      std::string& testCode,
+      const std::string& rawType,
+      ObjectIntrospection::FeatureSet features);
+  static void DefineTopLevelGetSizeRefTyped(
+      std::string& testCode,
+      const std::string& rawType,
+      ObjectIntrospection::FeatureSet features);
 
   static void DefineTopLevelGetSizeRefRet(std::string& testCode,
                                           const std::string& type);
 
-  static void DefineTopLevelGetSizeSmartPtr(std::string& testCode,
-                                            const std::string& rawType);
+  static void DefineTopLevelGetSizeSmartPtr(
+      std::string& testCode,
+      const std::string& rawType,
+      ObjectIntrospection::FeatureSet features);
 
   static void DefineGetSizeTypedValueFunc(std::string& testCode,
                                           const std::string& ctype);

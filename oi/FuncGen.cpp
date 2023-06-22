@@ -22,6 +22,9 @@
 
 #include "oi/ContainerInfo.h"
 
+using ObjectIntrospection::Feature;
+using ObjectIntrospection::FeatureSet;
+
 namespace {
 
 const std::string typedValueFunc = R"(
@@ -235,7 +238,8 @@ void FuncGen::DefineTopLevelGetObjectSize(std::string& testCode,
 }
 
 void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
-                                       const std::string& rawType) {
+                                       const std::string& rawType,
+                                       FeatureSet features) {
   std::string func = R"(
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunknown-attributes"
@@ -243,21 +247,38 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
     void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::__ROOT_TYPE__& t)
     #pragma GCC diagnostic pop
     {
+    )";
+  if (features[Feature::JitTiming]) {
+    func += "      const auto startTime = std::chrono::steady_clock::now();\n";
+  }
+  func += R"(
       pointers.initialize();
       pointers.add((uintptr_t)&t);
       auto data = reinterpret_cast<uintptr_t*>(dataBase);
-      data[0] = oidMagicId;
-      data[1] = cookieValue;
-      data[2] = 0;
 
-      size_t dataSegOffset = 3 * sizeof(uintptr_t);
+      size_t dataSegOffset = 0;
+      data[dataSegOffset++] = oidMagicId;
+      data[dataSegOffset++] = cookieValue;
+      uintptr_t& writtenSize = data[dataSegOffset++];
+      writtenSize = 0;
+      uintptr_t& timeTakenNs = data[dataSegOffset++];
+
+      dataSegOffset *= sizeof(uintptr_t);
       JLOG("%1% @");
       JLOGPTR(&t);
       OIInternal::getSizeType(t, dataSegOffset);
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
-      data[2] = dataSegOffset;
+      writtenSize = dataSegOffset;
       dataBase += dataSegOffset;
+    )";
+  if (features[Feature::JitTiming]) {
+    func += R"(
+      timeTakenNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now() - startTime).count();
+      )";
+  }
+  func += R"(
     }
     )";
 
@@ -267,7 +288,8 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
 }
 
 void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
-                                            const std::string& rawType) {
+                                            const std::string& rawType,
+                                            FeatureSet features) {
   std::string func = R"(
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunknown-attributes"
@@ -275,17 +297,25 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
     void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::__ROOT_TYPE__& t)
     #pragma GCC diagnostic pop
     {
+    )";
+  if (features[Feature::JitTiming]) {
+    func += "      const auto startTime = std::chrono::steady_clock::now();\n";
+  }
+  func += R"(
       pointers.initialize();
       pointers.add((uintptr_t)&t);
       auto data = reinterpret_cast<uintptr_t*>(dataBase);
 
       // TODO: Replace these with types::st::Uint64 once the VarInt decoding
       // logic is moved out of OIDebugger and into new TreeBuilder.
-      data[0] = oidMagicId;
-      data[1] = cookieValue;
-      data[2] = 0;
+      size_t dataSegOffset = 0;
+      data[dataSegOffset++] = oidMagicId;
+      data[dataSegOffset++] = cookieValue;
+      uintptr_t& writtenSize = data[dataSegOffset++];
+      writtenSize = 0;
+      uintptr_t& timeTakenNs = data[dataSegOffset++];
 
-      size_t dataSegOffset = 3 * sizeof(uintptr_t);
+      dataSegOffset *= sizeof(uintptr_t);
       JLOG("%1% @");
       JLOGPTR(&t);
 
@@ -310,8 +340,16 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
         .write(123456789);
 
       dataSegOffset = end.offset();
-      data[2] = dataSegOffset;
+      writtenSize = dataSegOffset;
       dataBase += dataSegOffset;
+    )";
+  if (features[Feature::JitTiming]) {
+    func += R"(
+      timeTakenNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now() - startTime).count();
+      )";
+  }
+  func += R"(
     }
     )";
 
@@ -342,7 +380,8 @@ void FuncGen::DefineTopLevelGetSizeRefRet(std::string& testCode,
 }
 
 void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
-                                            const std::string& rawType) {
+                                            const std::string& rawType,
+                                            FeatureSet features) {
   std::string func = R"(
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunknown-attributes"
@@ -350,19 +389,36 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
     void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::__ROOT_TYPE__& t)
     #pragma GCC diagnostic pop
     {
+    )";
+  if (features[Feature::JitTiming]) {
+    func += "      const auto startTime = std::chrono::steady_clock::now();\n";
+  }
+  func += R"(
       pointers.initialize();
       auto data = reinterpret_cast<uintptr_t*>(dataBase);
-      data[0] = oidMagicId;
-      data[1] = cookieValue;
-      data[2] = 0;
 
-      size_t dataSegOffset = 3 * sizeof(uintptr_t);
+      size_t dataSegOffset = 0;
+      data[dataSegOffset++] = oidMagicId;
+      data[dataSegOffset++] = cookieValue;
+      uintptr_t& writtenSize = data[dataSegOffset++];
+      writtenSize = 0;
+      uintptr_t& timeTakenNs = data[dataSegOffset++];
+
+      dataSegOffset *= sizeof(uintptr_t);
 
       OIInternal::getSizeType(t, dataSegOffset);
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
-      data[2] = dataSegOffset;
+      writtenSize = dataSegOffset;
       dataBase += dataSegOffset;
+    )";
+  if (features[Feature::JitTiming]) {
+    func += R"(
+      timeTakenNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        std::chrono::steady_clock::now() - startTime).count();
+      )";
+  }
+  func += R"(
     }
     )";
 
@@ -373,7 +429,7 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
 
 bool FuncGen::DeclareGetSizeFuncs(std::string& testCode,
                                   const ContainerInfoRefSet& containerInfo,
-                                  bool chaseRawPointers) {
+                                  FeatureSet features) {
   for (const ContainerInfo& cInfo : containerInfo) {
     std::string ctype = cInfo.typeName;
     ctype = ctype.substr(0, ctype.find("<", 0));
@@ -383,7 +439,7 @@ bool FuncGen::DeclareGetSizeFuncs(std::string& testCode,
     testCode.append(fmt.str());
   }
 
-  if (chaseRawPointers) {
+  if (features[Feature::ChaseRawPointers]) {
     testCode.append(
         "template<typename T, typename = "
         "std::enable_if_t<!std::is_pointer_v<std::decay_t<T>>>>\n");
@@ -397,7 +453,7 @@ bool FuncGen::DeclareGetSizeFuncs(std::string& testCode,
 
 bool FuncGen::DefineGetSizeFuncs(std::string& testCode,
                                  const ContainerInfoRefSet& containerInfo,
-                                 bool chaseRawPointers) {
+                                 FeatureSet features) {
   for (const ContainerInfo& cInfo : containerInfo) {
     std::string ctype = cInfo.typeName;
     ctype = ctype.substr(0, ctype.find("<", 0));
@@ -407,7 +463,7 @@ bool FuncGen::DefineGetSizeFuncs(std::string& testCode,
     testCode.append(fmt.str());
   }
 
-  if (chaseRawPointers) {
+  if (features[Feature::ChaseRawPointers]) {
     testCode.append("template<typename T, typename C>\n");
   } else {
     testCode.append("template<typename T>\n");

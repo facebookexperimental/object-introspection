@@ -42,6 +42,8 @@ std::string_view featureHelp(Feature f) {
       return "Log information from the JIT code for debugging.";
     case Feature::PolymorphicInheritance:
       return "Follow polymorphic inheritance hierarchies in the probed object.";
+    case Feature::JitTiming:
+      return "Instrument the JIT code with timing for performance testing.";
 
     case Feature::UnknownFeature:
       throw std::runtime_error("should not ask for help for UnknownFeature!");

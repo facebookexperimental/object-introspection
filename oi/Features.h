@@ -30,6 +30,7 @@
   X(TypedDataSegment, "typed-data-segment")     \
   X(GenJitDebug, "gen-jit-debug")               \
   X(JitLogging, "jit-logging")                  \
+  X(JitTiming, "jit-timing")                    \
   X(PolymorphicInheritance, "polymorphic-inheritance")
 
 namespace ObjectIntrospection {
