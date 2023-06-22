@@ -105,6 +105,9 @@ void addIncludes(const TypeGraph& typeGraph,
     includes.emplace("functional");
     includes.emplace("oi/types/st.h");
   }
+  if (features[Feature::JitTiming]) {
+    includes.emplace("chrono");
+  }
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Container*>(&t)) {
       includes.emplace(c->containerInfo_.header);
@@ -684,10 +687,10 @@ void CodeGen::generate(
 
   if (config_.features[Feature::TypedDataSegment]) {
     FuncGen::DefineTopLevelGetSizeRefTyped(
-        code, SymbolService::getTypeName(drgnType));
+        code, SymbolService::getTypeName(drgnType), config_.features);
   } else {
-    FuncGen::DefineTopLevelGetSizeRef(code,
-                                      SymbolService::getTypeName(drgnType));
+    FuncGen::DefineTopLevelGetSizeRef(
+        code, SymbolService::getTypeName(drgnType), config_.features);
   }
 
   if (VLOG_IS_ON(3)) {

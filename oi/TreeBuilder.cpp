@@ -227,7 +227,7 @@ void TreeBuilder::build(const std::vector<uint64_t>& data,
   th = &typeHierarchy;
   oidData = &data;
 
-  oidDataIndex = 3;  // HACK: OID's first 3 outputs are dummy 0s
+  oidDataIndex = 4;  // HACK: OID's first 4 outputs are dummy 0s
 
   ObjectIntrospection::Metrics::Tracing _("build_tree");
   VLOG(1) << "Building tree...";

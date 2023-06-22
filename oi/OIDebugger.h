@@ -265,6 +265,7 @@ class OIDebugger {
     uintptr_t magicId;
     uintptr_t cookie;
     uintptr_t size;
+    uintptr_t timeTakenNs;
 
     /*
      * Flexible Array Member are not standard in C++, but this is

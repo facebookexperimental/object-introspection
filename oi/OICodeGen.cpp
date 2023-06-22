@@ -3038,6 +3038,10 @@ bool OICodeGen::generateJitCode(std::string& code) {
   // Required for the offsetof() macro
   includedHeaders.insert("cstddef");
 
+  if (config.features[Feature::JitTiming]) {
+    includedHeaders.emplace("chrono");
+  }
+
   for (const auto& e : includedHeaders) {
     code.append("#include <");
     code.append(e);
@@ -3254,7 +3258,7 @@ bool OICodeGen::generateJitCode(std::string& code) {
   functionsCode.append("namespace OIInternal {\nnamespace {\n");
   functionsCode.append("// functions -----\n");
   if (!funcGen.DeclareGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                   feature(Feature::ChaseRawPointers))) {
+                                   config.features)) {
     LOG(ERROR) << "declaring get size for containers failed";
     return false;
   }
@@ -3292,7 +3296,7 @@ bool OICodeGen::generateJitCode(std::string& code) {
   }
 
   if (!funcGen.DefineGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                  feature(Feature::ChaseRawPointers))) {
+                                  config.features)) {
     LOG(ERROR) << "defining get size for containers failed";
     return false;
   }
@@ -3389,9 +3393,11 @@ bool OICodeGen::generateJitCode(std::string& code) {
       if (rootTypeStr.starts_with("unique_ptr") ||
           rootTypeStr.starts_with("LowPtr") ||
           rootTypeStr.starts_with("shared_ptr")) {
-        funcGen.DefineTopLevelGetSizeSmartPtr(functionsCode, rawTypeName);
+        funcGen.DefineTopLevelGetSizeSmartPtr(functionsCode, rawTypeName,
+                                              config.features);
       } else {
-        funcGen.DefineTopLevelGetSizeRef(functionsCode, rawTypeName);
+        funcGen.DefineTopLevelGetSizeRef(functionsCode, rawTypeName,
+                                         config.features);
       }
     } else {
       if (linkageName.empty()) {

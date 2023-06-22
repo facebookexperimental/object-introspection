@@ -2734,6 +2734,10 @@ bool OIDebugger::decodeTargetData(const DataHeader& dataHeader,
     return false;
   }
 
+  if (generatorConfig.features[Feature::JitTiming]) {
+    LOG(INFO) << "JIT Timing: " << dataHeader.timeTakenNs << "ns";
+  }
+
   /*
    * Currently  we use MAX_INT to indicate two things:
    *  - a single MAX_INT indicates the end of results for  the current object
@@ -2741,6 +2745,7 @@ bool OIDebugger::decodeTargetData(const DataHeader& dataHeader,
    */
   folly::ByteRange range(dataHeader.data, dataHeader.size - sizeof(dataHeader));
 
+  outVec.push_back(0);
   outVec.push_back(0);
   outVec.push_back(0);
   outVec.push_back(0);
