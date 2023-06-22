@@ -84,7 +84,7 @@ definitions = '''
   [cases.regular_struct]
     param_types = ["const Node&"]
     setup = "return Node{1, 2, 3};"
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize":12,
       "dynamicSize":0,
@@ -104,7 +104,7 @@ definitions = '''
         }
       };
     '''
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 8,
       "dynamicSize": 12,
@@ -141,7 +141,7 @@ definitions = '''
           new Node{1, 2, 3}
         }
       };'''
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
 
   [cases.anon_typedef]
     oil_disable = "oil can't chase raw pointers safely"
@@ -152,7 +152,7 @@ definitions = '''
           .node = new Node{1, 2, 3}
         }
       };'''
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 8,
       "dynamicSize": 12,
@@ -194,7 +194,7 @@ definitions = '''
   [cases.anon_union]
     param_types = ["const AnonUnionContainer&"]
     setup = 'return AnonUnionContainer{ .a = 3 };'
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 24,
       "dynamicSize": 0,
@@ -209,7 +209,7 @@ definitions = '''
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const NestedAnonContainer&"]
     setup = 'return NestedAnonContainer{.m = { .v = {.as = {new Node{1, 2, 3}}}}};'
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 80,
       "dynamicSize": 12,
@@ -279,7 +279,7 @@ definitions = '''
   #     result.ns[3].nodes.resize(22);
   #     return result;
   #   '''
-  #   cli_options = ["--chase-raw-pointers"]
+  #   cli_options = ["-fchase-raw-pointers"]
   #   expect_json = '''[{
   #     "staticSize": 104,
   #     "dynamicSize": 556,

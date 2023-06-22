@@ -201,7 +201,7 @@ definitions = '''
 
     Example:
     ```
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     ```
 
   - `skip`, `oid_skip`, `oil_skip`

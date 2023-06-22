@@ -39,10 +39,6 @@ constexpr static OIOpts opts{
     OIOpt{'a', "log-all-structs", no_argument, nullptr,
           "Enable TreeBuilder::Config::logAllStructs (=true)\n"
           "Note: this option is already enabled, this is a no-op"},
-    OIOpt{'n', "chase-raw-pointers", no_argument, nullptr,
-          "Enable TreeBuilder::Config::chaseRawPointers (=true)"},
-    OIOpt{'w', "disable-padding-hunter", no_argument, nullptr,
-          "Disable TreeBuilder::Config::genPaddingStats (=false)"},
     OIOpt{'J', "dump-json", optional_argument, "[oid_out.json]",
           "File to dump the results to, as JSON\n"
           "(in addition to the default RocksDB output)"},
@@ -176,12 +172,6 @@ int main(int argc, char* argv[]) {
       case 'a':
         tbConfig.logAllStructs =
             true;  // Weird that we're setting it to true, again...
-        break;
-      case 'n':
-        tbConfig.features[Feature::ChaseRawPointers] = true;
-        break;
-      case 'w':
-        tbConfig.features[Feature::GenPaddingStats] = false;
         break;
       case 'J':
         tbConfig.jsonPath = optarg ? optarg : "oid_out.json";

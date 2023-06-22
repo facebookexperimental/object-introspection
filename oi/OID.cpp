@@ -145,18 +145,7 @@ constexpr static OIOpts opts{
         "Each argument gets its own dump file: 'dataseg.<oid-pid>.<arg>.dump'"},
     OIOpt{'j', "generate-jit-debug", no_argument, nullptr,
           "Output debug info for the generated JIT code"},
-    OIOpt{'n', "chase-raw-pointers", no_argument, nullptr,
-          "Generate probe for raw pointers"},
     OIOpt{'a', "log-all-structs", no_argument, nullptr, "Log all structures"},
-    OIOpt{'z', "disable-packed-structs", no_argument, nullptr,
-          "Disable appending packed attributes to the definition of structs"},
-    OIOpt{'w', "disable-padding-hunter", no_argument, nullptr,
-          "Disable Padding Hunter\n"
-          "Padded structs will be written to file called PADDING"},
-    OIOpt{'T', "capture-thrift-isset", no_argument, nullptr,
-          "Capture the isset value for Thrift fields"},
-    OIOpt{'P', "polymorphic-inheritance", no_argument, nullptr,
-          "Follow runtime polymorphic inheritance hierarchies"},
     OIOpt{'m', "mode", required_argument, "[prod]",
           "Allows to specify a mode of operation/group of settings"},
     OIOpt{'f', "enable-feature", required_argument, nullptr,
@@ -620,14 +609,8 @@ int main(int argc, char* argv[]) {
       case 'r':
         oidConfig.removeMappings = true;
         break;
-      case 'n':
-        features[Feature::ChaseRawPointers] = true;
-        break;
       case 'a':
         logAllStructs = true;
-        break;
-      case 'z':
-        features[Feature::PackStructs] = false;
         break;
       case 'B':
         dumpDataSegment = true;
@@ -641,17 +624,8 @@ int main(int argc, char* argv[]) {
       case 't':
         oidConfig.timeout_s = atoi(optarg);
         break;
-      case 'w':
-        features[Feature::GenPaddingStats] = false;
-        break;
       case 'J':
         jsonPath = optarg != nullptr ? optarg : "oid_out.json";
-        break;
-      case 'T':
-        features[Feature::CaptureThriftIsset] = true;
-        break;
-      case 'P':
-        features[Feature::PolymorphicInheritance] = true;
         break;
       case 'h':
       default:
