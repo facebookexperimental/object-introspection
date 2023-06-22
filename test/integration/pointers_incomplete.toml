@@ -23,7 +23,7 @@ definitions = '''
     oid_skip = "oid codegen fails on this" # https://github.com/facebookexperimental/object-introspection/issues/17
     param_types = ["IncompleteType*"]
     setup = "return static_cast<IncompleteType*>(::operator new(5));"
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "typeName": "IncompleteType *",
       "staticSize": 8,
@@ -86,7 +86,7 @@ definitions = '''
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const IncompleteTypeContainer&"]
     setup = "return IncompleteTypeContainer{};"
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 88,
       "dynamicSize": 0,

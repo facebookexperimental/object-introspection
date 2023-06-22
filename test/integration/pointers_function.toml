@@ -33,7 +33,7 @@ definitions = '''
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{myFunction}};"
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 8,
       "dynamicSize": 0,
@@ -77,7 +77,7 @@ definitions = '''
     oil_disable = "oil can't chase raw pointers safely"
     param_types = ["std::function<void(int)> &"]
     setup = "return myFunction;"
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "typeName": "function<void (int)>",
       "staticSize": 32,

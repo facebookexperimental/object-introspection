@@ -241,7 +241,7 @@ definitions = '''
     '''
   [cases.weak_ptr_int64_present_chase]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     setup = '''
     static std::shared_ptr<std::uint64_t> shd = std::make_shared<std::uint64_t>(0xDEADBEEF);
     std::weak_ptr<std::uint64_t> weak = shd;
@@ -259,7 +259,7 @@ definitions = '''
     '''
   [cases.weak_ptr_int64_expired_chase]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     setup = '''
     return std::make_shared<std::uint64_t>(0xDEADBEEF);
     '''

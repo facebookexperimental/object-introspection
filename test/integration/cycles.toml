@@ -28,7 +28,7 @@ definitions = '''
       third->next = first;
       return first;
     '''
-    cli_options = ["--chase-raw-pointers"]
+    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''
     [
       {
