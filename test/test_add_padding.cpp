@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "oi/type_graph/AddPadding.h"
-#include "oi/type_graph/Printer.h"
 #include "oi/type_graph/Types.h"
 #include "test/type_graph_utils.h"
 
