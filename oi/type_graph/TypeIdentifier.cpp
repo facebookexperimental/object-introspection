@@ -100,7 +100,7 @@ void TypeIdentifier::visit(Container& c) {
   }
 
   for (const auto& param : c.templateParams) {
-    visit(*param.type);
+    visit(param.type);
   }
 }
 

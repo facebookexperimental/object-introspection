@@ -53,7 +53,7 @@ void AddChildren::visit(Type& type) {
 
 void AddChildren::visit(Class& c) {
   for (auto& param : c.templateParams) {
-    visit(*param.type);
+    visit(param.type);
   }
   for (auto& member : c.members) {
     visit(*member.type);

@@ -50,14 +50,14 @@ void AddPadding::visit(Class& c) {
   assert(c.parents.empty());
 
   for (auto& param : c.templateParams) {
-    visit(*param.type);
+    visit(param.type);
   }
   for (auto& member : c.members) {
     visit(*member.type);
   }
 
   if (c.kind() == Class::Kind::Union) {
-    // Don't padd unions
+    // Don't pad unions
     return;
   }
 

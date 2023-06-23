@@ -1,3 +1,4 @@
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <regex>
@@ -12,6 +13,7 @@
 #include "oi/type_graph/Types.h"
 
 using namespace type_graph;
+using ::testing::HasSubstr;
 
 // TODO setup google logging for tests so it doesn't appear on terminal by
 // default
@@ -26,22 +28,29 @@ class DrgnParserTest : public ::testing::Test {
     delete symbols_;
   }
 
+  std::string run(std::string_view function, bool chaseRawPointers);
   void test(std::string_view function,
             std::string_view expected,
             bool chaseRawPointers = true);
+  void testContains(std::string_view function,
+                    std::string_view expected,
+                    bool chaseRawPointers = true);
   void testMultiCompiler(std::string_view function,
                          std::string_view expectedClang,
                          std::string_view expectedGcc,
                          bool chaseRawPointers = true);
+  void testMultiCompilerContains(std::string_view function,
+                                 std::string_view expectedClang,
+                                 std::string_view expectedGcc,
+                                 bool chaseRawPointers = true);
 
   static SymbolService* symbols_;
 };
 
 SymbolService* DrgnParserTest::symbols_ = nullptr;
 
-void DrgnParserTest::test(std::string_view function,
-                          std::string_view expected,
-                          bool chaseRawPointers) {
+std::string DrgnParserTest::run(std::string_view function,
+                                bool chaseRawPointers) {
   irequest req{"entry", std::string{function}, "arg0"};
   auto drgnRoot = symbols_->getRootType(req);
 
@@ -60,9 +69,25 @@ void DrgnParserTest::test(std::string_view function,
   Printer printer{out, typeGraph.size()};
   printer.print(*type);
 
-  // TODO standardise expected-actual order
+  return out.str();
+}
+
+void DrgnParserTest::test(std::string_view function,
+                          std::string_view expected,
+                          bool chaseRawPointers) {
+  auto actual = run(function, chaseRawPointers);
+
   expected.remove_prefix(1);  // Remove initial '\n'
-  EXPECT_EQ(expected, out.str());
+  EXPECT_EQ(expected, actual);
+}
+
+void DrgnParserTest::testContains(std::string_view function,
+                                  std::string_view expected,
+                                  bool chaseRawPointers) {
+  auto actual = run(function, chaseRawPointers);
+
+  expected.remove_prefix(1);  // Remove initial '\n'
+  EXPECT_THAT(actual, HasSubstr(expected));
 }
 
 void DrgnParserTest::testMultiCompiler(
@@ -74,6 +99,18 @@ void DrgnParserTest::testMultiCompiler(
   test(function, expectedClang, chaseRawPointers);
 #else
   test(function, expectedGcc, chaseRawPointers);
+#endif
+}
+
+void DrgnParserTest::testMultiCompilerContains(
+    std::string_view function,
+    [[maybe_unused]] std::string_view expectedClang,
+    [[maybe_unused]] std::string_view expectedGcc,
+    bool chaseRawPointers) {
+#if defined(__clang__)
+  testContains(function, expectedClang, chaseRawPointers);
+#else
+  testContains(function, expectedGcc, chaseRawPointers);
 #endif
 }
 
@@ -427,6 +464,54 @@ TEST_F(DrgnParserTest, ClassTemplateValue) {
         Member: arr (offset: 0)
 [2]       Array: (length: 3)
             Primitive: int32_t
+)");
+}
+
+TEST_F(DrgnParserTest, TemplateEnumValue) {
+  testMultiCompilerContains("oid_test_case_enums_params_scoped_enum_val",
+                            R"(
+[0] Pointer
+[1]   Class: MyClass<ns_enums_params::MyNS::ScopedEnum::One> (size: 4)
+        Param
+          Value: ns_enums_params::MyNS::ScopedEnum::One
+)",
+                            R"(
+[0] Pointer
+[1]   Class: MyClass<(ns_enums_params::MyNS::ScopedEnum)1> (size: 4)
+        Param
+          Value: ns_enums_params::MyNS::ScopedEnum::One
+)");
+}
+
+TEST_F(DrgnParserTest, TemplateEnumValueGaps) {
+  testMultiCompilerContains("oid_test_case_enums_params_scoped_enum_val_gaps",
+                            R"(
+[0] Pointer
+[1]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty> (size: 4)
+        Param
+          Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
+)",
+                            R"(
+[0] Pointer
+[1]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)20> (size: 4)
+        Param
+          Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
+)");
+}
+
+TEST_F(DrgnParserTest, TemplateEnumValueNegative) {
+  testMultiCompilerContains(
+      "oid_test_case_enums_params_scoped_enum_val_negative", R"(
+[0] Pointer
+[1]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo> (size: 4)
+        Param
+          Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
+)",
+      R"(
+[0] Pointer
+[1]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2> (size: 4)
+        Param
+          Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
 )");
 }
 

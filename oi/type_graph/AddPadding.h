@@ -40,6 +40,8 @@ class AddPadding final : public RecursiveVisitor {
   explicit AddPadding(TypeGraph& typeGraph) : typeGraph_(typeGraph) {
   }
 
+  using RecursiveVisitor::visit;
+
   void visit(Type& type) override;
   void visit(Class& c) override;
 

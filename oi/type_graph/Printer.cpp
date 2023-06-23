@@ -24,7 +24,7 @@ Printer::Printer(std::ostream& out, size_t numTypes) : out_(out) {
   baseIndent_ = static_cast<int>(log10(static_cast<double>(numTypes)) + 1) + 3;
 }
 
-void Printer::print(Type& type) {
+void Printer::print(const Type& type) {
   depth_++;
   type.accept(*this);
   depth_--;
@@ -189,7 +189,7 @@ void Printer::print_function(const Function& function) {
   depth_--;
 }
 
-void Printer::print_child(Type& child) {
+void Printer::print_child(const Type& child) {
   depth_++;
   prefix();
   out_ << "Child:" << std::endl;

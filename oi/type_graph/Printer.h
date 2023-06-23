@@ -30,7 +30,7 @@ class Printer : public ConstVisitor {
  public:
   Printer(std::ostream& out, size_t numTypes);
 
-  void print(Type& type);
+  void print(const Type& type);
 
   void visit(const Class& c) override;
   void visit(const Container& c) override;
@@ -48,7 +48,7 @@ class Printer : public ConstVisitor {
   void print_parent(const Parent& parent);
   void print_member(const Member& member);
   void print_function(const Function& function);
-  void print_child(Type& child);
+  void print_child(const Type& child);
   void print_value(const std::string& value);
   static std::string align_str(uint64_t align);
 

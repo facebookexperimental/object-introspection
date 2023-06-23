@@ -105,14 +105,12 @@ struct TemplateParam {
   TemplateParam(Type* type, QualifierSet qualifiers)
       : type(type), qualifiers(qualifiers) {
   }
-  TemplateParam(Type* type, std::string value)
-      : type(type), value(std::move(value)) {
+  TemplateParam(std::string value) : value(std::move(value)) {
   }
 
-  Type* type;
+  Type* type = nullptr;  // Note: type is not always set
   QualifierSet qualifiers;
-  std::optional<std::string>
-      value;  // TODO is there any reason not to store all values as strings?
+  std::optional<std::string> value;
 };
 
 class Class : public Type {
