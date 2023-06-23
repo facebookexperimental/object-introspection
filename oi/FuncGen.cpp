@@ -278,23 +278,38 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
       pointers.initialize();
       pointers.add((uintptr_t)&t);
       auto data = reinterpret_cast<uintptr_t*>(dataBase);
+
+      // TODO: Replace these with types::st::Uint64 once the VarInt decoding
+      // logic is moved out of OIDebugger and into new TreeBuilder.
       data[0] = oidMagicId;
       data[1] = cookieValue;
       data[2] = 0;
+
       size_t dataSegOffset = 3 * sizeof(uintptr_t);
       JLOG("%1% @");
       JLOGPTR(&t);
-      using DataBufferType = OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type;
-      DataBufferType db = DataBuffer::DataSegment(dataSegOffset);
-      types::st::Unit<DataBuffer::DataSegment> out = OIInternal::getSizeType<DataBuffer::DataSegment>(t, db);
-      types::st::Unit<DataBuffer::DataSegment> final = out.template cast<types::st::Pair<
+
+      using ContentType = OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type;
+      using SuffixType = types::st::Pair<
         DataBuffer::DataSegment,
         types::st::VarInt<DataBuffer::DataSegment>,
         types::st::VarInt<DataBuffer::DataSegment>
-      >>()
+      >;
+      using DataBufferType = types::st::Pair<
+        DataBuffer::DataSegment,
+        ContentType,
+        SuffixType
+      >;
+
+      DataBufferType db = DataBuffer::DataSegment(dataSegOffset);
+      SuffixType suffix = db.delegate([&t](auto ret) {
+        return OIInternal::getSizeType<DataBuffer::DataSegment>(t, ret);
+      });
+      types::st::Unit<DataBuffer::DataSegment> end = suffix
         .write(123456789)
         .write(123456789);
-      dataSegOffset = final.offset();
+
+      dataSegOffset = end.offset();
       data[2] = dataSegOffset;
       dataBase += dataSegOffset;
     }
