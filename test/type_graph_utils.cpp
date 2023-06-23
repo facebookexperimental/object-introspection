@@ -33,7 +33,9 @@ void test(type_graph::Pass pass,
           std::vector<ref<Type>> rootTypes,
           std::string_view expectedBefore,
           std::string_view expectedAfter) {
-  check(rootTypes, expectedBefore, "before running pass");
+  if (expectedBefore.data()) {
+    check(rootTypes, expectedBefore, "before running pass");
+  }
 
   TypeGraph typeGraph;
   for (const auto& type : rootTypes) {
@@ -42,20 +44,14 @@ void test(type_graph::Pass pass,
 
   pass.run(typeGraph);
 
-  check(rootTypes, expectedAfter, "after running pass");
+  // Must use typeGraph's root types here, as the pass may have modified them
+  check(typeGraph.rootTypes(), expectedAfter, "after running pass");
 }
 
 void test(type_graph::Pass pass,
           std::vector<ref<Type>> rootTypes,
           std::string_view expectedAfter) {
-  TypeGraph typeGraph;
-  for (const auto& type : rootTypes) {
-    typeGraph.addRoot(type);
-  }
-
-  pass.run(typeGraph);
-
-  check(rootTypes, expectedAfter, "after");
+  test(pass, rootTypes, {}, expectedAfter);
 }
 
 Container getVector() {

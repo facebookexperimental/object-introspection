@@ -1,30 +1,10 @@
 #include <gtest/gtest.h>
 
 #include "oi/type_graph/Flattener.h"
-#include "oi/type_graph/Printer.h"
 #include "oi/type_graph/Types.h"
+#include "test/type_graph_utils.h"
 
 using namespace type_graph;
-
-Container getVector();  // TODO put in a header
-
-namespace {
-void test(std::vector<std::reference_wrapper<Type>> types,
-          std::string_view expected) {
-  Flattener flattener;
-  flattener.flatten(types);
-
-  std::stringstream out;
-  Printer printer(out);
-
-  for (const auto& type : types) {
-    printer.print(type);
-  }
-
-  expected.remove_prefix(1);  // Remove initial '\n'
-  EXPECT_EQ(expected, out.str());
-}
-}  // namespace
 
 TEST(FlattenerTest, NoParents) {
   // Original and flattened:
@@ -45,7 +25,7 @@ TEST(FlattenerTest, NoParents) {
   myclass->members.push_back(Member(myenum.get(), "e", 4));
   myclass->members.push_back(Member(mystruct.get(), "mystruct", 8));
 
-  test({*myclass}, R"(
+  test(Flattener::createPass(), {*myclass}, R"(
 [0] Class: MyClass (size: 12)
       Member: n (offset: 0)
         Primitive: int32_t
@@ -80,7 +60,7 @@ TEST(FlattenerTest, OnlyParents) {
   classA->parents.push_back(Parent(classB.get(), 0));
   classA->parents.push_back(Parent(classC.get(), 4));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 8)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -113,7 +93,7 @@ TEST(FlattenerTest, ParentsFirst) {
   classA->parents.push_back(Parent(classC.get(), 4));
   classA->members.push_back(Member(myint.get(), "a", 8));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -149,7 +129,7 @@ TEST(FlattenerTest, MembersFirst) {
   classA->parents.push_back(Parent(classB.get(), 4));
   classA->parents.push_back(Parent(classC.get(), 8));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
         Primitive: int32_t
@@ -187,7 +167,7 @@ TEST(FlattenerTest, MixedMembersAndParents) {
   classA->members.push_back(Member(myint.get(), "a2", 8));
   classA->parents.push_back(Parent(classC.get(), 12));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 16)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -224,7 +204,7 @@ TEST(FlattenerTest, EmptyParent) {
   classA->parents.push_back(Parent(classB.get(), 4));
   classA->parents.push_back(Parent(classC.get(), 0));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: c (offset: 0)
         Primitive: int32_t
@@ -266,7 +246,7 @@ TEST(FlattenerTest, TwoDeep) {
   classA->parents.push_back(Parent(classC.get(), 8));
   classA->members.push_back(Member(myint.get(), "a", 12));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 16)
       Member: d (offset: 0)
         Primitive: int32_t
@@ -306,7 +286,7 @@ TEST(FlattenerTest, DiamondInheritance) {
   classA->parents.push_back(Parent(classC.get(), 8));
   classA->members.push_back(Member(myint.get(), "a", 12));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 16)
       Member: c (offset: 0)
         Primitive: int32_t
@@ -341,7 +321,7 @@ TEST(FlattenerTest, Member) {
   classA->members.push_back(Member(myint.get(), "a", 0));
   classA->members.push_back(Member(classB.get(), "b", 4));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
         Primitive: int32_t
@@ -376,7 +356,7 @@ TEST(FlattenerTest, MemberOfParent) {
   classA->parents.push_back(Parent(classB.get(), 0));
   classA->members.push_back(Member(myint.get(), "a", 8));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -411,7 +391,7 @@ TEST(FlattenerTest, ContainerParam) {
   container.templateParams.push_back(TemplateParam(classA.get()));
   container.templateParams.push_back(TemplateParam(myint.get()));
 
-  test({container}, R"(
+  test(Flattener::createPass(), {container}, R"(
 [0] Container: std::vector (size: 24)
       Param
 [1]     Class: ClassA (size: 8)
@@ -440,7 +420,7 @@ TEST(FlattenerTest, Array) {
 
   auto arrayA = std::make_unique<Array>(classA.get(), 5);
 
-  test({*arrayA}, R"(
+  test(Flattener::createPass(), {*arrayA}, R"(
 [0] Array: (length: 5)
 [1]   Class: ClassA (size: 8)
         Member: b (offset: 0)
@@ -465,7 +445,7 @@ TEST(FlattenerTest, Typedef) {
 
   auto aliasA = std::make_unique<Typedef>("aliasA", classA.get());
 
-  test({*aliasA}, R"(
+  test(Flattener::createPass(), {*aliasA}, R"(
 [0] Typedef: aliasA
 [1]   Class: ClassA (size: 8)
         Member: b (offset: 0)
@@ -490,7 +470,7 @@ TEST(FlattenerTest, TypedefParent) {
   classA->parents.push_back(Parent(aliasB.get(), 0));
   classA->members.push_back(Member(myint.get(), "a", 4));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 8)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -517,7 +497,7 @@ TEST(FlattenerTest, Pointer) {
   auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 8);
   classC->members.push_back(Member(ptrA.get(), "a", 0));
 
-  test({*classC}, R"(
+  test(Flattener::createPass(), {*classC}, R"(
 [0] Class: ClassC (size: 8)
       Member: a (offset: 0)
 [1]     Pointer
@@ -542,7 +522,7 @@ TEST(FlattenerTest, PointerCycle) {
   classA->members.push_back(Member(classB.get(), "b", 0));
   classB->members.push_back(Member(ptrA.get(), "a", 0));
 
-  test({*classA, *classB}, R"(
+  test(Flattener::createPass(), {*classA, *classB}, R"(
 [0] Class: ClassA (size: 69)
       Member: b (offset: 0)
 [1]     Class: ClassB (size: 69)
@@ -571,7 +551,7 @@ TEST(FlattenerTest, Alignment) {
   classA->parents.push_back(Parent(classC.get(), 4));
   classA->members.push_back(Member(myint.get(), "a", 8));
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: b (offset: 0, align: 8)
         Primitive: int32_t
@@ -598,7 +578,7 @@ TEST(FlattenerTest, Functions) {
   classB->functions.push_back(Function{"funcB"});
   classC->functions.push_back(Function{"funcC"});
 
-  test({*classA}, R"(
+  test(Flattener::createPass(), {*classA}, R"(
 [0] Class: ClassA (size: 0)
       Function: funcA
       Function: funcB
@@ -625,7 +605,7 @@ TEST(FlattenerTest, Children) {
   classB->children.push_back(*classA);
   classC->children.push_back(*classA);
 
-  test({*classB}, R"(
+  test(Flattener::createPass(), {*classB}, R"(
 [0] Class: ClassB (size: 4)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -665,7 +645,7 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
   classB->children.push_back(*classA);
   classC->children.push_back(*classA);
 
-  test({*classD}, R"(
+  test(Flattener::createPass(), {*classD}, R"(
 [0] Class: ClassD (size: 4)
       Member: d (offset: 0)
         Primitive: int32_t
