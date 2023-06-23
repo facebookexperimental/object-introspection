@@ -124,23 +124,17 @@ Type* DrgnParser::enumerateType(struct drgn_type* type) {
   return t;
 }
 
-Container* DrgnParser::enumerateContainer(struct drgn_type* type) {
-  char* nameStr = nullptr;
-  size_t length = 0;
-  auto* err = drgn_type_fully_qualified_name(type, &nameStr, &length);
-  if (err != nullptr || nameStr == nullptr) {
-    return nullptr;
-  }
-
+Container* DrgnParser::enumerateContainer(struct drgn_type* type,
+                                          const std::string& fqName) {
   auto size = get_drgn_type_size(type);
 
   for (const auto& containerInfo : containers_) {
-    if (!std::regex_search(nameStr, containerInfo.matcher)) {
+    if (!std::regex_search(fqName, containerInfo.matcher)) {
       continue;
     }
 
     VLOG(2) << "Matching container `" << containerInfo.typeName << "` from `"
-            << nameStr << "`" << std::endl;
+            << fqName << "`" << std::endl;
     auto* c = make_type<Container>(type, containerInfo, size);
     enumerateClassTemplateParams(type, c->templateParams);
     return c;
@@ -149,7 +143,15 @@ Container* DrgnParser::enumerateContainer(struct drgn_type* type) {
 }
 
 Type* DrgnParser::enumerateClass(struct drgn_type* type) {
-  auto* container = enumerateContainer(type);
+  std::string fqName;
+  char* nameStr = nullptr;
+  size_t length = 0;
+  auto* err = drgn_type_fully_qualified_name(type, &nameStr, &length);
+  if (err == nullptr && nameStr != nullptr) {
+    fqName = nameStr;
+  }
+
+  auto* container = enumerateContainer(type, fqName);
   if (container)
     return container;
 
@@ -181,7 +183,8 @@ Type* DrgnParser::enumerateClass(struct drgn_type* type) {
                             std::to_string(drgn_type_kind(type))};
   }
 
-  auto c = make_type<Class>(type, kind, name, size, virtuality);
+  auto c = make_type<Class>(type, kind, std::move(name), std::move(fqName),
+                            size, virtuality);
 
   enumerateClassTemplateParams(type, c->templateParams);
   enumerateClassParents(type, c->parents);

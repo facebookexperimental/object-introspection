@@ -42,7 +42,8 @@ class DrgnParser {
 
  private:
   Type* enumerateType(struct drgn_type* type);
-  Container* enumerateContainer(struct drgn_type* type);
+  Container* enumerateContainer(struct drgn_type* type,
+                                const std::string& fqName);
   Type* enumerateClass(struct drgn_type* type);
   Enum* enumerateEnum(struct drgn_type* type);
   Typedef* enumerateTypedef(struct drgn_type* type);
