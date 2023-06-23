@@ -121,8 +121,20 @@ class Class : public Type {
     Union,
   };
 
+  Class(Kind kind,
+        std::string name,
+        std::string fqName,
+        size_t size,
+        int virtuality = 0)
+      : kind_(kind),
+        name_(std::move(name)),
+        fqName_(std::move(fqName)),
+        size_(size),
+        virtuality_(virtuality) {
+  }
+
   Class(Kind kind, const std::string& name, size_t size, int virtuality = 0)
-      : kind_(kind), name_(name), size_(size), virtuality_(virtuality) {
+      : Class(kind, name, name, size, virtuality) {
   }
 
   DECLARE_ACCEPT
@@ -163,6 +175,10 @@ class Class : public Type {
     packed_ = true;
   }
 
+  const std::string& fqName() const {
+    return fqName_;
+  }
+
   bool isDynamic() const;
 
   std::vector<TemplateParam> templateParams;
@@ -175,6 +191,7 @@ class Class : public Type {
  private:
   Kind kind_;
   std::string name_;
+  std::string fqName_;
   size_t size_;
   int virtuality_;
   uint64_t align_ = 0;
