@@ -174,6 +174,15 @@ TEST(NameGenTest, ContainerParamsConst) {
   EXPECT_EQ(mycontainer.name(), "std::vector<const MyConstParam_0, MyParam_1>");
 }
 
+TEST(NameGenTest, ContainerNoParams) {
+  auto mycontainer = getVector();
+
+  NameGen nameGen;
+  nameGen.generateNames({mycontainer});
+
+  EXPECT_EQ(mycontainer.name(), "std::vector");
+}
+
 TEST(NameGenTest, Array) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);

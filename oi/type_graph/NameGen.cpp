@@ -83,6 +83,10 @@ void NameGen::visit(Class& c) {
 }
 
 void NameGen::visit(Container& c) {
+  if (c.templateParams.empty()) {
+    return;
+  }
+
   for (const auto& template_param : c.templateParams) {
     visit(*template_param.type);
   }
