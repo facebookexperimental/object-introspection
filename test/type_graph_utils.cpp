@@ -19,7 +19,7 @@ void check(const std::vector<ref<Type>>& types,
            std::string_view expected,
            std::string_view comment) {
   std::stringstream out;
-  type_graph::Printer printer(out);
+  type_graph::Printer printer(out, types.size());
 
   for (const auto& type : types) {
     printer.print(type);

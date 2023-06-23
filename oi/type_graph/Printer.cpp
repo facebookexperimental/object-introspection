@@ -15,7 +15,14 @@
  */
 #include "Printer.h"
 
+#include <cmath>
+
 namespace type_graph {
+
+Printer::Printer(std::ostream& out, size_t numTypes) : out_(out) {
+  // Enough space for "[XYZ] ", where XYZ is the largest node number:
+  baseIndent_ = static_cast<int>(log10(static_cast<double>(numTypes)) + 1) + 3;
+}
 
 void Printer::print(Type& type) {
   depth_++;
@@ -121,23 +128,25 @@ void Printer::visit(const DummyAllocator& d) {
 }
 
 bool Printer::prefix(const Type* type) {
+  int indent = baseIndent_ + depth_ * 2;
+
   if (type) {
     if (auto it = nodeNums_.find(type); it != nodeNums_.end()) {
       // Node has already been printed - print a reference to it this time
-      out_ << std::string(depth_ * 2, ' ');
-      int node_num = it->second;
-      out_ << "    [" << node_num << "]" << std::endl;
+      out_ << std::string(indent, ' ');
+      int nodeNum = it->second;
+      out_ << "[" << nodeNum << "]" << std::endl;
       return true;
     }
 
-    int node_num = nextNodeNum_++;
-    out_ << "[" << node_num << "] ";  // TODO pad numbers
-    nodeNums_.insert({type, node_num});
-  } else {
-    // Extra padding
-    out_ << "    ";  // TODO make variable size
+    int nodeNum = nextNodeNum_++;
+    std::string nodeId = "[" + std::to_string(nodeNum) + "]";
+    out_ << nodeId;
+    indent -= nodeId.size();
+    nodeNums_.insert({type, nodeNum});
   }
-  out_ << std::string(depth_ * 2, ' ');
+
+  out_ << std::string(indent, ' ');
   return false;
 }
 

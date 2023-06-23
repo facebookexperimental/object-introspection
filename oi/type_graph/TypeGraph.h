@@ -25,6 +25,10 @@ namespace type_graph {
 
 class TypeGraph {
  public:
+  size_t size() const noexcept {
+    return types_.size();
+  }
+
   // TODO provide iterator instead of direct vector access?
   std::vector<std::reference_wrapper<Type>>& rootTypes() {
     return rootTypes_;

@@ -28,8 +28,8 @@ namespace type_graph {
  */
 class Printer : public ConstVisitor {
  public:
-  Printer(std::ostream& out) : out_(out) {
-  }
+  Printer(std::ostream& out, size_t numTypes);
+
   void print(Type& type);
 
   void visit(const Class& c) override;
@@ -53,6 +53,7 @@ class Printer : public ConstVisitor {
   static std::string align_str(uint64_t align);
 
   std::ostream& out_;
+  int baseIndent_;
   int depth_ = -1;
   int nextNodeNum_ = 0;
   std::unordered_map<const Type*, int> nodeNums_;
