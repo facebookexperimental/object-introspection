@@ -3,9 +3,9 @@ set(INTEGRATION_TEST_CONFIGS
   alignment.toml
   anonymous.toml
   arrays.toml
-  container_enums.toml
   cycles.toml
   enums.toml
+  enums_params.toml
   fbstring.toml
   ignored.toml
   inheritance_access.toml

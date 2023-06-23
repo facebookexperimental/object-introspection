@@ -56,7 +56,7 @@ void TopoSorter::visit(Type& type) {
 
 void TopoSorter::visit(Class& c) {
   for (const auto& param : c.templateParams) {
-    visit(*param.type);
+    visit(param.type);
   }
   for (const auto& parent : c.parents) {
     visit(*parent.type);
@@ -75,7 +75,7 @@ void TopoSorter::visit(Class& c) {
 
 void TopoSorter::visit(Container& c) {
   for (const auto& param : c.templateParams) {
-    visit(*param.type);
+    visit(param.type);
   }
   sortedTypes_.push_back(c);
 }

@@ -32,6 +32,8 @@ class NameGen final : public RecursiveVisitor {
 
   void generateNames(const std::vector<std::reference_wrapper<Type>>& types);
 
+  using RecursiveVisitor::visit;
+
   void visit(Class& c) override;
   void visit(Container& c) override;
   void visit(Typedef& td) override;

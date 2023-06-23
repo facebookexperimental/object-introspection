@@ -183,6 +183,22 @@ TEST(NameGenTest, ContainerNoParams) {
   EXPECT_EQ(mycontainer.name(), "std::vector");
 }
 
+TEST(NameGenTest, ContainerParamsValue) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto myenum = Enum{"MyEnum", 4};
+
+  auto mycontainer = getVector();
+  mycontainer.templateParams.push_back(TemplateParam{"123"});
+  mycontainer.templateParams.push_back(TemplateParam{"MyEnum::OptionC"});
+
+  NameGen nameGen;
+  nameGen.generateNames({mycontainer});
+
+  EXPECT_EQ(myint.name(), "int32_t");
+  EXPECT_EQ(myenum.name(), "MyEnum");
+  EXPECT_EQ(mycontainer.name(), "std::vector<123, MyEnum::OptionC>");
+}
+
 TEST(NameGenTest, Array) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);

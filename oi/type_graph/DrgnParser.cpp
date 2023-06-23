@@ -132,7 +132,6 @@ Container* DrgnParser::enumerateContainer(struct drgn_type* type) {
     return nullptr;
   }
 
-  std::string name{nameStr};
   auto size = get_drgn_type_size(type);
 
   for (const auto& containerInfo : containers_) {
@@ -299,36 +298,76 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter* tparams,
     params.emplace_back(ttype, qualifiers);
   } else {
     // This template parameter is a value
-    //    TODO why do we need the type of a value?
-    //    tparamQualType.type = obj->type;
-    //    tparamQualType.qualifiers = obj->qualifiers;
     std::string value;
-    if (obj->encoding == DRGN_OBJECT_ENCODING_BUFFER) {
-      uint64_t size = drgn_object_size(obj);
-      char* buf = nullptr;
-      if (size <= sizeof(obj->value.ibuf)) {
-        buf = (char*)&(obj->value.ibuf);
-      } else {
-        buf = obj->value.bufp;
+
+    if (drgn_type_kind(obj->type) == DRGN_TYPE_ENUM) {
+      char* nameStr = nullptr;
+      size_t length = 0;
+      auto* err = drgn_type_fully_qualified_name(obj->type, &nameStr, &length);
+      if (err != nullptr || nameStr == nullptr) {
+        throw DrgnParserError{"Failed to get enum's fully qualified name", err};
       }
 
-      if (buf != nullptr) {
-        value = std::string(buf);
+      uint64_t enumVal;
+      switch (obj->encoding) {
+        case DRGN_OBJECT_ENCODING_SIGNED:
+          enumVal = obj->value.svalue;
+          break;
+        case DRGN_OBJECT_ENCODING_UNSIGNED:
+          enumVal = obj->value.uvalue;
+          break;
+        default:
+          throw DrgnParserError{
+              "Unknown template parameter object encoding format: " +
+              std::to_string(obj->encoding)};
       }
-    } else if (obj->encoding == DRGN_OBJECT_ENCODING_SIGNED) {
-      value = std::to_string(obj->value.svalue);
-    } else if (obj->encoding == DRGN_OBJECT_ENCODING_UNSIGNED) {
-      value = std::to_string(obj->value.uvalue);
-    } else if (obj->encoding == DRGN_OBJECT_ENCODING_FLOAT) {
-      value = std::to_string(obj->value.fvalue);
+
+      drgn_type_enumerator* enumerators = drgn_type_enumerators(obj->type);
+      size_t numEnumerators = drgn_type_num_enumerators(obj->type);
+      for (size_t j = 0; j < numEnumerators; j++) {
+        if (enumerators[j].uvalue == enumVal) {
+          value = std::string{nameStr} + "::" + enumerators[j].name;
+          break;
+        }
+      }
+
+      if (value.empty()) {
+        throw DrgnParserError{"Unable to find enum name for value: " +
+                              std::to_string(enumVal)};
+      }
     } else {
-      throw DrgnParserError{
-          "Unknown template parameter object encoding format: " +
-          std::to_string(obj->encoding)};
+      switch (obj->encoding) {
+        case DRGN_OBJECT_ENCODING_BUFFER: {
+          uint64_t size = drgn_object_size(obj);
+          char* buf = nullptr;
+          if (size <= sizeof(obj->value.ibuf)) {
+            buf = (char*)&(obj->value.ibuf);
+          } else {
+            buf = obj->value.bufp;
+          }
+
+          if (buf != nullptr) {
+            value = std::string(buf);
+          }
+          break;
+        }
+        case DRGN_OBJECT_ENCODING_SIGNED:
+          value = std::to_string(obj->value.svalue);
+          break;
+        case DRGN_OBJECT_ENCODING_UNSIGNED:
+          value = std::to_string(obj->value.uvalue);
+          break;
+        case DRGN_OBJECT_ENCODING_FLOAT:
+          value = std::to_string(obj->value.fvalue);
+          break;
+        default:
+          throw DrgnParserError{
+              "Unknown template parameter object encoding format: " +
+              std::to_string(obj->encoding)};
+      }
     }
 
-    params.emplace_back(make_type<Primitive>(nullptr, Primitive::Kind::UInt8),
-                        value);
+    params.emplace_back(std::move(value));
   }
 }
 

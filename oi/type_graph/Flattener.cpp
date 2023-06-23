@@ -167,7 +167,7 @@ void Flattener::visit(Container& c) {
   // Containers themselves don't need to be flattened, but their template
   // parameters might need to be
   for (const auto& templateParam : c.templateParams) {
-    visit(*templateParam.type);
+    visit(templateParam.type);
   }
 }
 

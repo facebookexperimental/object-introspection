@@ -46,6 +46,8 @@ class AddChildren final : public RecursiveVisitor {
       : typeGraph_(typeGraph), drgnParser_(drgnParser) {
   }
 
+  using RecursiveVisitor::visit;
+
   void visit(Type& type) override;
   void visit(Class& c) override;
 

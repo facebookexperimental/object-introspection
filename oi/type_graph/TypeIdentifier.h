@@ -37,6 +37,8 @@ class TypeIdentifier : public RecursiveVisitor {
   TypeIdentifier(TypeGraph& typeGraph) : typeGraph_(typeGraph) {
   }
 
+  using RecursiveVisitor::visit;
+
   void visit(Type& type) override;
   void visit(Container& c) override;
 

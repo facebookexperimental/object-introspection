@@ -69,7 +69,7 @@ void NameGen::visit(Class& c) {
   }
 
   for (const auto& param : c.templateParams) {
-    visit(*param.type);
+    visit(param.type);
   }
   for (const auto& parent : c.parents) {
     visit(*parent.type);
@@ -88,7 +88,7 @@ void NameGen::visit(Container& c) {
   }
 
   for (const auto& template_param : c.templateParams) {
-    visit(*template_param.type);
+    visit(template_param.type);
   }
 
   std::string name = c.name();

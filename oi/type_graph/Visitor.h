@@ -58,9 +58,13 @@ class RecursiveVisitor : public Visitor {
  public:
   virtual ~RecursiveVisitor() = default;
   virtual void visit(Type&) = 0;
+  virtual void visit(Type* type) {
+    if (type)
+      visit(*type);
+  }
   virtual void visit(Class& c) {
     for (const auto& param : c.templateParams) {
-      visit(*param.type);
+      visit(param.type);
     }
     for (const auto& parent : c.parents) {
       visit(*parent.type);
@@ -74,7 +78,7 @@ class RecursiveVisitor : public Visitor {
   }
   virtual void visit(Container& c) {
     for (const auto& param : c.templateParams) {
-      visit(*param.type);
+      visit(param.type);
     }
   }
   virtual void visit(Primitive&) {
