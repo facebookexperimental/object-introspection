@@ -667,3 +667,98 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
                 Primitive: int32_t
 )");
 }
+
+TEST(FlattenerTest, ParentContainer) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+
+  auto vector = getVector();
+  vector.templateParams.push_back(TemplateParam{&myint});
+
+  auto classA = Class{Class::Kind::Class, "ClassA", 32};
+  classA.parents.push_back(Parent{&vector, 0});
+  classA.members.push_back(Member{&myint, "a", 24});
+
+  test(Flattener::createPass(), {classA}, R"(
+[0] Class: ClassA (size: 32)
+      Parent (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+      Member: a (offset: 24)
+        Primitive: int32_t
+)",
+       R"(
+[0] Class: ClassA (size: 32)
+      Member: __parent (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+      Member: a (offset: 24)
+        Primitive: int32_t
+)");
+}
+
+TEST(FlattenerTest, ParentTwoContainers) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+
+  auto vector = getVector();
+  vector.templateParams.push_back(TemplateParam{&myint});
+
+  auto classA = Class{Class::Kind::Class, "ClassA", 48};
+  classA.parents.push_back(Parent{&vector, 0});
+  classA.parents.push_back(Parent{&vector, 24});
+
+  test(Flattener::createPass(), {classA}, R"(
+[0] Class: ClassA (size: 48)
+      Parent (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+      Parent (offset: 24)
+        [1]
+)",
+       R"(
+[0] Class: ClassA (size: 48)
+      Member: __parent (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+      Member: __parent (offset: 24)
+        [1]
+)");
+}
+
+TEST(FlattenerTest, ParentClassAndContainer) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+
+  auto vector = getVector();
+  vector.templateParams.push_back(TemplateParam{&myint});
+
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  classB.members.push_back(Member{&myint, "b", 0});
+
+  auto classA = Class{Class::Kind::Class, "ClassA", 32};
+  classA.parents.push_back(Parent{&classB, 0});
+  classA.parents.push_back(Parent{&vector, 8});
+
+  test(Flattener::createPass(), {classA}, R"(
+[0] Class: ClassA (size: 32)
+      Parent (offset: 0)
+[1]     Class: ClassB (size: 4)
+          Member: b (offset: 0)
+            Primitive: int32_t
+      Parent (offset: 8)
+[2]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+)",
+       R"(
+[0] Class: ClassA (size: 32)
+      Member: b (offset: 0)
+        Primitive: int32_t
+      Member: __parent (offset: 8)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+)");
+}

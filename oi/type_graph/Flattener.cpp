@@ -44,14 +44,38 @@ void Flattener::visit(Type& type) {
   type.accept(*this);
 }
 
+namespace {
 // TODO this function is a massive hack. don't do it like this please
-Class& stripTypedefs(Type& type) {
+Type& stripTypedefs(Type& type) {
   Type* t = &type;
   while (const Typedef* td = dynamic_cast<Typedef*>(t)) {
     t = td->underlyingType();
   }
-  return dynamic_cast<Class&>(*t);
+  return *t;
 }
+
+void flattenParent(const Parent& parent,
+                   std::vector<Member>& flattenedMembers) {
+  Type& parentType = stripTypedefs(*parent.type);
+  if (Class* parentClass = dynamic_cast<Class*>(&parentType)) {
+    for (size_t i = 0; i < parentClass->members.size(); i++) {
+      const auto& member = parentClass->members[i];
+      flattenedMembers.push_back(member);
+      flattenedMembers.back().offset += parent.offset;
+      if (i == 0) {
+        flattenedMembers.back().align =
+            std::max(flattenedMembers.back().align, parentClass->align());
+      }
+    }
+  } else if (Container* parentContainer =
+                 dynamic_cast<Container*>(&parentType)) {
+    // Create a new member to represent this parent container
+    flattenedMembers.emplace_back(parentContainer, "__parent", parent.offset);
+  } else {
+    throw std::runtime_error("Invalid type for parent");
+  }
+}
+}  // namespace
 
 void Flattener::visit(Class& c) {
   // Members of a base class will be contiguous, but it's possible for derived
@@ -92,9 +116,11 @@ void Flattener::visit(Class& c) {
 
   // Pull in functions from flattened parents
   for (const auto& parent : c.parents) {
-    const Class& parentClass = stripTypedefs(*parent.type);
-    c.functions.insert(c.functions.end(), parentClass.functions.begin(),
-                       parentClass.functions.end());
+    Type& parentType = stripTypedefs(*parent.type);
+    if (Class* parentClass = dynamic_cast<Class*>(&parentType)) {
+      c.functions.insert(c.functions.end(), parentClass->functions.begin(),
+                         parentClass->functions.end());
+    }
   }
 
   // Pull member variables from flattened parents into this class
@@ -114,17 +140,7 @@ void Flattener::visit(Class& c) {
       // If member_offset == parent_offset then the parent is empty. Also take
       // this path.
       const auto& parent = c.parents[parent_idx++];
-      const Class& parentClass = stripTypedefs(*parent.type);
-
-      for (size_t i = 0; i < parentClass.members.size(); i++) {
-        const auto& member = parentClass.members[i];
-        flattenedMembers.push_back(member);
-        flattenedMembers.back().offset += parent.offset;
-        if (i == 0) {
-          flattenedMembers.back().align =
-              std::max(flattenedMembers.back().align, parentClass.align());
-        }
-      }
+      flattenParent(parent, flattenedMembers);
     }
   }
   while (member_idx < c.members.size()) {
@@ -133,11 +149,7 @@ void Flattener::visit(Class& c) {
   }
   while (parent_idx < c.parents.size()) {
     const auto& parent = c.parents[parent_idx++];
-    const Class& parentClass = stripTypedefs(*parent.type);
-    for (const auto& member : parentClass.members) {
-      flattenedMembers.push_back(member);
-      flattenedMembers.back().offset += parent.offset;
-    }
+    flattenParent(parent, flattenedMembers);
   }
 
   c.parents.clear();
