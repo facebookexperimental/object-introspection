@@ -17,6 +17,7 @@
 
 #include <glog/logging.h>
 
+#include <iostream>
 #include <sstream>
 
 #include "Printer.h"
@@ -40,14 +41,14 @@ void print(const TypeGraph& typeGraph) {
   if (!VLOG_IS_ON(1))
     return;
 
-  // TODO: Long strings will be truncated by glog. Find another way to do this
   std::stringstream out;
-  Printer printer{out};
+  Printer printer{out, typeGraph.size()};
   for (const auto& type : typeGraph.rootTypes()) {
     printer.print(type);
   }
 
-  LOG(INFO) << "\n" << out.str();
+  // Long strings will be truncated by glog, use std::cerr instead
+  std::cerr << "\n" << out.str();
 }
 }  // namespace
 

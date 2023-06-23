@@ -57,7 +57,7 @@ void DrgnParserTest::test(std::string_view function,
   Type* type = drgnParser.parse(drgnRoot->type.type);
 
   std::stringstream out;
-  Printer printer(out);
+  Printer printer{out, typeGraph.size()};
   printer.print(*type);
 
   // TODO standardise expected-actual order
