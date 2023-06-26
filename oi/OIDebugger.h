@@ -48,9 +48,6 @@ class OIDebugger {
   bool processTargetData();
   bool executeCode(pid_t);
   void setDataSegmentSize(size_t);
-  void setGenerateJitDebugInfo(bool genJitDebugInfo) {
-    compilerConfig.generateJitDebugInfo = genJitDebugInfo;
-  }
   void restoreState(void);
   bool segConfigExists(void) const {
     return segConfig.existingConfig;

@@ -143,8 +143,6 @@ constexpr static OIOpts opts{
         'B', "dump-data-segment", no_argument, nullptr,
         "Dump the data segment's content, before TreeBuilder processes it\n"
         "Each argument gets its own dump file: 'dataseg.<oid-pid>.<arg>.dump'"},
-    OIOpt{'j', "generate-jit-debug", no_argument, nullptr,
-          "Output debug info for the generated JIT code"},
     OIOpt{'a', "log-all-structs", no_argument, nullptr, "Log all structures"},
     OIOpt{'m', "mode", required_argument, "[prod]",
           "Allows to specify a mode of operation/group of settings"},
@@ -261,7 +259,6 @@ struct Config {
   bool cacheRemoteDownload;
   bool enableJitLogging;
   bool removeMappings;
-  bool generateJitDebug;
   bool compAndExit;
   bool genPaddingStats = true;
   bool attachToProcess = true;
@@ -304,7 +301,6 @@ static ExitStatus::ExitStatus runScript(
   }
   oid->setCustomCodeFile(oidConfig.customCodeFile);
   oid->setEnableJitLogging(oidConfig.enableJitLogging);
-  oid->setGenerateJitDebugInfo(oidConfig.generateJitDebug);
   oid->setHardDisableDrgn(oidConfig.hardDisableDrgn);
 
   VLOG(1) << "OIDebugger constructor took " << std::dec
@@ -563,9 +559,6 @@ int main(int argc, char* argv[]) {
       case 'e':
         oidConfig.compAndExit = true;
         break;
-      case 'j':
-        oidConfig.generateJitDebug = true;
-        break;
       case 'c':
         oidConfig.configFile = std::string(optarg);
 
@@ -692,6 +685,7 @@ int main(int argc, char* argv[]) {
   if (!featureSet) {
     return ExitStatus::UsageError;
   }
+  compilerConfig.features = *featureSet;
   codeGenConfig.features = *featureSet;
   tbConfig.features = *featureSet;
 

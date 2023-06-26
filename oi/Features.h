@@ -27,6 +27,7 @@
   X(CaptureThriftIsset, "capture-thrift-isset") \
   X(TypeGraph, "type-graph")                    \
   X(TypedDataSegment, "typed-data-segment")     \
+  X(GenJitDebug, "gen-jit-debug")               \
   X(PolymorphicInheritance, "polymorphic-inheritance")
 
 namespace ObjectIntrospection {
