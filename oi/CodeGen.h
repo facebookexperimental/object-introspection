@@ -18,7 +18,9 @@
 #include <filesystem>
 #include <functional>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 #include "ContainerInfo.h"
 #include "OICodeGen.h"
@@ -28,6 +30,8 @@ struct drgn_type;
 class SymbolService;
 
 namespace type_graph {
+class Class;
+struct Member;
 class TypeGraph;
 }  // namespace type_graph
 
@@ -58,4 +62,14 @@ class CodeGen {
   SymbolService& symbols_;
   std::vector<ContainerInfo> containerInfos_;
   std::unordered_set<const ContainerInfo*> definedContainers_;
+  std::unordered_map<const type_graph::Class*, const type_graph::Member*>
+      thriftIssetMembers_;
+
+  void genDefsThrift(const type_graph::TypeGraph& typeGraph, std::string& code);
+  void addGetSizeFuncDefs(const type_graph::TypeGraph& typeGraph,
+                          std::string& code);
+  void getClassSizeFuncDef(const type_graph::Class& c, std::string& code);
+  void getClassSizeFuncConcrete(std::string_view funcName,
+                                const type_graph::Class& c,
+                                std::string& code) const;
 };
