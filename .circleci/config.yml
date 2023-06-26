@@ -14,9 +14,17 @@ workflows:
           name: test-gcc
           requires:
             - build-gcc
+      - test:
+          name: test-type-graph-gcc
+          requires:
+            - build-gcc
+          oid_test_args: "-ftype-graph"
+          tests_regex: "OidIntegration\\..*"
+          exclude_regex: ".*inheritance_polymorphic.*|.*fbstring.*"
       - coverage:
           requires:
             - test-gcc
+            - test-type-graph-gcc
 
       - build:
           name: build-clang
@@ -27,6 +35,13 @@ workflows:
           name: test-clang
           requires:
             - build-clang
+      - test:
+          name: test-type-graph-clang
+          requires:
+            - build-clang
+          oid_test_args: "-ftype-graph"
+          tests_regex: "OidIntegration\\..*"
+          exclude_regex: ".*inheritance_polymorphic.*|.*fbstring.*|.*std_string_*|.*multi_arg_tb_.*|.*ignored_a"
 
 executors:
   ubuntu-docker:
@@ -132,6 +147,16 @@ jobs:
 
   test:
     executor: big-boy
+    parameters:
+      oid_test_args:
+        type: string
+        default: ""
+      tests_regex:
+        type: string
+        default: ".*"
+      exclude_regex:
+        type: string
+        default: ""
     working_directory:
       /tmp/object-introspection
     steps:
@@ -155,9 +180,16 @@ jobs:
             OMP_NUM_THREADS: 1
           command: |
             echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
-            ctest --test-dir build/test/ --test-action Test -j 16 \
-              --no-compress-output --output-on-failure \
-              --schedule-random --timeout 60 \
+            OID_TEST_ARGS='<< parameters.oid_test_args >>' ctest \
+              --test-dir build/test/ \
+              --test-action Test \
+              -j 16 \
+              --tests-regex '<< parameters.tests_regex >>' \
+              --exclude-regex '<< parameters.exclude_regex >>' \
+              --no-compress-output \
+              --output-on-failure \
+              --schedule-random \
+              --timeout 60 \
               --output-junit results.xml
       - store_test_results:
           path: build/test/results.xml
