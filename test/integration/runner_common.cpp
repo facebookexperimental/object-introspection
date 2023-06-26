@@ -21,14 +21,17 @@ namespace bp = boost::process;
 namespace bpt = boost::property_tree;
 namespace fs = std::filesystem;
 
+bool run_skipped_tests = false;
+
+namespace {
+
 std::string oidExe = OID_EXE_PATH;
 std::string configFile = CONFIG_FILE_PATH;
 
 bool verbose = false;
 bool preserve = false;
 bool preserve_on_failure = false;
-bool run_skipped_tests = false;
-std::vector<std::string> extra_feature_args{};
+std::vector<std::string> global_oid_args{};
 
 constexpr static OIOpts cliOpts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit"},
@@ -51,8 +54,14 @@ void usage(std::string_view progname) {
   std::cout << cliOpts;
 }
 
+}  // namespace
+
 int main(int argc, char* argv[]) {
   ::testing::InitGoogleTest(&argc, argv);
+
+  if (const char* envArgs = std::getenv("OID_TEST_ARGS")) {
+    boost::split(global_oid_args, envArgs, boost::is_any_of(" "));
+  }
 
   int c;
   while ((c = getopt_long(argc, argv, cliOpts.shortOpts(), cliOpts.longOpts(),
@@ -76,7 +85,7 @@ int main(int argc, char* argv[]) {
         oidExe = fs::absolute(optarg);
         break;
       case '\0':
-        extra_feature_args.push_back(std::string("-f") + optarg);
+        global_oid_args.push_back("-f"s + optarg);
         break;
       case 'h':
       default:
@@ -223,12 +232,12 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
       "--script-source"s, opts.scriptSource,
       "--pid"s, std::to_string(targetProcess.id()),
   };
-
   // clang-format on
 
-  // Specify feature args first so they can be overridden by extra_args of
-  // specific tests.
-  auto oid_args = extra_feature_args;
+  // The arguments are appended in ascending order of precedence (low -> high)
+  std::vector<std::string> oid_args;
+  oid_args.insert(oid_args.end(), global_oid_args.begin(),
+                  global_oid_args.end());
   oid_args.insert(oid_args.end(), extra_args.begin(), extra_args.end());
   oid_args.insert(oid_args.end(), default_args.begin(), default_args.end());
 

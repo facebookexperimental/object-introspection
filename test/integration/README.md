@@ -23,6 +23,13 @@ additional options to aid debugging:
     ctest --test-dir build/test/integration -j$(nproc) [--tests-regex <regex>]
     ```
 
+Additional command line arguments can be passed to oid by setting the `OID_TEST_ARGS` environment variable, e.g.:
+
+```sh
+OID_TEST_ARGS="-fmy-new-feature" build/test/integration/integration_test_runner
+OID_TEST_ARGS="-Fold-feature" ctest --test-dir build/test/integration
+```
+
 ## Adding tests
 
 1. Create a new test definition file in this directory and populate it as needed. See [Test Definition Format](#test-definition-format) for details.
