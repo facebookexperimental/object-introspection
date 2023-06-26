@@ -24,3 +24,5 @@ void test(type_graph::Pass pass,
           std::string_view expectedAfter);
 
 type_graph::Container getVector();
+type_graph::Container getMap();
+type_graph::Container getList();

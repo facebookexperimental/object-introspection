@@ -153,11 +153,41 @@ MyChild
 }
 
 TEST(TopoSorterTest, Containers) {
+  auto myparam1 = Class{Class::Kind::Struct, "MyParam1", 13};
+  auto myparam2 = Class{Class::Kind::Struct, "MyParam2", 13};
+  auto mycontainer = getMap();
+  mycontainer.templateParams.push_back((&myparam1));
+  mycontainer.templateParams.push_back((&myparam2));
+
+  test({mycontainer}, R"(
+MyParam1
+MyParam2
+std::map
+)");
+}
+
+TEST(TopoSorterTest, ContainersVector) {
+  // std::vector allows forward declared template parameters
   auto myparam = Class{Class::Kind::Struct, "MyParam", 13};
   auto mycontainer = getVector();
   mycontainer.templateParams.push_back((&myparam));
 
-  test({mycontainer}, "MyParam\nstd::vector");
+  test({mycontainer}, R"(
+std::vector
+MyParam
+)");
+}
+
+TEST(TopoSorterTest, ContainersList) {
+  // std::list allows forward declared template parameters
+  auto myparam = Class{Class::Kind::Struct, "MyParam", 13};
+  auto mycontainer = getList();
+  mycontainer.templateParams.push_back((&myparam));
+
+  test({mycontainer}, R"(
+std::list
+MyParam
+)");
 }
 
 TEST(TopoSorterTest, Arrays) {

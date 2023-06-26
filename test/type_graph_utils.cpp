@@ -59,3 +59,15 @@ Container getVector() {
   info.stubTemplateParams = {1};
   return Container{info, 24};
 }
+
+Container getMap() {
+  static ContainerInfo info{"std::map", STD_MAP_TYPE, "map"};
+  info.stubTemplateParams = {2, 3};
+  return Container{info, 48};
+}
+
+Container getList() {
+  static ContainerInfo info{"std::list", LIST_TYPE, "list"};
+  info.stubTemplateParams = {1};
+  return Container{info, 24};
+}

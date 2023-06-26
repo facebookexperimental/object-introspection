@@ -55,29 +55,57 @@ void TopoSorter::visit(Type& type) {
 }
 
 void TopoSorter::visit(Class& c) {
-  for (const auto& param : c.templateParams) {
-    visit(param.type);
-  }
   for (const auto& parent : c.parents) {
     visit(*parent.type);
   }
   for (const auto& mem : c.members) {
     visit(*mem.type);
   }
-  sortedTypes_.push_back(c);
-
-  // Same as pointers, child do not create a dependency so are delayed until the
-  // end
-  for (const auto& child : c.children) {
-    typesToSort_.push(child);
-  }
-}
-
-void TopoSorter::visit(Container& c) {
   for (const auto& param : c.templateParams) {
     visit(param.type);
   }
   sortedTypes_.push_back(c);
+
+  // Same as pointers, children do not create a dependency so are delayed until
+  // the end.
+  for (const auto& child : c.children) {
+    visitAfter(child);
+  }
+}
+
+namespace {
+/*
+ * C++17 allows the std::vector, std::list and std::forward_list containers to
+ * be instantiated with incomplete types.
+ *
+ * Other containers are not required to do this, but might still have this
+ * behaviour.
+ */
+bool containerAllowsIncompleteParams(const Container& c) {
+  switch (c.containerInfo_.ctype) {
+    case SEQ_TYPE:
+    case LIST_TYPE:
+      // Also std::forward_list, if we ever support that
+      // Would be good to have this as an option in the TOML files
+      return true;
+    default:
+      return false;
+  }
+}
+}  // namespace
+
+void TopoSorter::visit(Container& c) {
+  if (!containerAllowsIncompleteParams(c)) {
+    for (const auto& param : c.templateParams) {
+      visit(param.type);
+    }
+  }
+  sortedTypes_.push_back(c);
+  if (containerAllowsIncompleteParams(c)) {
+    for (const auto& param : c.templateParams) {
+      visitAfter(param.type);
+    }
+  }
 }
 
 void TopoSorter::visit(Enum& e) {
@@ -92,7 +120,25 @@ void TopoSorter::visit(Typedef& td) {
 void TopoSorter::visit(Pointer& p) {
   // Pointers do not create a dependency, but we do still care about the types
   // they point to, so delay them until the end.
-  typesToSort_.push(*p.pointeeType());
+  visitAfter(*p.pointeeType());
+}
+
+/*
+ * A type graph may contain cycles, so we need to slightly tweak the standard
+ * topological sorting algorithm. Cycles can only be introduced by certain
+ * edges, e.g. a pointer's underlying type. However, these edges do not
+ * introduce dependencies as these types can be forward declared in a C++
+ * program. This means we can delay processing them until after all of the true
+ * dependencies have been sorted.
+ */
+void TopoSorter::visitAfter(Type& type) {
+  typesToSort_.push(type);
+}
+
+void TopoSorter::visitAfter(Type* type) {
+  if (type) {
+    visitAfter(*type);
+  }
 }
 
 }  // namespace type_graph
