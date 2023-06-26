@@ -138,13 +138,8 @@ class OIDebugger {
     customCodeFile = std::move(newCCT);
   }
 
-  void setEnableJitLogging(bool enable) {
-    enableJitLogging = enable;
-  }
-
  private:
   bool debug = false;
-  bool enableJitLogging = false;
   pid_t traceePid{};
   uint64_t objectAddr{};
   oidMode mode{OID_MODE_THREAD};

@@ -3049,21 +3049,30 @@ bool OICodeGen::generateJitCode(std::string& code) {
     code.append(R"(
       #define SAVE_SIZE(val)
       #define SAVE_DATA(val)    StoreData(val, returnArg)
-
-      #define JLOG(str)                           \
-        do {                                      \
-          if (__builtin_expect(logFile, 0)) {     \
-            write(logFile, str, sizeof(str) - 1); \
-          }                                       \
-        } while (false)
-
-      #define JLOGPTR(ptr)                    \
-        do {                                  \
-          if (__builtin_expect(logFile, 0)) { \
-            __jlogptr((uintptr_t)ptr);        \
-          }                                   \
-        } while (false)
     )");
+
+    if (config.features[Feature::JitLogging]) {
+      code.append(R"(
+        #define JLOG(str)                           \
+          do {                                      \
+            if (__builtin_expect(logFile, 0)) {     \
+              write(logFile, str, sizeof(str) - 1); \
+            }                                       \
+          } while (false)
+
+        #define JLOGPTR(ptr)                    \
+          do {                                  \
+            if (__builtin_expect(logFile, 0)) { \
+              __jlogptr((uintptr_t)ptr);        \
+            }                                   \
+          } while (false)
+      )");
+    } else {
+      code.append(R"(
+        #define JLOG(str)
+        #define JLOGPTR(ptr)
+      )");
+    }
   } else {
     code.append(R"(
       #define SAVE_SIZE(val)    AddData(val, returnArg)
