@@ -180,6 +180,18 @@ std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
     }
   }
 
+  if (featuresSet[Feature::TreeBuilderTypeChecking] &&
+      !featuresSet[Feature::TypedDataSegment]) {
+    if (auto search = featureMap.find(Feature::TypedDataSegment);
+        search != featureMap.end() && !search->second) {
+      LOG(ERROR) << "TreeBuilderTypeChecking feature requires TypedDataSegment "
+                    "feature to be enabled but it was explicitly disabled!";
+      return {};
+    }
+    featuresSet[Feature::TypedDataSegment] = true;
+    LOG(WARNING) << "TreeBuilderTypeChecking feature requires TypedDataSegment "
+                    "feature to be enabled, enabling now.";
+  }
   if (featuresSet[Feature::TypedDataSegment] &&
       !featuresSet[Feature::TypeGraph]) {
     if (auto search = featureMap.find(Feature::TypeGraph);

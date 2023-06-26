@@ -63,6 +63,8 @@ class FuncGen {
       std::string& testCode,
       const std::string& rawType,
       ObjectIntrospection::FeatureSet features);
+  static void DefineOutputType(std::string& testCode,
+                               const std::string& rawType);
 
   static void DefineTopLevelGetSizeRefRet(std::string& testCode,
                                           const std::string& type);

@@ -21,17 +21,18 @@
 
 #include "oi/EnumBitset.h"
 
-#define OI_FEATURE_LIST                         \
-  X(ChaseRawPointers, "chase-raw-pointers")     \
-  X(PackStructs, "pack-structs")                \
-  X(GenPaddingStats, "gen-padding-stats")       \
-  X(CaptureThriftIsset, "capture-thrift-isset") \
-  X(TypeGraph, "type-graph")                    \
-  X(TypedDataSegment, "typed-data-segment")     \
-  X(TreeBuilderV2, "tree-builder-v2")           \
-  X(GenJitDebug, "gen-jit-debug")               \
-  X(JitLogging, "jit-logging")                  \
-  X(JitTiming, "jit-timing")                    \
+#define OI_FEATURE_LIST                                    \
+  X(ChaseRawPointers, "chase-raw-pointers")                \
+  X(PackStructs, "pack-structs")                           \
+  X(GenPaddingStats, "gen-padding-stats")                  \
+  X(CaptureThriftIsset, "capture-thrift-isset")            \
+  X(TypeGraph, "type-graph")                               \
+  X(TypedDataSegment, "typed-data-segment")                \
+  X(TreeBuilderTypeChecking, "tree-builder-type-checking") \
+  X(TreeBuilderV2, "tree-builder-v2")                      \
+  X(GenJitDebug, "gen-jit-debug")                          \
+  X(JitLogging, "jit-logging")                             \
+  X(JitTiming, "jit-timing")                               \
   X(PolymorphicInheritance, "polymorphic-inheritance")
 
 namespace ObjectIntrospection {

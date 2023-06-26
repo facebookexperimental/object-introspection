@@ -36,6 +36,9 @@ std::string_view featureHelp(Feature f) {
       return "Use Type Graph for code generation (CodeGen v2).";
     case Feature::TypedDataSegment:
       return "Use Typed Data Segment in generated code.";
+    case Feature::TreeBuilderTypeChecking:
+      return "Use Typed Data Segment to perform runtime Type Checking in "
+             "TreeBuilder.";
     case Feature::TreeBuilderV2:
       return "Use Tree Builder v2 for reading the data segment";
     case Feature::GenJitDebug:

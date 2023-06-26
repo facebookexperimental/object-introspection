@@ -106,6 +106,11 @@ void addIncludes(const TypeGraph& typeGraph,
     includes.emplace("functional");
     includes.emplace("oi/types/st.h");
   }
+  if (features[Feature::TreeBuilderTypeChecking]) {
+    includes.emplace("oi/types/dy.h");
+
+    code += "#define DEFINE_DESCRIBE 1\n"; // added before all includes
+  }
   if (features[Feature::JitTiming]) {
     includes.emplace("chrono");
   }
@@ -867,12 +872,15 @@ void CodeGen::generate(
   code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
   code += "} // namespace\n} // namespace OIInternal\n";
 
+  const auto typeName = SymbolService::getTypeName(drgnType);
   if (config_.features[Feature::TypedDataSegment]) {
-    FuncGen::DefineTopLevelGetSizeRefTyped(
-        code, SymbolService::getTypeName(drgnType), config_.features);
+    FuncGen::DefineTopLevelGetSizeRefTyped(code, typeName, config_.features);
   } else {
-    FuncGen::DefineTopLevelGetSizeRef(
-        code, SymbolService::getTypeName(drgnType), config_.features);
+    FuncGen::DefineTopLevelGetSizeRef(code, typeName, config_.features);
+  }
+
+  if (config_.features[Feature::TreeBuilderTypeChecking]) {
+    FuncGen::DefineOutputType(code, typeName);
   }
 
   if (VLOG_IS_ON(3)) {

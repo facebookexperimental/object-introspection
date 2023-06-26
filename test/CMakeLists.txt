@@ -95,6 +95,12 @@ cpp_unittest(
   DEPS oicore
 )
 
+cpp_unittest(
+  NAME types_static_test
+  SRCS ../oi/types/test/StaticTest.cpp
+  DEPS oicore
+)
+
 # Integration tests
 if (WITH_FLAKY_TESTS)
   add_test(
@@ -110,4 +116,3 @@ endif()
 
 include_directories("${PROJECT_SOURCE_DIR}/extern/drgn/build")
 add_subdirectory("integration")
-

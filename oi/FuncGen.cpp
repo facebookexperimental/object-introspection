@@ -364,6 +364,26 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
   testCode.append(fmt.str());
 }
 
+/*
+ * DefineOutputType
+ *
+ * Present the dynamic type of an object for OID/OIL/OITB to link against.
+ */
+void FuncGen::DefineOutputType(std::string& code, const std::string& rawType) {
+  std::string func = R"(
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wunknown-attributes"
+    /* RawType: %1% */
+    extern const types::dy::Dynamic __attribute__((used, retain)) outputType%2$016x =
+      OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type::describe;
+    #pragma GCC diagnostic pop
+  )";
+
+  boost::format fmt =
+      boost::format(func) % rawType % std::hash<std::string>{}(rawType);
+  code.append(fmt.str());
+}
+
 void FuncGen::DefineTopLevelGetSizeRefRet(std::string& testCode,
                                           const std::string& rawType) {
   std::string func = R"(

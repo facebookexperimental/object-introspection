@@ -272,6 +272,7 @@ add_library(oicore
 add_dependencies(oicore libdrgn)
 target_include_directories(oicore SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
+target_include_directories(oicore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 llvm_map_components_to_libnames(llvm_libs core native mcjit x86disassembler)
 target_link_libraries(oicore
