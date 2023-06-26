@@ -1,6 +1,6 @@
 [info]
 type_name = "apache::thrift::detail::isset_bitset"
-ctype = "DUMMY_TYPE"
+ctype = "THRIFT_ISSET_TYPE"
 header = "thrift/lib/cpp2/gen/module_types_h.h"
 
 # Old:

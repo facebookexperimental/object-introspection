@@ -41,6 +41,7 @@
 using type_graph::Class;
 using type_graph::Container;
 using type_graph::Enum;
+using type_graph::Member;
 using type_graph::Type;
 using type_graph::Typedef;
 using type_graph::TypeGraph;
@@ -164,6 +165,81 @@ void genDecls(const TypeGraph& typeGraph, std::string& code) {
     }
   }
 }
+
+/*
+ * Generates a declaration for a given fully-qualified type.
+ *
+ * e.g. Given "nsA::nsB::Foo"
+ *
+ * The folowing is generated:
+ *   namespace nsA::nsB {
+ *   struct Foo;
+ *   }  // namespace nsA::nsB
+ */
+void declareFullyQualifiedStruct(const std::string& name, std::string& code) {
+  if (auto pos = name.rfind("::"); pos != name.npos) {
+    auto ns = name.substr(0, pos);
+    auto structName = name.substr(pos + 2);
+    code += "namespace ";
+    code += ns;
+    code += " {\n";
+    code += "struct " + structName + ";\n";
+    code += "} // namespace ";
+    code += ns;
+    code += "\n";
+  } else {
+    code += "struct ";
+    code += name;
+    code += ";\n";
+  }
+}
+
+void genDefsThriftClass(const Class& c, std::string& code) {
+  declareFullyQualifiedStruct(c.fqName(), code);
+  code += "namespace apache { namespace thrift {\n";
+  code += "template <> struct TStructDataStorage<" + c.fqName() + "> {\n";
+  code +=
+      "  static constexpr const std::size_t fields_size = 1; // Invalid, do "
+      "not use\n";
+  code +=
+      "  static const std::array<folly::StringPiece, fields_size> "
+      "fields_names;\n";
+  code += "  static const std::array<int16_t, fields_size> fields_ids;\n";
+  code +=
+      "  static const std::array<protocol::TType, fields_size> fields_types;\n";
+  code += "\n";
+  code +=
+      "  static const std::array<folly::StringPiece, fields_size> "
+      "storage_names;\n";
+  code +=
+      "  static const std::array<int, fields_size> __attribute__((weak)) "
+      "isset_indexes;\n";
+  code += "};\n";
+  code += "}} // namespace thrift, namespace apache\n";
+}
+
+}  // namespace
+
+void CodeGen::genDefsThrift(const TypeGraph& typeGraph, std::string& code) {
+  for (const Type& t : typeGraph.finalTypes) {
+    if (const auto* c = dynamic_cast<const Class*>(&t)) {
+      const Member* issetMember = nullptr;
+      for (const auto& member : c->members) {
+        if (const auto* container = dynamic_cast<const Container*>(member.type);
+            container && container->containerInfo_.ctype == THRIFT_ISSET_TYPE) {
+          issetMember = &member;
+          break;
+        }
+      }
+      if (issetMember) {
+        genDefsThriftClass(*c, code);
+        thriftIssetMembers_[c] = issetMember;
+      }
+    }
+  }
+}
+
+namespace {
 
 void genDefsClass(const Class& c, std::string& code) {
   if (c.kind() == Class::Kind::Union)
@@ -293,95 +369,129 @@ void addStandardGetSizeFuncDefs(std::string& code) {
 void getClassSizeFuncDecl(const Class& c, std::string& code) {
   code += "void getSizeType(const " + c.name() + " &t, size_t &returnArg);\n";
 }
+}  // namespace
 
-void getClassSizeFuncDef(const Class& c,
-                         SymbolService& symbols,
-                         bool polymorphicInheritance,
-                         std::string& code) {
-  bool enablePolymorphicInheritance = polymorphicInheritance && c.isDynamic();
+/*
+ * Generates a getSizeType function for the given concrete class.
+ *
+ * Does not worry about polymorphism.
+ */
+void CodeGen::getClassSizeFuncConcrete(std::string_view funcName,
+                                       const Class& c,
+                                       std::string& code) const {
+  code += "void " + std::string{funcName} + "(const " + c.name() +
+          " &t, size_t &returnArg) {\n";
 
-  std::string funcName = "getSizeType";
-  if (enablePolymorphicInheritance) {
-    funcName = "getSizeTypeConcrete";
+  const Member* thriftIssetMember = nullptr;
+  if (const auto it = thriftIssetMembers_.find(&c);
+      it != thriftIssetMembers_.end()) {
+    thriftIssetMember = it->second;
   }
 
-  code +=
-      "void " + funcName + "(const " + c.name() + " &t, size_t &returnArg) {\n";
-  for (const auto& member : c.members) {
+  if (thriftIssetMember) {
+    code += "  using thrift_data = apache::thrift::TStructDataStorage<" +
+            c.fqName() + ">;\n";
+  }
+
+  for (size_t i = 0; i < c.members.size(); i++) {
+    const auto& member = c.members[i];
     if (member.name.starts_with(type_graph::AddPadding::MemberPrefix))
       continue;
+
+    if (thriftIssetMember && thriftIssetMember != &member) {
+      // Capture Thrift's isset value for each field, except for __isset
+      // itself
+      std::string issetIdxStr =
+          "thrift_data::isset_indexes[" + std::to_string(i) + "]";
+      code += "  if (&thrift_data::isset_indexes != nullptr && " + issetIdxStr +
+              " != -1) {\n";
+      code += "    SAVE_DATA(t." + thriftIssetMember->name + ".get(" +
+              issetIdxStr + "));\n";
+      code += "  } else {\n";
+      code += "    SAVE_DATA(-1);\n";
+      code += "  }\n";
+    }
+
     code += "  JLOG(\"" + member.name + " @\");\n";
     code += "  JLOGPTR(&t." + member.name + ");\n";
     code += "  getSizeType(t." + member.name + ", returnArg);\n";
   }
   code += "}\n";
-
-  if (enablePolymorphicInheritance) {
-    std::vector<SymbolInfo> childVtableAddrs;
-    childVtableAddrs.reserve(c.children.size());
-
-    for (const Type& childType : c.children) {
-      auto* childClass = dynamic_cast<const Class*>(&childType);
-      if (childClass == nullptr) {
-        abort();  // TODO
-      }
-      //      TODO:
-      //      auto fqChildName = *fullyQualifiedName(child);
-      auto fqChildName = "TODO - implement me";
-
-      // We must split this assignment and append because the C++ standard lacks
-      // an operator for concatenating std::string and std::string_view...
-      std::string childVtableName = "vtable for ";
-      childVtableName += fqChildName;
-
-      auto optVtableSym = symbols.locateSymbol(childVtableName, true);
-      if (!optVtableSym) {
-        //        LOG(ERROR) << "Failed to find vtable address for '" <<
-        //        childVtableName; LOG(ERROR) << "Falling back to non dynamic
-        //        mode";
-        childVtableAddrs.clear();  // TODO why??
-        break;
-      }
-      childVtableAddrs.push_back(*optVtableSym);
-    }
-
-    code +=
-        "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
-    code += "  auto *vptr = *reinterpret_cast<uintptr_t * const *>(&t);\n";
-    code += "  uintptr_t topOffset = *(vptr - 2);\n";
-    code += "  uintptr_t vptrVal = reinterpret_cast<uintptr_t>(vptr);\n";
-
-    for (size_t i = 0; i < c.children.size(); i++) {
-      // The vptr will point to *somewhere* in the vtable of this object's
-      // concrete class. The exact offset into the vtable can vary based on a
-      // number of factors, so we compare the vptr against the vtable range for
-      // each possible class to determine the concrete type.
-      //
-      // This works for C++ compilers which follow the GNU v3 ABI, i.e. GCC and
-      // Clang. Other compilers may differ.
-      const Type& child = c.children[i];
-      auto& vtableSym = childVtableAddrs[i];
-      uintptr_t vtableMinAddr = vtableSym.addr;
-      uintptr_t vtableMaxAddr = vtableSym.addr + vtableSym.size;
-      code += "  if (vptrVal >= 0x" +
-              (boost::format("%x") % vtableMinAddr).str() + " && vptrVal < 0x" +
-              (boost::format("%x") % vtableMaxAddr).str() + ") {\n";
-      code += "    SAVE_DATA(" + std::to_string(i) + ");\n";
-      code +=
-          "    uintptr_t baseAddress = reinterpret_cast<uintptr_t>(&t) + "
-          "topOffset;\n";
-      code += "    getSizeTypeConcrete(*reinterpret_cast<const " +
-              child.name() + "*>(baseAddress), returnArg);\n";
-      code += "    return;\n";
-      code += "  }\n";
-    }
-
-    code += "  SAVE_DATA(-1);\n";
-    code += "  getSizeTypeConcrete(t, returnArg);\n";
-    code += "}\n";
-  }
 }
 
+void CodeGen::getClassSizeFuncDef(const Class& c, std::string& code) {
+  if (!config_.features[Feature::PolymorphicInheritance] || !c.isDynamic()) {
+    // Just directly use the concrete size function as this class' getSizeType()
+    getClassSizeFuncConcrete("getSizeType", c, code);
+    return;
+  }
+
+  getClassSizeFuncConcrete("getSizeTypeConcrete", c, code);
+
+  std::vector<SymbolInfo> childVtableAddrs;
+  childVtableAddrs.reserve(c.children.size());
+
+  for (const Type& childType : c.children) {
+    auto* childClass = dynamic_cast<const Class*>(&childType);
+    if (childClass == nullptr) {
+      abort();  // TODO
+    }
+    //      TODO:
+    //      auto fqChildName = *fullyQualifiedName(child);
+    auto fqChildName = "TODO - implement me";
+
+    // We must split this assignment and append because the C++ standard lacks
+    // an operator for concatenating std::string and std::string_view...
+    std::string childVtableName = "vtable for ";
+    childVtableName += fqChildName;
+
+    auto optVtableSym = symbols_.locateSymbol(childVtableName, true);
+    if (!optVtableSym) {
+      //        LOG(ERROR) << "Failed to find vtable address for '" <<
+      //        childVtableName; LOG(ERROR) << "Falling back to non dynamic
+      //        mode";
+      childVtableAddrs.clear();  // TODO why??
+      break;
+    }
+    childVtableAddrs.push_back(*optVtableSym);
+  }
+
+  code += "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
+  code += "  auto *vptr = *reinterpret_cast<uintptr_t * const *>(&t);\n";
+  code += "  uintptr_t topOffset = *(vptr - 2);\n";
+  code += "  uintptr_t vptrVal = reinterpret_cast<uintptr_t>(vptr);\n";
+
+  for (size_t i = 0; i < c.children.size(); i++) {
+    // The vptr will point to *somewhere* in the vtable of this object's
+    // concrete class. The exact offset into the vtable can vary based on a
+    // number of factors, so we compare the vptr against the vtable range for
+    // each possible class to determine the concrete type.
+    //
+    // This works for C++ compilers which follow the GNU v3 ABI, i.e. GCC and
+    // Clang. Other compilers may differ.
+    const Type& child = c.children[i];
+    auto& vtableSym = childVtableAddrs[i];
+    uintptr_t vtableMinAddr = vtableSym.addr;
+    uintptr_t vtableMaxAddr = vtableSym.addr + vtableSym.size;
+    code += "  if (vptrVal >= 0x" +
+            (boost::format("%x") % vtableMinAddr).str() + " && vptrVal < 0x" +
+            (boost::format("%x") % vtableMaxAddr).str() + ") {\n";
+    code += "    SAVE_DATA(" + std::to_string(i) + ");\n";
+    code +=
+        "    uintptr_t baseAddress = reinterpret_cast<uintptr_t>(&t) + "
+        "topOffset;\n";
+    code += "    getSizeTypeConcrete(*reinterpret_cast<const " + child.name() +
+            "*>(baseAddress), returnArg);\n";
+    code += "    return;\n";
+    code += "  }\n";
+  }
+
+  code += "  SAVE_DATA(-1);\n";
+  code += "  getSizeTypeConcrete(t, returnArg);\n";
+  code += "}\n";
+}
+
+namespace {
 void getContainerSizeFuncDecl(const Container& c, std::string& code) {
   auto fmt =
       boost::format(c.containerInfo_.codegen.decl) % c.containerInfo_.typeName;
@@ -410,20 +520,20 @@ void addGetSizeFuncDecls(const TypeGraph& typeGraph, std::string& code) {
   }
 }
 
-void addGetSizeFuncDefs(
-    const TypeGraph& typeGraph,
-    SymbolService& symbols,
-    std::unordered_set<const ContainerInfo*>& definedContainers,
-    bool polymorphicInheritance,
-    std::string& code) {
+}  // namespace
+
+void CodeGen::addGetSizeFuncDefs(const TypeGraph& typeGraph,
+                                 std::string& code) {
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
-      getClassSizeFuncDef(*c, symbols, polymorphicInheritance, code);
+      getClassSizeFuncDef(*c, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
-      getContainerSizeFuncDef(definedContainers, *con, code);
+      getContainerSizeFuncDef(definedContainers_, *con, code);
     }
   }
 }
+
+namespace {
 
 void addStandardTypeHandlers(std::string& code) {
   code += R"(
@@ -455,6 +565,7 @@ void addStandardTypeHandlers(std::string& code) {
   )";
 }
 
+// TODO support thrift isset
 void getClassTypeHandler(const Class& c, std::string& code) {
   std::string funcName = "getSizeType";
 
@@ -646,6 +757,10 @@ void CodeGen::generate(
     code += "} // namespace\n} // namespace OIInternal\n";
   }
 
+  if (config_.features[Feature::CaptureThriftIsset]) {
+    genDefsThrift(typeGraph, code);
+  }
+
   /*
    * The purpose of the anonymous namespace within `OIInternal` is that
    * anything defined within an anonymous namespace has internal-linkage,
@@ -676,8 +791,7 @@ void CodeGen::generate(
     addGetSizeFuncDecls(typeGraph, code);
 
     addStandardGetSizeFuncDefs(code);
-    addGetSizeFuncDefs(typeGraph, symbols_, definedContainers_,
-                       config_.features[Feature::PolymorphicInheritance], code);
+    addGetSizeFuncDefs(typeGraph, code);
   }
 
   assert(typeGraph.rootTypes().size() == 1);
