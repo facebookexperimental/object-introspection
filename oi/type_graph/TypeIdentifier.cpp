@@ -31,17 +31,8 @@ Pass TypeIdentifier::createPass() {
   return Pass("TypeIdentifier", fn);
 }
 
-void TypeIdentifier::visit(Type& type) {
-  if (visited_.count(&type) != 0)
-    return;
-
-  visited_.insert(&type);
-  type.accept(*this);
-}
-
-namespace {
-bool isAllocator(Type* t) {
-  auto* c = dynamic_cast<Class*>(t);
+bool TypeIdentifier::isAllocator(Type& t) {
+  auto* c = dynamic_cast<Class*>(&t);
   if (!c)
     return false;
 
@@ -54,7 +45,14 @@ bool isAllocator(Type* t) {
   }
   return false;
 }
-}  // namespace
+
+void TypeIdentifier::visit(Type& type) {
+  if (visited_.count(&type) != 0)
+    return;
+
+  visited_.insert(&type);
+  type.accept(*this);
+}
 
 void TypeIdentifier::visit(Container& c) {
   const auto& stubParams = c.containerInfo_.stubTemplateParams;
@@ -78,19 +76,12 @@ void TypeIdentifier::visit(Container& c) {
         size = 0;
       }
 
-      if (isAllocator(param.type)) {
+      if (isAllocator(*param.type)) {
         auto* allocator =
             dynamic_cast<Class*>(param.type);  // TODO please don't do this...
-        Type* typeToAllocate;
-        if (!allocator->templateParams.empty()) {
-          typeToAllocate = allocator->templateParams.at(0).type;
-        } else {
-          // We've encountered some bad DWARF. Let's guess that the type to
-          // allocate is the first parameter of the container.
-          typeToAllocate = c.templateParams[0].type;
-        }
-        auto* dummy = typeGraph_.make_type<DummyAllocator>(
-            *typeToAllocate, size, param.type->align());
+        Type& typeToAllocate = *allocator->templateParams.at(0).type;
+        auto* dummy = typeGraph_.make_type<DummyAllocator>(typeToAllocate, size,
+                                                           param.type->align());
         c.templateParams[i] = dummy;
       } else {
         auto* dummy = typeGraph_.make_type<Dummy>(size, param.type->align());

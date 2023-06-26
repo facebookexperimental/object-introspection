@@ -50,6 +50,7 @@ class Printer : public ConstVisitor {
   void print_function(const Function& function);
   void print_child(const Type& child);
   void print_value(const std::string& value);
+  void print_qualifiers(const QualifierSet& qualifiers);
   static std::string align_str(uint64_t align);
 
   std::ostream& out_;

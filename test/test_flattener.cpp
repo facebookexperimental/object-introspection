@@ -762,3 +762,75 @@ TEST(FlattenerTest, ParentClassAndContainer) {
             Primitive: int32_t
 )");
 }
+
+TEST(FlattenerTest, AllocatorParamInParent) {
+  ContainerInfo pairInfo{"std::pair", SEQ_TYPE, "utility"};
+
+  ContainerInfo mapInfo{"std::map", STD_MAP_TYPE, "utility"};
+  mapInfo.stubTemplateParams = {2, 3};
+
+  Primitive myint{Primitive::Kind::Int32};
+
+  Container pair{pairInfo, 8};
+  pair.templateParams.push_back(TemplateParam{&myint, {Qualifier::Const}});
+  pair.templateParams.push_back(TemplateParam{&myint});
+
+  Class myallocBase{Class::Kind::Struct,
+                    "MyAllocBase<std::pair<const int, int>>", 1};
+  myallocBase.templateParams.push_back(TemplateParam{&pair});
+  myallocBase.functions.push_back(Function{"allocate"});
+  myallocBase.functions.push_back(Function{"deallocate"});
+
+  Class myalloc{Class::Kind::Struct, "MyAlloc<std::pair<const int, int>>", 1};
+  myalloc.parents.push_back(Parent{&myallocBase, 0});
+  myalloc.functions.push_back(Function{"allocate"});
+  myalloc.functions.push_back(Function{"deallocate"});
+
+  Container map{mapInfo, 24};
+  map.templateParams.push_back(TemplateParam{&myint});
+  map.templateParams.push_back(TemplateParam{&myint});
+  map.templateParams.push_back(TemplateParam{&myalloc});
+
+  test(Flattener::createPass(), {map}, R"(
+[0] Container: std::map (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc<std::pair<const int, int>> (size: 1)
+          Parent (offset: 0)
+[2]         Struct: MyAllocBase<std::pair<const int, int>> (size: 1)
+              Param
+[3]             Container: std::pair (size: 8)
+                  Param
+                    Primitive: int32_t
+                    Qualifiers: const
+                  Param
+                    Primitive: int32_t
+              Function: allocate
+              Function: deallocate
+          Function: allocate
+          Function: deallocate
+)",
+       R"(
+[0] Container: std::map (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc<std::pair<const int, int>> (size: 1)
+          Param
+[2]         Container: std::pair (size: 8)
+              Param
+                Primitive: int32_t
+                Qualifiers: const
+              Param
+                Primitive: int32_t
+          Function: allocate
+          Function: deallocate
+          Function: allocate
+          Function: deallocate
+)");
+}

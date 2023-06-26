@@ -33,6 +33,7 @@ class TypeGraph;
 class TypeIdentifier : public RecursiveVisitor {
  public:
   static Pass createPass();
+  static bool isAllocator(Type& t);
 
   TypeIdentifier(TypeGraph& typeGraph) : typeGraph_(typeGraph) {
   }

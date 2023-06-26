@@ -77,32 +77,40 @@ TEST(TypeIdentifierTest, Allocator) {
 )");
 }
 
-TEST(TypeIdentifierTest, AllocatorNoParam) {
+TEST(TypeIdentifierTest, AllocatorSize1) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto myalloc = Class{Class::Kind::Struct, "MyAlloc", 8};
+  auto myalloc = Class{Class::Kind::Struct, "MyAlloc", 1};
+  myalloc.templateParams.push_back(TemplateParam{&myint});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});
 
   auto container = getVector();
   container.templateParams.push_back(TemplateParam{&myint});
   container.templateParams.push_back(TemplateParam{&myalloc});
+  container.templateParams.push_back(TemplateParam{&myint});
 
   test(TypeIdentifier::createPass(), {container}, R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
       Param
-[1]     Struct: MyAlloc (size: 8)
+[1]     Struct: MyAlloc (size: 1)
+          Param
+            Primitive: int32_t
           Function: allocate
           Function: deallocate
+      Param
+        Primitive: int32_t
 )",
        R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
       Param
-        DummyAllocator (size: 8)
+        DummyAllocator (size: 0)
           Primitive: int32_t
+      Param
+        Primitive: int32_t
 )");
 }
