@@ -523,6 +523,14 @@ bool OICompiler::compile(const std::string& code,
         "/synthetic/headers", clang::frontend::IncludeDirGroup::IndexHeaderMap,
         false, false);
   }
+  if (config.features[Feature::TreeBuilderTypeChecking]) {
+    compInv->getPreprocessorOpts().addRemappedFile(
+        "/synthetic/headers/oi/types/dy.h",
+        MemoryBuffer::getMemBuffer(headers::oi_types_dy_h).release());
+    headerSearchOptions.AddPath(
+        "/synthetic/headers", clang::frontend::IncludeDirGroup::IndexHeaderMap,
+        false, false);
+  }
 
   compInv->getFrontendOpts().OutputFile = objectPath;
   compInv->getTargetOpts().Triple =

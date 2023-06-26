@@ -8,6 +8,7 @@ function(embed_headers output)
   file(APPEND ${output} "namespace headers {\n\n")
 
   set(HEADERS
+    ../include/oi/types/dy.h
     ../include/oi/types/st.h
     ../oi/OITraceCode.cpp
   )

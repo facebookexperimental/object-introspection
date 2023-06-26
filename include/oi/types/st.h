@@ -49,8 +49,17 @@
  *              In this case, `ret` is of type `ComplexType`. After the two
  *              writes, the inner function returns `Unit`. Delegate then
  *              internally converts this unit to a `VarInt`.
+ *
+ * DEFINE_DESCRIBE controls the additional feature of dynamic descriptions of
+ * types. If defined when this header is included, static types provide a
+ * dynamic description of their type as the constexpr field `describe`. Compound
+ * types compose appropriately.
  */
 namespace ObjectIntrospection::types::st {
+
+#ifdef DEFINE_DESCRIBE
+#include "oi/types/dy.h"
+#endif
 
 /*
  * Unit
@@ -74,6 +83,10 @@ class Unit {
   Unit<DataBuffer> delegate(F const& cb) {
     return cb(*this);
   }
+
+#ifdef DEFINE_DESCRIBE
+  static constexpr types::dy::Unit describe{};
+#endif
 
  private:
   /*
@@ -118,6 +131,10 @@ class VarInt {
     return Unit<DataBuffer>(_buf);
   }
 
+#ifdef DEFINE_DESCRIBE
+  static constexpr types::dy::VarInt describe{};
+#endif
+
  private:
   DataBuffer _buf;
 };
@@ -147,6 +164,10 @@ class Pair {
     Unit<DataBuffer> second = cb(first);
     return second.template cast<T2>();
   }
+
+#ifdef DEFINE_DESCRIBE
+  static constexpr types::dy::Pair describe{T1::describe, T2::describe};
+#endif
 
  private:
   DataBuffer _buf;
@@ -196,6 +217,15 @@ class Sum {
     return cb(tail);
   }
 
+#ifdef DEFINE_DESCRIBE
+ private:
+  static constexpr std::array<types::dy::Dynamic, sizeof...(Types)> members{
+      Types::describe...};
+
+ public:
+  static constexpr types::dy::Sum describe{members};
+#endif
+
  private:
   DataBuffer _buf;
 };
@@ -237,7 +267,18 @@ class ListContents {
  * elements promised.
  */
 template <typename DataBuffer, typename T>
-using List = Pair<DataBuffer, VarInt<DataBuffer>, ListContents<DataBuffer, T>>;
+class List
+    : public Pair<DataBuffer, VarInt<DataBuffer>, ListContents<DataBuffer, T>> {
+ public:
+  List(DataBuffer db)
+      : Pair<DataBuffer, VarInt<DataBuffer>, ListContents<DataBuffer, T>>(db) {
+  }
+
+#ifdef DEFINE_DESCRIBE
+ public:
+  static constexpr types::dy::List describe{T::describe};
+#endif
+};
 
 }  // namespace ObjectIntrospection::types::st
 
