@@ -37,6 +37,16 @@ class EnumBitset {
     return bitset[static_cast<size_t>(v)];
   }
 
+  bool all() const noexcept {
+    return bitset.all();
+  }
+  bool any() const noexcept {
+    return bitset.any();
+  }
+  bool none() const noexcept {
+    return bitset.none();
+  }
+
  private:
   BitsetType bitset;
 };

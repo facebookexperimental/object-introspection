@@ -16,6 +16,7 @@
 #include "Flattener.h"
 
 #include "TypeGraph.h"
+#include "TypeIdentifier.h"
 
 namespace type_graph {
 
@@ -74,6 +75,44 @@ void flattenParent(const Parent& parent,
   } else {
     throw std::runtime_error("Invalid type for parent");
   }
+}
+
+/*
+ * Some compilers generate bad DWARF for allocators, such that they are missing
+ * their template parameter (which represents the type to be allocated).
+ *
+ * Try to add this missing parameter back in by pulling it from the allocator's
+ * parent class.
+ */
+void fixAllocatorParams(Class& alloc) {
+  if (!TypeIdentifier::isAllocator(alloc)) {
+    return;
+  }
+
+  if (!alloc.templateParams.empty()) {
+    // The DWARF looks ok
+    return;
+  }
+
+  if (alloc.parents.empty()) {
+    // Nothing we can do
+    return;
+  }
+
+  Type& parent = stripTypedefs(*alloc.parents[0].type);
+  Class* parentClass = dynamic_cast<Class*>(&parent);
+  if (!parentClass) {
+    // Not handled
+    return;
+  }
+
+  if (parentClass->templateParams.empty()) {
+    // Nothing we can do
+    return;
+  }
+
+  Type& typeToAllocate = stripTypedefs(*parentClass->templateParams[0].type);
+  alloc.templateParams.push_back(TemplateParam{&typeToAllocate});
 }
 }  // namespace
 
@@ -151,6 +190,9 @@ void Flattener::visit(Class& c) {
     const auto& parent = c.parents[parent_idx++];
     flattenParent(parent, flattenedMembers);
   }
+
+  // Perform fixups for bad DWARF
+  fixAllocatorParams(c);
 
   c.parents.clear();
   c.members = std::move(flattenedMembers);

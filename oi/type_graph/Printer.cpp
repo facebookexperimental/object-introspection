@@ -159,6 +159,7 @@ void Printer::print_param(const TemplateParam& param) {
   } else {
     print(*param.type);
   }
+  print_qualifiers(param.qualifiers);
   depth_--;
 }
 
@@ -201,6 +202,20 @@ void Printer::print_value(const std::string& value) {
   depth_++;
   prefix();
   out_ << "Value: " << value << std::endl;
+  depth_--;
+}
+
+void Printer::print_qualifiers(const QualifierSet& qualifiers) {
+  if (qualifiers.none()) {
+    return;
+  }
+  depth_++;
+  prefix();
+  out_ << "Qualifiers:";
+  if (qualifiers[Qualifier::Const]) {
+    out_ << " const";
+  }
+  out_ << std::endl;
   depth_--;
 }
 
