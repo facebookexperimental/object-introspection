@@ -15,6 +15,7 @@ add_library(type_graph
 )
 add_dependencies(type_graph libdrgn)
 target_link_libraries(type_graph
+  container_info
   symbol_service
 
   "-L${DRGN_PATH}/.libs"

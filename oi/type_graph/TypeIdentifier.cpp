@@ -20,6 +20,15 @@
 
 namespace type_graph {
 
+// TODO:
+// - read these from a TOML file
+// - don't require specifying ctype and header
+const std::array<ContainerInfo, 3> TypeIdentifier::dummyContainers_ = {
+    ContainerInfo{"std::allocator", DUMMY_TYPE, "memory"},
+    ContainerInfo{"std::char_traits", DUMMY_TYPE, "string"},
+    ContainerInfo{"folly::fbstring_core", DUMMY_TYPE, "folly/FBString.h"},
+};
+
 Pass TypeIdentifier::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
     TypeIdentifier typeId{typeGraph};
@@ -65,6 +74,24 @@ void TypeIdentifier::visit(Container& c) {
       // replace dummies again as the context of the original replacement has
       // been lost.
       continue;
+    }
+
+    if (Class* paramClass = dynamic_cast<Class*>(param.type)) {
+      bool replaced = false;
+      for (const auto& info : dummyContainers_) {
+        if (std::regex_search(paramClass->fqName(), info.matcher)) {
+          // Create dummy containers
+          auto* dummy =
+              typeGraph_.make_type<Container>(info, param.type->size());
+          dummy->templateParams = paramClass->templateParams;
+          c.templateParams[i] = dummy;
+          replaced = true;
+        }
+      }
+
+      if (replaced) {
+        continue;
+      }
     }
 
     if (std::find(stubParams.begin(), stubParams.end(), i) !=

@@ -15,11 +15,13 @@
  */
 #pragma once
 
+#include <array>
 #include <unordered_set>
 
 #include "PassManager.h"
 #include "Types.h"
 #include "Visitor.h"
+#include "oi/ContainerInfo.h"
 
 namespace type_graph {
 
@@ -46,6 +48,8 @@ class TypeIdentifier : public RecursiveVisitor {
  private:
   std::unordered_set<Type*> visited_;
   TypeGraph& typeGraph_;
+
+  static const std::array<ContainerInfo, 3> dummyContainers_;
 };
 
 }  // namespace type_graph

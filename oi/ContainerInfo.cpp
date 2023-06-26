@@ -273,5 +273,6 @@ ContainerInfo::ContainerInfo(std::string typeName_,
     : typeName(std::move(typeName_)),
       matcher(getMatcher(typeName)),
       ctype(ctype_),
-      header(std::move(header_)) {
+      header(std::move(header_)),
+      codegen(Codegen{"// DummyDecl %1%\n", "// DummyFunc %1%\n"}) {
 }
