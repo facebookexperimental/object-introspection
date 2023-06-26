@@ -80,7 +80,6 @@ bool OILibraryImpl::unmapSegment() {
 void OILibraryImpl::initCompiler() {
   symbols = std::make_shared<SymbolService>(getpid());
 
-  compilerConfig.generateJitDebugInfo = _self->opts.generateJitDebugInfo;
   generatorConfig.useDataSegment = false;
 }
 
@@ -90,12 +89,14 @@ bool OILibraryImpl::processConfigFile() {
       {
           {Feature::ChaseRawPointers, _self->opts.chaseRawPointers},
           {Feature::PackStructs, true},
+          {Feature::GenJitDebug, _self->opts.generateJitDebugInfo},
       },
       compilerConfig, generatorConfig);
   if (!features) {
     return false;
   }
   generatorConfig.features = *features;
+  compilerConfig.features = *features;
   return true;
 }
 

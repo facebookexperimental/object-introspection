@@ -25,6 +25,7 @@
 #include <string_view>
 #include <unordered_map>
 
+#include "oi/Features.h"
 #include "oi/SymbolService.h"
 #include "oi/X86InstDefs.h"
 
@@ -41,8 +42,7 @@ class OICompiler {
  public:
   /* Configuration option for `OICompiler` */
   struct Config {
-    /* Whether to generate DWARF debug info for the JIT code */
-    bool generateJitDebugInfo = false;
+    ObjectIntrospection::FeatureSet features;
 
     std::vector<fs::path> userHeaderPaths{};
     std::vector<fs::path> sysHeaderPaths{};

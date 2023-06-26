@@ -522,7 +522,7 @@ bool OICompiler::compile(const std::string& code,
   compInv->getCodeGenOpts().OptimizationLevel = 3;
   compInv->getCodeGenOpts().NoUseJumpTables = 1;
 
-  if (config.generateJitDebugInfo) {
+  if (config.features[Feature::GenJitDebug]) {
     compInv->getCodeGenOpts().setDebugInfo(codegenoptions::FullDebugInfo);
   }
 
