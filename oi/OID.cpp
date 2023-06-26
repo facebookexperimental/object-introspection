@@ -112,7 +112,6 @@ constexpr static OIOpts opts{
           "Accepts multiplicative suffix: K, M, G, T, P, E"},
     OIOpt{'d', "debug-level", required_argument, "<level>",
           "Verbose level for logging"},
-    OIOpt{'l', "jit-logging", no_argument, nullptr, "Enable JIT's logs"},
     OIOpt{'r', "remove-mappings", no_argument, nullptr,
           "Remove oid mappings from target process"},
     OIOpt{'s', "script", required_argument, nullptr, "</path/to/script.oid>"},
@@ -257,7 +256,6 @@ struct Config {
   int timeout_s;
   bool cacheRemoteUpload;
   bool cacheRemoteDownload;
-  bool enableJitLogging;
   bool removeMappings;
   bool compAndExit;
   bool genPaddingStats = true;
@@ -300,7 +298,6 @@ static ExitStatus::ExitStatus runScript(
     return ExitStatus::UsageError;
   }
   oid->setCustomCodeFile(oidConfig.customCodeFile);
-  oid->setEnableJitLogging(oidConfig.enableJitLogging);
   oid->setHardDisableDrgn(oidConfig.hardDisableDrgn);
 
   VLOG(1) << "OIDebugger constructor took " << std::dec
@@ -535,9 +532,6 @@ int main(int argc, char* argv[]) {
         // Upstream glog defines `GLOG_INFO` as 0 https://fburl.com/ydjajhz0,
         // but internally it's defined as 1 https://fburl.com/code/9fwams75
         gflags::SetCommandLineOption("minloglevel", "0");
-        break;
-      case 'l':
-        oidConfig.enableJitLogging = true;
         break;
       case 'k':
         oidConfig.customCodeFile = optarg;

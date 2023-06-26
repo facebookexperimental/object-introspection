@@ -1826,7 +1826,7 @@ bool OIDebugger::removeTraps(pid_t pid) {
     it = activeTraps.erase(it);
   }
 
-  if (enableJitLogging) {
+  if (generatorConfig.features[Feature::JitLogging]) {
     /* Flush the JIT log, so it's always written on disk at least once */
     if (!remoteSyscall<SysFsync>(segConfig.logFile).has_value()) {
       LOG(ERROR) << "Failed to flush the JIT Log";
@@ -1840,7 +1840,6 @@ bool OIDebugger::removeTraps(pid_t pid) {
                << " (Reason: " << strerror(errno) << ")";
     return false;
   }
-
   return true;
 }
 
@@ -2334,7 +2333,8 @@ bool OIDebugger::compileCode() {
       return false;
     }
 
-    int logFile = enableJitLogging ? segConfig.logFile : 0;
+    int logFile =
+        generatorConfig.features[Feature::JitLogging] ? segConfig.logFile : 0;
     if (!writeTargetMemory(&logFile, (void*)syntheticSymbols["logFile"],
                            sizeof(logFile))) {
       LOG(ERROR) << "Failed to write logFile in probe's cookieValue";

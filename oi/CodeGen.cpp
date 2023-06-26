@@ -72,8 +72,9 @@ struct OIArray {
 )";
 }
 
-void defineJitLog(std::string& code) {
-  code += R"(
+void defineJitLog(FeatureSet features, std::string& code) {
+  if (features[Feature::JitLogging]) {
+    code += R"(
 #define JLOG(str)                           \
   do {                                      \
     if (__builtin_expect(logFile, 0)) {     \
@@ -88,6 +89,12 @@ void defineJitLog(std::string& code) {
     }                                   \
   } while (false)
 )";
+  } else {
+    code += R"(
+#define JLOG(str)
+#define JLOGPTR(ptr)
+)";
+  }
 }
 
 void addIncludes(const TypeGraph& typeGraph,
@@ -621,7 +628,7 @@ void CodeGen::generate(
   }
   addIncludes(typeGraph, config_.features, code);
   defineArray(code);
-  defineJitLog(code);  // TODO: feature gate this
+  defineJitLog(config_.features, code);
 
   if (config_.features[Feature::TypedDataSegment]) {
     FuncGen::DefineDataSegmentDataBuffer(code);
