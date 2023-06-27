@@ -106,55 +106,6 @@ void __jlogptr(uintptr_t ptr) {
 
 }  // namespace
 
-// Unforunately, this is a hack for AdFilterData.
-class PredictorInterface;
-class PredictionCompositionNode;
-
-constexpr size_t kGEMMLOWPCacheLineSize = 64;
-
-template <typename T>
-struct AllocAligned {
-  // Allocate a T aligned at an `align` byte address
-  template <typename... Args>
-  static T* alloc(Args&&... args) {
-    void* p = nullptr;
-
-#if defined(__ANDROID__)
-    p = memalign(kGEMMLOWPCacheLineSize, sizeof(T));
-#elif defined(_MSC_VER)
-    p = _aligned_malloc(sizeof(T), kGEMMLOWPCacheLineSize);
-#else
-    posix_memalign((void**)&p, kGEMMLOWPCacheLineSize, sizeof(T));
-#endif
-
-    if (p) {
-      return new (p) T(std::forward<Args>(args)...);
-    }
-
-    return nullptr;
-  }
-
-  // Free a T previously allocated via AllocAligned<T>::alloc()
-  static void release(T* p) {
-    if (p) {
-      p->~T();
-#if defined(_MSC_VER)
-      _aligned_free((void*)p);
-#else
-      free((void*)p);
-#endif
-    }
-  }
-};
-
-// Deleter object for unique_ptr for an aligned object
-template <typename T>
-struct AlignedDeleter {
-  void operator()(T* p) const {
-    AllocAligned<T>::release(p);
-  }
-};
-
 // alignas(0) is ignored according to docs so can be default
 template <unsigned int N, unsigned int align = 0>
 struct alignas(align) DummySizedOperator {
