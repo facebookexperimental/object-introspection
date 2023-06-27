@@ -142,15 +142,16 @@ void Flattener::visit(Class& c) {
   //    TODO comment about virtual inheritance
 
   // TODO alignment of parent classes
-  //
-  // TODO flatten template parameters??? ### TEST THIS ###
 
-  // Flatten types referenced by members and parents
-  for (const auto& member : c.members) {
-    visit(*member.type);
+  // Flatten types referenced by template params, parents and members
+  for (const auto& param : c.templateParams) {
+    visit(param.type);
   }
   for (const auto& parent : c.parents) {
     visit(*parent.type);
+  }
+  for (const auto& member : c.members) {
+    visit(*member.type);
   }
 
   // Pull in functions from flattened parents

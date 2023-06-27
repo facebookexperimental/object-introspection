@@ -834,3 +834,31 @@ TEST(FlattenerTest, AllocatorParamInParent) {
           Function: deallocate
 )");
 }
+
+TEST(FlattenerTest, ClassParam) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto mychild = Class{Class::Kind::Class, "MyChild", 4};
+  auto myparent = Class{Class::Kind::Class, "MyParent", 4};
+  myparent.members.push_back(Member{&myint, "a", 0});
+  mychild.parents.push_back(Parent{&myparent, 0});
+
+  auto myclass = Class{Class::Kind::Class, "MyClass", 4};
+  myclass.templateParams.push_back(TemplateParam{&mychild});
+
+  test(Flattener::createPass(), {myclass}, R"(
+[0] Class: MyClass (size: 4)
+      Param
+[1]     Class: MyChild (size: 4)
+          Parent (offset: 0)
+[2]         Class: MyParent (size: 4)
+              Member: a (offset: 0)
+                Primitive: int32_t
+)",
+       R"(
+[0] Class: MyClass (size: 4)
+      Param
+[1]     Class: MyChild (size: 4)
+          Member: a (offset: 0)
+            Primitive: int32_t
+)");
+}
