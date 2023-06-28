@@ -655,10 +655,9 @@ int main(int argc, char* argv[]) {
 
   OICompiler::Config compilerConfig{};
 
-  OICodeGen::Config codeGenConfig{
-      .useDataSegment = true,
-      .features = {},  // fill in after processing the config file
-  };
+  OICodeGen::Config codeGenConfig;
+  codeGenConfig.useDataSegment = true;
+  codeGenConfig.features = {};  // fill in after processing the config file
 
   TreeBuilder::Config tbConfig{
       .features = {},  // fill in after processing the config file

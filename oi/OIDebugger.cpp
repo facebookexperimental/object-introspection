@@ -1878,24 +1878,23 @@ bool OIDebugger::removeTrap(pid_t pid, const trapInfo& t) {
   return true;
 }
 
-OIDebugger::OIDebugger(OICodeGen::Config genConfig,
+OIDebugger::OIDebugger(const OICodeGen::Config& genConfig,
                        OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : compilerConfig{std::move(ccConfig)},
-      generatorConfig{std::move(genConfig)},
+    : cache{genConfig},
+      compilerConfig{std::move(ccConfig)},
+      generatorConfig{genConfig},
       treeBuilderConfig{std::move(tbConfig)} {
   debug = true;
 
-  cache.generatorConfig = generatorConfig;
   VLOG(1) << "CodeGen config: " << generatorConfig.toString();
 }
 
 OIDebugger::OIDebugger(pid_t pid,
-                       OICodeGen::Config genConfig,
+                       const OICodeGen::Config& genConfig,
                        OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : OIDebugger(
-          std::move(genConfig), std::move(ccConfig), std::move(tbConfig)) {
+    : OIDebugger(genConfig, std::move(ccConfig), std::move(tbConfig)) {
   traceePid = pid;
   symbols = std::make_shared<SymbolService>(traceePid);
   setDataSegmentSize(dataSegSize);
@@ -1904,11 +1903,10 @@ OIDebugger::OIDebugger(pid_t pid,
 }
 
 OIDebugger::OIDebugger(fs::path debugInfo,
-                       OICodeGen::Config genConfig,
+                       const OICodeGen::Config& genConfig,
                        OICompiler::Config ccConfig,
                        TreeBuilder::Config tbConfig)
-    : OIDebugger(
-          std::move(genConfig), std::move(ccConfig), std::move(tbConfig)) {
+    : OIDebugger(genConfig, std::move(ccConfig), std::move(tbConfig)) {
   symbols = std::make_shared<SymbolService>(std::move(debugInfo));
   cache.symbols = symbols;
 }
@@ -2698,8 +2696,6 @@ void OIDebugger::setDataSegmentSize(size_t size) {
   /* round up to the next page boundary if not aligned */
   int pgsz = getpagesize();
   dataSegSize = ((size + pgsz - 1) & ~(pgsz - 1));
-
-  generatorConfig.useDataSegment = dataSegSize > 0;
 
   VLOG(1) << "setDataSegmentSize: segment size: " << dataSegSize;
 }

@@ -51,18 +51,19 @@ struct ParentMember {
 class OICodeGen {
  public:
   struct Config {
-    /*
-     * Note: don't set default values for the config so the user gets an
-     * uninitialized field" warning if they missed any.
-     */
+    Config() = default;
+    Config(const Config& other) = delete;
+    Config& operator=(const Config& other) = delete;
+    Config(Config&& other) = delete;
+    Config& operator=(Config&& other) = delete;
+
     bool useDataSegment;
-
-    FeatureSet features{};
-
-    std::set<fs::path> containerConfigPaths{};
-    std::set<std::string> defaultHeaders{};
-    std::set<std::string> defaultNamespaces{};
-    std::vector<std::pair<std::string, std::string>> membersToStub{};
+    FeatureSet features;
+    std::set<fs::path> containerConfigPaths;
+    std::set<std::string> defaultHeaders;
+    std::set<std::string> defaultNamespaces;
+    std::vector<std::pair<std::string, std::string>> membersToStub;
+    std::vector<ContainerInfo> passThroughTypes;
 
     std::string toString() const;
     std::vector<std::string> toOptions() const;
@@ -108,7 +109,7 @@ class OICodeGen {
   bool isDynamic(drgn_type* type) const;
 
  private:
-  Config config{};
+  const Config& config;
   FuncGen funcGen;
 
   using ContainerTypeMapEntry =
@@ -152,6 +153,7 @@ class OICodeGen {
   std::map<drgn_type*, drgn_type*> pointerToTypeMap;
   std::set<drgn_type*> thriftIssetStructTypes;
   std::vector<drgn_type*> topoSortedStructTypes;
+  std::vector<std::pair<std::string, std::string>> membersToStub;
 
   ContainerInfoRefSet containerTypesFuncDef;
 

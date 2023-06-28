@@ -43,6 +43,11 @@ containers = [
     "../types/thrift_isset_type.toml",
     "../types/weak_ptr_type.toml",
 ]
+pass_through = [
+    ["std::allocator", "memory"],
+    ["std::char_traits", "string"],
+    ["folly::fbstring_core", "folly/FBString.h"],
+]
 
 [headers]
 user_paths = [

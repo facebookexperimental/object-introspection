@@ -32,12 +32,15 @@
 namespace fs = std::filesystem;
 
 class OIDebugger {
-  OIDebugger(OICodeGen::Config, OICompiler::Config, TreeBuilder::Config);
+  OIDebugger(const OICodeGen::Config&, OICompiler::Config, TreeBuilder::Config);
 
  public:
-  OIDebugger(pid_t, OICodeGen::Config, OICompiler::Config, TreeBuilder::Config);
+  OIDebugger(pid_t,
+             const OICodeGen::Config&,
+             OICompiler::Config,
+             TreeBuilder::Config);
   OIDebugger(fs::path,
-             OICodeGen::Config,
+             const OICodeGen::Config&,
              OICompiler::Config,
              TreeBuilder::Config);
 
@@ -170,7 +173,7 @@ class OIDebugger {
   const int replayInstSize = 512;
   bool trapsRemoved{false};
   std::shared_ptr<SymbolService> symbols;
-  OICache cache{};
+  OICache cache;
 
   /*
    * Map address of valid INT3 instruction to metadata for that interrupt.
@@ -231,7 +234,7 @@ class OIDebugger {
   std::optional<std::vector<uintptr_t>> findRetLocs(FuncDesc&);
 
   OICompiler::Config compilerConfig{};
-  OICodeGen::Config generatorConfig{};
+  const OICodeGen::Config& generatorConfig;
   TreeBuilder::Config treeBuilderConfig{};
   std::optional<std::string> generateCode(const irequest&);
 

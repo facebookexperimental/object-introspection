@@ -26,6 +26,7 @@ def main():
     out = {
         "types": {
             "containers": [],
+            "pass_through": [],
         },
         "headers": {
             "user_paths": [],
@@ -42,6 +43,7 @@ def main():
         types = cfg.get("types", None)
         if types is not None:
             out["types"]["containers"] += types.get("containers", [])
+            out["types"]["pass_through"] += types.get("pass_through", [])
 
         headers = cfg.get("headers", None)
         if headers is not None:

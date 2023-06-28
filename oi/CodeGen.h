@@ -37,7 +37,7 @@ class TypeGraph;
 
 class CodeGen {
  public:
-  CodeGen(OICodeGen::Config& config, SymbolService& symbols)
+  CodeGen(const OICodeGen::Config& config, SymbolService& symbols)
       : config_(config), symbols_(symbols) {
   }
 
@@ -58,7 +58,7 @@ class CodeGen {
   );
 
  private:
-  OICodeGen::Config config_;
+  const OICodeGen::Config& config_;
   SymbolService& symbols_;
   std::vector<ContainerInfo> containerInfos_;
   std::unordered_set<const ContainerInfo*> definedContainers_;
