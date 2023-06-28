@@ -22,8 +22,12 @@ workflows:
           tests_regex: "OidIntegration\\..*"
           exclude_regex: ".*inheritance_polymorphic.*"
       - coverage:
+          name: coverage
           requires:
             - test-gcc
+      - coverage:
+          name: coverage-type-graph
+          requires:
             - test-type-graph-gcc
 
       - build:
