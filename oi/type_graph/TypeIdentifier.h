@@ -17,6 +17,7 @@
 
 #include <array>
 #include <unordered_set>
+#include <vector>
 
 #include "PassManager.h"
 #include "Types.h"
@@ -34,10 +35,12 @@ class TypeGraph;
  */
 class TypeIdentifier : public RecursiveVisitor {
  public:
-  static Pass createPass();
+  static Pass createPass(const std::vector<ContainerInfo>& passThroughTypes);
   static bool isAllocator(Type& t);
 
-  TypeIdentifier(TypeGraph& typeGraph) : typeGraph_(typeGraph) {
+  TypeIdentifier(TypeGraph& typeGraph,
+                 const std::vector<ContainerInfo>& passThroughTypes)
+      : typeGraph_(typeGraph), passThroughTypes_(passThroughTypes) {
   }
 
   using RecursiveVisitor::visit;
@@ -48,8 +51,7 @@ class TypeIdentifier : public RecursiveVisitor {
  private:
   std::unordered_set<Type*> visited_;
   TypeGraph& typeGraph_;
-
-  static const std::array<ContainerInfo, 3> dummyContainers_;
+  const std::vector<ContainerInfo>& passThroughTypes_;
 };
 
 }  // namespace type_graph

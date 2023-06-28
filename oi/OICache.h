@@ -28,6 +28,10 @@ namespace fs = std::filesystem;
 
 class OICache {
  public:
+  OICache(const OICodeGen::Config& generatorConfig)
+      : generatorConfig(generatorConfig) {
+  }
+
   fs::path basePath{};
   std::shared_ptr<SymbolService> symbols{};
   bool downloadedRemote = false;
@@ -37,7 +41,7 @@ class OICache {
 
   // We need the generator config to download the cache
   // with the matching configuration.
-  OICodeGen::Config generatorConfig{};
+  const OICodeGen::Config& generatorConfig;
 
   // Entity is used to index the `extensions` array
   // So we must keep the Entity enum and `extensions` array in sync!

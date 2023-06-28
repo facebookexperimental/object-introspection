@@ -84,6 +84,25 @@ std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
         }
       });
     }
+    if (toml::array* arr = (*types)["pass_through"].as_array()) {
+      for (auto&& el : *arr) {
+        auto* type = el.as_array();
+        if (type && type->size() == 2 && (*type)[0].is_string() &&
+            (*type)[1].is_string()) {
+          std::string name = (*type)[0].as_string()->get();
+          std::string header = (*type)[1].as_string()->get();
+          generatorConfig.passThroughTypes.emplace_back(
+              std::move(name), DUMMY_TYPE, std::move(header));
+        } else {
+          LOG(ERROR) << "pass_through elements must be lists of [type_name, "
+                        "header_file]";
+          return {};
+        }
+      }
+    } else {
+      LOG(ERROR) << "pass_through must be a list";
+      return {};
+    }
   }
 
   if (toml::table* headers = config["headers"].as_table()) {

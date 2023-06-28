@@ -47,3 +47,8 @@ containers = [
     "PWD/types/thrift_isset_type.toml",
     "PWD/types/weak_ptr_type.toml",
 ]
+pass_through = [
+    ["std::allocator", "memory"],
+    ["std::char_traits", "string"],
+    ["folly::fbstring_core", "folly/FBString.h"],
+]

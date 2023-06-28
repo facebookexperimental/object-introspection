@@ -17,7 +17,7 @@ TEST(TypeIdentifierTest, StubbedParam) {
   container.templateParams.push_back(TemplateParam{&myparam});
   container.templateParams.push_back(TemplateParam{&myint});
 
-  test(TypeIdentifier::createPass(), {container}, R"(
+  test(TypeIdentifier::createPass({}), {container}, R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -52,7 +52,7 @@ TEST(TypeIdentifierTest, Allocator) {
   container.templateParams.push_back(TemplateParam{&myalloc});
   container.templateParams.push_back(TemplateParam{&myint});
 
-  test(TypeIdentifier::createPass(), {container}, R"(
+  test(TypeIdentifier::createPass({}), {container}, R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -90,7 +90,7 @@ TEST(TypeIdentifierTest, AllocatorSize1) {
   container.templateParams.push_back(TemplateParam{&myalloc});
   container.templateParams.push_back(TemplateParam{&myint});
 
-  test(TypeIdentifier::createPass(), {container}, R"(
+  test(TypeIdentifier::createPass({}), {container}, R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t

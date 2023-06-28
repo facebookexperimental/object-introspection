@@ -89,9 +89,9 @@ OICodeGen::OICodeGen(const Config& c, SymbolService& s)
       "event",
   };
 
-  config.membersToStub.reserve(typesToStub.size());
+  membersToStub = config.membersToStub;
   for (const auto& type : typesToStub) {
-    config.membersToStub.emplace_back(type, "*");
+    membersToStub.emplace_back(type, "*");
   }
 
   // `knownTypes` has been made obsolete by the introduction of using the
@@ -1269,10 +1269,10 @@ bool OICodeGen::generateMemberDefinition(drgn_type* type,
 std::optional<std::pair<std::string_view, std::string_view>>
 OICodeGen::isMemberToStub(const std::string& typeName,
                           const std::string& member) {
-  auto it = std::ranges::find_if(config.membersToStub, [&](auto& s) {
+  auto it = std::ranges::find_if(membersToStub, [&](auto& s) {
     return typeName.starts_with(s.first) && s.second == member;
   });
-  if (it == std::end(config.membersToStub)) {
+  if (it == std::end(membersToStub)) {
     return std::nullopt;
   }
   return *it;
