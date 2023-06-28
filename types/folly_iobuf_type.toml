@@ -28,7 +28,7 @@ void getSizeType(const %1% &container, size_t& returnArg)
 
     std::size_t fullLength = container.length();
     std::size_t fullCapacity = container.capacity();
-    for (const IOBuf* current = container.next(); current != &container;
+    for (const folly::IOBuf* current = container.next(); current != &container;
         current = current->next()) {
     fullLength += current->length();
     fullCapacity += current->capacity();
