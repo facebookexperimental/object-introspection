@@ -65,30 +65,13 @@ void AddPadding::visit(Class& c) {
   paddedMembers.reserve(c.members.size());
   for (size_t i = 0; i < c.members.size(); i++) {
     if (i >= 1) {
-      uint64_t prevMemberEnd =
-          c.members[i - 1].offset + c.members[i - 1].type->size();
-      size_t paddingSize = c.members[i].offset - prevMemberEnd;
-      if (paddingSize > 0) {
-        auto* primitive =
-            typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
-        auto* paddingArray =
-            typeGraph_.make_type<Array>(primitive, paddingSize);
-        paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEnd);
-      }
+      addPadding(c.members[i - 1], c.members[i].offset, paddedMembers);
     }
     paddedMembers.push_back(c.members[i]);
   }
 
-  // TODO reduce duplication with above? (put into function?)
-  uint64_t prevMemberEnd = 0;
   if (!c.members.empty()) {
-    prevMemberEnd = c.members.back().offset + c.members.back().type->size();
-  }
-  size_t paddingSize = c.size() - prevMemberEnd;
-  if (paddingSize > 0) {
-    auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
-    auto* paddingArray = typeGraph_.make_type<Array>(primitive, paddingSize);
-    paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEnd);
+    addPadding(c.members.back(), c.size(), paddedMembers);
   }
 
   c.members = std::move(paddedMembers);
@@ -96,6 +79,19 @@ void AddPadding::visit(Class& c) {
   for (const auto& child : c.children) {
     visit(child);
   }
+}
+
+void AddPadding::addPadding(const Member& prevMember,
+                            uint64_t paddingEnd,
+                            std::vector<Member>& paddedMembers) {
+  uint64_t prevMemberEnd = prevMember.offset + prevMember.type->size();
+  uint64_t padding = paddingEnd - prevMemberEnd;
+  if (padding == 0)
+    return;
+
+  auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
+  auto* paddingArray = typeGraph_.make_type<Array>(primitive, padding);
+  paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEnd);
 }
 
 }  // namespace type_graph

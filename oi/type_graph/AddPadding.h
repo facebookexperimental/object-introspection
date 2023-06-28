@@ -50,6 +50,10 @@ class AddPadding final : public RecursiveVisitor {
  private:
   std::unordered_set<Type*> visited_;
   TypeGraph& typeGraph_;
+
+  void addPadding(const Member& prevMember,
+                  uint64_t paddingEndBits,
+                  std::vector<Member>& paddedMembers);
 };
 
 }  // namespace type_graph
