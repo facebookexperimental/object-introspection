@@ -103,6 +103,7 @@ void addIncludes(const TypeGraph& typeGraph,
   std::set<std::string_view> includes{"cstddef"};
   if (features[Feature::TypedDataSegment]) {
     includes.emplace("functional");
+    includes.emplace("oi/types/st.h");
   }
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Container*>(&t)) {
@@ -425,7 +426,7 @@ void addGetSizeFuncDefs(const TypeGraph& typeGraph,
 void addStandardTypeHandlers(std::string& code) {
   code += R"(
     template <typename DB, typename T>
-    StaticTypes::Unit<DB>
+    types::st::Unit<DB>
     getSizeType(const T &t, typename TypeHandler<DB, T>::type returnArg) {
       JLOG("obj @");
       JLOGPTR(&t);
@@ -436,8 +437,8 @@ void addStandardTypeHandlers(std::string& code) {
   code += R"(
     template<typename DB, typename T0, long unsigned int N>
     struct TypeHandler<DB, OIArray<T0, N>> {
-      using type = StaticTypes::List<DB, typename TypeHandler<DB, T0>::type>;
-      static StaticTypes::Unit<DB> getSizeType(
+      using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
+      static types::st::Unit<DB> getSizeType(
           const OIArray<T0, N> &container,
           typename TypeHandler<DB, OIArray<T0,N>>::type returnArg) {
         auto tail = returnArg.write(N);
@@ -463,7 +464,7 @@ void getClassTypeHandler(const Class& c, std::string& code) {
       const auto& member = c.members[i];
 
       if (i != c.members.size() - 1) {
-        typeStaticType += "StaticTypes::Pair<DB, ";
+        typeStaticType += "types::st::Pair<DB, ";
         pairs++;
       }
 
@@ -479,7 +480,7 @@ void getClassTypeHandler(const Class& c, std::string& code) {
     typeStaticType += std::string(pairs, '>');
 
     if (typeStaticType.empty()) {
-      typeStaticType = "StaticTypes::Unit<DB>";
+      typeStaticType = "types::st::Unit<DB>";
     }
   }
 
@@ -513,7 +514,7 @@ template <typename DB>
 class TypeHandler<DB, %1%> {
  public:
   using type = %2%;
-  static StaticTypes::Unit<DB> %3%(
+  static types::st::Unit<DB> %3%(
       const %1%& t,
       typename TypeHandler<DB, %1%>::type returnArg) {
     %4%
@@ -622,7 +623,7 @@ void CodeGen::generate(
     std::string& code,
     struct drgn_type* drgnType /* TODO: this argument should not be required */
 ) {
-  code = headers::OITraceCode_cpp;
+  code = headers::oi_OITraceCode_cpp;
   if (!config_.features[Feature::TypedDataSegment]) {
     defineMacros(code);
   }
@@ -632,7 +633,6 @@ void CodeGen::generate(
 
   if (config_.features[Feature::TypedDataSegment]) {
     FuncGen::DefineDataSegmentDataBuffer(code);
-    FuncGen::DefineStaticTypes(code);
     code += "using namespace ObjectIntrospection;\n";
 
     code += "namespace OIInternal {\nnamespace {\n";

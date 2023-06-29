@@ -32,9 +32,9 @@ void getSizeType(const %1%<T,N> &container, size_t& returnArg)
 handler = """
 template<typename DB, typename T0, long unsigned int N>
 struct TypeHandler<DB, %1%<T0, N>> {
-  using type = StaticTypes::List<DB, typename TypeHandler<DB, T0>::type>;
+  using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
 
-  static StaticTypes::Unit<DB> getSizeType(
+  static types::st::Unit<DB> getSizeType(
       const %1%<T0, N> &container,
       typename TypeHandler<DB, %1%<T0,N>>::type returnArg) {
     auto tail = returnArg.write(container.size());

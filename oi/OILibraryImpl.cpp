@@ -161,7 +161,7 @@ int OILibraryImpl::compileCode() {
     return Response::OIL_COMPILATION_FAILURE;
   }
 
-  std::string code(headers::OITraceCode_cpp);
+  std::string code(headers::oi_OITraceCode_cpp);
 
   auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
   if (!codegen) {

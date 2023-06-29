@@ -286,11 +286,11 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
       JLOGPTR(&t);
       using DataBufferType = OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type;
       DataBufferType db = DataBuffer::DataSegment(dataSegOffset);
-      StaticTypes::Unit<DataBuffer::DataSegment> out = OIInternal::getSizeType<DataBuffer::DataSegment>(t, db);
-      StaticTypes::Unit<DataBuffer::DataSegment> final = out.template cast<StaticTypes::Pair<
+      types::st::Unit<DataBuffer::DataSegment> out = OIInternal::getSizeType<DataBuffer::DataSegment>(t, db);
+      types::st::Unit<DataBuffer::DataSegment> final = out.template cast<types::st::Pair<
         DataBuffer::DataSegment,
-        StaticTypes::VarInt<DataBuffer::DataSegment>,
-        StaticTypes::VarInt<DataBuffer::DataSegment>
+        types::st::VarInt<DataBuffer::DataSegment>,
+        types::st::VarInt<DataBuffer::DataSegment>
       >>()
         .write(123456789)
         .write(123456789);
@@ -469,19 +469,19 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
       private:
         static auto choose_type() {
             if constexpr(std::is_pointer_v<T>) {
-                return std::type_identity<StaticTypes::Pair<DB,
-                  StaticTypes::VarInt<DB>,
-                  StaticTypes::Sum<DB,
-                    StaticTypes::Unit<DB>,
+                return std::type_identity<types::st::Pair<DB,
+                  types::st::VarInt<DB>,
+                  types::st::Sum<DB,
+                    types::st::Unit<DB>,
                     typename TypeHandler<DB, std::remove_pointer_t<T>>::type
                 >>>();
             } else {
-                return std::type_identity<StaticTypes::Unit<DB>>();
+                return std::type_identity<types::st::Unit<DB>>();
             }
         }
       public:
         using type = typename decltype(choose_type())::type;
-        static StaticTypes::Unit<DB> getSizeType(
+        static types::st::Unit<DB> getSizeType(
           const T& t,
           typename TypeHandler<DB, T>::type returnArg) {
             if constexpr(std::is_pointer_v<T>) {
@@ -507,145 +507,9 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
     template <typename DB>
     class TypeHandler<DB, void> {
       public:
-        using type = StaticTypes::Unit<DB>;
+        using type = types::st::Unit<DB>;
     };
   )";
 
   testCode.append(handlers);
-}
-
-void FuncGen::DefineStaticTypes(std::string& testCode) {
-  constexpr std::string_view unitType = R"(
-    template <typename DataBuffer>
-    class Unit {
-      public:
-        Unit(DataBuffer db) : _buf(db) {}
-
-        size_t offset() {
-          return _buf.offset();
-        }
-
-        template <typename T>
-        T cast() {
-          return T(_buf);
-        }
-
-        template <typename F>
-        Unit<DataBuffer>
-        delegate(F const& cb) {
-          return cb(*this);
-        }
-
-      private:
-        DataBuffer _buf;
-    };
-  )";
-
-  constexpr std::string_view varintType = R"(
-    template <typename DataBuffer>
-    class VarInt {
-      public:
-        VarInt(DataBuffer db) : _buf(db) {}
-
-        Unit<DataBuffer> write(uint64_t val) {
-          while (val >= 128) {
-            _buf.write_byte(0x80 | (val & 0x7f));
-            val >>= 7;
-          }
-          _buf.write_byte(uint8_t(val));
-          return Unit<DataBuffer>(_buf);
-        }
-
-      private:
-        DataBuffer _buf;
-    };
-  )";
-
-  constexpr std::string_view pairType = R"(
-    template <typename DataBuffer, typename T1, typename T2>
-    class Pair {
-      public:
-        Pair(DataBuffer db) : _buf(db) {}
-        template <class U>
-        T2 write(U val) {
-          Unit<DataBuffer> second = T1(_buf).write(val);
-          return second.template cast<T2>();
-        }
-        template <typename F>
-        T2 delegate(F const& cb) {
-          T1 first = T1(_buf);
-          Unit<DataBuffer> second = cb(first);
-          return second.template cast<T2>();
-        }
-      private:
-        DataBuffer _buf;
-    };
-  )";
-
-  constexpr std::string_view sumType = R"(
-    template <typename DataBuffer, typename... Types>
-    class Sum {
-      private:
-        template <size_t I, typename... Elements>
-        struct Selector;
-        template <size_t I, typename Head, typename... Tail>
-        struct Selector<I, Head, Tail...> {
-          using type = typename std::conditional<I == 0, Head, typename Selector<I - 1, Tail...>::type>::type;
-        };
-        template<size_t I>
-        struct Selector<I> {
-          using type = int;
-        };
-      public:
-        Sum(DataBuffer db) : _buf(db) {}
-        template <size_t I>
-        typename Selector<I, Types...>::type write() {
-          Pair<DataBuffer, VarInt<DataBuffer>, typename Selector<I, Types...>::type> buf(_buf);
-          return buf.write(I);
-        }
-        template <size_t I, typename F>
-        Unit<DataBuffer> delegate(F const& cb) {
-          auto tail = write<I>();
-          return cb(tail);
-        }
-      private:
-        DataBuffer _buf;
-    };
-  )";
-
-  constexpr std::string_view listType = R"(
-    template <typename DataBuffer, typename T>
-    class ListContents {
-      public:
-        ListContents(DataBuffer db) : _buf(db) {}
-
-        template<typename F>
-        ListContents<DataBuffer, T> delegate(F const& cb) {
-          T head = T(_buf);
-          Unit<DataBuffer> tail = cb(head);
-          return tail.template cast<ListContents<DataBuffer, T>>();
-        }
-
-        Unit<DataBuffer> finish() {
-          return { _buf };
-        }
-      private:
-        DataBuffer _buf;
-    };
-
-    template <typename DataBuffer, typename T>
-    using List = Pair<DataBuffer, VarInt<DataBuffer>, ListContents<DataBuffer, T>>;
-  )";
-
-  testCode.append("namespace ObjectIntrospection {\n");
-  testCode.append("namespace StaticTypes {\n");
-
-  testCode.append(unitType);
-  testCode.append(varintType);
-  testCode.append(pairType);
-  testCode.append(sumType);
-  testCode.append(listType);
-
-  testCode.append("} // namespace StaticTypes {\n");
-  testCode.append("} // namespace ObjectIntrospection {\n");
 }

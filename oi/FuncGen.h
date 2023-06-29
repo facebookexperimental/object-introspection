@@ -69,6 +69,5 @@ class FuncGen {
                                           const std::string& ctype);
 
   static void DefineDataSegmentDataBuffer(std::string& testCode);
-  static void DefineStaticTypes(std::string& testCode);
   static void DefineBasicTypeHandlers(std::string& testCode);
 };

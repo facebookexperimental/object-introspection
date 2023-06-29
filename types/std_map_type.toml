@@ -40,14 +40,14 @@ void getSizeType(const %1%<K, T, C, A> &container, size_t& returnArg)
 handler = """
 template <typename DB, typename T0, typename T1, typename T2, typename T3>
 struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
-  using type = StaticTypes::Pair<DB,
-      StaticTypes::VarInt<DB>,
-      StaticTypes::List<DB, StaticTypes::Pair<DB,
+  using type = types::st::Pair<DB,
+      types::st::VarInt<DB>,
+      types::st::List<DB, types::st::Pair<DB,
         typename TypeHandler<DB, T0>::type,
         typename TypeHandler<DB, T1>::type
     >>>;
 
-  static StaticTypes::Unit<DB> getSizeType(
+  static types::st::Unit<DB> getSizeType(
       const %1%<T0, T1, T2, T3>& container,
       typename TypeHandler<DB, %1%<T0, T1, T2, T3>>::type returnArg) {
     constexpr size_t nodeSize = sizeof(typename %1%<T0, T1, T2, T3>::node_type);

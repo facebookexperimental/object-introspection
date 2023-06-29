@@ -135,7 +135,7 @@ fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
     return {};
   }
 
-  std::string code(headers::OITraceCode_cpp);
+  std::string code(headers::oi_OITraceCode_cpp);
 
   codegen->setRootType(type);
   codegen->setLinkageName(linkageName);

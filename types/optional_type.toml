@@ -31,12 +31,12 @@ void getSizeType(const %1%<T>& container, size_t& returnArg) {
 handler = """
 template <typename DB, typename T0>
 struct TypeHandler<DB, %1%<T0>> {
-    using type = StaticTypes::Sum<DB,
-      StaticTypes::Unit<DB>,
+    using type = types::st::Sum<DB,
+      types::st::Unit<DB>,
       typename TypeHandler<DB, T0>::type
     >;
 
-    static StaticTypes::Unit<DB> getSizeType(
+    static types::st::Unit<DB> getSizeType(
         const %1%<T0>& container,
         typename TypeHandler<DB, %1%<T0>>::type returnArg) {
       if (container) {

@@ -49,7 +49,7 @@ This document describes the format of the container definition files contained i
 A `TypeHandler` class describes both what a type will write into the data segment
 and how to write it. It consists of two major parts:
 - `using type = ...;` - describe what it will write into the data segment.
-- `static StaticTypes::Unit<DB> getSizeType(...)` - a function which takes a
+- `static types::st::Unit<DB> getSizeType(...)` - a function which takes a
   const reference to a container and a `::type` by value and fills in the type.
 
 Example:
@@ -57,9 +57,9 @@ Example:
 template <typename DB, typename T0>
 struct TypeHandler<DB, std::string<T0>> {
   using type =
-      StaticTypes::Pair<DB, StaticTypes::VarInt<DB>, StaticTypes::VarInt<DB>>;
+      types::st::Pair<DB, types::st::VarInt<DB>, types::st::VarInt<DB>>;
 
-  static StaticTypes::Unit<DB> getSizeType(
+  static types::st::Unit<DB> getSizeType(
       const std::string<T0> & container,
       typename TypeHandler<DB, std::string<T0>>::type returnArg) {
     bool sso = ((uintptr_t)container.data() <
