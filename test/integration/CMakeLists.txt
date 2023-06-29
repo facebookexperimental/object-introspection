@@ -1,65 +1,22 @@
-# Add new test definition files to this list:
-set(INTEGRATION_TEST_CONFIGS
-  alignment.toml
-  anonymous.toml
-  arrays.toml
-  cycles.toml
-  enums.toml
-  enums_params.toml
-  fbstring.toml
-  ignored.toml
-  inheritance_access.toml
-  inheritance_multiple.toml
-  inheritance_polymorphic.toml
-  inheritance_polymorphic_diamond.toml
-  inheritance_polymorphic_non_dynamic_base.toml
-  multi_arg.toml
-  namespaces.toml
-  packed.toml
-  padding.toml
-  pointers.toml
-  pointers_function.toml
-  pointers_incomplete.toml
-  primitives.toml
-  references.toml
-  simple.toml
-  sorted_vector_set.toml
-  std_array.toml
-  std_conditional.toml
-  std_deque_del_allocator.toml
-  std_list_del_allocator.toml
-  std_deque.toml
-  std_map_custom_comparator.toml
-  std_multimap_custom_comparator.toml
-  std_optional.toml
-  std_pair.toml
-  std_queue.toml
-  std_reference_wrapper.toml
-  std_priority_queue.toml
-  std_set_custom_comparator.toml
-  std_smart_ptr.toml
-  std_stack.toml
-  std_string.toml
-  std_unordered_map.toml
-  std_unordered_map_custom_operator.toml
-  std_unordered_set_custom_operator.toml
-  std_variant.toml
-  std_vector.toml
-  std_vector_del_allocator.toml
-  templates.toml
-  typedefs.toml
-  typedefed_parent.toml
+file(GLOB_RECURSE INTEGRATION_TEST_CONFIGS
+  RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+  CONFIGURE_DEPENDS
+  *.toml
+)
+
+set(THRIFT_TEST_CONFIGS
+  thrift_isset.toml
+  thrift_isset_missing.toml
+  thrift_namespaces.toml
 )
 
 find_package(Thrift)
 if (${THRIFT_FOUND})
   # Add test definition files requiring the Thrift compiler to this list:
-  set(THRIFT_TEST_CONFIGS
-    thrift_isset.toml
-    thrift_isset_missing.toml
-    thrift_namespaces.toml
-  )
-  list(APPEND INTEGRATION_TEST_CONFIGS ${THRIFT_TEST_CONFIGS})
+  set(THRIFT_TESTS ${THRIFT_TEST_CONFIGS})
+  list(TRANSFORM THRIFT_TESTS REPLACE ".toml$" "")
+else()
+  list(REMOVE_ITEM INTEGRATION_TEST_CONFIGS ${THRIFT_TEST_CONFIGS})
 endif()
 
 list(TRANSFORM INTEGRATION_TEST_CONFIGS PREPEND "${CMAKE_CURRENT_SOURCE_DIR}/")
@@ -71,9 +28,6 @@ set(INTEGRATION_TEST_TARGET_SRC integration_test_target.cpp)
 set(INTEGRATION_TEST_RUNNER_SRC integration_test_runner.cpp)
 
 find_program(PYTHON_CMD NAMES python3.6 python3)
-
-set(THRIFT_TESTS ${THRIFT_TEST_CONFIGS})
-list(TRANSFORM THRIFT_TESTS REPLACE ".toml$" "")
 
 set(INTEGRATION_TEST_THRIFT_SRCS ${THRIFT_TESTS})
 list(TRANSFORM INTEGRATION_TEST_THRIFT_SRCS APPEND ".thrift")
