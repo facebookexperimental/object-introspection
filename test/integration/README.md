@@ -32,8 +32,7 @@ OID_TEST_ARGS="-Fold-feature" ctest --test-dir build/test/integration
 
 ## Adding tests
 
-1. Create a new test definition file in this directory and populate it as needed. See [Test Definition Format](#test-definition-format) for details.
-1. Add your new definition file to the `INTEGRATION_TEST_CONFIGS` list in [`CMakeLists.txt`](CMakeLists.txt)
+Create a new test definition file in this directory and populate it as needed. See [Test Definition Format](#test-definition-format) for details. It will be automatically picked up by CMake on your next build.
 
 ## Test Definition Format
 
