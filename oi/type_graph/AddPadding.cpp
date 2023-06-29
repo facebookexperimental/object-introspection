@@ -65,13 +65,13 @@ void AddPadding::visit(Class& c) {
   paddedMembers.reserve(c.members.size());
   for (size_t i = 0; i < c.members.size(); i++) {
     if (i >= 1) {
-      addPadding(c.members[i - 1], c.members[i].offset, paddedMembers);
+      addPadding(c.members[i - 1], c.members[i].bitOffset, paddedMembers);
     }
     paddedMembers.push_back(c.members[i]);
   }
 
   if (!c.members.empty()) {
-    addPadding(c.members.back(), c.size(), paddedMembers);
+    addPadding(c.members.back(), c.size() * 8, paddedMembers);
   }
 
   c.members = std::move(paddedMembers);
@@ -82,16 +82,32 @@ void AddPadding::visit(Class& c) {
 }
 
 void AddPadding::addPadding(const Member& prevMember,
-                            uint64_t paddingEnd,
+                            uint64_t paddingEndBits,
                             std::vector<Member>& paddedMembers) {
-  uint64_t prevMemberEnd = prevMember.offset + prevMember.type->size();
-  uint64_t padding = paddingEnd - prevMemberEnd;
-  if (padding == 0)
+  uint64_t prevMemberSizeBits;
+  if (prevMember.bitsize == 0) {
+    prevMemberSizeBits = prevMember.type->size() * 8;
+  } else {
+    prevMemberSizeBits = prevMember.bitsize;
+  }
+
+  uint64_t prevMemberEndBits = prevMember.bitOffset + prevMemberSizeBits;
+  uint64_t paddingBits = paddingEndBits - prevMemberEndBits;
+  if (paddingBits == 0)
     return;
 
-  auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
-  auto* paddingArray = typeGraph_.make_type<Array>(primitive, padding);
-  paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEnd);
+  if (paddingBits % 8 == 0) {
+    // Pad with an array of bytes
+    auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
+    auto* paddingArray =
+        typeGraph_.make_type<Array>(primitive, paddingBits / 8);
+    paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEndBits);
+  } else {
+    // Pad with a bitfield
+    auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int64);
+    paddedMembers.emplace_back(primitive, MemberPrefix, prevMemberEndBits,
+                               paddingBits);
+  }
 }
 
 }  // namespace type_graph

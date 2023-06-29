@@ -22,8 +22,8 @@ TEST(FlattenerTest, NoParents) {
   mystruct.members.push_back(Member(&myint, "n0", 0));
 
   myclass.members.push_back(Member(&myint, "n", 0));
-  myclass.members.push_back(Member(&myenum, "e", 4));
-  myclass.members.push_back(Member(&mystruct, "mystruct", 8));
+  myclass.members.push_back(Member(&myenum, "e", 4 * 8));
+  myclass.members.push_back(Member(&mystruct, "mystruct", 8 * 8));
 
   test(Flattener::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 12)
@@ -58,7 +58,7 @@ TEST(FlattenerTest, OnlyParents) {
   classB.members.push_back(Member(&myint, "b", 0));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.parents.push_back(Parent(&classC, 4));
+  classA.parents.push_back(Parent(&classC, 4 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 8)
@@ -90,8 +90,8 @@ TEST(FlattenerTest, ParentsFirst) {
   classB.members.push_back(Member(&myint, "b", 0));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.parents.push_back(Parent(&classC, 4));
-  classA.members.push_back(Member(&myint, "a", 8));
+  classA.parents.push_back(Parent(&classC, 4 * 8));
+  classA.members.push_back(Member(&myint, "a", 8 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
@@ -126,8 +126,8 @@ TEST(FlattenerTest, MembersFirst) {
   classB.members.push_back(Member(&myint, "b", 0));
 
   classA.members.push_back(Member(&myint, "a", 0));
-  classA.parents.push_back(Parent(&classB, 4));
-  classA.parents.push_back(Parent(&classC, 8));
+  classA.parents.push_back(Parent(&classB, 4 * 8));
+  classA.parents.push_back(Parent(&classC, 8 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
@@ -163,9 +163,9 @@ TEST(FlattenerTest, MixedMembersAndParents) {
   classB.members.push_back(Member(&myint, "b", 0));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.members.push_back(Member(&myint, "a1", 4));
-  classA.members.push_back(Member(&myint, "a2", 8));
-  classA.parents.push_back(Parent(&classC, 12));
+  classA.members.push_back(Member(&myint, "a1", 4 * 8));
+  classA.members.push_back(Member(&myint, "a2", 8 * 8));
+  classA.parents.push_back(Parent(&classC, 12 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 16)
@@ -199,9 +199,9 @@ TEST(FlattenerTest, EmptyParent) {
 
   classC.members.push_back(Member(&myint, "c", 0));
 
-  classA.members.push_back(Member(&myint, "a1", 4));
-  classA.members.push_back(Member(&myint, "a2", 8));
-  classA.parents.push_back(Parent(&classB, 4));
+  classA.members.push_back(Member(&myint, "a1", 4 * 8));
+  classA.members.push_back(Member(&myint, "a2", 8 * 8));
+  classA.parents.push_back(Parent(&classB, 0));
   classA.parents.push_back(Parent(&classC, 0));
 
   test(Flattener::createPass(), {classA}, R"(
@@ -240,11 +240,11 @@ TEST(FlattenerTest, TwoDeep) {
   classC.members.push_back(Member(&myint, "c", 0));
 
   classB.parents.push_back(Parent(&classD, 0));
-  classB.members.push_back(Member(&myint, "b", 4));
+  classB.members.push_back(Member(&myint, "b", 4 * 8));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.parents.push_back(Parent(&classC, 8));
-  classA.members.push_back(Member(&myint, "a", 12));
+  classA.parents.push_back(Parent(&classC, 8 * 8));
+  classA.members.push_back(Member(&myint, "a", 12 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 16)
@@ -280,11 +280,11 @@ TEST(FlattenerTest, DiamondInheritance) {
   classC.members.push_back(Member(&myint, "c", 0));
 
   classB.parents.push_back(Parent(&classC, 0));
-  classB.members.push_back(Member(&myint, "b", 4));
+  classB.members.push_back(Member(&myint, "b", 4 * 8));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.parents.push_back(Parent(&classC, 8));
-  classA.members.push_back(Member(&myint, "a", 12));
+  classA.parents.push_back(Parent(&classC, 8 * 8));
+  classA.members.push_back(Member(&myint, "a", 12 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 16)
@@ -316,10 +316,10 @@ TEST(FlattenerTest, Member) {
   classC.members.push_back(Member(&myint, "c", 0));
 
   classB.parents.push_back(Parent(&classC, 0));
-  classB.members.push_back(Member(&myint, "b", 4));
+  classB.members.push_back(Member(&myint, "b", 4 * 8));
 
   classA.members.push_back(Member(&myint, "a", 0));
-  classA.members.push_back(Member(&classB, "b", 4));
+  classA.members.push_back(Member(&classB, "b", 4 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
@@ -351,10 +351,10 @@ TEST(FlattenerTest, MemberOfParent) {
   classC.members.push_back(Member(&myint, "c", 0));
 
   classB.members.push_back(Member(&myint, "b", 0));
-  classB.members.push_back(Member(&classC, "c", 4));
+  classB.members.push_back(Member(&classC, "c", 4 * 8));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.members.push_back(Member(&myint, "a", 8));
+  classA.members.push_back(Member(&myint, "a", 8 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
@@ -386,7 +386,7 @@ TEST(FlattenerTest, ContainerParam) {
   classB.members.push_back(Member(&myint, "b", 0));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.members.push_back(Member(&myint, "a", 4));
+  classA.members.push_back(Member(&myint, "a", 4 * 8));
 
   container.templateParams.push_back(TemplateParam(&classA));
   container.templateParams.push_back(TemplateParam(&myint));
@@ -416,7 +416,7 @@ TEST(FlattenerTest, Array) {
 
   auto classA = Class{Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&classB, 0));
-  classA.members.push_back(Member(&myint, "a", 4));
+  classA.members.push_back(Member(&myint, "a", 4 * 8));
 
   auto arrayA = Array{&classA, 5};
 
@@ -441,7 +441,7 @@ TEST(FlattenerTest, Typedef) {
 
   auto classA = Class{Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&classB, 0));
-  classA.members.push_back(Member(&myint, "a", 4));
+  classA.members.push_back(Member(&myint, "a", 4 * 8));
 
   auto aliasA = Typedef{"aliasA", &classA};
 
@@ -468,7 +468,7 @@ TEST(FlattenerTest, TypedefParent) {
 
   auto classA = Class{Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&aliasB, 0));
-  classA.members.push_back(Member(&myint, "a", 4));
+  classA.members.push_back(Member(&myint, "a", 4 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 8)
@@ -491,7 +491,7 @@ TEST(FlattenerTest, Pointer) {
 
   auto classA = Class{Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&classB, 0));
-  classA.members.push_back(Member(&myint, "a", 4));
+  classA.members.push_back(Member(&myint, "a", 4 * 8));
 
   auto ptrA = Pointer{&classA};
   auto classC = Class{Class::Kind::Class, "ClassC", 8};
@@ -545,13 +545,29 @@ TEST(FlattenerTest, Alignment) {
   classC.setAlign(16);
 
   classC.members.push_back(Member(&myint, "c", 0));
-  classB.members.push_back(Member(&myint, "b", 0, 8));
+
+  Member memberB{&myint, "b", 0};
+  memberB.align = 8;
+  classB.members.push_back(memberB);
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.parents.push_back(Parent(&classC, 4));
-  classA.members.push_back(Member(&myint, "a", 8));
+  classA.parents.push_back(Parent(&classC, 4 * 8));
+  classA.members.push_back(Member(&myint, "a", 8 * 8));
 
   test(Flattener::createPass(), {classA}, R"(
+[0] Class: ClassA (size: 12)
+      Parent (offset: 0)
+[1]     Class: ClassB (size: 4)
+          Member: b (offset: 0, align: 8)
+            Primitive: int32_t
+      Parent (offset: 4)
+[2]     Class: ClassC (size: 4, align: 16)
+          Member: c (offset: 0)
+            Primitive: int32_t
+      Member: a (offset: 8)
+        Primitive: int32_t
+)",
+       R"(
 [0] Class: ClassA (size: 12)
       Member: b (offset: 0, align: 8)
         Primitive: int32_t
@@ -600,7 +616,7 @@ TEST(FlattenerTest, Children) {
   classB.members.push_back(Member(&myint, "b", 0));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.parents.push_back(Parent(&classC, 4));
+  classA.parents.push_back(Parent(&classC, 4 * 8));
 
   classB.children.push_back(classA);
   classC.children.push_back(classA);
@@ -635,11 +651,11 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
   classC.members.push_back(Member(&myint, "c", 0));
 
   classB.parents.push_back(Parent(&classD, 0));
-  classB.members.push_back(Member(&myint, "b", 4));
+  classB.members.push_back(Member(&myint, "b", 4 * 8));
 
   classA.parents.push_back(Parent(&classB, 0));
-  classA.parents.push_back(Parent(&classC, 8));
-  classA.members.push_back(Member(&myint, "a", 12));
+  classA.parents.push_back(Parent(&classC, 8 * 8));
+  classA.members.push_back(Member(&myint, "a", 12 * 8));
 
   classD.children.push_back(classB);
   classB.children.push_back(classA);
@@ -676,7 +692,7 @@ TEST(FlattenerTest, ParentContainer) {
 
   auto classA = Class{Class::Kind::Class, "ClassA", 32};
   classA.parents.push_back(Parent{&vector, 0});
-  classA.members.push_back(Member{&myint, "a", 24});
+  classA.members.push_back(Member{&myint, "a", 24 * 8});
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 32)
@@ -706,7 +722,7 @@ TEST(FlattenerTest, ParentTwoContainers) {
 
   auto classA = Class{Class::Kind::Class, "ClassA", 48};
   classA.parents.push_back(Parent{&vector, 0});
-  classA.parents.push_back(Parent{&vector, 24});
+  classA.parents.push_back(Parent{&vector, 24 * 8});
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 48)
@@ -739,7 +755,7 @@ TEST(FlattenerTest, ParentClassAndContainer) {
 
   auto classA = Class{Class::Kind::Class, "ClassA", 32};
   classA.parents.push_back(Parent{&classB, 0});
-  classA.parents.push_back(Parent{&vector, 8});
+  classA.parents.push_back(Parent{&vector, 8 * 8});
 
   test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 32)

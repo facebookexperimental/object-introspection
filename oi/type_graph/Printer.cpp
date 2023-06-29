@@ -166,7 +166,8 @@ void Printer::print_param(const TemplateParam& param) {
 void Printer::print_parent(const Parent& parent) {
   depth_++;
   prefix();
-  out_ << "Parent (offset: " << parent.offset << ")" << std::endl;
+  out_ << "Parent (offset: " << static_cast<double>(parent.bitOffset) / 8 << ")"
+       << std::endl;
   print(*parent.type);
   depth_--;
 }
@@ -174,8 +175,13 @@ void Printer::print_parent(const Parent& parent) {
 void Printer::print_member(const Member& member) {
   depth_++;
   prefix();
-  out_ << "Member: " << member.name << " (offset: " << member.offset
-       << align_str(member.align) << ")" << std::endl;
+  out_ << "Member: " << member.name
+       << " (offset: " << static_cast<double>(member.bitOffset) / 8;
+  out_ << align_str(member.align);
+  if (member.bitsize != 0) {
+    out_ << ", bitsize: " << member.bitsize;
+  }
+  out_ << ")" << std::endl;
   print(*member.type);
   depth_--;
 }

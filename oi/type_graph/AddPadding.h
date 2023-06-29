@@ -45,7 +45,7 @@ class AddPadding final : public RecursiveVisitor {
   void visit(Type& type) override;
   void visit(Class& c) override;
 
-  static const inline std::string MemberPrefix = "__oid_padding";
+  static const inline std::string MemberPrefix = "__oi_padding";
 
  private:
   std::unordered_set<Type*> visited_;

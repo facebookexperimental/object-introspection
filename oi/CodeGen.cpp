@@ -247,7 +247,11 @@ void genDefsClass(const Class& c, std::string& code) {
 
   code += c.name() + " {\n";
   for (const auto& mem : c.members) {
-    code += "  " + mem.type->name() + " " + mem.name + ";\n";
+    code += "  " + mem.type->name() + " " + mem.name;
+    if (mem.bitsize) {
+      code += " : " + std::to_string(mem.bitsize);
+    }
+    code += ";\n";
   }
   code += "};\n\n";
 }
@@ -271,8 +275,10 @@ void genStaticAssertsClass(const Class& c, std::string& code) {
           ") == " + std::to_string(c.size()) +
           ", \"Unexpected size of struct " + c.name() + "\");\n";
   for (const auto& member : c.members) {
+    if (member.bitsize > 0)
+      continue;
     code += "static_assert(offsetof(" + c.name() + ", " + member.name +
-            ") == " + std::to_string(member.offset) +
+            ") == " + std::to_string(member.bitOffset / 8) +
             ", \"Unexpected offset of " + c.name() + "::" + member.name +
             "\");\n";
   }
@@ -407,7 +413,8 @@ void CodeGen::getClassSizeFuncConcrete(std::string_view funcName,
     }
 
     code += "  JLOG(\"" + member.name + " @\");\n";
-    code += "  JLOGPTR(&t." + member.name + ");\n";
+    if (member.bitsize == 0)
+      code += "  JLOGPTR(&t." + member.name + ");\n";
     code += "  getSizeType(t." + member.name + ", returnArg);\n";
   }
   code += "}\n";

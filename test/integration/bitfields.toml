@@ -1,0 +1,125 @@
+definitions = '''
+  struct Single {
+    int bitfield : 3;
+  };
+
+  struct WithinBytes {
+    char a : 3;
+    char b : 5;
+    char c : 7;
+  };
+
+  struct StraddleBytes {
+    char a : 7;
+    char b : 7;
+    char c : 2;
+  };
+
+  struct Mixed {
+    int a;
+    char b : 4;
+    short c : 12;
+    char d;
+    int e : 22;
+  };
+
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wbitfield-width"
+  // The bitfield will max out at the size of its type. Extra bits act as padding.
+  struct MoreBitsThanType {
+    char a : 29;
+  };
+  #pragma clang diagnostic pop
+
+  // A zero-sized bitfield adds default padding between neighbouring bitfields
+  struct ZeroBits {
+    char b1 : 3;
+    char : 0;
+    char b2 : 2;
+  };
+
+  enum class MyEnum {
+    One,
+    Two,
+    Three,
+  };
+
+  struct Enum {
+    MyEnum e : 2;
+    MyEnum f : 4;
+  };
+'''
+# TODO The sizes do not take bitfields into account. They count each field as
+# if they were regular primitives.
+[cases]
+  [cases.single]
+    cli_options = ["-ftype-graph"]
+    oil_skip = "not implemented"
+    param_types = ["Single&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"staticSize":4, "dynamicSize":0, "exclusiveSize":4}
+    ]}]'''
+  [cases.within_bytes]
+    cli_options = ["-ftype-graph"]
+    oil_skip = "not implemented"
+    param_types = ["WithinBytes&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":2, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1}
+    ]}]'''
+  [cases.straddle_bytes]
+    cli_options = ["-ftype-graph"]
+    oil_skip = "not implemented"
+    param_types = ["StraddleBytes&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":3, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1}
+    ]}]'''
+  [cases.mixed]
+    cli_options = ["-ftype-graph"]
+    oil_skip = "not implemented"
+    param_types = ["Mixed&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":12, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"staticSize":4, "dynamicSize":0, "exclusiveSize":4},
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":2, "dynamicSize":0, "exclusiveSize":2},
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":4, "dynamicSize":0, "exclusiveSize":4}
+    ]}]'''
+  [cases.more_bits_than_type] # TODO member sizes are wrong
+    skip = "drgn errors out"
+    cli_options = ["-ftype-graph"]
+    oil_skip = "not implemented"
+    param_types = ["MoreBitsThanType&"]
+    setup = "return {};"
+    expect_json = '"TODO"'
+  [cases.zero_bits]
+    cli_options = ["-ftype-graph"]
+    oil_skip = "not implemented"
+    param_types = ["ZeroBits&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":2, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1}
+    ]}]'''
+  [cases.enum]
+    cli_options = ["-ftype-graph"]
+    oil_skip = "not implemented"
+    param_types = ["Enum&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"staticSize":4, "dynamicSize":0, "exclusiveSize":4},
+        {"staticSize":4, "dynamicSize":0, "exclusiveSize":4}
+    ]}]'''
