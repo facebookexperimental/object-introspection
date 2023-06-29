@@ -21,6 +21,13 @@ workflows:
           oid_test_args: "-ftype-graph"
           tests_regex: "OidIntegration\\..*"
           exclude_regex: ".*inheritance_polymorphic.*"
+      - test:
+          name: test-typed-data-segment-gcc
+          requires:
+            - build-gcc
+          oid_test_args: "-ftyped-data-segment"
+          tests_regex: "OidIntegration\\..*"
+          exclude_regex: ".*inheritance_polymorphic.*|.*thrift_.*|.*std_vector_del_allocator_a|.*cycles_.*"
       - coverage:
           name: coverage
           requires:
@@ -29,6 +36,10 @@ workflows:
           name: coverage-type-graph
           requires:
             - test-type-graph-gcc
+      - coverage:
+          name: coverage-typed-data-sgement
+          requires:
+            - test-typed-data-segment-gcc
 
       - build:
           name: build-clang
