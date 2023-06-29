@@ -309,7 +309,10 @@ target_link_libraries(oicore
 )
 
 ### TreeBuilder
-add_library(treebuilder oi/TreeBuilder.cpp)
+add_library(treebuilder
+  oi/TreeBuilder.cpp
+  oi/exporters/TypeCheckingWalker.cpp
+)
 add_dependencies(treebuilder librocksdb)
 target_link_libraries(treebuilder
   ${rocksdb_BINARY_DIR}/librocksdb.a
