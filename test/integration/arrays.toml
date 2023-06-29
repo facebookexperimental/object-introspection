@@ -44,7 +44,7 @@ definitions = '''
         "dynamicSize":0
       }]}]'''
   [cases.multidim_legacy] # Test for legacy behaviour. Remove with OICodeGen
-    cli_options = ["-Ftype-graph"]
+    cli_options = ["-Ftype-graph", "-Ftyped-data-segment"]
     param_types = ["const MultiDim&"]
     setup = "return {};"
     expect_json = '''[{

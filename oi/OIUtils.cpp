@@ -163,6 +163,12 @@ std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
 
   if (featuresSet[Feature::TypedDataSegment] &&
       !featuresSet[Feature::TypeGraph]) {
+    if (auto search = featureMap.find(Feature::TypeGraph);
+        search != featureMap.end() && !search->second) {
+      LOG(ERROR) << "TypedDataSegment feature requires TypeGraph feature to be "
+                    "enabled but it was explicitly disabled!";
+      return {};
+    }
     featuresSet[Feature::TypeGraph] = true;
     LOG(WARNING) << "TypedDataSegment feature requires TypeGraph feature to be "
                     "enabled, enabling now.";
