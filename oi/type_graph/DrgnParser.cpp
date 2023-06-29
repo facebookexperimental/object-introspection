@@ -212,13 +212,14 @@ void DrgnParser::enumerateClassParents(struct drgn_type* type,
     }
 
     auto ptype = enumerateType(parent_qual_type.type);
-    uint64_t poffset = drgn_parents[i].bit_offset / 8;
+    uint64_t poffset = drgn_parents[i].bit_offset;
     Parent p(ptype, poffset);
     parents.push_back(p);
   }
 
-  std::sort(parents.begin(), parents.end(),
-            [](const auto& a, const auto& b) { return a.offset < b.offset; });
+  std::sort(parents.begin(), parents.end(), [](const auto& a, const auto& b) {
+    return a.bitOffset < b.bitOffset;
+  });
 }
 
 void DrgnParser::enumerateClassMembers(struct drgn_type* type,
@@ -257,17 +258,16 @@ void DrgnParser::enumerateClassMembers(struct drgn_type* type,
     if (drgn_members[i].name)
       member_name = drgn_members[i].name;
 
-    // TODO bitfields
-
     auto mtype = enumerateType(member_type);
-    uint64_t moffset = drgn_members[i].bit_offset / 8;
+    uint64_t moffset = drgn_members[i].bit_offset;
 
-    Member m(mtype, member_name, moffset);  // TODO
+    Member m{mtype, member_name, moffset, bit_field_size};
     members.push_back(m);
   }
 
-  std::sort(members.begin(), members.end(),
-            [](const auto& a, const auto& b) { return a.offset < b.offset; });
+  std::sort(members.begin(), members.end(), [](const auto& a, const auto& b) {
+    return a.bitOffset < b.bitOffset;
+  });
 }
 
 void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter* tparams,

@@ -69,14 +69,15 @@ class Type {
 struct Member {
   Member(Type* type,
          const std::string& name,
-         uint64_t offset,
-         uint64_t align = 0)
-      : type(type), name(name), offset(offset), align(align) {
+         uint64_t bitOffset,
+         uint64_t bitsize = 0)
+      : type(type), name(name), bitOffset(bitOffset), bitsize(bitsize) {
   }
 
   Type* type;
-  std::string name;  // TODO make optional?
-  uint64_t offset;
+  std::string name;
+  uint64_t bitOffset;
+  uint64_t bitsize;
   uint64_t align = 0;
 };
 
@@ -91,11 +92,11 @@ struct Function {
 
 class Class;
 struct Parent {
-  Parent(Type* type, uint64_t offset) : type(type), offset(offset) {
+  Parent(Type* type, uint64_t bitOffset) : type(type), bitOffset(bitOffset) {
   }
 
   Type* type;
-  uint64_t offset;
+  uint64_t bitOffset;
 };
 
 struct TemplateParam {

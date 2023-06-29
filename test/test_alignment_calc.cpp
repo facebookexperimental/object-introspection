@@ -10,7 +10,7 @@ TEST(AlignmentCalcTest, PrimitiveMembers) {
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   myclass.members.push_back(Member(&myint8, "n", 0));
-  myclass.members.push_back(Member(&myint64, "n", 8));
+  myclass.members.push_back(Member(&myint64, "n", 8 * 8));
 
   test(AlignmentCalc::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 16, align: 8)
@@ -25,12 +25,12 @@ TEST(AlignmentCalcTest, StructMembers) {
   auto mystruct = Class{Class::Kind::Struct, "MyStruct", 8};
   auto myint32 = Primitive{Primitive::Kind::Int32};
   mystruct.members.push_back(Member(&myint32, "n1", 0));
-  mystruct.members.push_back(Member(&myint32, "n2", 4));
+  mystruct.members.push_back(Member(&myint32, "n2", 4 * 8));
 
   auto myclass = Class{Class::Kind::Class, "MyClass", 12};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   myclass.members.push_back(Member(&myint8, "n", 0));
-  myclass.members.push_back(Member(&mystruct, "s", 4));
+  myclass.members.push_back(Member(&mystruct, "s", 4 * 8));
 
   test(AlignmentCalc::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 12, align: 4)
@@ -50,7 +50,7 @@ TEST(AlignmentCalcTest, StructInContainer) {
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   myclass.members.push_back(Member(&myint8, "n", 0));
-  myclass.members.push_back(Member(&myint64, "n", 8));
+  myclass.members.push_back(Member(&myint64, "n", 8 * 8));
 
   auto mycontainer = Container{ContainerInfo{}, 8};
   mycontainer.templateParams.push_back(&myclass);
@@ -71,7 +71,7 @@ TEST(AlignmentCalcTest, Packed) {
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   mystruct.members.push_back(Member(&myint8, "n1", 0));
-  mystruct.members.push_back(Member(&myint64, "n2", 1));
+  mystruct.members.push_back(Member(&myint64, "n2", 1 * 8));
 
   test(AlignmentCalc::createPass(), {mystruct}, R"(
 [0] Struct: MyStruct (size: 9, align: 8, packed)

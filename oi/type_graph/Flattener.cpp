@@ -62,7 +62,7 @@ void flattenParent(const Parent& parent,
     for (size_t i = 0; i < parentClass->members.size(); i++) {
       const auto& member = parentClass->members[i];
       flattenedMembers.push_back(member);
-      flattenedMembers.back().offset += parent.offset;
+      flattenedMembers.back().bitOffset += parent.bitOffset;
       if (i == 0) {
         flattenedMembers.back().align =
             std::max(flattenedMembers.back().align, parentClass->align());
@@ -71,7 +71,8 @@ void flattenParent(const Parent& parent,
   } else if (Container* parentContainer =
                  dynamic_cast<Container*>(&parentType)) {
     // Create a new member to represent this parent container
-    flattenedMembers.emplace_back(parentContainer, "__parent", parent.offset);
+    flattenedMembers.emplace_back(parentContainer, "__parent",
+                                  parent.bitOffset);
   } else {
     throw std::runtime_error("Invalid type for parent");
   }
@@ -169,8 +170,8 @@ void Flattener::visit(Class& c) {
   std::size_t member_idx = 0;
   std::size_t parent_idx = 0;
   while (member_idx < c.members.size() && parent_idx < c.parents.size()) {
-    auto member_offset = c.members[member_idx].offset;
-    auto parent_offset = c.parents[parent_idx].offset;
+    auto member_offset = c.members[member_idx].bitOffset;
+    auto parent_offset = c.parents[parent_idx].bitOffset;
     if (member_offset < parent_offset) {
       // Add our own member
       const auto& member = c.members[member_idx++];

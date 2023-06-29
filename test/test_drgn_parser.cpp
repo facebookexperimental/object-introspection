@@ -581,4 +581,88 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
 )");
 }
 
+TEST_F(DrgnParserTest, BitfieldsSingle) {
+  test("oid_test_case_bitfields_single", R"(
+[0] Pointer
+[1]   Struct: Single (size: 4)
+        Member: bitfield (offset: 0, bitsize: 3)
+          Primitive: int32_t
+)");
+}
+
+TEST_F(DrgnParserTest, BitfieldsWithinBytes) {
+  test("oid_test_case_bitfields_within_bytes", R"(
+[0] Pointer
+[1]   Struct: WithinBytes (size: 2)
+        Member: a (offset: 0, bitsize: 3)
+          Primitive: int8_t
+        Member: b (offset: 0.375, bitsize: 5)
+          Primitive: int8_t
+        Member: c (offset: 1, bitsize: 7)
+          Primitive: int8_t
+)");
+}
+
+TEST_F(DrgnParserTest, BitfieldsStraddleBytes) {
+  test("oid_test_case_bitfields_straddle_bytes", R"(
+[0] Pointer
+[1]   Struct: StraddleBytes (size: 3)
+        Member: a (offset: 0, bitsize: 7)
+          Primitive: int8_t
+        Member: b (offset: 1, bitsize: 7)
+          Primitive: int8_t
+        Member: c (offset: 2, bitsize: 2)
+          Primitive: int8_t
+)");
+}
+
+TEST_F(DrgnParserTest, BitfieldsMixed) {
+  test("oid_test_case_bitfields_mixed", R"(
+[0] Pointer
+[1]   Struct: Mixed (size: 12)
+        Member: a (offset: 0)
+          Primitive: int32_t
+        Member: b (offset: 4, bitsize: 4)
+          Primitive: int8_t
+        Member: c (offset: 4.5, bitsize: 12)
+          Primitive: int16_t
+        Member: d (offset: 6)
+          Primitive: int8_t
+        Member: e (offset: 8, bitsize: 22)
+          Primitive: int32_t
+)");
+}
+
+TEST_F(DrgnParserTest, BitfieldsMoreBitsThanType) {
+  GTEST_SKIP() << "drgn errors out";
+  test("oid_test_case_bitfields_more_bits_than_type", R"(
+[0] Pointer
+[1]   Struct: MoreBitsThanType (size: 4)
+        Member: a (offset: 0, bitsize: 8)
+          Primitive: int8_t
+)");
+}
+
+TEST_F(DrgnParserTest, BitfieldsZeroBits) {
+  test("oid_test_case_bitfields_zero_bits", R"(
+[0] Pointer
+[1]   Struct: ZeroBits (size: 2)
+        Member: b1 (offset: 0, bitsize: 3)
+          Primitive: int8_t
+        Member: b2 (offset: 1, bitsize: 2)
+          Primitive: int8_t
+)");
+}
+
+TEST_F(DrgnParserTest, BitfieldsEnum) {
+  test("oid_test_case_bitfields_enum", R"(
+[0] Pointer
+[1]   Struct: Enum (size: 4)
+        Member: e (offset: 0, bitsize: 2)
+          Enum: MyEnum (size: 4)
+        Member: f (offset: 0.25, bitsize: 4)
+          Enum: MyEnum (size: 4)
+)");
+}
+
 // TODO test virtual classes
