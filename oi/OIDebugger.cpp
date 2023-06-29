@@ -2908,7 +2908,7 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
     return std::nullopt;
   }
 
-  std::string code(headers::OITraceCode_cpp);
+  std::string code(headers::oi_OITraceCode_cpp);
 
   auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
   if (!codegen) {

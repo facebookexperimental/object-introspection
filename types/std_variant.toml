@@ -39,9 +39,9 @@ void getSizeType(const %1%<Types...> &container, size_t& returnArg)
 handler = """
 template <typename DB, typename... Types>
 struct TypeHandler<DB, %1%<Types...>> {
-    using type = StaticTypes::Sum<DB, typename TypeHandler<DB, Types>::type..., StaticTypes::Unit<DB>>;
+    using type = types::st::Sum<DB, typename TypeHandler<DB, Types>::type..., types::st::Unit<DB>>;
 
-    static StaticTypes::Unit<DB> getSizeType(
+    static types::st::Unit<DB> getSizeType(
         const %1%<Types...>& container,
         typename TypeHandler<DB, %1%<Types...>>::type returnArg) {
       return getSizeTypeRecursive(container, returnArg);
@@ -49,7 +49,7 @@ struct TypeHandler<DB, %1%<Types...>> {
 
   private:
     template <size_t I = 0>
-    static StaticTypes::Unit<DB> getSizeTypeRecursive(
+    static types::st::Unit<DB> getSizeTypeRecursive(
         const %1%<Types...>& container,
         typename TypeHandler<DB, %1%<Types...>>::type returnArg) {
       if constexpr (I < sizeof...(Types)) {

@@ -40,6 +40,7 @@
 #include <boost/range/combine.hpp>
 #include <boost/scope_exit.hpp>
 
+#include "oi/Headers.h"
 #include "oi/Metrics.h"
 
 extern "C" {
@@ -512,6 +513,15 @@ bool OICompiler::compile(const std::string& code,
   for (const auto& path : config.sysHeaderPaths) {
     headerSearchOptions.AddPath(
         path.c_str(), clang::frontend::IncludeDirGroup::System, false, false);
+  }
+
+  if (config.features[Feature::TypedDataSegment]) {
+    compInv->getPreprocessorOpts().addRemappedFile(
+        "/synthetic/headers/oi/types/st.h",
+        MemoryBuffer::getMemBuffer(headers::oi_types_st_h).release());
+    headerSearchOptions.AddPath(
+        "/synthetic/headers", clang::frontend::IncludeDirGroup::IndexHeaderMap,
+        false, false);
   }
 
   compInv->getFrontendOpts().OutputFile = objectPath;

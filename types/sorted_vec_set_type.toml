@@ -34,11 +34,11 @@ void getSizeType(const %1%<T,Compare, Allocator, GrowthPolicy, Container> &conta
 handler = """
 template <typename DB, typename T0, typename T1, typename T2, typename T3, typename T4>
 struct TypeHandler<DB, %1%<T0, T1, T2, T3, T4>> {
-  using type = StaticTypes::Pair<DB,
-      StaticTypes::VarInt<DB>,
+  using type = types::st::Pair<DB,
+      types::st::VarInt<DB>,
       typename TypeHandler<DB, T4>::type>;
 
-  static StaticTypes::Unit<DB> getSizeType(
+  static types::st::Unit<DB> getSizeType(
       const %1%<T0, T1, T2, T3, T4>& container,
       typename TypeHandler<DB, %1%<T0, T1, T2, T3, T4>>::type returnArg) {
     auto tail = returnArg.write((uintptr_t)&container);

@@ -39,15 +39,15 @@ template <typename DB, typename T0>
 struct TypeHandler<DB, %1%<T0>> {
     using type = typename std::conditional<
       std::is_void<T0>::value,
-      StaticTypes::Unit<DB>,
-      StaticTypes::Pair<DB,
-        StaticTypes::VarInt<DB>,
-        StaticTypes::Sum<DB,
-          StaticTypes::Unit<DB>,
+      types::st::Unit<DB>,
+      types::st::Pair<DB,
+        types::st::VarInt<DB>,
+        types::st::Sum<DB,
+          types::st::Unit<DB>,
           typename TypeHandler<DB, T0>::type
       >>>::type;
 
-    static StaticTypes::Unit<DB> getSizeType(
+    static types::st::Unit<DB> getSizeType(
         const %1%<T0>& container,
         typename TypeHandler<DB, %1%<T0>>::type returnArg) {
       if constexpr (!std::is_void<T0>::value) {

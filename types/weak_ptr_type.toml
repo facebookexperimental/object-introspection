@@ -27,9 +27,9 @@ void getSizeType(const %1%<T> &s_ptr, size_t& returnArg)
 handler = """
 template <typename DB, typename T0>
 struct TypeHandler<DB, %1%<T0>> {
-  using type = StaticTypes::Unit<DB>;
+  using type = types::st::Unit<DB>;
 
-  static StaticTypes::Unit<DB> getSizeType(
+  static types::st::Unit<DB> getSizeType(
       const %1%<T0>& container,
       typename TypeHandler<DB, %1%<T0>>::type returnArg) {
     return returnArg;

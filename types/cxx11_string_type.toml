@@ -40,9 +40,9 @@ handler = """
 template <typename DB, typename T0>
 struct TypeHandler<DB, %1% <T0>> {
   using type =
-      StaticTypes::Pair<DB, StaticTypes::VarInt<DB>, StaticTypes::VarInt<DB>>;
+      types::st::Pair<DB, types::st::VarInt<DB>, types::st::VarInt<DB>>;
 
-  static StaticTypes::Unit<DB> getSizeType(
+  static types::st::Unit<DB> getSizeType(
       const %1% <T0> & container,
       typename TypeHandler<DB, %1% <T0>>::type returnArg) {
     bool sso = ((uintptr_t)container.data() <

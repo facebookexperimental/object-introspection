@@ -19,7 +19,8 @@ namespace ObjectIntrospection {
 namespace headers {
 
 // These externs are provided by our build system. See resources/CMakeLists.txt
-extern const std::string_view OITraceCode_cpp;
+extern const std::string_view oi_OITraceCode_cpp;
+extern const std::string_view oi_types_st_h;
 
 }  // namespace headers
 }  // namespace ObjectIntrospection
