@@ -101,6 +101,12 @@ cpp_unittest(
   DEPS oicore
 )
 
+cpp_unittest(
+  NAME type_checking_walker_test
+  SRCS ../oi/exporters/test/TypeCheckingWalkerTest.cpp
+  DEPS treebuilder
+)
+
 # Integration tests
 if (WITH_FLAKY_TESTS)
   add_test(

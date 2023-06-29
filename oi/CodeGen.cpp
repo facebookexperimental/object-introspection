@@ -109,7 +109,7 @@ void addIncludes(const TypeGraph& typeGraph,
   if (features[Feature::TreeBuilderTypeChecking]) {
     includes.emplace("oi/types/dy.h");
 
-    code += "#define DEFINE_DESCRIBE 1\n"; // added before all includes
+    code += "#define DEFINE_DESCRIBE 1\n";  // added before all includes
   }
   if (features[Feature::JitTiming]) {
     includes.emplace("chrono");

@@ -93,6 +93,6 @@ class List {
   Dynamic element;
 };
 
-}  // namespace ObjectIntrospection
+}  // namespace ObjectIntrospection::types::dy
 
 #endif
