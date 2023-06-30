@@ -385,13 +385,10 @@ void getContainerSizeFuncDecl(const Container& c, std::string& code) {
   code += fmt.str();
 }
 
-void getContainerSizeFuncDef(const Container& c, std::string& code) {
-  // TODO deduplicate containers in a better way (this isn't robust to vector
-  // reallocs):
-  //   - implement hash for ContainerInfo
-  //   - use ref<ContainerInfo>
-  static std::unordered_set<const ContainerInfo*> usedContainers{};
-  if (!usedContainers.insert(&c.containerInfo_).second) {
+void getContainerSizeFuncDef(std::unordered_set<const ContainerInfo*>& used,
+                             const Container& c,
+                             std::string& code) {
+  if (!used.insert(&c.containerInfo_).second) {
     return;
   }
 
@@ -410,15 +407,17 @@ void addGetSizeFuncDecls(const TypeGraph& typeGraph, std::string& code) {
   }
 }
 
-void addGetSizeFuncDefs(const TypeGraph& typeGraph,
-                        SymbolService& symbols,
-                        bool polymorphicInheritance,
-                        std::string& code) {
+void addGetSizeFuncDefs(
+    const TypeGraph& typeGraph,
+    SymbolService& symbols,
+    std::unordered_set<const ContainerInfo*>& definedContainers,
+    bool polymorphicInheritance,
+    std::string& code) {
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
       getClassSizeFuncDef(*c, symbols, polymorphicInheritance, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
-      getContainerSizeFuncDef(*con, code);
+      getContainerSizeFuncDef(definedContainers, *con, code);
     }
   }
 }
@@ -525,9 +524,10 @@ class TypeHandler<DB, %1%> {
               .str();
 }
 
-void getContainerTypeHandler(const Container& c, std::string& code) {
-  static std::unordered_set<const ContainerInfo*> usedContainers{};
-  if (!usedContainers.insert(&c.containerInfo_).second) {
+void getContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
+                             const Container& c,
+                             std::string& code) {
+  if (!used.insert(&c.containerInfo_).second) {
     return;
   }
 
@@ -543,12 +543,15 @@ void getContainerTypeHandler(const Container& c, std::string& code) {
   code += fmt.str();
 }
 
-void addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
+void addTypeHandlers(
+    std::unordered_set<const ContainerInfo*>& definedContainers,
+    const TypeGraph& typeGraph,
+    std::string& code) {
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
       getClassTypeHandler(*c, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
-      getContainerTypeHandler(*con, code);
+      getContainerTypeHandler(definedContainers, *con, code);
     }
   }
 }
@@ -664,13 +667,13 @@ void CodeGen::generate(
 
   if (config_.features[Feature::TypedDataSegment]) {
     addStandardTypeHandlers(code);
-    addTypeHandlers(typeGraph, code);
+    addTypeHandlers(definedContainers_, typeGraph, code);
   } else {
     addStandardGetSizeFuncDecls(code);
     addGetSizeFuncDecls(typeGraph, code);
 
     addStandardGetSizeFuncDefs(code);
-    addGetSizeFuncDefs(typeGraph, symbols_,
+    addGetSizeFuncDefs(typeGraph, symbols_, definedContainers_,
                        config_.features[Feature::PolymorphicInheritance], code);
   }
 
