@@ -18,6 +18,7 @@
 #include <filesystem>
 #include <functional>
 #include <string>
+#include <unordered_set>
 
 #include "ContainerInfo.h"
 #include "OICodeGen.h"
@@ -56,4 +57,5 @@ class CodeGen {
   OICodeGen::Config config_;
   SymbolService& symbols_;
   std::vector<ContainerInfo> containerInfos_;
+  std::unordered_set<const ContainerInfo*> definedContainers_;
 };
