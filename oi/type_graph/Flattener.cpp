@@ -71,7 +71,7 @@ void flattenParent(const Parent& parent,
   } else if (Container* parentContainer =
                  dynamic_cast<Container*>(&parentType)) {
     // Create a new member to represent this parent container
-    flattenedMembers.emplace_back(*parentContainer, "__parent",
+    flattenedMembers.emplace_back(*parentContainer, Flattener::ParentPrefix,
                                   parent.bitOffset);
   } else {
     throw std::runtime_error("Invalid type for parent");

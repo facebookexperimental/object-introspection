@@ -778,7 +778,7 @@ void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
         type_graph::TypeIdentifier::createPass(config_.passThroughTypes));
   }
   pm.addPass(type_graph::RemoveIgnored::createPass(config_.membersToStub));
-  pm.addPass(type_graph::AddPadding::createPass());
+  pm.addPass(type_graph::AddPadding::createPass(config_.features));
   pm.addPass(type_graph::NameGen::createPass());
   pm.addPass(type_graph::AlignmentCalc::createPass());
   pm.addPass(type_graph::RemoveTopLevelPointer::createPass());

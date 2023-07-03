@@ -705,7 +705,7 @@ TEST(FlattenerTest, ParentContainer) {
 )",
        R"(
 [0] Class: ClassA (size: 32)
-      Member: __parent (offset: 0)
+      Member: __oi_parent (offset: 0)
 [1]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
@@ -735,11 +735,11 @@ TEST(FlattenerTest, ParentTwoContainers) {
 )",
        R"(
 [0] Class: ClassA (size: 48)
-      Member: __parent (offset: 0)
+      Member: __oi_parent (offset: 0)
 [1]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
-      Member: __parent (offset: 24)
+      Member: __oi_parent (offset: 24)
         [1]
 )");
 }
@@ -772,7 +772,7 @@ TEST(FlattenerTest, ParentClassAndContainer) {
 [0] Class: ClassA (size: 32)
       Member: b (offset: 0)
         Primitive: int32_t
-      Member: __parent (offset: 8)
+      Member: __oi_parent (offset: 8)
 [1]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
