@@ -16,6 +16,7 @@
 #pragma once
 
 #include <array>
+#include <ostream>
 #include <string_view>
 
 #include "oi/EnumBitset.h"
@@ -42,6 +43,7 @@ enum class Feature {
 
 Feature featureFromStr(std::string_view);
 const char* featureToStr(Feature);
+void featuresHelp(std::ostream& out);
 
 constexpr std::array allFeatures = {
 #define X(name, _) Feature::name,
