@@ -566,20 +566,66 @@ void addStandardTypeHandlers(std::string& code) {
   )";
 }
 
-// TODO support thrift isset
-void getClassTypeHandler(const Class& c, std::string& code) {
+}  // namespace
+
+void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
   std::string funcName = "getSizeType";
+  std::string extras;
+
+  const Member* thriftIssetMember = nullptr;
+  if (const auto it = thriftIssetMembers_.find(&c);
+      it != thriftIssetMembers_.end()) {
+    thriftIssetMember = it->second;
+
+    extras += "\n  using thrift_data = apache::thrift::TStructDataStorage<" +
+              c.fqName() + ">;";
+
+    extras += (boost::format(R"(
+  static int getThriftIsset(const %1%& t, size_t i) {
+    if (&thrift_data::isset_indexes == nullptr) return -1;
+
+    auto idx = thrift_data::isset_indexes[i];
+    if (idx == -1) return -1;
+
+    return t.%2%.get(idx);
+  }
+)") % c.name() %
+               thriftIssetMember->name)
+                  .str();
+  }
+
+  size_t lastNonPaddingElement = -1;
+  for (size_t i = 0; i < c.members.size(); i++) {
+    const auto& el = c.members[i];
+    if (!el.name.starts_with(type_graph::AddPadding::MemberPrefix)) {
+      lastNonPaddingElement = i;
+    }
+  }
 
   std::string typeStaticType;
   {
     size_t pairs = 0;
 
-    for (size_t i = 0; i < c.members.size(); i++) {
+    for (size_t i = 0; i < lastNonPaddingElement + 1; i++) {
       const auto& member = c.members[i];
+      if (member.name.starts_with(type_graph::AddPadding::MemberPrefix)) {
+        continue;
+      }
 
-      if (i != c.members.size() - 1) {
+      if (i != lastNonPaddingElement) {
         typeStaticType += "types::st::Pair<DB, ";
         pairs++;
+      }
+
+      if (thriftIssetMember != nullptr && thriftIssetMember != &member) {
+        // Return an additional VarInt before every field except for __isset
+        // itself.
+        pairs++;
+        if (i == lastNonPaddingElement) {
+          typeStaticType += "types::st::Pair<DB, types::st::VarInt<DB>, ";
+        } else {
+          typeStaticType += "types::st::VarInt<DB>, types::st::Pair<DB, ";
+        }
       }
 
       typeStaticType +=
@@ -587,7 +633,7 @@ void getClassTypeHandler(const Class& c, std::string& code) {
            c.name() % member.name)
               .str();
 
-      if (i != c.members.size() - 1) {
+      if (i != lastNonPaddingElement) {
         typeStaticType += ", ";
       }
     }
@@ -603,10 +649,17 @@ void getClassTypeHandler(const Class& c, std::string& code) {
     if (!c.members.empty()) {
       traverser = "auto ret = returnArg";
     }
-    for (size_t i = 0; i < c.members.size(); i++) {
+    for (size_t i = 0; i < lastNonPaddingElement + 1; i++) {
       const auto& member = c.members[i];
+      if (member.name.starts_with(type_graph::AddPadding::MemberPrefix)) {
+        continue;
+      }
 
-      if (i != c.members.size() - 1) {
+      if (thriftIssetMember != nullptr && thriftIssetMember != &member) {
+        traverser += "\n  .write(getThriftIsset(t, " + std::to_string(i) + "))";
+      }
+
+      if (i != lastNonPaddingElement) {
         traverser += "\n  .delegate([&t](auto ret) {";
         traverser += "\n    return OIInternal::getSizeType<DB>(t." +
                      member.name + ", ret);";
@@ -625,19 +678,21 @@ void getClassTypeHandler(const Class& c, std::string& code) {
 
   code += (boost::format(R"(
 template <typename DB>
-class TypeHandler<DB, %1%> {
+class TypeHandler<DB, %1%> {%2%
  public:
-  using type = %2%;
-  static types::st::Unit<DB> %3%(
+  using type = %3%;
+  static types::st::Unit<DB> %4%(
       const %1%& t,
       typename TypeHandler<DB, %1%>::type returnArg) {
-    %4%
+    %5%
   }
 };
 )") % c.name() %
-           typeStaticType % funcName % traverser)
+           extras % typeStaticType % funcName % traverser)
               .str();
 }
+
+namespace {
 
 void getContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
                              const Container& c,
@@ -658,19 +713,17 @@ void getContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   code += fmt.str();
 }
 
-void addTypeHandlers(
-    std::unordered_set<const ContainerInfo*>& definedContainers,
-    const TypeGraph& typeGraph,
-    std::string& code) {
+}  // namespace
+
+void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
       getClassTypeHandler(*c, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
-      getContainerTypeHandler(definedContainers, *con, code);
+      getContainerTypeHandler(definedContainers_, *con, code);
     }
   }
 }
-}  // namespace
 
 bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
   try {
@@ -787,7 +840,7 @@ void CodeGen::generate(
 
   if (config_.features[Feature::TypedDataSegment]) {
     addStandardTypeHandlers(code);
-    addTypeHandlers(definedContainers_, typeGraph, code);
+    addTypeHandlers(typeGraph, code);
   } else {
     addStandardGetSizeFuncDecls(code);
     addGetSizeFuncDecls(typeGraph, code);

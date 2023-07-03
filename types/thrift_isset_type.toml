@@ -16,3 +16,6 @@ decl = """
 func = """
 // DummyFunc %1%
 """
+handler = """
+// DummyHandler %1%
+"""
