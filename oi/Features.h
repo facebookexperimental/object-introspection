@@ -28,6 +28,7 @@
   X(CaptureThriftIsset, "capture-thrift-isset") \
   X(TypeGraph, "type-graph")                    \
   X(TypedDataSegment, "typed-data-segment")     \
+  X(TreeBuilderV2, "tree-builder-v2")           \
   X(GenJitDebug, "gen-jit-debug")               \
   X(JitLogging, "jit-logging")                  \
   X(JitTiming, "jit-timing")                    \

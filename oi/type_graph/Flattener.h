@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -41,6 +42,8 @@ class Flattener : public RecursiveVisitor {
   void visit(Type& type) override;
   void visit(Class& c) override;
   void visit(Container& c) override;
+
+  static const inline std::string ParentPrefix = "__oi_parent";
 
  private:
   std::unordered_set<Type*> visited_;

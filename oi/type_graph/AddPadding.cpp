@@ -17,16 +17,20 @@
 
 #include <cassert>
 
+#include "Flattener.h"
 #include "TypeGraph.h"
 
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
+using ObjectIntrospection::Feature;
+using ObjectIntrospection::FeatureSet;
+
 namespace type_graph {
 
-Pass AddPadding::createPass() {
-  auto fn = [](TypeGraph& typeGraph) {
-    AddPadding pass(typeGraph);
+Pass AddPadding::createPass(FeatureSet features) {
+  auto fn = [features](TypeGraph& typeGraph) {
+    AddPadding pass(typeGraph, features);
     for (auto& type : typeGraph.rootTypes()) {
       pass.visit(type);
     }
@@ -67,6 +71,19 @@ void AddPadding::visit(Class& c) {
     if (i >= 1) {
       addPadding(c.members[i - 1], c.members[i].bitOffset, paddedMembers);
     }
+
+    if (!features_[Feature::TreeBuilderV2] &&
+        c.members[i].name.starts_with(Flattener::ParentPrefix)) {
+      // CodeGen v1 can't handle parent containers. It replaces them with
+      // padding.
+      auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
+      auto& paddingArray =
+          typeGraph_.makeType<Array>(primitive, c.members[i].type().size());
+      paddedMembers.emplace_back(paddingArray, MemberPrefix,
+                                 c.members[i].bitOffset);
+      continue;
+    }
+
     paddedMembers.push_back(c.members[i]);
   }
 

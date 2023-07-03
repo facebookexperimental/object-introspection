@@ -15,12 +15,13 @@
  */
 #pragma once
 
-#include <functional>
+#include <string>
 #include <unordered_set>
 
 #include "PassManager.h"
 #include "Types.h"
 #include "Visitor.h"
+#include "oi/Features.h"
 
 namespace type_graph {
 
@@ -35,9 +36,11 @@ class TypeGraph;
  */
 class AddPadding final : public RecursiveVisitor {
  public:
-  static Pass createPass();
+  static Pass createPass(ObjectIntrospection::FeatureSet features);
 
-  explicit AddPadding(TypeGraph& typeGraph) : typeGraph_(typeGraph) {
+  explicit AddPadding(TypeGraph& typeGraph,
+                      ObjectIntrospection::FeatureSet features)
+      : typeGraph_(typeGraph), features_(features) {
   }
 
   using RecursiveVisitor::visit;
@@ -50,6 +53,7 @@ class AddPadding final : public RecursiveVisitor {
  private:
   std::unordered_set<Type*> visited_;
   TypeGraph& typeGraph_;
+  ObjectIntrospection::FeatureSet features_;
 
   void addPadding(const Member& prevMember,
                   uint64_t paddingEndBits,
