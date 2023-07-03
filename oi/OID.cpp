@@ -145,25 +145,18 @@ constexpr static OIOpts opts{
     OIOpt{'a', "log-all-structs", no_argument, nullptr, "Log all structures"},
     OIOpt{'m', "mode", required_argument, "[prod]",
           "Allows to specify a mode of operation/group of settings"},
-    OIOpt{'f', "enable-feature", required_argument, nullptr,
-          "Enable a specific feature: ["
-#define X(name, str) str ","
-          OI_FEATURE_LIST
-#undef X
-          "]"},
-    OIOpt{'F', "disable-feature", required_argument, nullptr,
-          "Disable a specific feature: ["
-#define X(name, str) str ","
-          OI_FEATURE_LIST
-#undef X
-          "]"},
+    OIOpt{'f', "enable-feature", required_argument, "FEATURE",
+          "Enable feature"},
+    OIOpt{'F', "disable-feature", required_argument, "FEATURE",
+          "Disable feature"},
 };
 
 void usage() {
-  std::cout << "usage: oid ...\n";
-  std::cout << opts;
+  std::cerr << "usage: oid ...\n";
+  std::cerr << opts << std::endl;
+  featuresHelp(std::cerr);
 
-  std::cout << "\n\tFor problem reporting, questions and general comments "
+  std::cerr << "\n\tFor problem reporting, questions and general comments "
                "please pop along"
                "\n\tto the Object Introspection Workplace group at "
                "https://fburl.com/oid.\n"
