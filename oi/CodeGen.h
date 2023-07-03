@@ -72,4 +72,7 @@ class CodeGen {
   void getClassSizeFuncConcrete(std::string_view funcName,
                                 const type_graph::Class& c,
                                 std::string& code) const;
+  void addTypeHandlers(const type_graph::TypeGraph& typeGraph,
+                       std::string& code);
+  void getClassTypeHandler(const type_graph::Class& c, std::string& code);
 };
