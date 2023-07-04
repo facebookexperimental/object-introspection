@@ -4,10 +4,9 @@
 
 #include "oi/type_graph/TopoSorter.h"
 #include "oi/type_graph/Types.h"
+#include "test/type_graph_utils.h"
 
 using namespace type_graph;
-
-Container getVector();  // TODO put in a header
 
 template <typename T>
 using ref = std::reference_wrapper<T>;
