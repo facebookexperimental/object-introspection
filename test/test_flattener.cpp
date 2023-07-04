@@ -14,18 +14,18 @@ TEST(FlattenerTest, NoParents) {
   //     MyEnum e;
   //     MyStruct mystruct;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto myenum = std::make_unique<Enum>("MyEnum", 4);
-  auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 4);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 12);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto myenum = Enum{"MyEnum", 4};
+  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 4};
+  auto myclass = Class{Class::Kind::Class, "MyClass", 12};
 
-  mystruct->members.push_back(Member(myint.get(), "n0", 0));
+  mystruct.members.push_back(Member(&myint, "n0", 0));
 
-  myclass->members.push_back(Member(myint.get(), "n", 0));
-  myclass->members.push_back(Member(myenum.get(), "e", 4));
-  myclass->members.push_back(Member(mystruct.get(), "mystruct", 8));
+  myclass.members.push_back(Member(&myint, "n", 0));
+  myclass.members.push_back(Member(&myenum, "e", 4));
+  myclass.members.push_back(Member(&mystruct, "mystruct", 8));
 
-  test(Flattener::createPass(), {*myclass}, R"(
+  test(Flattener::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 12)
       Member: n (offset: 0)
         Primitive: int32_t
@@ -49,18 +49,18 @@ TEST(FlattenerTest, OnlyParents) {
   //     int b;
   //     int c;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->parents.push_back(Parent(classC.get(), 4));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.parents.push_back(Parent(&classC, 4));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 8)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -81,19 +81,19 @@ TEST(FlattenerTest, ParentsFirst) {
   //     int c;
   //     int a;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->parents.push_back(Parent(classC.get(), 4));
-  classA->members.push_back(Member(myint.get(), "a", 8));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.parents.push_back(Parent(&classC, 4));
+  classA.members.push_back(Member(&myint, "a", 8));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -116,20 +116,20 @@ TEST(FlattenerTest, MembersFirst) {
   //     int b;
   //     int c;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  classA->members.push_back(Member(myint.get(), "a", 0));
-  classA->parents.push_back(Parent(classB.get(), 4));
-  classA->parents.push_back(Parent(classC.get(), 8));
+  classA.members.push_back(Member(&myint, "a", 0));
+  classA.parents.push_back(Parent(&classB, 4));
+  classA.parents.push_back(Parent(&classC, 8));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
         Primitive: int32_t
@@ -153,21 +153,21 @@ TEST(FlattenerTest, MixedMembersAndParents) {
   //     int a2;
   //     int c;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a1", 4));
-  classA->members.push_back(Member(myint.get(), "a2", 8));
-  classA->parents.push_back(Parent(classC.get(), 12));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.members.push_back(Member(&myint, "a1", 4));
+  classA.members.push_back(Member(&myint, "a2", 8));
+  classA.parents.push_back(Parent(&classC, 12));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 16)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -192,19 +192,19 @@ TEST(FlattenerTest, EmptyParent) {
   //     int a1;
   //     int a2;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 0);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{Class::Kind::Class, "ClassB", 0};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classA->members.push_back(Member(myint.get(), "a1", 4));
-  classA->members.push_back(Member(myint.get(), "a2", 8));
-  classA->parents.push_back(Parent(classB.get(), 4));
-  classA->parents.push_back(Parent(classC.get(), 0));
+  classA.members.push_back(Member(&myint, "a1", 4));
+  classA.members.push_back(Member(&myint, "a2", 8));
+  classA.parents.push_back(Parent(&classB, 4));
+  classA.parents.push_back(Parent(&classC, 0));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: c (offset: 0)
         Primitive: int32_t
@@ -229,24 +229,24 @@ TEST(FlattenerTest, TwoDeep) {
   //     int c;
   //     int a;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
-  auto classD = std::make_unique<Class>(Class::Kind::Class, "ClassD", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classD = Class{Class::Kind::Class, "ClassD", 4};
 
-  classD->members.push_back(Member(myint.get(), "d", 0));
+  classD.members.push_back(Member(&myint, "d", 0));
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classB->parents.push_back(Parent(classD.get(), 0));
-  classB->members.push_back(Member(myint.get(), "b", 4));
+  classB.parents.push_back(Parent(&classD, 0));
+  classB.members.push_back(Member(&myint, "b", 4));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->parents.push_back(Parent(classC.get(), 8));
-  classA->members.push_back(Member(myint.get(), "a", 12));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.parents.push_back(Parent(&classC, 8));
+  classA.members.push_back(Member(&myint, "a", 12));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 16)
       Member: d (offset: 0)
         Primitive: int32_t
@@ -272,21 +272,21 @@ TEST(FlattenerTest, DiamondInheritance) {
   //     int c1;
   //     int a;
   //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classB->parents.push_back(Parent(classC.get(), 0));
-  classB->members.push_back(Member(myint.get(), "b", 4));
+  classB.parents.push_back(Parent(&classC, 0));
+  classB.members.push_back(Member(&myint, "b", 4));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->parents.push_back(Parent(classC.get(), 8));
-  classA->members.push_back(Member(myint.get(), "a", 12));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.parents.push_back(Parent(&classC, 8));
+  classA.members.push_back(Member(&myint, "a", 12));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 16)
       Member: c (offset: 0)
         Primitive: int32_t
@@ -308,20 +308,20 @@ TEST(FlattenerTest, Member) {
   // Flattened:
   //   class B { int c; int b; };
   //   Class A { int a; B b; };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classB->parents.push_back(Parent(classC.get(), 0));
-  classB->members.push_back(Member(myint.get(), "b", 4));
+  classB.parents.push_back(Parent(&classC, 0));
+  classB.members.push_back(Member(&myint, "b", 4));
 
-  classA->members.push_back(Member(myint.get(), "a", 0));
-  classA->members.push_back(Member(classB.get(), "b", 4));
+  classA.members.push_back(Member(&myint, "a", 0));
+  classA.members.push_back(Member(&classB, "b", 4));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
         Primitive: int32_t
@@ -343,20 +343,20 @@ TEST(FlattenerTest, MemberOfParent) {
   // Flattened:
   //   class C { int c; };
   //   class A { int b; C c; int a; };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classB->members.push_back(Member(myint.get(), "b", 0));
-  classB->members.push_back(Member(classC.get(), "c", 4));
+  classB.members.push_back(Member(&myint, "b", 0));
+  classB.members.push_back(Member(&classC, "c", 4));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a", 8));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.members.push_back(Member(&myint, "a", 8));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -378,18 +378,18 @@ TEST(FlattenerTest, ContainerParam) {
   // Flattened:
   //   class A { int b; int a; };
   //   std::vector<A, int>
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
   auto container = getVector();
 
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a", 4));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.members.push_back(Member(&myint, "a", 4));
 
-  container.templateParams.push_back(TemplateParam(classA.get()));
-  container.templateParams.push_back(TemplateParam(myint.get()));
+  container.templateParams.push_back(TemplateParam(&classA));
+  container.templateParams.push_back(TemplateParam(&myint));
 
   test(Flattener::createPass(), {container}, R"(
 [0] Container: std::vector (size: 24)
@@ -409,18 +409,18 @@ TEST(FlattenerTest, Array) {
   //   class B { int b; };
   //   class A : B { int a; };
   //   A[5]
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a", 4));
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.members.push_back(Member(&myint, "a", 4));
 
-  auto arrayA = std::make_unique<Array>(classA.get(), 5);
+  auto arrayA = Array{&classA, 5};
 
-  test(Flattener::createPass(), {*arrayA}, R"(
+  test(Flattener::createPass(), {arrayA}, R"(
 [0] Array: (length: 5)
 [1]   Class: ClassA (size: 8)
         Member: b (offset: 0)
@@ -435,17 +435,17 @@ TEST(FlattenerTest, Typedef) {
   //   class B { int b; };
   //   class A : B { int a; };
   //   using aliasA = A;
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a", 4));
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.members.push_back(Member(&myint, "a", 4));
 
-  auto aliasA = std::make_unique<Typedef>("aliasA", classA.get());
+  auto aliasA = Typedef{"aliasA", &classA};
 
-  test(Flattener::createPass(), {*aliasA}, R"(
+  test(Flattener::createPass(), {aliasA}, R"(
 [0] Typedef: aliasA
 [1]   Class: ClassA (size: 8)
         Member: b (offset: 0)
@@ -460,17 +460,17 @@ TEST(FlattenerTest, TypedefParent) {
   //   class B { int b; };
   //   using aliasB = B;
   //   class A : aliasB { int a; };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  auto aliasB = std::make_unique<Typedef>("aliasB", classB.get());
+  auto aliasB = Typedef{"aliasB", &classB};
 
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  classA->parents.push_back(Parent(aliasB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a", 4));
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  classA.parents.push_back(Parent(&aliasB, 0));
+  classA.members.push_back(Member(&myint, "a", 4));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 8)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -483,21 +483,21 @@ TEST(FlattenerTest, Pointer) {
   // Original:
   //   class B { int b; };
   //   class A : B { int a; };
-  //   class C { A *a; };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  //   class C { A a; };
+  auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a", 4));
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.members.push_back(Member(&myint, "a", 4));
 
-  auto ptrA = std::make_unique<Pointer>(classA.get());
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 8);
-  classC->members.push_back(Member(ptrA.get(), "a", 0));
+  auto ptrA = Pointer{&classA};
+  auto classC = Class{Class::Kind::Class, "ClassC", 8};
+  classC.members.push_back(Member(&ptrA, "a", 0));
 
-  test(Flattener::createPass(), {*classC}, R"(
+  test(Flattener::createPass(), {classC}, R"(
 [0] Class: ClassC (size: 8)
       Member: a (offset: 0)
 [1]     Pointer
@@ -511,18 +511,18 @@ TEST(FlattenerTest, Pointer) {
 
 TEST(FlattenerTest, PointerCycle) {
   // Original:
-  //   class B { A* a };
+  //   class B { A a };
   //   class A { B b; };
   //
   // Flattened:
   //   No change
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 69);
-  auto ptrA = std::make_unique<Pointer>(classA.get());
-  classA->members.push_back(Member(classB.get(), "b", 0));
-  classB->members.push_back(Member(ptrA.get(), "a", 0));
+  auto classA = Class{Class::Kind::Class, "ClassA", 69};
+  auto classB = Class{Class::Kind::Class, "ClassB", 69};
+  auto ptrA = Pointer{&classA};
+  classA.members.push_back(Member(&classB, "b", 0));
+  classB.members.push_back(Member(&ptrA, "a", 0));
 
-  test(Flattener::createPass(), {*classA, *classB}, R"(
+  test(Flattener::createPass(), {classA, classB}, R"(
 [0] Class: ClassA (size: 69)
       Member: b (offset: 0)
 [1]     Class: ClassB (size: 69)
@@ -538,20 +538,20 @@ TEST(FlattenerTest, Alignment) {
   //   class alignas(16) C { int c; };
   //   class B { alignas(8) int b; };
   //   class A : B, C { int a; };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
-  classC->setAlign(16);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  classC.setAlign(16);
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
-  classB->members.push_back(Member(myint.get(), "b", 0, 8));
+  classC.members.push_back(Member(&myint, "c", 0));
+  classB.members.push_back(Member(&myint, "b", 0, 8));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->parents.push_back(Parent(classC.get(), 4));
-  classA->members.push_back(Member(myint.get(), "a", 8));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.parents.push_back(Parent(&classC, 4));
+  classA.members.push_back(Member(&myint, "a", 8));
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: b (offset: 0, align: 8)
         Primitive: int32_t
@@ -567,18 +567,18 @@ TEST(FlattenerTest, Functions) {
   //   class C { void funcC(); };
   //   class B : C { void funcB(); };
   //   class A : B { void funcA(); };
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 0);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 0);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 0);
+  auto classA = Class{Class::Kind::Class, "ClassA", 0};
+  auto classB = Class{Class::Kind::Class, "ClassB", 0};
+  auto classC = Class{Class::Kind::Class, "ClassC", 0};
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classB->parents.push_back(Parent(classC.get(), 0));
+  classA.parents.push_back(Parent(&classB, 0));
+  classB.parents.push_back(Parent(&classC, 0));
 
-  classA->functions.push_back(Function{"funcA"});
-  classB->functions.push_back(Function{"funcB"});
-  classC->functions.push_back(Function{"funcC"});
+  classA.functions.push_back(Function{"funcA"});
+  classB.functions.push_back(Function{"funcB"});
+  classC.functions.push_back(Function{"funcC"});
 
-  test(Flattener::createPass(), {*classA}, R"(
+  test(Flattener::createPass(), {classA}, R"(
 [0] Class: ClassA (size: 0)
       Function: funcA
       Function: funcB
@@ -591,21 +591,21 @@ TEST(FlattenerTest, Children) {
   //   class C { int c; };
   //   class B { int b; };
   //   class A : B, C { };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
-  classB->members.push_back(Member(myint.get(), "b", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
+  classB.members.push_back(Member(&myint, "b", 0));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->parents.push_back(Parent(classC.get(), 4));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.parents.push_back(Parent(&classC, 4));
 
-  classB->children.push_back(*classA);
-  classC->children.push_back(*classA);
+  classB.children.push_back(classA);
+  classC.children.push_back(classA);
 
-  test(Flattener::createPass(), {*classB}, R"(
+  test(Flattener::createPass(), {classB}, R"(
 [0] Class: ClassB (size: 4)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -624,28 +624,28 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
   //   class C { int c; };
   //   class B : D { int b; };
   //   class A : B, C { int a; };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
-  auto classD = std::make_unique<Class>(Class::Kind::Class, "ClassD", 4);
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto classA = Class{Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classD = Class{Class::Kind::Class, "ClassD", 4};
 
-  classD->members.push_back(Member(myint.get(), "d", 0));
+  classD.members.push_back(Member(&myint, "d", 0));
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
+  classC.members.push_back(Member(&myint, "c", 0));
 
-  classB->parents.push_back(Parent(classD.get(), 0));
-  classB->members.push_back(Member(myint.get(), "b", 4));
+  classB.parents.push_back(Parent(&classD, 0));
+  classB.members.push_back(Member(&myint, "b", 4));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->parents.push_back(Parent(classC.get(), 8));
-  classA->members.push_back(Member(myint.get(), "a", 12));
+  classA.parents.push_back(Parent(&classB, 0));
+  classA.parents.push_back(Parent(&classC, 8));
+  classA.members.push_back(Member(&myint, "a", 12));
 
-  classD->children.push_back(*classB);
-  classB->children.push_back(*classA);
-  classC->children.push_back(*classA);
+  classD.children.push_back(classB);
+  classB.children.push_back(classA);
+  classC.children.push_back(classA);
 
-  test(Flattener::createPass(), {*classD}, R"(
+  test(Flattener::createPass(), {classD}, R"(
 [0] Class: ClassD (size: 4)
       Member: d (offset: 0)
         Primitive: int32_t
