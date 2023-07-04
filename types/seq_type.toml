@@ -36,8 +36,8 @@ void getSizeType(const %1%<T, Allocator> &container, size_t& returnArg)
 """
 
 handler = """
-template <typename DB, typename T0>
-struct TypeHandler<DB, %1% <T0>> {
+template <typename DB, typename T0, typename T1>
+struct TypeHandler<DB, %1%<T0, T1>> {
   using type = types::st::Pair<
       DB, types::st::VarInt<DB>,
       types::st::Pair<
@@ -45,8 +45,8 @@ struct TypeHandler<DB, %1% <T0>> {
           types::st::List<DB, typename TypeHandler<DB, T0>::type>>>;
 
   static types::st::Unit<DB> getSizeType(
-      const %1% <T0> & container,
-      typename TypeHandler<DB, %1% <T0>>::type returnArg) {
+      const %1%<T0, T1> & container,
+      typename TypeHandler<DB, %1%<T0, T1>>::type returnArg) {
     auto tail = returnArg.write((uintptr_t)&container)
                     .write(container.capacity())
                     .write(container.size());
