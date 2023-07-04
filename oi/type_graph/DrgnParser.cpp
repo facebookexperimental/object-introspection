@@ -450,8 +450,6 @@ Array* DrgnParser::enumerateArray(struct drgn_type* type) {
   return make_type<Array>(type, t, len);
 }
 
-// TODO deduplication of primitive types (also remember they're not only created
-// here)
 Primitive* DrgnParser::enumeratePrimitive(struct drgn_type* type) {
   Primitive::Kind kind;
   switch (drgn_type_kind(type)) {

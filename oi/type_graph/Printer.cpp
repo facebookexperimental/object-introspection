@@ -20,6 +20,11 @@
 namespace type_graph {
 
 Printer::Printer(std::ostream& out, size_t numTypes) : out_(out) {
+  if (numTypes == 0) {
+    baseIndent_ = 0;
+    return;
+  }
+
   // Enough space for "[XYZ] ", where XYZ is the largest node number:
   baseIndent_ = static_cast<int>(log10(static_cast<double>(numTypes)) + 1) + 3;
 }
