@@ -1,13 +1,9 @@
 #include <gtest/gtest.h>
 
 #include "oi/type_graph/AlignmentCalc.h"
+#include "test/type_graph_utils.h"
 
 using namespace type_graph;
-
-// TODO put in header:
-void test(Pass pass,
-          std::vector<std::reference_wrapper<Type>> types,
-          std::string_view expected);
 
 TEST(AlignmentCalcTest, PrimitiveMembers) {
   auto myclass = Class{Class::Kind::Class, "MyClass", 16};
