@@ -42,8 +42,16 @@ class TypeGraph {
     rootTypes_.push_back(type);
   }
 
+  // Override of the generic make_type function that returns singleton Primitive
+  // objects
+  template <typename T>
+  Primitive* make_type(Primitive::Kind kind);
+
   template <typename T, typename... Args>
   T* make_type(Args&&... args) {
+    static_assert(!std::is_same<T, Primitive>::value,
+                  "Primitive singleton override should be used");
+
     auto type_unique_ptr = std::make_unique<T>(std::forward<Args>(args)...);
     auto type_raw_ptr = type_unique_ptr.get();
     types_.push_back(std::move(type_unique_ptr));

@@ -10,6 +10,7 @@ add_library(type_graph
   RemoveIgnored.cpp
   RemoveTopLevelPointer.cpp
   TopoSorter.cpp
+  TypeGraph.cpp
   TypeIdentifier.cpp
   Types.cpp
 )
