@@ -7,14 +7,14 @@
 using namespace type_graph;
 
 TEST(RemoveTopLevelPointerTest, TopLevelPointerRemoved) {
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 4);
-  myclass->members.push_back(Member(myint.get(), "n", 0));
+  auto myclass = Class{Class::Kind::Class, "MyClass", 4};
+  myclass.members.push_back(Member(&myint, "n", 0));
 
-  auto ptrA = std::make_unique<Pointer>(myclass.get());
+  auto ptrA = Pointer{&myclass};
 
-  test(RemoveTopLevelPointer::createPass(), {*ptrA}, R"(
+  test(RemoveTopLevelPointer::createPass(), {ptrA}, R"(
 [0] Class: MyClass (size: 4)
       Member: n (offset: 0)
         Primitive: int32_t
@@ -22,12 +22,12 @@ TEST(RemoveTopLevelPointerTest, TopLevelPointerRemoved) {
 }
 
 TEST(RemoveTopLevelPointerTest, TopLevelClassUntouched) {
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 4);
-  myclass->members.push_back(Member(myint.get(), "n", 0));
+  auto myclass = Class{Class::Kind::Class, "MyClass", 4};
+  myclass.members.push_back(Member(&myint, "n", 0));
 
-  test(RemoveTopLevelPointer::createPass(), {*myclass}, R"(
+  test(RemoveTopLevelPointer::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 4)
       Member: n (offset: 0)
         Primitive: int32_t
@@ -35,13 +35,13 @@ TEST(RemoveTopLevelPointerTest, TopLevelClassUntouched) {
 }
 
 TEST(RemoveTopLevelPointerTest, IntermediatePointerUntouched) {
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto ptrInt = std::make_unique<Pointer>(myint.get());
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto ptrInt = Pointer{&myint};
 
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 4);
-  myclass->members.push_back(Member(ptrInt.get(), "n", 0));
+  auto myclass = Class{Class::Kind::Class, "MyClass", 4};
+  myclass.members.push_back(Member(&ptrInt, "n", 0));
 
-  test(RemoveTopLevelPointer::createPass(), {*myclass}, R"(
+  test(RemoveTopLevelPointer::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 4)
       Member: n (offset: 0)
 [1]     Pointer

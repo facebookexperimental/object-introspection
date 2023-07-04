@@ -29,28 +29,28 @@ void test(const std::vector<ref<Type>> input, std::string expected) {
 }
 
 TEST(TopoSorterTest, SingleType) {
-  auto myenum = std::make_unique<Enum>("MyEnum", 4);
-  test({*myenum}, "MyEnum");
+  auto myenum = Enum{"MyEnum", 4};
+  test({myenum}, "MyEnum");
 }
 
 TEST(TopoSorterTest, UnrelatedTypes) {
-  auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 13);
-  auto myenum = std::make_unique<Enum>("MyEnum", 4);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
+  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 13};
+  auto myenum = Enum{"MyEnum", 4};
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
 
   // Try the same input in a few different orders and ensure they output order
   // matches the input order
-  test({*mystruct, *myenum, *myclass}, R"(
+  test({mystruct, myenum, myclass}, R"(
 MyStruct
 MyEnum
 MyClass
 )");
-  test({*myenum, *mystruct, *myclass}, R"(
+  test({myenum, mystruct, myclass}, R"(
 MyEnum
 MyStruct
 MyClass
 )");
-  test({*myclass, *myenum, *mystruct}, R"(
+  test({myclass, myenum, mystruct}, R"(
 MyClass
 MyEnum
 MyStruct
@@ -58,13 +58,13 @@ MyStruct
 }
 
 TEST(TopoSorterTest, ClassMembers) {
-  auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 13);
-  auto myenum = std::make_unique<Enum>("MyEnum", 4);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->members.push_back(Member(mystruct.get(), "n", 0));
-  myclass->members.push_back(Member(myenum.get(), "e", 4));
+  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 13};
+  auto myenum = Enum{"MyEnum", 4};
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  myclass.members.push_back(Member(&mystruct, "n", 0));
+  myclass.members.push_back(Member(&myenum, "e", 4));
 
-  test({*myclass}, R"(
+  test({myclass}, R"(
 MyStruct
 MyEnum
 MyClass
@@ -72,39 +72,39 @@ MyClass
 }
 
 TEST(TopoSorterTest, Parents) {
-  auto myparent = std::make_unique<Class>(Class::Kind::Struct, "MyParent", 13);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->parents.push_back(Parent(myparent.get(), 0));
+  auto myparent = Class{Class::Kind::Struct, "MyParent", 13};
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  myclass.parents.push_back(Parent(&myparent, 0));
 
-  test({*myclass}, R"(
+  test({myclass}, R"(
 MyParent
 MyClass
 )");
 }
 
 TEST(TopoSorterTest, TemplateParams) {
-  auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->templateParams.push_back(TemplateParam(myparam.get()));
+  auto myparam = Class{Class::Kind::Struct, "MyParam", 13};
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  myclass.templateParams.push_back(TemplateParam(&myparam));
 
-  test({*myclass}, R"(
+  test({myclass}, R"(
 MyParam
 MyClass
 )");
 }
 
 TEST(TopoSorterTest, Children) {
-  auto mymember = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
-  auto mychild = std::make_unique<Class>(Class::Kind::Struct, "MyChild", 13);
-  mychild->members.push_back(Member(mymember.get(), "mymember", 0));
+  auto mymember = Class{Class::Kind::Struct, "MyMember", 13};
+  auto mychild = Class{Class::Kind::Struct, "MyChild", 13};
+  mychild.members.push_back(Member(&mymember, "mymember", 0));
 
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  mychild->parents.push_back(Parent(myclass.get(), 0));
-  myclass->children.push_back(*mychild);
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  mychild.parents.push_back(Parent(&myclass, 0));
+  myclass.children.push_back(mychild);
 
   std::vector<std::vector<ref<Type>>> inputs = {
-      {*myclass},
-      {*mychild},
+      {myclass},
+      {mychild},
   };
 
   // Same as for pointer cycles, outputs must be in the same order no matter
@@ -126,20 +126,20 @@ TEST(TopoSorterTest, ChildrenCycle) {
   // class MyChild : MyParent {
   //   A a;
   // };
-  auto myparent = std::make_unique<Class>(Class::Kind::Class, "MyParent", 69);
-  auto classA = std::make_unique<Class>(Class::Kind::Struct, "ClassA", 5);
-  auto mychild = std::make_unique<Class>(Class::Kind::Struct, "MyChild", 13);
+  auto myparent = Class{Class::Kind::Class, "MyParent", 69};
+  auto classA = Class{Class::Kind::Struct, "ClassA", 5};
+  auto mychild = Class{Class::Kind::Struct, "MyChild", 13};
 
-  mychild->parents.push_back(Parent(myparent.get(), 0));
-  myparent->children.push_back(*mychild);
+  mychild.parents.push_back(Parent(&myparent, 0));
+  myparent.children.push_back(mychild);
 
-  mychild->members.push_back(Member(classA.get(), "a", 0));
-  classA->members.push_back(Member(myparent.get(), "p", 0));
+  mychild.members.push_back(Member(&classA, "a", 0));
+  classA.members.push_back(Member(&myparent, "p", 0));
 
   std::vector<std::vector<ref<Type>>> inputs = {
-      {*myparent},
-      {*classA},
-      {*mychild},
+      {myparent},
+      {classA},
+      {mychild},
   };
 
   // Same as for pointer cycles, outputs must be in the same order no matter
@@ -154,25 +154,25 @@ MyChild
 }
 
 TEST(TopoSorterTest, Containers) {
-  auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+  auto myparam = Class{Class::Kind::Struct, "MyParam", 13};
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back((myparam.get()));
+  mycontainer.templateParams.push_back((&myparam));
 
   test({mycontainer}, "MyParam\nstd::vector");
 }
 
 TEST(TopoSorterTest, Arrays) {
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  auto myarray = std::make_unique<Array>(myclass.get(), 10);
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  auto myarray = Array{&myclass, 10};
 
-  test({*myarray}, "MyClass\n");
+  test({myarray}, "MyClass\n");
 }
 
 TEST(TopoSorterTest, Typedef) {
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  auto aliasA = std::make_unique<Typedef>("aliasA", classA.get());
+  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto aliasA = Typedef{"aliasA", &classA};
 
-  test({*aliasA}, R"(
+  test({aliasA}, R"(
 ClassA
 aliasA
 )");
@@ -180,23 +180,23 @@ aliasA
 
 TEST(TopoSorterTest, Pointers) {
   // Pointers do not require pointee types to be defined first
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  auto mypointer = std::make_unique<Pointer>(myclass.get());
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  auto mypointer = Pointer{&myclass};
 
-  test({*mypointer}, "MyClass");
+  test({mypointer}, "MyClass");
 }
 
 TEST(TopoSorterTest, PointerCycle) {
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 69);
-  auto ptrA = std::make_unique<Pointer>(classA.get());
-  classA->members.push_back(Member(classB.get(), "b", 0));
-  classB->members.push_back(Member(ptrA.get(), "a", 0));
+  auto classA = Class{Class::Kind::Class, "ClassA", 69};
+  auto classB = Class{Class::Kind::Class, "ClassB", 69};
+  auto ptrA = Pointer{&classA};
+  classA.members.push_back(Member(&classB, "b", 0));
+  classB.members.push_back(Member(&ptrA, "a", 0));
 
   std::vector<std::vector<ref<Type>>> inputs = {
-      {*classA},
-      {*classB},
-      {*ptrA},
+      {classA},
+      {classB},
+      {ptrA},
   };
 
   // No matter which node we start the topological sort with, we must always get
@@ -210,13 +210,13 @@ ClassA
 }
 
 TEST(TopoSorterTest, TwoDeep) {
-  auto myunion = std::make_unique<Class>(Class::Kind::Union, "MyUnion", 7);
-  auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 13);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->members.push_back(Member(mystruct.get(), "mystruct", 0));
-  mystruct->members.push_back(Member(myunion.get(), "myunion", 0));
+  auto myunion = Class{Class::Kind::Union, "MyUnion", 7};
+  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 13};
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  myclass.members.push_back(Member(&mystruct, "mystruct", 0));
+  mystruct.members.push_back(Member(&myunion, "myunion", 0));
 
-  test({*myclass}, R"(
+  test({myclass}, R"(
 MyUnion
 MyStruct
 MyClass
@@ -224,14 +224,14 @@ MyClass
 }
 
 TEST(TopoSorterTest, MultiplePaths) {
-  auto myunion = std::make_unique<Class>(Class::Kind::Union, "MyUnion", 7);
-  auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 13);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->members.push_back(Member(mystruct.get(), "mystruct", 0));
-  myclass->members.push_back(Member(myunion.get(), "myunion1", 0));
-  mystruct->members.push_back(Member(myunion.get(), "myunion2", 0));
+  auto myunion = Class{Class::Kind::Union, "MyUnion", 7};
+  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 13};
+  auto myclass = Class{Class::Kind::Class, "MyClass", 69};
+  myclass.members.push_back(Member(&mystruct, "mystruct", 0));
+  myclass.members.push_back(Member(&myunion, "myunion1", 0));
+  mystruct.members.push_back(Member(&myunion, "myunion2", 0));
 
-  test({*myclass}, R"(
+  test({myclass}, R"(
 MyUnion
 MyStruct
 MyClass
