@@ -16,8 +16,8 @@ TEST(FlattenerTest, NoParents) {
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
   auto myenum = Enum{"MyEnum", 4};
-  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 4};
-  auto myclass = Class{Class::Kind::Class, "MyClass", 12};
+  auto mystruct = Class{1, Class::Kind::Struct, "MyStruct", 4};
+  auto myclass = Class{0, Class::Kind::Class, "MyClass", 12};
 
   mystruct.members.push_back(Member(&myint, "n0", 0));
 
@@ -50,9 +50,9 @@ TEST(FlattenerTest, OnlyParents) {
   //     int c;
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 8};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 8};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
   classB.members.push_back(Member(&myint, "b", 0));
@@ -82,9 +82,9 @@ TEST(FlattenerTest, ParentsFirst) {
   //     int a;
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
   classB.members.push_back(Member(&myint, "b", 0));
@@ -117,9 +117,9 @@ TEST(FlattenerTest, MembersFirst) {
   //     int c;
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
 
@@ -154,9 +154,9 @@ TEST(FlattenerTest, MixedMembersAndParents) {
   //     int c;
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 16};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
 
@@ -193,9 +193,9 @@ TEST(FlattenerTest, EmptyParent) {
   //     int a2;
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
-  auto classB = Class{Class::Kind::Class, "ClassB", 0};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 0};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
 
@@ -230,10 +230,10 @@ TEST(FlattenerTest, TwoDeep) {
   //     int a;
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 16};
-  auto classB = Class{Class::Kind::Class, "ClassB", 8};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
-  auto classD = Class{Class::Kind::Class, "ClassD", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
+  auto classD = Class{3, Class::Kind::Class, "ClassD", 4};
 
   classD.members.push_back(Member(&myint, "d", 0));
 
@@ -273,9 +273,9 @@ TEST(FlattenerTest, DiamondInheritance) {
   //     int a;
   //   };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 16};
-  auto classB = Class{Class::Kind::Class, "ClassB", 8};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
 
@@ -309,9 +309,9 @@ TEST(FlattenerTest, Member) {
   //   class B { int c; int b; };
   //   Class A { int a; B b; };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
-  auto classB = Class{Class::Kind::Class, "ClassB", 8};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
 
@@ -344,9 +344,9 @@ TEST(FlattenerTest, MemberOfParent) {
   //   class C { int c; };
   //   class A { int b; C c; int a; };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
-  auto classB = Class{Class::Kind::Class, "ClassB", 8};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
 
@@ -379,8 +379,8 @@ TEST(FlattenerTest, ContainerParam) {
   //   class A { int b; int a; };
   //   std::vector<A, int>
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 8};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classA = Class{1, Class::Kind::Class, "ClassA", 8};
+  auto classB = Class{2, Class::Kind::Class, "ClassB", 4};
   auto container = getVector();
 
   classB.members.push_back(Member(&myint, "b", 0));
@@ -411,14 +411,14 @@ TEST(FlattenerTest, Array) {
   //   A[5]
   auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{2, Class::Kind::Class, "ClassB", 4};
   classB.members.push_back(Member(&myint, "b", 0));
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto classA = Class{1, Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&classB, 0));
   classA.members.push_back(Member(&myint, "a", 4 * 8));
 
-  auto arrayA = Array{&classA, 5};
+  auto arrayA = Array{0, &classA, 5};
 
   test(Flattener::createPass(), {arrayA}, R"(
 [0] Array: (length: 5)
@@ -436,14 +436,14 @@ TEST(FlattenerTest, Typedef) {
   //   class A : B { int a; };
   //   using aliasA = A;
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{2, Class::Kind::Class, "ClassB", 4};
   classB.members.push_back(Member(&myint, "b", 0));
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto classA = Class{1, Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&classB, 0));
   classA.members.push_back(Member(&myint, "a", 4 * 8));
 
-  auto aliasA = Typedef{"aliasA", &classA};
+  auto aliasA = Typedef{0, "aliasA", &classA};
 
   test(Flattener::createPass(), {aliasA}, R"(
 [0] Typedef: aliasA
@@ -461,12 +461,12 @@ TEST(FlattenerTest, TypedefParent) {
   //   using aliasB = B;
   //   class A : aliasB { int a; };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
   classB.members.push_back(Member(&myint, "b", 0));
 
-  auto aliasB = Typedef{"aliasB", &classB};
+  auto aliasB = Typedef{2, "aliasB", &classB};
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&aliasB, 0));
   classA.members.push_back(Member(&myint, "a", 4 * 8));
 
@@ -486,15 +486,15 @@ TEST(FlattenerTest, Pointer) {
   //   class C { A a; };
   auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{3, Class::Kind::Class, "ClassB", 4};
   classB.members.push_back(Member(&myint, "b", 0));
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 8};
+  auto classA = Class{2, Class::Kind::Class, "ClassA", 8};
   classA.parents.push_back(Parent(&classB, 0));
   classA.members.push_back(Member(&myint, "a", 4 * 8));
 
-  auto ptrA = Pointer{&classA};
-  auto classC = Class{Class::Kind::Class, "ClassC", 8};
+  auto ptrA = Pointer{1, &classA};
+  auto classC = Class{0, Class::Kind::Class, "ClassC", 8};
   classC.members.push_back(Member(&ptrA, "a", 0));
 
   test(Flattener::createPass(), {classC}, R"(
@@ -516,9 +516,9 @@ TEST(FlattenerTest, PointerCycle) {
   //
   // Flattened:
   //   No change
-  auto classA = Class{Class::Kind::Class, "ClassA", 69};
-  auto classB = Class{Class::Kind::Class, "ClassB", 69};
-  auto ptrA = Pointer{&classA};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 69};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 69};
+  auto ptrA = Pointer{2, &classA};
   classA.members.push_back(Member(&classB, "b", 0));
   classB.members.push_back(Member(&ptrA, "a", 0));
 
@@ -539,9 +539,9 @@ TEST(FlattenerTest, Alignment) {
   //   class B { alignas(8) int b; };
   //   class A : B, C { int a; };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
   classC.setAlign(16);
 
   classC.members.push_back(Member(&myint, "c", 0));
@@ -583,9 +583,9 @@ TEST(FlattenerTest, Functions) {
   //   class C { void funcC(); };
   //   class B : C { void funcB(); };
   //   class A : B { void funcA(); };
-  auto classA = Class{Class::Kind::Class, "ClassA", 0};
-  auto classB = Class{Class::Kind::Class, "ClassB", 0};
-  auto classC = Class{Class::Kind::Class, "ClassC", 0};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 0};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 0};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 0};
 
   classA.parents.push_back(Parent(&classB, 0));
   classB.parents.push_back(Parent(&classC, 0));
@@ -608,9 +608,9 @@ TEST(FlattenerTest, Children) {
   //   class B { int b; };
   //   class A : B, C { };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 8};
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
+  auto classA = Class{1, Class::Kind::Class, "ClassA", 8};
+  auto classB = Class{0, Class::Kind::Class, "ClassB", 4};
+  auto classC = Class{2, Class::Kind::Class, "ClassC", 4};
 
   classC.members.push_back(Member(&myint, "c", 0));
   classB.members.push_back(Member(&myint, "b", 0));
@@ -641,10 +641,10 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
   //   class B : D { int b; };
   //   class A : B, C { int a; };
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto classA = Class{Class::Kind::Class, "ClassA", 16};
-  auto classB = Class{Class::Kind::Class, "ClassB", 8};
-  auto classC = Class{Class::Kind::Class, "ClassC", 4};
-  auto classD = Class{Class::Kind::Class, "ClassD", 4};
+  auto classA = Class{2, Class::Kind::Class, "ClassA", 16};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 8};
+  auto classC = Class{3, Class::Kind::Class, "ClassC", 4};
+  auto classD = Class{0, Class::Kind::Class, "ClassD", 4};
 
   classD.members.push_back(Member(&myint, "d", 0));
 
@@ -690,7 +690,7 @@ TEST(FlattenerTest, ParentContainer) {
   auto vector = getVector();
   vector.templateParams.push_back(TemplateParam{&myint});
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 32};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 32};
   classA.parents.push_back(Parent{&vector, 0});
   classA.members.push_back(Member{&myint, "a", 24 * 8});
 
@@ -720,7 +720,7 @@ TEST(FlattenerTest, ParentTwoContainers) {
   auto vector = getVector();
   vector.templateParams.push_back(TemplateParam{&myint});
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 48};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 48};
   classA.parents.push_back(Parent{&vector, 0});
   classA.parents.push_back(Parent{&vector, 24 * 8});
 
@@ -750,10 +750,10 @@ TEST(FlattenerTest, ParentClassAndContainer) {
   auto vector = getVector();
   vector.templateParams.push_back(TemplateParam{&myint});
 
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
   classB.members.push_back(Member{&myint, "b", 0});
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 32};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 32};
   classA.parents.push_back(Parent{&classB, 0});
   classA.parents.push_back(Parent{&vector, 8 * 8});
 
@@ -787,22 +787,23 @@ TEST(FlattenerTest, AllocatorParamInParent) {
 
   Primitive myint{Primitive::Kind::Int32};
 
-  Container pair{pairInfo, 8};
+  Container pair{3, pairInfo, 8};
   pair.templateParams.push_back(TemplateParam{&myint, {Qualifier::Const}});
   pair.templateParams.push_back(TemplateParam{&myint});
 
-  Class myallocBase{Class::Kind::Struct,
+  Class myallocBase{2, Class::Kind::Struct,
                     "MyAllocBase<std::pair<const int, int>>", 1};
   myallocBase.templateParams.push_back(TemplateParam{&pair});
   myallocBase.functions.push_back(Function{"allocate"});
   myallocBase.functions.push_back(Function{"deallocate"});
 
-  Class myalloc{Class::Kind::Struct, "MyAlloc<std::pair<const int, int>>", 1};
+  Class myalloc{1, Class::Kind::Struct, "MyAlloc<std::pair<const int, int>>",
+                1};
   myalloc.parents.push_back(Parent{&myallocBase, 0});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});
 
-  Container map{mapInfo, 24};
+  Container map{0, mapInfo, 24};
   map.templateParams.push_back(TemplateParam{&myint});
   map.templateParams.push_back(TemplateParam{&myint});
   map.templateParams.push_back(TemplateParam{&myalloc});
@@ -853,12 +854,12 @@ TEST(FlattenerTest, AllocatorParamInParent) {
 
 TEST(FlattenerTest, ClassParam) {
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto mychild = Class{Class::Kind::Class, "MyChild", 4};
-  auto myparent = Class{Class::Kind::Class, "MyParent", 4};
+  auto mychild = Class{1, Class::Kind::Class, "MyChild", 4};
+  auto myparent = Class{2, Class::Kind::Class, "MyParent", 4};
   myparent.members.push_back(Member{&myint, "a", 0});
   mychild.parents.push_back(Parent{&myparent, 0});
 
-  auto myclass = Class{Class::Kind::Class, "MyClass", 4};
+  auto myclass = Class{0, Class::Kind::Class, "MyClass", 4};
   myclass.templateParams.push_back(TemplateParam{&mychild});
 
   test(Flattener::createPass(), {myclass}, R"(

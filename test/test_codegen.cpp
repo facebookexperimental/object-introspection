@@ -38,7 +38,7 @@ void testTransform(Type& type,
 TEST(CodeGenTest, TransformContainerAllocator) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto myalloc = Class{Class::Kind::Struct, "MyAlloc", 8};
+  auto myalloc = Class{1, Class::Kind::Struct, "MyAlloc", 8};
   myalloc.templateParams.push_back(TemplateParam{&myint});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});
@@ -76,22 +76,23 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
 
   Primitive myint{Primitive::Kind::Int32};
 
-  Container pair{pairInfo, 8};
+  Container pair{3, pairInfo, 8};
   pair.templateParams.push_back(TemplateParam{&myint, {Qualifier::Const}});
   pair.templateParams.push_back(TemplateParam{&myint});
 
-  Class myallocBase{Class::Kind::Struct,
+  Class myallocBase{2, Class::Kind::Struct,
                     "MyAllocBase<std::pair<const int, int>>", 1};
   myallocBase.templateParams.push_back(TemplateParam{&pair});
   myallocBase.functions.push_back(Function{"allocate"});
   myallocBase.functions.push_back(Function{"deallocate"});
 
-  Class myalloc{Class::Kind::Struct, "MyAlloc<std::pair<const int, int>>", 1};
+  Class myalloc{1, Class::Kind::Struct, "MyAlloc<std::pair<const int, int>>",
+                1};
   myalloc.parents.push_back(Parent{&myallocBase, 0});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});
 
-  Container map{mapInfo, 24};
+  Container map{0, mapInfo, 24};
   map.templateParams.push_back(TemplateParam{&myint});
   map.templateParams.push_back(TemplateParam{&myint});
   map.templateParams.push_back(TemplateParam{&myalloc});

@@ -68,10 +68,8 @@ class DrgnParser {
   std::unordered_map<struct drgn_type*, Type*> drgn_types_;
 
   template <typename T, typename... Args>
-  T* make_type(struct drgn_type* type, Args&&... args) {
-    auto type_unique_ptr = std::make_unique<T>(std::forward<Args>(args)...);
-    auto type_raw_ptr = type_unique_ptr.get();
-    typeGraph_.add(std::move(type_unique_ptr));
+  T* makeType(struct drgn_type* type, Args&&... args) {
+    auto* type_raw_ptr = typeGraph_.makeType<T>(std::forward<Args>(args)...);
     drgn_types_.insert({type, type_raw_ptr});
     return type_raw_ptr;
   }

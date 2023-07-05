@@ -15,6 +15,17 @@
  */
 #pragma once
 
+/*
+ * This file contains the definitions for the classes which represent nodes
+ * (types) in a type graph.
+ *
+ * Edges in the graph are represented by references held by nodes. This means
+ * that once created, node addresses must be stable in order for the references
+ * to remain valid (i.e. don't store nodes directly in vectors). It is
+ * recommended to use the TypeGraph class when building a complete type graph as
+ * this will the memory allocations safely.
+ */
+
 #include <cstddef>
 #include <optional>
 #include <string>
@@ -37,6 +48,8 @@
 struct ContainerInfo;
 
 namespace type_graph {
+
+using NodeId = int32_t;
 
 enum class Qualifier {
   Const,
@@ -122,20 +135,26 @@ class Class : public Type {
     Union,
   };
 
-  Class(Kind kind,
+  Class(NodeId id,
+        Kind kind,
         std::string name,
         std::string fqName,
         size_t size,
         int virtuality = 0)
-      : kind_(kind),
-        name_(std::move(name)),
+      : name_(std::move(name)),
         fqName_(std::move(fqName)),
         size_(size),
-        virtuality_(virtuality) {
+        kind_(kind),
+        virtuality_(virtuality),
+        id_(id) {
   }
 
-  Class(Kind kind, const std::string& name, size_t size, int virtuality = 0)
-      : Class(kind, name, name, size, virtuality) {
+  Class(NodeId id,
+        Kind kind,
+        const std::string& name,
+        size_t size,
+        int virtuality = 0)
+      : Class(id, kind, name, name, size, virtuality) {
   }
 
   DECLARE_ACCEPT
@@ -182,6 +201,10 @@ class Class : public Type {
 
   bool isDynamic() const;
 
+  NodeId id() const {
+    return id_;
+  }
+
   std::vector<TemplateParam> templateParams;
   std::vector<Parent> parents;  // Sorted by offset
   std::vector<Member> members;  // Sorted by offset
@@ -190,21 +213,23 @@ class Class : public Type {
       children;  // Only for dynamic classes
 
  private:
-  Kind kind_;
   std::string name_;
   std::string fqName_;
   size_t size_;
-  int virtuality_;
   uint64_t align_ = 0;
+  Kind kind_;
+  int virtuality_;
+  NodeId id_ = -1;
   bool packed_ = false;
 };
 
 class Container : public Type {
  public:
-  Container(const ContainerInfo& containerInfo, size_t size)
+  Container(NodeId id, const ContainerInfo& containerInfo, size_t size)
       : containerInfo_(containerInfo),
         name_(containerInfo.typeName),
-        size_(size) {
+        size_(size),
+        id_(id) {
   }
 
   DECLARE_ACCEPT
@@ -229,12 +254,17 @@ class Container : public Type {
     return 8;  // TODO not needed for containers?
   }
 
+  NodeId id() const {
+    return id_;
+  }
+
   std::vector<TemplateParam> templateParams;
   const ContainerInfo& containerInfo_;
 
  private:
   std::string name_;
   size_t size_;
+  NodeId id_ = -1;
 };
 
 class Enum : public Type {
@@ -264,7 +294,8 @@ class Enum : public Type {
 
 class Array : public Type {
  public:
-  Array(Type* elementType, size_t len) : elementType_(elementType), len_(len) {
+  Array(NodeId id, Type* elementType, size_t len)
+      : elementType_(elementType), len_(len), id_(id) {
   }
 
   DECLARE_ACCEPT
@@ -290,9 +321,14 @@ class Array : public Type {
     return len_;
   }
 
+  NodeId id() const {
+    return id_;
+  }
+
  private:
   Type* elementType_;
   size_t len_;
+  NodeId id_ = -1;
 };
 
 class Primitive : public Type {
@@ -334,8 +370,8 @@ class Primitive : public Type {
 
 class Typedef : public Type {
  public:
-  explicit Typedef(const std::string& name, Type* underlyingType)
-      : name_(name), underlyingType_(underlyingType) {
+  explicit Typedef(NodeId id, const std::string& name, Type* underlyingType)
+      : name_(name), underlyingType_(underlyingType), id_(id) {
   }
 
   DECLARE_ACCEPT
@@ -360,14 +396,20 @@ class Typedef : public Type {
     return underlyingType_;
   }
 
+  NodeId id() const {
+    return id_;
+  }
+
  private:
   std::string name_;
   Type* underlyingType_;
+  NodeId id_ = -1;
 };
 
 class Pointer : public Type {
  public:
-  explicit Pointer(Type* pointeeType) : pointeeType_(pointeeType) {
+  explicit Pointer(NodeId id, Type* pointeeType)
+      : pointeeType_(pointeeType), id_(id) {
   }
 
   DECLARE_ACCEPT
@@ -388,8 +430,13 @@ class Pointer : public Type {
     return pointeeType_;
   }
 
+  NodeId id() const {
+    return id_;
+  }
+
  private:
   Type* pointeeType_;
+  NodeId id_ = -1;
 };
 
 class Dummy : public Type {
