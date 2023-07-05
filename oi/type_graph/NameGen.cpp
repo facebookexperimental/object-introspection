@@ -69,13 +69,13 @@ void NameGen::visit(Class& c) {
   }
 
   for (const auto& param : c.templateParams) {
-    visit(param.type);
+    visit(param.type());
   }
   for (const auto& parent : c.parents) {
-    visit(*parent.type);
+    visit(parent.type());
   }
   for (const auto& member : c.members) {
-    visit(*member.type);
+    visit(member.type());
   }
   for (const auto& child : c.children) {
     visit(child);
@@ -88,7 +88,7 @@ void NameGen::visit(Container& c) {
   }
 
   for (const auto& template_param : c.templateParams) {
-    visit(template_param.type);
+    visit(template_param.type());
   }
 
   std::string name = c.name();
@@ -102,7 +102,7 @@ void NameGen::visit(Container& c) {
       if (param.qualifiers[Qualifier::Const]) {
         name += "const ";
       }
-      name += param.type->name();
+      name += param.type()->name();
     }
     name += ", ";
   }
@@ -130,7 +130,7 @@ void NameGen::visit(Typedef& td) {
   // Append an incrementing number to ensure we don't get duplicates
   td.setName(name + "_" + std::to_string(n++));
 
-  visit(*td.underlyingType());
+  visit(td.underlyingType());
 }
 
 }  // namespace type_graph

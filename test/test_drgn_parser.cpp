@@ -63,11 +63,11 @@ std::string DrgnParserTest::run(std::string_view function,
   containers.emplace_back(std::move(std_vector));
 
   DrgnParser drgnParser(typeGraph, containers, chaseRawPointers);
-  Type* type = drgnParser.parse(drgnRoot->type.type);
+  Type& type = drgnParser.parse(drgnRoot->type.type);
 
   std::stringstream out;
   Printer printer{out, typeGraph.size()};
-  printer.print(*type);
+  printer.print(type);
 
   return out.str();
 }

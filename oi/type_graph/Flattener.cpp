@@ -50,14 +50,14 @@ namespace {
 Type& stripTypedefs(Type& type) {
   Type* t = &type;
   while (const Typedef* td = dynamic_cast<Typedef*>(t)) {
-    t = td->underlyingType();
+    t = &td->underlyingType();
   }
   return *t;
 }
 
 void flattenParent(const Parent& parent,
                    std::vector<Member>& flattenedMembers) {
-  Type& parentType = stripTypedefs(*parent.type);
+  Type& parentType = stripTypedefs(parent.type());
   if (Class* parentClass = dynamic_cast<Class*>(&parentType)) {
     for (size_t i = 0; i < parentClass->members.size(); i++) {
       const auto& member = parentClass->members[i];
@@ -71,7 +71,7 @@ void flattenParent(const Parent& parent,
   } else if (Container* parentContainer =
                  dynamic_cast<Container*>(&parentType)) {
     // Create a new member to represent this parent container
-    flattenedMembers.emplace_back(parentContainer, "__parent",
+    flattenedMembers.emplace_back(*parentContainer, "__parent",
                                   parent.bitOffset);
   } else {
     throw std::runtime_error("Invalid type for parent");
@@ -100,7 +100,7 @@ void fixAllocatorParams(Class& alloc) {
     return;
   }
 
-  Type& parent = stripTypedefs(*alloc.parents[0].type);
+  Type& parent = stripTypedefs(alloc.parents[0].type());
   Class* parentClass = dynamic_cast<Class*>(&parent);
   if (!parentClass) {
     // Not handled
@@ -112,8 +112,8 @@ void fixAllocatorParams(Class& alloc) {
     return;
   }
 
-  Type& typeToAllocate = stripTypedefs(*parentClass->templateParams[0].type);
-  alloc.templateParams.push_back(TemplateParam{&typeToAllocate});
+  Type& typeToAllocate = stripTypedefs(*parentClass->templateParams[0].type());
+  alloc.templateParams.push_back(TemplateParam{typeToAllocate});
 }
 }  // namespace
 
@@ -146,18 +146,18 @@ void Flattener::visit(Class& c) {
 
   // Flatten types referenced by template params, parents and members
   for (const auto& param : c.templateParams) {
-    visit(param.type);
+    visit(param.type());
   }
   for (const auto& parent : c.parents) {
-    visit(*parent.type);
+    visit(parent.type());
   }
   for (const auto& member : c.members) {
-    visit(*member.type);
+    visit(member.type());
   }
 
   // Pull in functions from flattened parents
   for (const auto& parent : c.parents) {
-    Type& parentType = stripTypedefs(*parent.type);
+    Type& parentType = stripTypedefs(parent.type());
     if (Class* parentClass = dynamic_cast<Class*>(&parentType)) {
       c.functions.insert(c.functions.end(), parentClass->functions.begin(),
                          parentClass->functions.end());
@@ -211,7 +211,7 @@ void Flattener::visit(Container& c) {
   // Containers themselves don't need to be flattened, but their template
   // parameters might need to be
   for (const auto& templateParam : c.templateParams) {
-    visit(templateParam.type);
+    visit(templateParam.type());
   }
 }
 

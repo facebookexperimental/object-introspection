@@ -10,9 +10,9 @@ TEST(RemoveIgnoredTest, Match) {
   auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
   auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
-  classA.members.push_back(Member(&classB, "a", 0));
-  classA.members.push_back(Member(&classB, "b", 4 * 8));
-  classA.members.push_back(Member(&classB, "c", 8 * 8));
+  classA.members.push_back(Member{classB, "a", 0});
+  classA.members.push_back(Member{classB, "b", 4 * 8});
+  classA.members.push_back(Member{classB, "c", 8 * 8});
 
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
@@ -43,9 +43,9 @@ TEST(RemoveIgnoredTest, TypeMatchMemberMiss) {
   auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
   auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
-  classA.members.push_back(Member(&classB, "a", 0));
-  classA.members.push_back(Member(&classB, "b", 4 * 8));
-  classA.members.push_back(Member(&classB, "c", 8 * 8));
+  classA.members.push_back(Member{classB, "a", 0});
+  classA.members.push_back(Member{classB, "b", 4 * 8});
+  classA.members.push_back(Member{classB, "c", 8 * 8});
 
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "x"},
@@ -66,9 +66,9 @@ TEST(RemoveIgnoredTest, MemberMatchWrongType) {
   auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
   auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
-  classA.members.push_back(Member(&classB, "a", 0));
-  classA.members.push_back(Member(&classB, "b", 4 * 8));
-  classA.members.push_back(Member(&classB, "c", 8 * 8));
+  classA.members.push_back(Member{classB, "a", 0});
+  classA.members.push_back(Member{classB, "b", 4 * 8});
+  classA.members.push_back(Member{classB, "c", 8 * 8});
 
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassB", "b"},

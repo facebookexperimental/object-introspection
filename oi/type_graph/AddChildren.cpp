@@ -53,10 +53,10 @@ void AddChildren::visit(Type& type) {
 
 void AddChildren::visit(Class& c) {
   for (auto& param : c.templateParams) {
-    visit(param.type);
+    visit(param.type());
   }
   for (auto& member : c.members) {
-    visit(*member.type);
+    visit(member.type());
   }
 
   if (!c.isDynamic()) {
@@ -70,10 +70,10 @@ void AddChildren::visit(Class& c) {
 
   const auto& drgnChildren = it->second;
   for (drgn_type* drgnChild : drgnChildren) {
-    Type* childType = drgnParser_.parse(drgnChild);
+    Type& childType = drgnParser_.parse(drgnChild);
     auto* childClass =
-        dynamic_cast<Class*>(childType);  // TODO don't use dynamic_cast
-    if (!childClass)                      // TODO dodgy error handling
+        dynamic_cast<Class*>(&childType);  // TODO don't use dynamic_cast
+    if (!childClass)                       // TODO dodgy error handling
       abort();
     c.children.push_back(*childClass);
 

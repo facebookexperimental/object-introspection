@@ -50,10 +50,10 @@ class TypeGraph {
   // Override of the generic makeType function that returns singleton Primitive
   // objects
   template <typename T>
-  Primitive* makeType(Primitive::Kind kind);
+  Primitive& makeType(Primitive::Kind kind);
 
   template <typename T, typename... Args>
-  T* makeType(Args&&... args) {
+  T& makeType(Args&&... args) {
     static_assert(!std::is_same<T, Primitive>::value,
                   "Primitive singleton override should be used");
     if constexpr (std::is_same<T, Class>::value ||
@@ -66,13 +66,13 @@ class TypeGraph {
           std::make_unique<T>(next_id_++, std::forward<Args>(args)...);
       auto type_raw_ptr = type_unique_ptr.get();
       types_.push_back(std::move(type_unique_ptr));
-      return type_raw_ptr;
+      return *type_raw_ptr;
     } else {
       // No Node ID
       auto type_unique_ptr = std::make_unique<T>(std::forward<Args>(args)...);
       auto type_raw_ptr = type_unique_ptr.get();
       types_.push_back(std::move(type_unique_ptr));
-      return type_raw_ptr;
+      return *type_raw_ptr;
     }
   }
 

@@ -56,13 +56,13 @@ void TopoSorter::visit(Type& type) {
 
 void TopoSorter::visit(Class& c) {
   for (const auto& parent : c.parents) {
-    visit(*parent.type);
+    visit(parent.type());
   }
   for (const auto& mem : c.members) {
-    visit(*mem.type);
+    visit(mem.type());
   }
   for (const auto& param : c.templateParams) {
-    visit(param.type);
+    visit(param.type());
   }
   sortedTypes_.push_back(c);
 
@@ -97,13 +97,13 @@ bool containerAllowsIncompleteParams(const Container& c) {
 void TopoSorter::visit(Container& c) {
   if (!containerAllowsIncompleteParams(c)) {
     for (const auto& param : c.templateParams) {
-      visit(param.type);
+      visit(param.type());
     }
   }
   sortedTypes_.push_back(c);
   if (containerAllowsIncompleteParams(c)) {
     for (const auto& param : c.templateParams) {
-      visitAfter(param.type);
+      visitAfter(param.type());
     }
   }
 }
@@ -113,14 +113,14 @@ void TopoSorter::visit(Enum& e) {
 }
 
 void TopoSorter::visit(Typedef& td) {
-  visit(*td.underlyingType());
+  visit(td.underlyingType());
   sortedTypes_.push_back(td);
 }
 
 void TopoSorter::visit(Pointer& p) {
   // Pointers do not create a dependency, but we do still care about the types
   // they point to, so delay them until the end.
-  visitAfter(*p.pointeeType());
+  visitAfter(p.pointeeType());
 }
 
 /*

@@ -65,7 +65,6 @@ class ConstVisitor;
 
 // TODO delete copy and move ctors
 
-// TODO make types hold references instead of pointers
 // TODO type qualifiers are needed for some stuff?
 class Type {
  public:
@@ -79,15 +78,23 @@ class Type {
   virtual uint64_t align() const = 0;
 };
 
-struct Member {
-  Member(Type* type,
+class Member {
+ public:
+  Member(Type& type,
          const std::string& name,
          uint64_t bitOffset,
          uint64_t bitsize = 0)
-      : type(type), name(name), bitOffset(bitOffset), bitsize(bitsize) {
+      : type_(type), name(name), bitOffset(bitOffset), bitsize(bitsize) {
   }
 
-  Type* type;
+  Type& type() const {
+    return type_;
+  }
+
+ private:
+  std::reference_wrapper<Type> type_;
+
+ public:
   std::string name;
   uint64_t bitOffset;
   uint64_t bitsize;
@@ -105,24 +112,43 @@ struct Function {
 
 class Class;
 struct Parent {
-  Parent(Type* type, uint64_t bitOffset) : type(type), bitOffset(bitOffset) {
+  Parent(Type& type, uint64_t bitOffset) : type_(type), bitOffset(bitOffset) {
   }
 
-  Type* type;
+  Type& type() const {
+    return type_;
+  }
+
+  //  uint64_t offset() const {
+  //    return offset_;
+  //  }
+
+ private:
+  std::reference_wrapper<Type> type_;
+
+ public:
   uint64_t bitOffset;
 };
 
-struct TemplateParam {
+class TemplateParam {
+ public:
   // TODO make ctors explicit
-  TemplateParam(Type* type) : type(type) {
+  TemplateParam(Type& type) : type_(&type) {
   }
-  TemplateParam(Type* type, QualifierSet qualifiers)
-      : type(type), qualifiers(qualifiers) {
+  TemplateParam(Type& type, QualifierSet qualifiers)
+      : type_(&type), qualifiers(qualifiers) {
   }
   TemplateParam(std::string value) : value(std::move(value)) {
   }
 
-  Type* type = nullptr;  // Note: type is not always set
+  Type* type() const {
+    return type_;
+  }
+
+ private:
+  Type* type_ = nullptr;  // Note: type is not always set
+
+ public:
   QualifierSet qualifiers;
   std::optional<std::string> value;
 };
@@ -294,26 +320,25 @@ class Enum : public Type {
 
 class Array : public Type {
  public:
-  Array(NodeId id, Type* elementType, size_t len)
+  Array(NodeId id, Type& elementType, size_t len)
       : elementType_(elementType), len_(len), id_(id) {
   }
 
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return "OIArray<" + elementType_->name() + ", " + std::to_string(len_) +
-           ">";
+    return "OIArray<" + elementType_.name() + ", " + std::to_string(len_) + ">";
   }
 
   virtual size_t size() const override {
-    return len_ * elementType_->size();
+    return len_ * elementType_.size();
   }
 
   virtual uint64_t align() const override {
-    return elementType_->size();
+    return elementType_.size();
   }
 
-  Type* elementType() const {
+  Type& elementType() const {
     return elementType_;
   }
 
@@ -326,7 +351,7 @@ class Array : public Type {
   }
 
  private:
-  Type* elementType_;
+  Type& elementType_;
   size_t len_;
   NodeId id_ = -1;
 };
@@ -370,7 +395,7 @@ class Primitive : public Type {
 
 class Typedef : public Type {
  public:
-  explicit Typedef(NodeId id, const std::string& name, Type* underlyingType)
+  explicit Typedef(NodeId id, const std::string& name, Type& underlyingType)
       : name_(name), underlyingType_(underlyingType), id_(id) {
   }
 
@@ -385,14 +410,14 @@ class Typedef : public Type {
   }
 
   virtual size_t size() const override {
-    return underlyingType_->size();
+    return underlyingType_.size();
   }
 
   virtual uint64_t align() const override {
-    return underlyingType_->align();
+    return underlyingType_.align();
   }
 
-  Type* underlyingType() const {
+  Type& underlyingType() const {
     return underlyingType_;
   }
 
@@ -402,20 +427,20 @@ class Typedef : public Type {
 
  private:
   std::string name_;
-  Type* underlyingType_;
+  Type& underlyingType_;
   NodeId id_ = -1;
 };
 
 class Pointer : public Type {
  public:
-  explicit Pointer(NodeId id, Type* pointeeType)
+  explicit Pointer(NodeId id, Type& pointeeType)
       : pointeeType_(pointeeType), id_(id) {
   }
 
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return pointeeType_->name() + "*";
+    return pointeeType_.name() + "*";
   }
 
   virtual size_t size() const override {
@@ -426,7 +451,7 @@ class Pointer : public Type {
     return size();
   }
 
-  Type* pointeeType() const {
+  Type& pointeeType() const {
     return pointeeType_;
   }
 
@@ -435,7 +460,7 @@ class Pointer : public Type {
   }
 
  private:
-  Type* pointeeType_;
+  Type& pointeeType_;
   NodeId id_ = -1;
 };
 

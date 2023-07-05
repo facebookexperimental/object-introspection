@@ -39,13 +39,13 @@ TEST(CodeGenTest, TransformContainerAllocator) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
   auto myalloc = Class{1, Class::Kind::Struct, "MyAlloc", 8};
-  myalloc.templateParams.push_back(TemplateParam{&myint});
+  myalloc.templateParams.push_back(TemplateParam{myint});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});
 
   auto container = getVector();
-  container.templateParams.push_back(TemplateParam{&myint});
-  container.templateParams.push_back(TemplateParam{&myalloc});
+  container.templateParams.push_back(TemplateParam{myint});
+  container.templateParams.push_back(TemplateParam{myalloc});
 
   testTransform(container, R"(
 [0] Container: std::vector (size: 24)
@@ -77,25 +77,25 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
   Primitive myint{Primitive::Kind::Int32};
 
   Container pair{3, pairInfo, 8};
-  pair.templateParams.push_back(TemplateParam{&myint, {Qualifier::Const}});
-  pair.templateParams.push_back(TemplateParam{&myint});
+  pair.templateParams.push_back(TemplateParam{myint, {Qualifier::Const}});
+  pair.templateParams.push_back(TemplateParam{myint});
 
   Class myallocBase{2, Class::Kind::Struct,
                     "MyAllocBase<std::pair<const int, int>>", 1};
-  myallocBase.templateParams.push_back(TemplateParam{&pair});
+  myallocBase.templateParams.push_back(TemplateParam{pair});
   myallocBase.functions.push_back(Function{"allocate"});
   myallocBase.functions.push_back(Function{"deallocate"});
 
   Class myalloc{1, Class::Kind::Struct, "MyAlloc<std::pair<const int, int>>",
                 1};
-  myalloc.parents.push_back(Parent{&myallocBase, 0});
+  myalloc.parents.push_back(Parent{myallocBase, 0});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});
 
   Container map{0, mapInfo, 24};
-  map.templateParams.push_back(TemplateParam{&myint});
-  map.templateParams.push_back(TemplateParam{&myint});
-  map.templateParams.push_back(TemplateParam{&myalloc});
+  map.templateParams.push_back(TemplateParam{myint});
+  map.templateParams.push_back(TemplateParam{myint});
+  map.templateParams.push_back(TemplateParam{myalloc});
 
   testTransform(map, R"(
 [0] Container: std::map (size: 24)
