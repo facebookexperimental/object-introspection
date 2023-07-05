@@ -39,7 +39,7 @@ void RemoveTopLevelPointer::removeTopLevelPointers(
 }
 
 void RemoveTopLevelPointer::visit(Pointer& p) {
-  topLevelType_ = p.pointeeType();
+  topLevelType_ = &p.pointeeType();
 }
 
 }  // namespace type_graph

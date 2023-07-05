@@ -60,8 +60,8 @@ TEST(TopoSorterTest, ClassMembers) {
   auto mystruct = Class{0, Class::Kind::Struct, "MyStruct", 13};
   auto myenum = Enum{"MyEnum", 4};
   auto myclass = Class{1, Class::Kind::Class, "MyClass", 69};
-  myclass.members.push_back(Member(&mystruct, "n", 0));
-  myclass.members.push_back(Member(&myenum, "e", 4));
+  myclass.members.push_back(Member{mystruct, "n", 0});
+  myclass.members.push_back(Member{myenum, "e", 4});
 
   test({myclass}, R"(
 MyStruct
@@ -73,7 +73,7 @@ MyClass
 TEST(TopoSorterTest, Parents) {
   auto myparent = Class{0, Class::Kind::Struct, "MyParent", 13};
   auto myclass = Class{1, Class::Kind::Class, "MyClass", 69};
-  myclass.parents.push_back(Parent(&myparent, 0));
+  myclass.parents.push_back(Parent{myparent, 0});
 
   test({myclass}, R"(
 MyParent
@@ -84,7 +84,7 @@ MyClass
 TEST(TopoSorterTest, TemplateParams) {
   auto myparam = Class{0, Class::Kind::Struct, "MyParam", 13};
   auto myclass = Class{1, Class::Kind::Class, "MyClass", 69};
-  myclass.templateParams.push_back(TemplateParam(&myparam));
+  myclass.templateParams.push_back(TemplateParam{myparam});
 
   test({myclass}, R"(
 MyParam
@@ -95,10 +95,10 @@ MyClass
 TEST(TopoSorterTest, Children) {
   auto mymember = Class{0, Class::Kind::Struct, "MyMember", 13};
   auto mychild = Class{1, Class::Kind::Struct, "MyChild", 13};
-  mychild.members.push_back(Member(&mymember, "mymember", 0));
+  mychild.members.push_back(Member{mymember, "mymember", 0});
 
   auto myclass = Class{2, Class::Kind::Class, "MyClass", 69};
-  mychild.parents.push_back(Parent(&myclass, 0));
+  mychild.parents.push_back(Parent{myclass, 0});
   myclass.children.push_back(mychild);
 
   std::vector<std::vector<ref<Type>>> inputs = {
@@ -129,11 +129,11 @@ TEST(TopoSorterTest, ChildrenCycle) {
   auto classA = Class{1, Class::Kind::Struct, "ClassA", 5};
   auto mychild = Class{2, Class::Kind::Struct, "MyChild", 13};
 
-  mychild.parents.push_back(Parent(&myparent, 0));
+  mychild.parents.push_back(Parent{myparent, 0});
   myparent.children.push_back(mychild);
 
-  mychild.members.push_back(Member(&classA, "a", 0));
-  classA.members.push_back(Member(&myparent, "p", 0));
+  mychild.members.push_back(Member{classA, "a", 0});
+  classA.members.push_back(Member{myparent, "p", 0});
 
   std::vector<std::vector<ref<Type>>> inputs = {
       {myparent},
@@ -156,8 +156,8 @@ TEST(TopoSorterTest, Containers) {
   auto myparam1 = Class{1, Class::Kind::Struct, "MyParam1", 13};
   auto myparam2 = Class{2, Class::Kind::Struct, "MyParam2", 13};
   auto mycontainer = getMap();
-  mycontainer.templateParams.push_back((&myparam1));
-  mycontainer.templateParams.push_back((&myparam2));
+  mycontainer.templateParams.push_back((myparam1));
+  mycontainer.templateParams.push_back((myparam2));
 
   test({mycontainer}, R"(
 MyParam1
@@ -170,7 +170,7 @@ TEST(TopoSorterTest, ContainersVector) {
   // std::vector allows forward declared template parameters
   auto myparam = Class{1, Class::Kind::Struct, "MyParam", 13};
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back((&myparam));
+  mycontainer.templateParams.push_back((myparam));
 
   test({mycontainer}, R"(
 std::vector
@@ -182,7 +182,7 @@ TEST(TopoSorterTest, ContainersList) {
   // std::list allows forward declared template parameters
   auto myparam = Class{1, Class::Kind::Struct, "MyParam", 13};
   auto mycontainer = getList();
-  mycontainer.templateParams.push_back((&myparam));
+  mycontainer.templateParams.push_back((myparam));
 
   test({mycontainer}, R"(
 std::list
@@ -192,14 +192,14 @@ MyParam
 
 TEST(TopoSorterTest, Arrays) {
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 69};
-  auto myarray = Array{1, &myclass, 10};
+  auto myarray = Array{1, myclass, 10};
 
   test({myarray}, "MyClass\n");
 }
 
 TEST(TopoSorterTest, Typedef) {
   auto classA = Class{0, Class::Kind::Class, "ClassA", 8};
-  auto aliasA = Typedef{1, "aliasA", &classA};
+  auto aliasA = Typedef{1, "aliasA", classA};
 
   test({aliasA}, R"(
 ClassA
@@ -210,7 +210,7 @@ aliasA
 TEST(TopoSorterTest, Pointers) {
   // Pointers do not require pointee types to be defined first
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 69};
-  auto mypointer = Pointer{1, &myclass};
+  auto mypointer = Pointer{1, myclass};
 
   test({mypointer}, "MyClass");
 }
@@ -218,9 +218,9 @@ TEST(TopoSorterTest, Pointers) {
 TEST(TopoSorterTest, PointerCycle) {
   auto classA = Class{0, Class::Kind::Class, "ClassA", 69};
   auto classB = Class{1, Class::Kind::Class, "ClassB", 69};
-  auto ptrA = Pointer{2, &classA};
-  classA.members.push_back(Member(&classB, "b", 0));
-  classB.members.push_back(Member(&ptrA, "a", 0));
+  auto ptrA = Pointer{2, classA};
+  classA.members.push_back(Member{classB, "b", 0});
+  classB.members.push_back(Member{ptrA, "a", 0});
 
   std::vector<std::vector<ref<Type>>> inputs = {
       {classA},
@@ -242,8 +242,8 @@ TEST(TopoSorterTest, TwoDeep) {
   auto myunion = Class{0, Class::Kind::Union, "MyUnion", 7};
   auto mystruct = Class{1, Class::Kind::Struct, "MyStruct", 13};
   auto myclass = Class{2, Class::Kind::Class, "MyClass", 69};
-  myclass.members.push_back(Member(&mystruct, "mystruct", 0));
-  mystruct.members.push_back(Member(&myunion, "myunion", 0));
+  myclass.members.push_back(Member{mystruct, "mystruct", 0});
+  mystruct.members.push_back(Member{myunion, "myunion", 0});
 
   test({myclass}, R"(
 MyUnion
@@ -256,9 +256,9 @@ TEST(TopoSorterTest, MultiplePaths) {
   auto myunion = Class{0, Class::Kind::Union, "MyUnion", 7};
   auto mystruct = Class{1, Class::Kind::Struct, "MyStruct", 13};
   auto myclass = Class{2, Class::Kind::Class, "MyClass", 69};
-  myclass.members.push_back(Member(&mystruct, "mystruct", 0));
-  myclass.members.push_back(Member(&myunion, "myunion1", 0));
-  mystruct.members.push_back(Member(&myunion, "myunion2", 0));
+  myclass.members.push_back(Member{mystruct, "mystruct", 0});
+  myclass.members.push_back(Member{myunion, "myunion1", 0});
+  mystruct.members.push_back(Member{myunion, "myunion2", 0});
 
   test({myclass}, R"(
 MyUnion

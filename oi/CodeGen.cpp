@@ -219,7 +219,8 @@ void CodeGen::genDefsThrift(const TypeGraph& typeGraph, std::string& code) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
       const Member* issetMember = nullptr;
       for (const auto& member : c->members) {
-        if (const auto* container = dynamic_cast<const Container*>(member.type);
+        if (const auto* container =
+                dynamic_cast<const Container*>(&member.type());
             container && container->containerInfo_.ctype == THRIFT_ISSET_TYPE) {
           issetMember = &member;
           break;
@@ -247,7 +248,7 @@ void genDefsClass(const Class& c, std::string& code) {
 
   code += c.name() + " {\n";
   for (const auto& mem : c.members) {
-    code += "  " + mem.type->name() + " " + mem.name;
+    code += "  " + mem.type().name() + " " + mem.name;
     if (mem.bitsize) {
       code += " : " + std::to_string(mem.bitsize);
     }
@@ -257,7 +258,7 @@ void genDefsClass(const Class& c, std::string& code) {
 }
 
 void genDefsTypedef(const Typedef& td, std::string& code) {
-  code += "using " + td.name() + " = " + td.underlyingType()->name() + ";\n";
+  code += "using " + td.name() + " = " + td.underlyingType().name() + ";\n";
 }
 
 void genDefs(const TypeGraph& typeGraph, std::string& code) {
@@ -758,8 +759,8 @@ void CodeGen::addDrgnRoot(struct drgn_type* drgnType,
                           type_graph::TypeGraph& typeGraph) {
   type_graph::DrgnParser drgnParser{
       typeGraph, containerInfos_, config_.features[Feature::ChaseRawPointers]};
-  Type* parsedRoot = drgnParser.parse(drgnType);
-  typeGraph.addRoot(*parsedRoot);
+  Type& parsedRoot = drgnParser.parse(drgnType);
+  typeGraph.addRoot(parsedRoot);
 }
 
 void CodeGen::transform(type_graph::TypeGraph& typeGraph) {

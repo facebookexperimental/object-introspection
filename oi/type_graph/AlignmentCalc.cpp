@@ -58,8 +58,8 @@ void AlignmentCalc::visit(Class& c) {
     if (member.align == 0) {
       // If the member does not have an explicit alignment, calculate it from
       // the member's type.
-      visit(*member.type);
-      member.align = member.type->align();
+      visit(member.type());
+      member.align = member.type().align();
     }
     alignment = std::max(alignment, member.align);
   }

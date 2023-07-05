@@ -9,8 +9,8 @@ TEST(AlignmentCalcTest, PrimitiveMembers) {
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
-  myclass.members.push_back(Member(&myint8, "n", 0));
-  myclass.members.push_back(Member(&myint64, "n", 8 * 8));
+  myclass.members.push_back(Member{myint8, "n", 0});
+  myclass.members.push_back(Member{myint64, "n", 8 * 8});
 
   test(AlignmentCalc::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 16, align: 8)
@@ -24,13 +24,13 @@ TEST(AlignmentCalcTest, PrimitiveMembers) {
 TEST(AlignmentCalcTest, StructMembers) {
   auto mystruct = Class{1, Class::Kind::Struct, "MyStruct", 8};
   auto myint32 = Primitive{Primitive::Kind::Int32};
-  mystruct.members.push_back(Member(&myint32, "n1", 0));
-  mystruct.members.push_back(Member(&myint32, "n2", 4 * 8));
+  mystruct.members.push_back(Member{myint32, "n1", 0});
+  mystruct.members.push_back(Member{myint32, "n2", 4 * 8});
 
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 12};
   auto myint8 = Primitive{Primitive::Kind::Int8};
-  myclass.members.push_back(Member(&myint8, "n", 0));
-  myclass.members.push_back(Member(&mystruct, "s", 4 * 8));
+  myclass.members.push_back(Member{myint8, "n", 0});
+  myclass.members.push_back(Member{mystruct, "s", 4 * 8});
 
   test(AlignmentCalc::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 12, align: 4)
@@ -49,11 +49,11 @@ TEST(AlignmentCalcTest, StructInContainer) {
   auto myclass = Class{1, Class::Kind::Class, "MyClass", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
-  myclass.members.push_back(Member(&myint8, "n", 0));
-  myclass.members.push_back(Member(&myint64, "n", 8 * 8));
+  myclass.members.push_back(Member{myint8, "n", 0});
+  myclass.members.push_back(Member{myint64, "n", 8 * 8});
 
   auto mycontainer = Container{0, ContainerInfo{}, 8};
-  mycontainer.templateParams.push_back(&myclass);
+  mycontainer.templateParams.push_back(myclass);
 
   test(AlignmentCalc::createPass(), {mycontainer}, R"(
 [0] Container:  (size: 8)
@@ -70,8 +70,8 @@ TEST(AlignmentCalcTest, Packed) {
   auto mystruct = Class{0, Class::Kind::Struct, "MyStruct", 9};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
-  mystruct.members.push_back(Member(&myint8, "n1", 0));
-  mystruct.members.push_back(Member(&myint64, "n2", 1 * 8));
+  mystruct.members.push_back(Member{myint8, "n1", 0});
+  mystruct.members.push_back(Member{myint64, "n2", 1 * 8});
 
   test(AlignmentCalc::createPass(), {mystruct}, R"(
 [0] Struct: MyStruct (size: 9, align: 8, packed)

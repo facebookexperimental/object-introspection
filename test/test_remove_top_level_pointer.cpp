@@ -10,9 +10,9 @@ TEST(RemoveTopLevelPointerTest, TopLevelPointerRemoved) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
   auto myclass = Class{1, Class::Kind::Class, "MyClass", 4};
-  myclass.members.push_back(Member(&myint, "n", 0));
+  myclass.members.push_back(Member{myint, "n", 0});
 
-  auto ptrA = Pointer{0, &myclass};
+  auto ptrA = Pointer{0, myclass};
 
   test(RemoveTopLevelPointer::createPass(), {ptrA}, R"(
 [0] Class: MyClass (size: 4)
@@ -25,7 +25,7 @@ TEST(RemoveTopLevelPointerTest, TopLevelClassUntouched) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 4};
-  myclass.members.push_back(Member(&myint, "n", 0));
+  myclass.members.push_back(Member{myint, "n", 0});
 
   test(RemoveTopLevelPointer::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 4)
@@ -36,10 +36,10 @@ TEST(RemoveTopLevelPointerTest, TopLevelClassUntouched) {
 
 TEST(RemoveTopLevelPointerTest, IntermediatePointerUntouched) {
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto ptrInt = Pointer{1, &myint};
+  auto ptrInt = Pointer{1, myint};
 
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 4};
-  myclass.members.push_back(Member(&ptrInt, "n", 0));
+  myclass.members.push_back(Member{ptrInt, "n", 0});
 
   test(RemoveTopLevelPointer::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 4)

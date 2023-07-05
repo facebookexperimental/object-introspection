@@ -75,12 +75,12 @@ Primitive::Kind primitiveFloatKind(struct drgn_type* type) {
 
 // TODO type stubs
 
-Type* DrgnParser::parse(struct drgn_type* root) {
+Type& DrgnParser::parse(struct drgn_type* root) {
   depth_ = 0;
   return enumerateType(root);
 }
 
-Type* DrgnParser::enumerateType(struct drgn_type* type) {
+Type& DrgnParser::enumerateType(struct drgn_type* type) {
   // Avoid re-enumerating an already-processsed type
   if (auto it = drgn_types_.find(type); it != drgn_types_.end())
     return it->second;
@@ -96,34 +96,40 @@ Type* DrgnParser::enumerateType(struct drgn_type* type) {
     case DRGN_TYPE_CLASS:
     case DRGN_TYPE_STRUCT:
     case DRGN_TYPE_UNION:
-      t = enumerateClass(type);
+      t = &enumerateClass(type);
       break;
     case DRGN_TYPE_ENUM:
-      t = enumerateEnum(type);
+      t = &enumerateEnum(type);
       break;
     case DRGN_TYPE_TYPEDEF:
-      t = enumerateTypedef(type);
+      t = &enumerateTypedef(type);
       break;
     case DRGN_TYPE_POINTER:
-      t = enumeratePointer(type);
+      t = &enumeratePointer(type);
       break;
     case DRGN_TYPE_ARRAY:
-      t = enumerateArray(type);
+      t = &enumerateArray(type);
       break;
     case DRGN_TYPE_INT:
     case DRGN_TYPE_BOOL:
     case DRGN_TYPE_FLOAT:
     case DRGN_TYPE_VOID:
-      t = enumeratePrimitive(type);
+      t = &enumeratePrimitive(type);
       break;
     default:
       throw DrgnParserError{"Unknown drgn type kind: " + std::to_string(kind)};
   }
   depth_--;
 
-  return t;
+  return *t;
 }
 
+/*
+ * enumerateContainer
+ *
+ * Attempts to parse a drgn_type as a Container. Returns nullptr if not
+ * sucessful.
+ */
 Container* DrgnParser::enumerateContainer(struct drgn_type* type,
                                           const std::string& fqName) {
   auto size = get_drgn_type_size(type);
@@ -135,14 +141,14 @@ Container* DrgnParser::enumerateContainer(struct drgn_type* type,
 
     VLOG(2) << "Matching container `" << containerInfo.typeName << "` from `"
             << fqName << "`" << std::endl;
-    auto* c = makeType<Container>(type, containerInfo, size);
-    enumerateClassTemplateParams(type, c->templateParams);
-    return c;
+    auto& c = makeType<Container>(type, containerInfo, size);
+    enumerateClassTemplateParams(type, c.templateParams);
+    return &c;
   }
   return nullptr;
 }
 
-Type* DrgnParser::enumerateClass(struct drgn_type* type) {
+Type& DrgnParser::enumerateClass(struct drgn_type* type) {
   std::string fqName;
   char* nameStr = nullptr;
   size_t length = 0;
@@ -153,7 +159,7 @@ Type* DrgnParser::enumerateClass(struct drgn_type* type) {
 
   auto* container = enumerateContainer(type, fqName);
   if (container)
-    return container;
+    return *container;
 
   std::string name;
   const char* type_tag = drgn_type_tag(type);
@@ -183,13 +189,13 @@ Type* DrgnParser::enumerateClass(struct drgn_type* type) {
                             std::to_string(drgn_type_kind(type))};
   }
 
-  auto c = makeType<Class>(type, kind, std::move(name), std::move(fqName), size,
-                           virtuality);
+  auto& c = makeType<Class>(type, kind, std::move(name), std::move(fqName),
+                            size, virtuality);
 
-  enumerateClassTemplateParams(type, c->templateParams);
-  enumerateClassParents(type, c->parents);
-  enumerateClassMembers(type, c->members);
-  enumerateClassFunctions(type, c->functions);
+  enumerateClassTemplateParams(type, c.templateParams);
+  enumerateClassParents(type, c.parents);
+  enumerateClassMembers(type, c.members);
+  enumerateClassFunctions(type, c.functions);
 
   return c;
 }
@@ -211,9 +217,9 @@ void DrgnParser::enumerateClassParents(struct drgn_type* type,
           "Error looking up parent type (" + std::to_string(i) + ")", err};
     }
 
-    auto ptype = enumerateType(parent_qual_type.type);
+    auto& ptype = enumerateType(parent_qual_type.type);
     uint64_t poffset = drgn_parents[i].bit_offset;
-    Parent p(ptype, poffset);
+    Parent p{ptype, poffset};
     parents.push_back(p);
   }
 
@@ -258,7 +264,7 @@ void DrgnParser::enumerateClassMembers(struct drgn_type* type,
     if (drgn_members[i].name)
       member_name = drgn_members[i].name;
 
-    auto mtype = enumerateType(member_type);
+    auto& mtype = enumerateType(member_type);
     uint64_t moffset = drgn_members[i].bit_offset;
 
     Member m{mtype, member_name, moffset, bit_field_size};
@@ -297,7 +303,7 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter* tparams,
     qualifiers[Qualifier::Const] =
         (tparamQualType.qualifiers & DRGN_QUALIFIER_CONST);
 
-    auto ttype = enumerateType(tparamType);
+    auto& ttype = enumerateType(tparamType);
     params.emplace_back(ttype, qualifiers);
   } else {
     // This template parameter is a value
@@ -411,7 +417,7 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type* type,
   }
 }
 
-Enum* DrgnParser::enumerateEnum(struct drgn_type* type) {
+Enum& DrgnParser::enumerateEnum(struct drgn_type* type) {
   // TODO anonymous enums
   // TODO incomplete enum?
   std::string name = drgn_type_tag(type);
@@ -420,16 +426,16 @@ Enum* DrgnParser::enumerateEnum(struct drgn_type* type) {
   return makeType<Enum>(type, name, size);
 }
 
-Typedef* DrgnParser::enumerateTypedef(struct drgn_type* type) {
+Typedef& DrgnParser::enumerateTypedef(struct drgn_type* type) {
   std::string name = drgn_type_name(type);
   // TODO anonymous typedefs?
 
   struct drgn_type* underlyingType = drgn_type_type(type).type;
-  auto t = enumerateType(underlyingType);
+  auto& t = enumerateType(underlyingType);
   return makeType<Typedef>(type, name, t);
 }
 
-Type* DrgnParser::enumeratePointer(struct drgn_type* type) {
+Type& DrgnParser::enumeratePointer(struct drgn_type* type) {
   if (!chasePointer()) {
     // TODO dodgy nullptr - primitives should be handled as singletons
     return makeType<Primitive>(nullptr, Primitive::Kind::UIntPtr);
@@ -439,18 +445,18 @@ Type* DrgnParser::enumeratePointer(struct drgn_type* type) {
 
   // TODO why was old CodeGen following funciton pointers?
 
-  Type* t = enumerateType(pointeeType);
+  Type& t = enumerateType(pointeeType);
   return makeType<Pointer>(type, t);
 }
 
-Array* DrgnParser::enumerateArray(struct drgn_type* type) {
+Array& DrgnParser::enumerateArray(struct drgn_type* type) {
   struct drgn_type* elementType = drgn_type_type(type).type;
   uint64_t len = drgn_type_length(type);
-  auto t = enumerateType(elementType);
+  auto& t = enumerateType(elementType);
   return makeType<Array>(type, t, len);
 }
 
-Primitive* DrgnParser::enumeratePrimitive(struct drgn_type* type) {
+Primitive& DrgnParser::enumeratePrimitive(struct drgn_type* type) {
   Primitive::Kind kind;
   switch (drgn_type_kind(type)) {
     case DRGN_TYPE_INT:

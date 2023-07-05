@@ -100,7 +100,7 @@ void Printer::visit(const Array& a) {
     return;
 
   out_ << "Array: (length: " << a.len() << ")" << std::endl;
-  print(*a.elementType());
+  print(a.elementType());
 }
 
 void Printer::visit(const Typedef& td) {
@@ -108,7 +108,7 @@ void Printer::visit(const Typedef& td) {
     return;
 
   out_ << "Typedef: " << td.name() << std::endl;
-  print(*td.underlyingType());
+  print(td.underlyingType());
 }
 
 void Printer::visit(const Pointer& p) {
@@ -116,7 +116,7 @@ void Printer::visit(const Pointer& p) {
     return;
 
   out_ << "Pointer" << std::endl;
-  print(*p.pointeeType());
+  print(p.pointeeType());
 }
 
 void Printer::visit(const Dummy& d) {
@@ -162,7 +162,7 @@ void Printer::print_param(const TemplateParam& param) {
   if (param.value) {
     print_value(*param.value);
   } else {
-    print(*param.type);
+    print(*param.type());
   }
   print_qualifiers(param.qualifiers);
   depth_--;
@@ -173,7 +173,7 @@ void Printer::print_parent(const Parent& parent) {
   prefix();
   out_ << "Parent (offset: " << static_cast<double>(parent.bitOffset) / 8 << ")"
        << std::endl;
-  print(*parent.type);
+  print(parent.type());
   depth_--;
 }
 
@@ -187,7 +187,7 @@ void Printer::print_member(const Member& member) {
     out_ << ", bitsize: " << member.bitsize;
   }
   out_ << ")" << std::endl;
-  print(*member.type);
+  print(member.type());
   depth_--;
 }
 

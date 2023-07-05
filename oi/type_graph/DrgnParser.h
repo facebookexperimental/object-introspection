@@ -38,18 +38,18 @@ class DrgnParser {
         containers_(containers),
         chaseRawPointers_(chaseRawPointers) {
   }
-  Type* parse(struct drgn_type* root);
+  Type& parse(struct drgn_type* root);
 
  private:
-  Type* enumerateType(struct drgn_type* type);
+  Type& enumerateType(struct drgn_type* type);
   Container* enumerateContainer(struct drgn_type* type,
                                 const std::string& fqName);
-  Type* enumerateClass(struct drgn_type* type);
-  Enum* enumerateEnum(struct drgn_type* type);
-  Typedef* enumerateTypedef(struct drgn_type* type);
-  Type* enumeratePointer(struct drgn_type* type);
-  Array* enumerateArray(struct drgn_type* type);
-  Primitive* enumeratePrimitive(struct drgn_type* type);
+  Type& enumerateClass(struct drgn_type* type);
+  Enum& enumerateEnum(struct drgn_type* type);
+  Typedef& enumerateTypedef(struct drgn_type* type);
+  Type& enumeratePointer(struct drgn_type* type);
+  Array& enumerateArray(struct drgn_type* type);
+  Primitive& enumeratePrimitive(struct drgn_type* type);
 
   void enumerateTemplateParam(drgn_type_template_parameter* tparams,
                               size_t i,
@@ -65,13 +65,14 @@ class DrgnParser {
 
   // Store a mapping of drgn types to type graph nodes for deduplication during
   // parsing. This stops us getting caught in cycles.
-  std::unordered_map<struct drgn_type*, Type*> drgn_types_;
+  std::unordered_map<struct drgn_type*, std::reference_wrapper<Type>>
+      drgn_types_;
 
   template <typename T, typename... Args>
-  T* makeType(struct drgn_type* type, Args&&... args) {
-    auto* type_raw_ptr = typeGraph_.makeType<T>(std::forward<Args>(args)...);
-    drgn_types_.insert({type, type_raw_ptr});
-    return type_raw_ptr;
+  T& makeType(struct drgn_type* drgnType, Args&&... args) {
+    auto& newType = typeGraph_.makeType<T>(std::forward<Args>(args)...);
+    drgn_types_.insert({drgnType, newType});
+    return newType;
   }
   bool chasePointer() const;
 

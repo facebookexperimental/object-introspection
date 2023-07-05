@@ -10,8 +10,8 @@ TEST(NameGenTest, ClassParams) {
   auto myparam1 = Class{0, Class::Kind::Struct, "MyParam", 13};
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
   auto myclass = Class{2, Class::Kind::Struct, "MyClass<MyParam, MyParam>", 13};
-  myclass.templateParams.push_back(&myparam1);
-  myclass.templateParams.push_back(&myparam2);
+  myclass.templateParams.push_back(myparam1);
+  myclass.templateParams.push_back(myparam2);
 
   NameGen nameGen;
   nameGen.generateNames({myclass});
@@ -24,10 +24,10 @@ TEST(NameGenTest, ClassParams) {
 TEST(NameGenTest, ClassContainerParam) {
   auto myint = Primitive{Primitive::Kind::Int32};
   auto myparam = getVector();
-  myparam.templateParams.push_back(&myint);
+  myparam.templateParams.push_back(myint);
 
   auto myclass = Class{0, Class::Kind::Struct, "MyClass", 13};
-  myclass.templateParams.push_back(&myparam);
+  myclass.templateParams.push_back(myparam);
 
   NameGen nameGen;
   nameGen.generateNames({myclass});
@@ -40,8 +40,8 @@ TEST(NameGenTest, ClassParents) {
   auto myparent1 = Class{0, Class::Kind::Struct, "MyParent", 13};
   auto myparent2 = Class{1, Class::Kind::Struct, "MyParent", 13};
   auto myclass = Class{2, Class::Kind::Struct, "MyClass", 13};
-  myclass.parents.push_back(Parent{&myparent1, 0});
-  myclass.parents.push_back(Parent{&myparent2, 0});
+  myclass.parents.push_back(Parent{myparent1, 0});
+  myclass.parents.push_back(Parent{myparent2, 0});
 
   NameGen nameGen;
   nameGen.generateNames({myclass});
@@ -57,8 +57,8 @@ TEST(NameGenTest, ClassMembers) {
   auto myclass = Class{2, Class::Kind::Struct, "MyClass", 13};
 
   // A class may end up with members sharing a name after flattening
-  myclass.members.push_back(Member{&mymember1, "mem", 0});
-  myclass.members.push_back(Member{&mymember2, "mem", 0});
+  myclass.members.push_back(Member{mymember1, "mem", 0});
+  myclass.members.push_back(Member{mymember2, "mem", 0});
 
   NameGen nameGen;
   nameGen.generateNames({myclass});
@@ -89,8 +89,8 @@ TEST(NameGenTest, ContainerParams) {
   auto myparam1 = Class{0, Class::Kind::Struct, "MyParam", 13};
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back(&myparam1);
-  mycontainer.templateParams.push_back(&myparam2);
+  mycontainer.templateParams.push_back(myparam1);
+  mycontainer.templateParams.push_back(myparam2);
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer});
@@ -103,8 +103,8 @@ TEST(NameGenTest, ContainerParams) {
 TEST(NameGenTest, ContainerParamsDuplicates) {
   auto myparam = Class{0, Class::Kind::Struct, "MyParam", 13};
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back(&myparam);
-  mycontainer.templateParams.push_back(&myparam);
+  mycontainer.templateParams.push_back(myparam);
+  mycontainer.templateParams.push_back(myparam);
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer});
@@ -117,11 +117,11 @@ TEST(NameGenTest, ContainerParamsDuplicatesDeep) {
   auto myparam = Class{0, Class::Kind::Struct, "MyParam", 13};
 
   auto mycontainer1 = getVector();
-  mycontainer1.templateParams.push_back(&myparam);
+  mycontainer1.templateParams.push_back(myparam);
 
   auto mycontainer2 = getVector();
-  mycontainer2.templateParams.push_back(&myparam);
-  mycontainer2.templateParams.push_back(&mycontainer1);
+  mycontainer2.templateParams.push_back(myparam);
+  mycontainer2.templateParams.push_back(mycontainer1);
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer2});
@@ -138,12 +138,12 @@ TEST(NameGenTest, ContainerParamsDuplicatesAcrossContainers) {
   auto myparam3 = Class{2, Class::Kind::Struct, "MyParam", 13};
 
   auto mycontainer1 = getVector();
-  mycontainer1.templateParams.push_back(&myparam1);
-  mycontainer1.templateParams.push_back(&myparam2);
+  mycontainer1.templateParams.push_back(myparam1);
+  mycontainer1.templateParams.push_back(myparam2);
 
   auto mycontainer2 = getVector();
-  mycontainer2.templateParams.push_back(&myparam2);
-  mycontainer2.templateParams.push_back(&myparam3);
+  mycontainer2.templateParams.push_back(myparam2);
+  mycontainer2.templateParams.push_back(myparam3);
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer1, mycontainer2});
@@ -161,8 +161,8 @@ TEST(NameGenTest, ContainerParamsConst) {
 
   auto mycontainer = getVector();
   mycontainer.templateParams.push_back(
-      TemplateParam{&myparam1, {Qualifier::Const}});
-  mycontainer.templateParams.push_back(TemplateParam{&myparam2});
+      TemplateParam{myparam1, {Qualifier::Const}});
+  mycontainer.templateParams.push_back(TemplateParam{myparam2});
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer});
@@ -202,10 +202,10 @@ TEST(NameGenTest, Array) {
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
 
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back(&myparam1);
-  mycontainer.templateParams.push_back(&myparam2);
+  mycontainer.templateParams.push_back(myparam1);
+  mycontainer.templateParams.push_back(myparam2);
 
-  auto myarray = Array{2, &mycontainer, 5};
+  auto myarray = Array{2, mycontainer, 5};
 
   NameGen nameGen;
   nameGen.generateNames({myarray});
@@ -221,10 +221,10 @@ TEST(NameGenTest, Typedef) {
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
 
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back(&myparam1);
-  mycontainer.templateParams.push_back(&myparam2);
+  mycontainer.templateParams.push_back(myparam1);
+  mycontainer.templateParams.push_back(myparam2);
 
-  auto mytypedef = Typedef{2, "MyTypedef", &mycontainer};
+  auto mytypedef = Typedef{2, "MyTypedef", mycontainer};
 
   NameGen nameGen;
   nameGen.generateNames({mytypedef});
@@ -237,7 +237,7 @@ TEST(NameGenTest, Typedef) {
 
 TEST(NameGenTest, TypedefAliasTemplate) {
   auto myint = Primitive{Primitive::Kind::Int32};
-  auto mytypedef = Typedef{0, "MyTypedef<ParamA, ParamB>", &myint};
+  auto mytypedef = Typedef{0, "MyTypedef<ParamA, ParamB>", myint};
 
   NameGen nameGen;
   nameGen.generateNames({mytypedef});
@@ -250,10 +250,10 @@ TEST(NameGenTest, Pointer) {
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
 
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back(&myparam1);
-  mycontainer.templateParams.push_back(&myparam2);
+  mycontainer.templateParams.push_back(myparam1);
+  mycontainer.templateParams.push_back(myparam2);
 
-  auto mypointer = Pointer{2, &mycontainer};
+  auto mypointer = Pointer{2, mycontainer};
 
   NameGen nameGen;
   nameGen.generateNames({mypointer});
@@ -278,8 +278,8 @@ TEST(NameGenTest, DummyAllocator) {
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
 
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back(&myparam1);
-  mycontainer.templateParams.push_back(&myparam2);
+  mycontainer.templateParams.push_back(myparam1);
+  mycontainer.templateParams.push_back(myparam2);
 
   auto myalloc = DummyAllocator{mycontainer, 12, 34};
 
@@ -296,9 +296,9 @@ TEST(NameGenTest, DummyAllocator) {
 TEST(NameGenTest, Cycle) {
   auto classA = Class{0, Class::Kind::Class, "ClassA", 69};
   auto classB = Class{1, Class::Kind::Class, "ClassB", 69};
-  auto ptrA = Pointer{2, &classA};
-  classA.members.push_back(Member(&classB, "b", 0));
-  classB.members.push_back(Member(&ptrA, "a", 0));
+  auto ptrA = Pointer{2, classA};
+  classA.members.push_back(Member{classB, "b", 0});
+  classB.members.push_back(Member{ptrA, "a", 0});
 
   NameGen nameGen;
   nameGen.generateNames({classA});
@@ -310,8 +310,8 @@ TEST(NameGenTest, Cycle) {
 TEST(NameGenTest, ContainerCycle) {
   auto container = getVector();
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 69};
-  myclass.members.push_back(Member(&container, "c", 0));
-  container.templateParams.push_back(TemplateParam(&myclass));
+  myclass.members.push_back(Member{container, "c", 0});
+  container.templateParams.push_back(TemplateParam{myclass});
 
   NameGen nameGen;
   nameGen.generateNames({myclass});

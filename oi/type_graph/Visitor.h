@@ -64,13 +64,13 @@ class RecursiveVisitor : public Visitor {
   }
   virtual void visit(Class& c) {
     for (const auto& param : c.templateParams) {
-      visit(param.type);
+      visit(param.type());
     }
     for (const auto& parent : c.parents) {
-      visit(*parent.type);
+      visit(parent.type());
     }
     for (const auto& mem : c.members) {
-      visit(*mem.type);
+      visit(mem.type());
     }
     for (const auto& child : c.children) {
       visit(child);
@@ -78,7 +78,7 @@ class RecursiveVisitor : public Visitor {
   }
   virtual void visit(Container& c) {
     for (const auto& param : c.templateParams) {
-      visit(param.type);
+      visit(param.type());
     }
   }
   virtual void visit(Primitive&) {
@@ -86,13 +86,13 @@ class RecursiveVisitor : public Visitor {
   virtual void visit(Enum&) {
   }
   virtual void visit(Array& a) {
-    visit(*a.elementType());
+    visit(a.elementType());
   }
   virtual void visit(Typedef& td) {
-    visit(*td.underlyingType());
+    visit(td.underlyingType());
   }
   virtual void visit(Pointer& p) {
-    visit(*p.pointeeType());
+    visit(p.pointeeType());
   }
   virtual void visit(Dummy&) {
   }

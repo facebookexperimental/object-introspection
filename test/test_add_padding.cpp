@@ -10,8 +10,8 @@ TEST(AddPaddingTest, BetweenMembers) {
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
-  myclass.members.push_back(Member(&myint8, "n1", 0));
-  myclass.members.push_back(Member(&myint64, "n2", 8 * 8));
+  myclass.members.push_back(Member{myint8, "n1", 0});
+  myclass.members.push_back(Member{myint64, "n2", 8 * 8});
 
   test(AddPadding::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 16)
@@ -29,8 +29,8 @@ TEST(AddPaddingTest, AtEnd) {
   auto myclass = Class{0, Class::Kind::Struct, "MyStruct", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
-  myclass.members.push_back(Member(&myint64, "n1", 0));
-  myclass.members.push_back(Member(&myint8, "n2", 8 * 8));
+  myclass.members.push_back(Member{myint64, "n1", 0});
+  myclass.members.push_back(Member{myint8, "n2", 8 * 8});
 
   test(AddPadding::createPass(), {myclass}, R"(
 [0] Struct: MyStruct (size: 16)
@@ -48,8 +48,8 @@ TEST(AddPaddingTest, UnionNotPadded) {
   auto myclass = Class{0, Class::Kind::Union, "MyUnion", 8};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
-  myclass.members.push_back(Member(&myint64, "n1", 0));
-  myclass.members.push_back(Member(&myint8, "n2", 0));
+  myclass.members.push_back(Member{myint64, "n1", 0});
+  myclass.members.push_back(Member{myint8, "n2", 0});
 
   test(AddPadding::createPass(), {myclass}, R"(
 [0] Union: MyUnion (size: 8)
@@ -66,19 +66,19 @@ TEST(AddPaddingTest, Bitfields) {
   auto myint16 = Primitive{Primitive::Kind::Int16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
 
-  Member b1{&myint64, "b1", 0};
+  Member b1{myint64, "b1", 0};
   b1.bitsize = 3;
-  Member b2{&myint8, "b2", 3};
+  Member b2{myint8, "b2", 3};
   b2.bitsize = 2;
   // There may be a 0-sized bitfield between these two that does not appear
   // in the DWARF. This would add padding and push b3 to the next byte.
-  Member b3{&myint8, "b3", 8};
+  Member b3{myint8, "b3", 8};
   b3.bitsize = 1;
 
-  Member b4{&myint64, "b4", 8 * 8};
+  Member b4{myint64, "b4", 8 * 8};
   b4.bitsize = 24;
 
-  Member n{&myint16, "n", 12 * 8};
+  Member n{myint16, "n", 12 * 8};
 
   myclass.members.push_back(b1);
   myclass.members.push_back(b2);

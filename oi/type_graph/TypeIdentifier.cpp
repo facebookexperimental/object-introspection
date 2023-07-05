@@ -60,22 +60,22 @@ void TypeIdentifier::visit(Container& c) {
   // TODO these two arrays could be looped over in sync for better performance
   for (size_t i = 0; i < c.templateParams.size(); i++) {
     const auto& param = c.templateParams[i];
-    if (dynamic_cast<Dummy*>(param.type) ||
-        dynamic_cast<DummyAllocator*>(param.type)) {
+    if (dynamic_cast<Dummy*>(param.type()) ||
+        dynamic_cast<DummyAllocator*>(param.type())) {
       // In case the TypeIdentifier pass is run multiple times, we don't want to
       // replace dummies again as the context of the original replacement has
       // been lost.
       continue;
     }
 
-    if (Class* paramClass = dynamic_cast<Class*>(param.type)) {
+    if (Class* paramClass = dynamic_cast<Class*>(param.type())) {
       bool replaced = false;
       for (const auto& info : passThroughTypes_) {
         if (std::regex_search(paramClass->fqName(), info.matcher)) {
           // Create dummy containers
-          auto* dummy =
-              typeGraph_.makeType<Container>(info, param.type->size());
-          dummy->templateParams = paramClass->templateParams;
+          auto& dummy =
+              typeGraph_.makeType<Container>(info, param.type()->size());
+          dummy.templateParams = paramClass->templateParams;
           c.templateParams[i] = dummy;
           replaced = true;
         }
@@ -88,29 +88,29 @@ void TypeIdentifier::visit(Container& c) {
 
     if (std::find(stubParams.begin(), stubParams.end(), i) !=
         stubParams.end()) {
-      size_t size = param.type->size();
+      size_t size = param.type()->size();
       if (size == 1) {
         // Hack: when we get a reported size of 1 for these parameters, it
         // turns out that a size of 0 is actually expected.
         size = 0;
       }
 
-      if (isAllocator(*param.type)) {
+      if (isAllocator(*param.type())) {
         auto* allocator =
-            dynamic_cast<Class*>(param.type);  // TODO please don't do this...
-        Type& typeToAllocate = *allocator->templateParams.at(0).type;
-        auto* dummy = typeGraph_.makeType<DummyAllocator>(typeToAllocate, size,
-                                                          param.type->align());
+            dynamic_cast<Class*>(param.type());  // TODO please don't do this...
+        Type& typeToAllocate = *allocator->templateParams.at(0).type();
+        auto& dummy = typeGraph_.makeType<DummyAllocator>(
+            typeToAllocate, size, param.type()->align());
         c.templateParams[i] = dummy;
       } else {
-        auto* dummy = typeGraph_.makeType<Dummy>(size, param.type->align());
+        auto& dummy = typeGraph_.makeType<Dummy>(size, param.type()->align());
         c.templateParams[i] = dummy;
       }
     }
   }
 
   for (const auto& param : c.templateParams) {
-    visit(param.type);
+    visit(param.type());
   }
 }
 

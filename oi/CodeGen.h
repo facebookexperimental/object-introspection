@@ -31,7 +31,7 @@ class SymbolService;
 
 namespace type_graph {
 class Class;
-struct Member;
+class Member;
 class TypeGraph;
 }  // namespace type_graph
 

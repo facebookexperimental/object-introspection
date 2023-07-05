@@ -50,10 +50,10 @@ void AddPadding::visit(Class& c) {
   assert(c.parents.empty());
 
   for (auto& param : c.templateParams) {
-    visit(param.type);
+    visit(param.type());
   }
   for (auto& member : c.members) {
-    visit(*member.type);
+    visit(member.type());
   }
 
   if (c.kind() == Class::Kind::Union) {
@@ -86,7 +86,7 @@ void AddPadding::addPadding(const Member& prevMember,
                             std::vector<Member>& paddedMembers) {
   uint64_t prevMemberSizeBits;
   if (prevMember.bitsize == 0) {
-    prevMemberSizeBits = prevMember.type->size() * 8;
+    prevMemberSizeBits = prevMember.type().size() * 8;
   } else {
     prevMemberSizeBits = prevMember.bitsize;
   }
@@ -98,12 +98,12 @@ void AddPadding::addPadding(const Member& prevMember,
 
   if (paddingBits % 8 == 0) {
     // Pad with an array of bytes
-    auto* primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
-    auto* paddingArray = typeGraph_.makeType<Array>(primitive, paddingBits / 8);
+    auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
+    auto& paddingArray = typeGraph_.makeType<Array>(primitive, paddingBits / 8);
     paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEndBits);
   } else {
     // Pad with a bitfield
-    auto* primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int64);
+    auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int64);
     paddedMembers.emplace_back(primitive, MemberPrefix, prevMemberEndBits,
                                paddingBits);
   }
