@@ -152,4 +152,28 @@ void NameGen::visit(Typedef& td) {
   accept(td.underlyingType());
 }
 
+void NameGen::visit(CycleBreaker& b) {
+  accept(b.to());
+
+  std::string name = "fake_" + b.to().name();
+  std::transform(name.cbegin(), name.cend(), name.begin(), [](const char& c) {
+    switch (c) {
+      case '*':
+        return 'P';
+      case '<':
+      case '>':
+        return 'T';
+      case ':':
+      case ',':
+      case ' ':
+        return '_';
+      default:
+        return c;
+    }
+  });
+
+  deduplicate(name);
+  b.setName(name);
+}
+
 }  // namespace type_graph

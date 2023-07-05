@@ -1,0 +1,35 @@
+includes = ["vector"]
+definitions = '''
+struct Tree {
+  std::vector<Tree> children;
+};
+
+
+'''
+
+[cases]
+  [cases.tree_owns_trees_via_vector]
+    param_types = ["Tree&"]
+    setup = '''
+      Tree t;
+      t.children.emplace_back(Tree{});
+      return t;
+    '''
+    expect_json = '''
+    [{
+      "typeName": "Tree",
+      "staticSize": 24,
+      "dynamicSize": 24,
+      "members": [
+        {
+          "name": "children",
+          "staticSize": 24,
+          "dynamicSize": 24,
+          "length":1,
+          "capacity":1,
+          "elementStaticSize":24,
+          "members": [{"typeName": "Tree", "staticSize": 24, "dynamicSize": 0}]
+        }
+      ]
+    }]
+    '''

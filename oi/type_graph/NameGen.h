@@ -44,6 +44,7 @@ class NameGen final : public RecursiveVisitor {
   void visit(Container& c) override;
   void visit(Enum& e) override;
   void visit(Typedef& td) override;
+  void visit(CycleBreaker& b) override;
 
   static const inline std::string AnonPrefix = "__oi_anon";
 

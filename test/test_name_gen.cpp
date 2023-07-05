@@ -358,3 +358,21 @@ TEST(NameGenTest, AnonymousTypes) {
   EXPECT_EQ(myenum.name(), "__oi_anon_1");
   EXPECT_EQ(mytypedef.name(), "__oi_anon_2");
 }
+
+TEST(NameGenTest, CycleBreaker) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+
+  auto myclass = Class{0, Class::Kind::Class, "MyClass", 69};
+  auto mycontainer = getVector(1);
+  mycontainer.templateParams.push_back(myclass);
+  auto pointer = Pointer{2, mycontainer};
+  auto cycle = CycleBreaker{3, pointer};
+
+  NameGen nameGen;
+  nameGen.generateNames({cycle});
+
+  EXPECT_EQ(myclass.name(), "MyClass_0");
+  EXPECT_EQ(mycontainer.name(), "std::vector<MyClass_0>");
+  EXPECT_EQ(pointer.name(), "std::vector<MyClass_0>*");
+  EXPECT_EQ(cycle.name(), "fake_std__vectorTMyClass_0TP_1");
+}

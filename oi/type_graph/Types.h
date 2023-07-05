@@ -46,7 +46,8 @@
   X(Typedef)         \
   X(Pointer)         \
   X(Dummy)           \
-  X(DummyAllocator)
+  X(DummyAllocator)  \
+  X(CycleBreaker)
 
 struct ContainerInfo;
 
@@ -153,6 +154,10 @@ class TemplateParam {
       : type_(&type), qualifiers(qualifiers) {
   }
   TemplateParam(std::string value) : value(std::move(value)) {
+  }
+
+  void setType(Type* type) {
+    type_ = type;
   }
 
   Type* type() const {
@@ -484,7 +489,7 @@ class Pointer : public Type {
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return pointeeType_.name() + "*";
+    return pointeeType_.get().name() + "*";
   }
 
   virtual size_t size() const override {
@@ -499,12 +504,16 @@ class Pointer : public Type {
     return id_;
   }
 
+  void setPointeeType(Type& type) {
+    pointeeType_ = type;
+  }
+
   Type& pointeeType() const {
     return pointeeType_;
   }
 
  private:
-  Type& pointeeType_;
+  std::reference_wrapper<Type> pointeeType_;
   NodeId id_ = -1;
 };
 
@@ -585,6 +594,46 @@ class DummyAllocator : public Type {
   Type& type_;
   size_t size_;
   uint64_t align_;
+};
+
+class CycleBreaker : public Type {
+ public:
+  explicit CycleBreaker(NodeId id, Type& to) : to_(to), id_(id) {
+  }
+
+  static inline constexpr bool has_node_id = true;
+
+  DECLARE_ACCEPT
+
+  virtual std::string name() const override {
+    return name_;
+  }
+
+  void setName(std::string name) {
+    name_ = std::move(name);
+  }
+
+  virtual size_t size() const override {
+    return sizeof(uintptr_t);
+  }
+
+  virtual uint64_t align() const override {
+    return size();
+  }
+
+  virtual NodeId id() const override {
+    return id_;
+  }
+
+  Type& to() const {
+    return to_;
+  }
+
+ private:
+  Type& to_;
+
+  std::string name_;
+  NodeId id_ = -1;
 };
 
 Type& stripTypedefs(Type& type);

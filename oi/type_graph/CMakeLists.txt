@@ -2,6 +2,7 @@ add_library(type_graph
   AddChildren.cpp
   AddPadding.cpp
   AlignmentCalc.cpp
+  CycleFinder.cpp
   DrgnParser.cpp
   Flattener.cpp
   NameGen.cpp
