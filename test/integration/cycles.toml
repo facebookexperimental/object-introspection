@@ -14,6 +14,13 @@ definitions = '''
     int value;
     std::shared_ptr<struct SharedNode> next;
   };
+
+  struct Foo {
+    struct Bar* b;
+  };
+  struct Bar {
+    struct Foo* f;
+  };
 '''
 [cases]
   [cases.raw_ptr]
@@ -87,6 +94,61 @@ definitions = '''
         ]
       }
     ]
+    '''
+
+  [cases.raw_ptr_via_another]
+    oil_disable = "oil can't chase pointers safely"
+    param_types = ["Foo&"]
+    setup = '''
+      Foo *first = new Foo{nullptr};
+      Bar *second = new Bar{nullptr};
+      first->b = second;
+      second->f = first;
+      return *first;
+    '''
+    cli_options = ["-fchase-raw-pointers"]
+    expect_json = '''
+    [{
+      "typeName": "Foo",
+      "staticSize": 8,
+      "dynamicSize": 16,
+      "exclusiveSize": 0,
+      "members": [
+        {
+          "typeName": "struct Bar *",
+          "staticSize": 8,
+          "dynamicSize": 16,
+          "exclusiveSize": 8,
+          "NOT": {"pointer": 0},
+          "members": [
+            {
+              "typeName": "Bar",
+              "staticSize": 8,
+              "dynamicSize": 8,
+              "exclusiveSize": 0,
+              "members": [
+                {
+                  "typeName": "struct Foo *",
+                  "staticSize": 8,
+                  "dynamicSize": 8,
+                  "exclusiveSize": 8,
+                  "NOT": {"pointer": 0},
+                  "members": [
+                    {
+                      "typeName": "Foo",
+                      "staticSize": 8,
+                      "dynamicSize": 0,
+                      "exclusiveSize": 0,
+                      "members": [
+                        {
+                          "typePath": "b",
+                          "typeName": "struct Bar *",
+                          "isTypedef": false,
+                          "staticSize": 8,
+                          "dynamicSize": 0,
+                          "exclusiveSize": 8,
+                          "NOT": {"pointer": 0}
+      }]}]}]}]}]}]
     '''
 
   [cases.unique_ptr]

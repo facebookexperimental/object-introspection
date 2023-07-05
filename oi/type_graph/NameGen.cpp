@@ -152,4 +152,32 @@ void NameGen::visit(Typedef& td) {
   accept(td.underlyingType());
 }
 
+void NameGen::visit(CycleBreaker& b) {
+  // Assume we have already visited from() (graph is directed), and that it has
+  // a name. Visit to() first as it likely hasn't been visited yet.
+  accept(b.to());
+
+  std::string name = b.name();
+  deduplicate(name);
+
+  std::for_each(name.begin(), name.end(), [](char& c) {
+    switch (c) {
+      case '*':
+        c = 'P';
+        return;
+      case '<':
+      case '>':
+        c = 't';
+        return;
+      case ':':
+      case ',':
+      case ' ':
+        c = '_';
+        return;
+    }
+  });
+
+  b.setName(name);
+}
+
 }  // namespace type_graph

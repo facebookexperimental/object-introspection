@@ -132,6 +132,14 @@ void Printer::visit(const DummyAllocator& d) {
   print(d.allocType());
 }
 
+void Printer::visit(const CycleBreaker& b) {
+  if (prefix(&b))
+    return;
+
+  out_ << "CycleBreaker" << std::endl;
+  print(b.to());
+}
+
 bool Printer::prefix(const Type* type) {
   int indent = baseIndent_ + depth_ * 2;
 

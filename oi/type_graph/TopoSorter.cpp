@@ -117,6 +117,11 @@ void TopoSorter::visit(Typedef& td) {
   sortedTypes_.push_back(td);
 }
 
+void TopoSorter::visit(CycleBreaker& b) {
+  accept(b.to());
+  sortedTypes_.push_back(b);
+}
+
 void TopoSorter::visit(Pointer& p) {
   // Pointers do not create a dependency, but we do still care about the types
   // they point to, so delay them until the end.

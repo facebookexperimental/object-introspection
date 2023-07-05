@@ -15,9 +15,8 @@
  */
 #pragma once
 
-#include <queue>
+#include <stack>
 #include <unordered_set>
-#include <vector>
 
 #include "PassManager.h"
 #include "Types.h"
@@ -25,36 +24,35 @@
 
 namespace type_graph {
 
+class TypeGraph;
+
 /*
- * TopoSorter
+ * CycleFinder
  *
- * Topologically sorts a list of types so that dependencies appear before
- * dependent types.
+ * Find a set of edges that must be broken in order to convert the type graph
+ * from a directed graph to a directed acyclic graph (DAG).
  */
-class TopoSorter : public RecursiveVisitor {
+class CycleFinder : public RecursiveVisitor {
  public:
   static Pass createPass();
 
-  void sort(const std::vector<std::reference_wrapper<Type>>& types);
-  const std::vector<std::reference_wrapper<Type>>& sortedTypes() const;
+  CycleFinder(TypeGraph& typeGraph) : typeGraph_(typeGraph) {
+  }
 
   using RecursiveVisitor::accept;
+  using RecursiveVisitor::visit;
 
   void accept(Type& type) override;
-  void visit(Class& c) override;
-  void visit(Container& c) override;
-  void visit(Enum& e) override;
-  void visit(Typedef& td) override;
-  void visit(Pointer& p) override;
-  void visit(CycleBreaker& p) override;
+
+  void visit(CycleBreaker&) override{
+      // Do not follow a cyclebreaker as it has already been followed
+  };
 
  private:
-  std::unordered_set<Type*> visited_;
-  std::vector<std::reference_wrapper<Type>> sortedTypes_;
-  std::queue<std::reference_wrapper<Type>> typesToSort_;
+  TypeGraph& typeGraph_;
 
-  void visitAfter(Type& type);
-  void visitAfter(Type* type);
+  std::stack<std::reference_wrapper<Type>> currentPath_;
+  std::unordered_set<const Type*> currentPathSet_;
 };
 
 }  // namespace type_graph

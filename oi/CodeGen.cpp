@@ -28,6 +28,7 @@
 #include "type_graph/AddChildren.h"
 #include "type_graph/AddPadding.h"
 #include "type_graph/AlignmentCalc.h"
+#include "type_graph/CycleFinder.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
@@ -40,6 +41,7 @@
 
 using type_graph::Class;
 using type_graph::Container;
+using type_graph::CycleBreaker;
 using type_graph::Enum;
 using type_graph::Member;
 using type_graph::Type;
@@ -126,6 +128,12 @@ void addIncludes(const TypeGraph& typeGraph,
   }
 }
 
+void genDeclsCycleBreaker(const CycleBreaker& b, std::string& code) {
+  code += "struct ";
+  code += b.name();
+  code += ";\n";
+}
+
 void genDeclsClass(const Class& c, std::string& code) {
   if (c.kind() == Class::Kind::Union)
     code += "union ";
@@ -161,6 +169,8 @@ void genDecls(const TypeGraph& typeGraph, std::string& code) {
       genDeclsClass(*c, code);
     } else if (const auto* e = dynamic_cast<const Enum*>(&t)) {
       genDeclsEnum(*e, code);
+    } else if (const auto* b = dynamic_cast<const CycleBreaker*>(&t)) {
+      genDeclsCycleBreaker(*b, code);
     }
   }
 }
@@ -732,6 +742,22 @@ void getContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   code += fmt.str();
 }
 
+void addCycleBreakerTypeHandler(const CycleBreaker& b, std::string& code) {
+  code += (boost::format(R"(template <typename DB>
+struct TypeHandler<DB, %1%> {
+ public:
+  struct type {
+    type(DB buf) : _buf(buf) {}
+    DB _buf;
+  };
+  static types::st::Unit<DB> getSizeType(const %1%& t, TypeHandler<DB, %1%>::type ret) {
+    return getSizeType<DB>(reinterpret_cast<const %2%&>(t), ret._buf);
+  }
+};)") % b.name() %
+           b.to().name())
+              .str();
+}
+
 }  // namespace
 
 void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
@@ -740,6 +766,8 @@ void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
       getClassTypeHandler(*c, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
       getContainerTypeHandler(definedContainers_, *con, code);
+    } else if (const auto* b = dynamic_cast<const CycleBreaker*>(&t)) {
+      addCycleBreakerTypeHandler(*b, code);
     }
   }
 }
@@ -799,6 +827,9 @@ void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
   }
   pm.addPass(type_graph::RemoveIgnored::createPass(config_.membersToStub));
   pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
+  if (config_.features[Feature::TypedDataSegment]) {
+    pm.addPass(type_graph::CycleFinder::createPass());
+  }
 
   // 2. Fixup passes to repair type graph after partial transformations
   pm.addPass(type_graph::AddPadding::createPass(config_.features));
