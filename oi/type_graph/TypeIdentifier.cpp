@@ -74,7 +74,7 @@ void TypeIdentifier::visit(Container& c) {
         if (std::regex_search(paramClass->fqName(), info.matcher)) {
           // Create dummy containers
           auto* dummy =
-              typeGraph_.make_type<Container>(info, param.type->size());
+              typeGraph_.makeType<Container>(info, param.type->size());
           dummy->templateParams = paramClass->templateParams;
           c.templateParams[i] = dummy;
           replaced = true;
@@ -99,11 +99,11 @@ void TypeIdentifier::visit(Container& c) {
         auto* allocator =
             dynamic_cast<Class*>(param.type);  // TODO please don't do this...
         Type& typeToAllocate = *allocator->templateParams.at(0).type;
-        auto* dummy = typeGraph_.make_type<DummyAllocator>(typeToAllocate, size,
-                                                           param.type->align());
+        auto* dummy = typeGraph_.makeType<DummyAllocator>(typeToAllocate, size,
+                                                          param.type->align());
         c.templateParams[i] = dummy;
       } else {
-        auto* dummy = typeGraph_.make_type<Dummy>(size, param.type->align());
+        auto* dummy = typeGraph_.makeType<Dummy>(size, param.type->align());
         c.templateParams[i] = dummy;
       }
     }

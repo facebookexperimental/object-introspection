@@ -98,13 +98,12 @@ void AddPadding::addPadding(const Member& prevMember,
 
   if (paddingBits % 8 == 0) {
     // Pad with an array of bytes
-    auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
-    auto* paddingArray =
-        typeGraph_.make_type<Array>(primitive, paddingBits / 8);
+    auto* primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
+    auto* paddingArray = typeGraph_.makeType<Array>(primitive, paddingBits / 8);
     paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEndBits);
   } else {
     // Pad with a bitfield
-    auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int64);
+    auto* primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int64);
     paddedMembers.emplace_back(primitive, MemberPrefix, prevMemberEndBits,
                                paddingBits);
   }

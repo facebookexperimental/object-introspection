@@ -18,7 +18,7 @@
 namespace type_graph {
 
 template <>
-Primitive* TypeGraph::make_type<Primitive>(Primitive::Kind kind) {
+Primitive* TypeGraph::makeType<Primitive>(Primitive::Kind kind) {
   switch (kind) {
     case Primitive::Kind::Int8:
       static Primitive pInt8{kind};

@@ -8,6 +8,7 @@
 #include "oi/type_graph/TypeGraph.h"
 
 using type_graph::Container;
+using type_graph::NodeId;
 using type_graph::Pass;
 using type_graph::Type;
 using type_graph::TypeGraph;
@@ -54,20 +55,20 @@ void test(type_graph::Pass pass,
   test(pass, rootTypes, {}, expectedAfter);
 }
 
-Container getVector() {
+Container getVector(NodeId id) {
   static ContainerInfo info{"std::vector", SEQ_TYPE, "vector"};
   info.stubTemplateParams = {1};
-  return Container{info, 24};
+  return Container{id, info, 24};
 }
 
-Container getMap() {
+Container getMap(NodeId id) {
   static ContainerInfo info{"std::map", STD_MAP_TYPE, "map"};
   info.stubTemplateParams = {2, 3};
-  return Container{info, 48};
+  return Container{id, info, 48};
 }
 
-Container getList() {
+Container getList(NodeId id) {
   static ContainerInfo info{"std::list", LIST_TYPE, "list"};
   info.stubTemplateParams = {1};
-  return Container{info, 24};
+  return Container{id, info, 24};
 }

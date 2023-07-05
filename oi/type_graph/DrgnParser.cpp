@@ -86,7 +86,7 @@ Type* DrgnParser::enumerateType(struct drgn_type* type) {
     return it->second;
 
   if (!drgn_utils::isSizeComplete(type)) {
-    return make_type<Primitive>(nullptr, Primitive::Kind::Void);
+    return makeType<Primitive>(nullptr, Primitive::Kind::Void);
   }
 
   enum drgn_type_kind kind = drgn_type_kind(type);
@@ -135,7 +135,7 @@ Container* DrgnParser::enumerateContainer(struct drgn_type* type,
 
     VLOG(2) << "Matching container `" << containerInfo.typeName << "` from `"
             << fqName << "`" << std::endl;
-    auto* c = make_type<Container>(type, containerInfo, size);
+    auto* c = makeType<Container>(type, containerInfo, size);
     enumerateClassTemplateParams(type, c->templateParams);
     return c;
   }
@@ -183,8 +183,8 @@ Type* DrgnParser::enumerateClass(struct drgn_type* type) {
                             std::to_string(drgn_type_kind(type))};
   }
 
-  auto c = make_type<Class>(type, kind, std::move(name), std::move(fqName),
-                            size, virtuality);
+  auto c = makeType<Class>(type, kind, std::move(name), std::move(fqName), size,
+                           virtuality);
 
   enumerateClassTemplateParams(type, c->templateParams);
   enumerateClassParents(type, c->parents);
@@ -417,7 +417,7 @@ Enum* DrgnParser::enumerateEnum(struct drgn_type* type) {
   std::string name = drgn_type_tag(type);
   uint64_t size = get_drgn_type_size(type);
   ;
-  return make_type<Enum>(type, name, size);
+  return makeType<Enum>(type, name, size);
 }
 
 Typedef* DrgnParser::enumerateTypedef(struct drgn_type* type) {
@@ -426,13 +426,13 @@ Typedef* DrgnParser::enumerateTypedef(struct drgn_type* type) {
 
   struct drgn_type* underlyingType = drgn_type_type(type).type;
   auto t = enumerateType(underlyingType);
-  return make_type<Typedef>(type, name, t);
+  return makeType<Typedef>(type, name, t);
 }
 
 Type* DrgnParser::enumeratePointer(struct drgn_type* type) {
   if (!chasePointer()) {
     // TODO dodgy nullptr - primitives should be handled as singletons
-    return make_type<Primitive>(nullptr, Primitive::Kind::UIntPtr);
+    return makeType<Primitive>(nullptr, Primitive::Kind::UIntPtr);
   }
 
   struct drgn_type* pointeeType = drgn_type_type(type).type;
@@ -440,14 +440,14 @@ Type* DrgnParser::enumeratePointer(struct drgn_type* type) {
   // TODO why was old CodeGen following funciton pointers?
 
   Type* t = enumerateType(pointeeType);
-  return make_type<Pointer>(type, t);
+  return makeType<Pointer>(type, t);
 }
 
 Array* DrgnParser::enumerateArray(struct drgn_type* type) {
   struct drgn_type* elementType = drgn_type_type(type).type;
   uint64_t len = drgn_type_length(type);
   auto t = enumerateType(elementType);
-  return make_type<Array>(type, t, len);
+  return makeType<Array>(type, t, len);
 }
 
 Primitive* DrgnParser::enumeratePrimitive(struct drgn_type* type) {
@@ -469,7 +469,7 @@ Primitive* DrgnParser::enumeratePrimitive(struct drgn_type* type) {
       throw DrgnParserError{"Invalid drgn type kind for primitive: " +
                             std::to_string(drgn_type_kind(type))};
   }
-  return make_type<Primitive>(type, kind);
+  return makeType<Primitive>(type, kind);
 }
 
 bool DrgnParser::chasePointer() const {

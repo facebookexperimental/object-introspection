@@ -6,7 +6,7 @@
 using namespace type_graph;
 
 TEST(AlignmentCalcTest, PrimitiveMembers) {
-  auto myclass = Class{Class::Kind::Class, "MyClass", 16};
+  auto myclass = Class{0, Class::Kind::Class, "MyClass", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   myclass.members.push_back(Member(&myint8, "n", 0));
@@ -22,12 +22,12 @@ TEST(AlignmentCalcTest, PrimitiveMembers) {
 }
 
 TEST(AlignmentCalcTest, StructMembers) {
-  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 8};
+  auto mystruct = Class{1, Class::Kind::Struct, "MyStruct", 8};
   auto myint32 = Primitive{Primitive::Kind::Int32};
   mystruct.members.push_back(Member(&myint32, "n1", 0));
   mystruct.members.push_back(Member(&myint32, "n2", 4 * 8));
 
-  auto myclass = Class{Class::Kind::Class, "MyClass", 12};
+  auto myclass = Class{0, Class::Kind::Class, "MyClass", 12};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   myclass.members.push_back(Member(&myint8, "n", 0));
   myclass.members.push_back(Member(&mystruct, "s", 4 * 8));
@@ -46,13 +46,13 @@ TEST(AlignmentCalcTest, StructMembers) {
 }
 
 TEST(AlignmentCalcTest, StructInContainer) {
-  auto myclass = Class{Class::Kind::Class, "MyClass", 16};
+  auto myclass = Class{1, Class::Kind::Class, "MyClass", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   myclass.members.push_back(Member(&myint8, "n", 0));
   myclass.members.push_back(Member(&myint64, "n", 8 * 8));
 
-  auto mycontainer = Container{ContainerInfo{}, 8};
+  auto mycontainer = Container{0, ContainerInfo{}, 8};
   mycontainer.templateParams.push_back(&myclass);
 
   test(AlignmentCalc::createPass(), {mycontainer}, R"(
@@ -67,7 +67,7 @@ TEST(AlignmentCalcTest, StructInContainer) {
 }
 
 TEST(AlignmentCalcTest, Packed) {
-  auto mystruct = Class{Class::Kind::Struct, "MyStruct", 9};
+  auto mystruct = Class{0, Class::Kind::Struct, "MyStruct", 9};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   mystruct.members.push_back(Member(&myint8, "n1", 0));

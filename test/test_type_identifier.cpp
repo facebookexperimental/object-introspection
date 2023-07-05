@@ -9,7 +9,7 @@ using namespace type_graph;
 TEST(TypeIdentifierTest, StubbedParam) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto myparam = Class{Class::Kind::Struct, "MyParam", 4};
+  auto myparam = Class{1, Class::Kind::Struct, "MyParam", 4};
   myparam.members.push_back(Member{&myint, "a", 0});
 
   auto container = getVector();
@@ -42,7 +42,7 @@ TEST(TypeIdentifierTest, StubbedParam) {
 TEST(TypeIdentifierTest, Allocator) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto myalloc = Class{Class::Kind::Struct, "MyAlloc", 8};
+  auto myalloc = Class{1, Class::Kind::Struct, "MyAlloc", 8};
   myalloc.templateParams.push_back(TemplateParam{&myint});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});
@@ -80,7 +80,7 @@ TEST(TypeIdentifierTest, Allocator) {
 TEST(TypeIdentifierTest, AllocatorSize1) {
   auto myint = Primitive{Primitive::Kind::Int32};
 
-  auto myalloc = Class{Class::Kind::Struct, "MyAlloc", 1};
+  auto myalloc = Class{1, Class::Kind::Struct, "MyAlloc", 1};
   myalloc.templateParams.push_back(TemplateParam{&myint});
   myalloc.functions.push_back(Function{"allocate"});
   myalloc.functions.push_back(Function{"deallocate"});

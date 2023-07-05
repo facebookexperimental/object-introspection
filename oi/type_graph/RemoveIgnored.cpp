@@ -44,9 +44,9 @@ void RemoveIgnored::visit(Class& c) {
     if (!ignoreMember(c.name(), c.members[i].name)) {
       continue;
     }
-    auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
+    auto* primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
     auto* paddingArray =
-        typeGraph_.make_type<Array>(primitive, c.members[i].type->size());
+        typeGraph_.makeType<Array>(primitive, c.members[i].type->size());
     c.members[i] =
         Member{paddingArray, c.members[i].name, c.members[i].bitOffset};
   }

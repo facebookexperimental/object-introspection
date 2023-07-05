@@ -7,9 +7,9 @@
 using namespace type_graph;
 
 TEST(RemoveIgnoredTest, Match) {
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
   classA.members.push_back(Member(&classB, "a", 0));
   classA.members.push_back(Member(&classB, "b", 4 * 8));
   classA.members.push_back(Member(&classB, "c", 8 * 8));
@@ -40,9 +40,9 @@ TEST(RemoveIgnoredTest, Match) {
 }
 
 TEST(RemoveIgnoredTest, TypeMatchMemberMiss) {
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
   classA.members.push_back(Member(&classB, "a", 0));
   classA.members.push_back(Member(&classB, "b", 4 * 8));
   classA.members.push_back(Member(&classB, "c", 8 * 8));
@@ -63,9 +63,9 @@ TEST(RemoveIgnoredTest, TypeMatchMemberMiss) {
 }
 
 TEST(RemoveIgnoredTest, MemberMatchWrongType) {
-  auto classB = Class{Class::Kind::Class, "ClassB", 4};
+  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
-  auto classA = Class{Class::Kind::Class, "ClassA", 12};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
   classA.members.push_back(Member(&classB, "a", 0));
   classA.members.push_back(Member(&classB, "b", 4 * 8));
   classA.members.push_back(Member(&classB, "c", 8 * 8));

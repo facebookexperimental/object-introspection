@@ -7,7 +7,7 @@
 using namespace type_graph;
 
 TEST(AddPaddingTest, BetweenMembers) {
-  auto myclass = Class{Class::Kind::Class, "MyClass", 16};
+  auto myclass = Class{0, Class::Kind::Class, "MyClass", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   myclass.members.push_back(Member(&myint8, "n1", 0));
@@ -26,7 +26,7 @@ TEST(AddPaddingTest, BetweenMembers) {
 }
 
 TEST(AddPaddingTest, AtEnd) {
-  auto myclass = Class{Class::Kind::Struct, "MyStruct", 16};
+  auto myclass = Class{0, Class::Kind::Struct, "MyStruct", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   myclass.members.push_back(Member(&myint64, "n1", 0));
@@ -45,7 +45,7 @@ TEST(AddPaddingTest, AtEnd) {
 }
 
 TEST(AddPaddingTest, UnionNotPadded) {
-  auto myclass = Class{Class::Kind::Union, "MyUnion", 8};
+  auto myclass = Class{0, Class::Kind::Union, "MyUnion", 8};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   myclass.members.push_back(Member(&myint64, "n1", 0));
@@ -61,7 +61,7 @@ TEST(AddPaddingTest, UnionNotPadded) {
 }
 
 TEST(AddPaddingTest, Bitfields) {
-  auto myclass = Class{Class::Kind::Class, "MyClass", 16};
+  auto myclass = Class{0, Class::Kind::Class, "MyClass", 16};
   auto myint64 = Primitive{Primitive::Kind::Int64};
   auto myint16 = Primitive{Primitive::Kind::Int16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
