@@ -61,7 +61,8 @@ void TypeIdentifier::visit(Container& c) {
   for (size_t i = 0; i < c.templateParams.size(); i++) {
     const auto& param = c.templateParams[i];
     if (dynamic_cast<Dummy*>(param.type()) ||
-        dynamic_cast<DummyAllocator*>(param.type())) {
+        dynamic_cast<DummyAllocator*>(param.type()) ||
+        dynamic_cast<Container*>(param.type())) {
       // In case the TypeIdentifier pass is run multiple times, we don't want to
       // replace dummies again as the context of the original replacement has
       // been lost.
