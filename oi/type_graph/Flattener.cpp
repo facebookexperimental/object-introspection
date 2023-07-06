@@ -112,7 +112,13 @@ void fixAllocatorParams(Class& alloc) {
     return;
   }
 
-  Type& typeToAllocate = stripTypedefs(*parentClass->templateParams[0].type());
+  Type* allocParam = parentClass->templateParams[0].type();
+  if (!allocParam) {
+    // Nothing we can do
+    return;
+  }
+
+  Type& typeToAllocate = stripTypedefs(*allocParam);
   alloc.templateParams.push_back(TemplateParam{typeToAllocate});
 }
 }  // namespace

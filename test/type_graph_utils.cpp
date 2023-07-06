@@ -72,3 +72,8 @@ Container getList(NodeId id) {
   info.stubTemplateParams = {1};
   return Container{id, info, 24};
 }
+
+Container getPair(NodeId id) {
+  static ContainerInfo info{"std::pair", PAIR_TYPE, "utility"};
+  return Container{id, info, 8};  // Nonsense size, shouldn't matter for tests
+}
