@@ -177,7 +177,9 @@ TEST(TypeIdentifierTest, ContainerNotReplaced) {
       Param
         Primitive: int32_t
       Param
-        Dummy (size: 0, align: 8)
+[1]     Container: std::allocator (size: 1)
+          Param
+            Primitive: int32_t
 )");
 }
 
