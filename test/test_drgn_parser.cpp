@@ -1,4 +1,3 @@
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <regex>
@@ -7,10 +6,10 @@
 // TODO needed?:
 #include "oi/ContainerInfo.h"
 #include "oi/OIParser.h"
-#include "oi/type_graph/DrgnParser.h"
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "oi/type_graph/Types.h"
+#include "test_drgn_parser.h"
 
 using namespace type_graph;
 using ::testing::HasSubstr;
@@ -18,52 +17,41 @@ using ::testing::HasSubstr;
 // TODO setup google logging for tests so it doesn't appear on terminal by
 // default
 
-class DrgnParserTest : public ::testing::Test {
- protected:
-  static void SetUpTestSuite() {
-    symbols_ = new SymbolService{TARGET_EXE_PATH};
-  }
-
-  static void TearDownTestSuite() {
-    delete symbols_;
-  }
-
-  std::string run(std::string_view function, bool chaseRawPointers);
-  void test(std::string_view function,
-            std::string_view expected,
-            bool chaseRawPointers = true);
-  void testContains(std::string_view function,
-                    std::string_view expected,
-                    bool chaseRawPointers = true);
-  void testMultiCompiler(std::string_view function,
-                         std::string_view expectedClang,
-                         std::string_view expectedGcc,
-                         bool chaseRawPointers = true);
-  void testMultiCompilerContains(std::string_view function,
-                                 std::string_view expectedClang,
-                                 std::string_view expectedGcc,
-                                 bool chaseRawPointers = true);
-
-  static SymbolService* symbols_;
-};
-
 SymbolService* DrgnParserTest::symbols_ = nullptr;
+
+namespace {
+const std::vector<ContainerInfo>& getContainerInfos() {
+  static auto res = []() {
+    // TODO more container types, with various template parameter options
+    ContainerInfo std_vector{"std::vector", SEQ_TYPE, "vector"};
+    std_vector.stubTemplateParams = {1};
+
+    std::vector<ContainerInfo> containers;
+    containers.emplace_back(std::move(std_vector));
+    return containers;
+  }();
+  return res;
+}
+}  // namespace
+
+DrgnParser DrgnParserTest::getDrgnParser(TypeGraph& typeGraph, bool chaseRawPointers) {
+  DrgnParser drgnParser{typeGraph, getContainerInfos(), chaseRawPointers};
+  return drgnParser;
+}
+
+drgn_type* DrgnParserTest::getDrgnRoot(std::string_view function) {
+  irequest req{"entry", std::string{function}, "arg0"};
+  auto* drgnRoot = symbols_->getRootType(req)->type.type;
+  return drgnRoot;
+}
 
 std::string DrgnParserTest::run(std::string_view function,
                                 bool chaseRawPointers) {
-  irequest req{"entry", std::string{function}, "arg0"};
-  auto drgnRoot = symbols_->getRootType(req);
-
   TypeGraph typeGraph;
-  // TODO more container types, with various template parameter options
-  ContainerInfo std_vector{"std::vector", SEQ_TYPE, "vector"};
-  std_vector.stubTemplateParams = {1};
+  auto drgnParser = getDrgnParser(typeGraph, chaseRawPointers);
+  auto *drgnRoot = getDrgnRoot(function);
 
-  std::vector<ContainerInfo> containers;
-  containers.emplace_back(std::move(std_vector));
-
-  DrgnParser drgnParser(typeGraph, containers, chaseRawPointers);
-  Type& type = drgnParser.parse(drgnRoot->type.type);
+  Type& type = drgnParser.parse(drgnRoot);
 
   std::stringstream out;
   Printer printer{out, typeGraph.size()};
