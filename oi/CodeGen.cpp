@@ -538,6 +538,8 @@ void CodeGen::addGetSizeFuncDefs(const TypeGraph& typeGraph,
 namespace {
 
 void addStandardTypeHandlers(std::string& code) {
+  // Provide a wrapper function, getSizeType, to infer T instead of having to
+  // explicitly specify it with TypeHandler<DB, T>::getSizeType every time.
   code += R"(
     template <typename DB, typename T>
     types::st::Unit<DB>
@@ -578,20 +580,19 @@ void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
       it != thriftIssetMembers_.end()) {
     thriftIssetMember = it->second;
 
-    extras += "\n  using thrift_data = apache::thrift::TStructDataStorage<" +
-              c.fqName() + ">;";
-
     extras += (boost::format(R"(
   static int getThriftIsset(const %1%& t, size_t i) {
+    using thrift_data = apache::thrift::TStructDataStorage<%2%>;
+
     if (&thrift_data::isset_indexes == nullptr) return -1;
 
     auto idx = thrift_data::isset_indexes[i];
     if (idx == -1) return -1;
 
-    return t.%2%.get(idx);
+    return t.%3%.get(idx);
   }
 )") % c.name() %
-               thriftIssetMember->name)
+               c.fqName() % thriftIssetMember->name)
                   .str();
   }
 
@@ -603,6 +604,12 @@ void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
     }
   }
 
+  // Generate the static type for the class's representation in the data buffer.
+  // For `class { int a,b,c; }` we generate (DB omitted for clarity):
+  // Pair<TypeHandler<int>::type,
+  //   Pair<TypeHandler<int>::type,
+  //     TypeHandler<int>::type
+  // >>
   std::string typeStaticType;
   {
     size_t pairs = 0;
@@ -645,6 +652,10 @@ void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
     }
   }
 
+  // Generate the function body that walks the type. Uses the monadic
+  // `delegate()` form to handle each field except for the last. The last field
+  // is handled explicitly by passing it to `getSizeType`, as we must consume
+  // the entire type instead of delegating the next part.
   std::string traverser;
   {
     if (!c.members.empty()) {
@@ -703,6 +714,7 @@ void getContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   }
 
   const auto& handler = c.containerInfo_.codegen.handler;
+  // TODO: Move this check into the ContainerInfo parsing once always enabled.
   if (handler.empty()) {
     LOG(ERROR) << "`codegen.handler` must be specified for all containers "
                   "under \"-ftyped-data-segment\", not specified for \"" +
