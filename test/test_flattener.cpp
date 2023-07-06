@@ -782,14 +782,12 @@ TEST(FlattenerTest, ParentClassAndContainer) {
 }
 
 TEST(FlattenerTest, AllocatorParamInParent) {
-  ContainerInfo pairInfo{"std::pair", SEQ_TYPE, "utility"};
-
   ContainerInfo mapInfo{"std::map", STD_MAP_TYPE, "utility"};
   mapInfo.stubTemplateParams = {2, 3};
 
   Primitive myint{Primitive::Kind::Int32};
 
-  Container pair{3, pairInfo, 8};
+  auto pair = getPair(3);
   pair.templateParams.push_back(TemplateParam{myint, {Qualifier::Const}});
   pair.templateParams.push_back(TemplateParam{myint});
 
@@ -847,6 +845,191 @@ TEST(FlattenerTest, AllocatorParamInParent) {
                 Qualifiers: const
               Param
                 Primitive: int32_t
+          Function: allocate
+          Function: deallocate
+          Function: allocate
+          Function: deallocate
+)");
+}
+
+TEST(FlattenerTest, AllocatorUnfixableNoParent) {
+  Primitive myint{Primitive::Kind::Int32};
+
+  Class myalloc{1, Class::Kind::Struct, "MyAlloc", 1};
+  myalloc.functions.push_back(Function{"allocate"});
+  myalloc.functions.push_back(Function{"deallocate"});
+
+  auto vector = getVector();
+  vector.templateParams.push_back(TemplateParam{myint});
+  vector.templateParams.push_back(TemplateParam{myalloc});
+
+  test(Flattener::createPass(), {vector}, R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
+          Function: allocate
+          Function: deallocate
+)",
+       R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
+          Function: allocate
+          Function: deallocate
+)");
+}
+
+TEST(FlattenerTest, AllocatorUnfixableParentNotClass) {
+  // This could be supported if need-be, we just don't do it yet
+  Primitive myint{Primitive::Kind::Int32};
+
+  auto pair = getPair(3);
+  pair.templateParams.push_back(TemplateParam{myint, {Qualifier::Const}});
+  pair.templateParams.push_back(TemplateParam{myint});
+
+  ContainerInfo stdAllocatorInfo{"std::allocator", DUMMY_TYPE, "memory"};
+  Container stdAllocator{2, stdAllocatorInfo, 1};
+  stdAllocator.templateParams.push_back(TemplateParam{pair});
+
+  Class myalloc{1, Class::Kind::Struct, "MyAlloc", 1};
+  myalloc.parents.push_back(Parent{stdAllocator, 0});
+  myalloc.functions.push_back(Function{"allocate"});
+  myalloc.functions.push_back(Function{"deallocate"});
+
+  auto vector = getVector();
+  vector.templateParams.push_back(TemplateParam{myint});
+  vector.templateParams.push_back(TemplateParam{myalloc});
+
+  test(Flattener::createPass(), {vector}, R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
+          Parent (offset: 0)
+[2]         Container: std::allocator (size: 1)
+              Param
+[3]             Container: std::pair (size: 8)
+                  Param
+                    Primitive: int32_t
+                    Qualifiers: const
+                  Param
+                    Primitive: int32_t
+          Function: allocate
+          Function: deallocate
+)",
+       R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
+          Member: __oi_parent (offset: 0)
+[2]         Container: std::allocator (size: 1)
+              Param
+[3]             Container: std::pair (size: 8)
+                  Param
+                    Primitive: int32_t
+                    Qualifiers: const
+                  Param
+                    Primitive: int32_t
+          Function: allocate
+          Function: deallocate
+)");
+}
+
+TEST(FlattenerTest, AllocatorUnfixableParentNoParams) {
+  Primitive myint{Primitive::Kind::Int32};
+
+  Class myallocBase{2, Class::Kind::Struct, "MyAllocBase", 1};
+  myallocBase.functions.push_back(Function{"allocate"});
+  myallocBase.functions.push_back(Function{"deallocate"});
+
+  Class myalloc{1, Class::Kind::Struct, "MyAlloc", 1};
+  myalloc.parents.push_back(Parent{myallocBase, 0});
+  myalloc.functions.push_back(Function{"allocate"});
+  myalloc.functions.push_back(Function{"deallocate"});
+
+  auto vector = getVector();
+  vector.templateParams.push_back(TemplateParam{myint});
+  vector.templateParams.push_back(TemplateParam{myalloc});
+
+  test(Flattener::createPass(), {vector}, R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
+          Parent (offset: 0)
+[2]         Struct: MyAllocBase (size: 1)
+              Function: allocate
+              Function: deallocate
+          Function: allocate
+          Function: deallocate
+)",
+       R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
+          Function: allocate
+          Function: deallocate
+          Function: allocate
+          Function: deallocate
+)");
+}
+
+TEST(FlattenerTest, AllocatorUnfixableParentParamIsValue) {
+  ContainerInfo mapInfo{"std::map", STD_MAP_TYPE, "utility"};
+  mapInfo.stubTemplateParams = {2, 3};
+
+  Primitive myint{Primitive::Kind::Int32};
+
+  Class myallocBase{2, Class::Kind::Struct, "MyAllocBase", 1};
+  myallocBase.templateParams.push_back(TemplateParam{"123"});
+  myallocBase.functions.push_back(Function{"allocate"});
+  myallocBase.functions.push_back(Function{"deallocate"});
+
+  Class myalloc{1, Class::Kind::Struct, "MyAlloc", 1};
+  myalloc.parents.push_back(Parent{myallocBase, 0});
+  myalloc.functions.push_back(Function{"allocate"});
+  myalloc.functions.push_back(Function{"deallocate"});
+
+  Container map{0, mapInfo, 24};
+  map.templateParams.push_back(TemplateParam{myint});
+  map.templateParams.push_back(TemplateParam{myint});
+  map.templateParams.push_back(TemplateParam{myalloc});
+
+  test(Flattener::createPass(), {map}, R"(
+[0] Container: std::map (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
+          Parent (offset: 0)
+[2]         Struct: MyAllocBase (size: 1)
+              Param
+                Value: 123
+              Function: allocate
+              Function: deallocate
+          Function: allocate
+          Function: deallocate
+)",
+       R"(
+[0] Container: std::map (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+        Primitive: int32_t
+      Param
+[1]     Struct: MyAlloc (size: 1)
           Function: allocate
           Function: deallocate
           Function: allocate
