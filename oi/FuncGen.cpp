@@ -287,6 +287,12 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
   testCode.append(fmt.str());
 }
 
+/*
+ * DefineTopLevelGetSizeRefTyped
+ *
+ * Top level function to run OI on a type utilising static types and enabled
+ * with feature '-ftyped-data-segment'.
+ */
 void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
                                             const std::string& rawType,
                                             FeatureSet features) {
@@ -502,17 +508,22 @@ void FuncGen::DeclareGetContainer(std::string& testCode) {
   testCode.append(func);
 }
 
+/*
+ * DefineDataSegmentDataBuffer
+ *
+ * Provides a DataBuffer implementation that stores data in the setup Data
+ * Segment. If more data is written than space available in the data segment,
+ * the offset continues to increment but the data is not written. This allows
+ * OID to report the size needed to process the data successfully.
+ */
 void FuncGen::DefineDataSegmentDataBuffer(std::string& testCode) {
   constexpr std::string_view func = R"(
-    namespace ObjectIntrospection {
-    namespace DataBuffer {
-    class DataBuffer {
-      protected:
-        void write_byte(uint8_t);
-    };
-    class DataSegment: public DataBuffer {
+    namespace ObjectIntrospection::DataBuffer {
+
+    class DataSegment {
       public:
         DataSegment(size_t offset) : buf(dataBase + offset) {}
+
         void write_byte(uint8_t byte) {
           // TODO: Change the inputs to dataBase / dataEnd to improve this check
           if (buf < (dataBase + dataSize)) {
@@ -520,21 +531,32 @@ void FuncGen::DefineDataSegmentDataBuffer(std::string& testCode) {
           }
           buf++;
         }
+
         size_t offset() {
           return buf - dataBase;
         }
+
       private:
         uint8_t* buf;
     };
-    } // namespace DataBuffer
-    } // namespace ObjectIntrospection
+
+    } // namespace ObjectIntrospection::DataBuffer
   )";
 
   testCode.append(func);
 }
 
+/*
+ * DefineBasicTypeHandlers
+ *
+ * Provides TypeHandler implementations for types T, T*, and void. T is of type
+ * Unit type and stores nothing. It should be overridden to provide an
+ * implementation. T* is of type Pair<VarInt, Sum<Unit, T::type>. It stores the
+ * pointer's value always, then the value of the pointer if it is unique. void
+ * is of type Unit and always stores nothing.
+ */
 void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
-  constexpr std::string_view handlers = R"(
+  constexpr std::string_view tHandler = R"(
     template <typename DB, typename T>
     struct TypeHandler {
       private:
@@ -550,31 +572,36 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
                 return std::type_identity<types::st::Unit<DB>>();
             }
         }
+
       public:
         using type = typename decltype(choose_type())::type;
+
         static types::st::Unit<DB> getSizeType(
           const T& t,
           typename TypeHandler<DB, T>::type returnArg) {
-            if constexpr(std::is_pointer_v<T>) {
-              JLOG("ptr val @");
-              JLOGPTR(t);
-              auto r0 = returnArg.write((uintptr_t)t);
-              if (t && pointers.add((uintptr_t)t)) {
-                return r0.template delegate<1>([&t](auto ret) {
-                  if constexpr (!std::is_void<std::remove_pointer_t<T>>::value) {
-                    return TypeHandler<DB, std::remove_pointer_t<T>>::getSizeType(*t, ret);
-                  } else {
-                    return ret;
-                  }
-                });
+              if constexpr(std::is_pointer_v<T>) {
+                JLOG("ptr val @");
+                JLOGPTR(t);
+                auto r0 = returnArg.write((uintptr_t)t);
+                if (t && pointers.add((uintptr_t)t)) {
+                  return r0.template delegate<1>([&t](auto ret) {
+                    if constexpr (!std::is_void<std::remove_pointer_t<T>>::value) {
+                      return TypeHandler<DB, std::remove_pointer_t<T>>::getSizeType(*t, ret);
+                    } else {
+                      return ret;
+                    }
+                  });
+                } else {
+                  return r0.template delegate<0>(std::identity());
+                }
               } else {
-                return r0.template delegate<0>(std::identity());
+                return returnArg;
               }
-            } else {
-              return returnArg;
-            }
-          }
+        }
     };
+  )";
+
+  constexpr std::string_view voidHandler = R"(
     template <typename DB>
     class TypeHandler<DB, void> {
       public:
@@ -582,5 +609,6 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
     };
   )";
 
-  testCode.append(handlers);
+  testCode.append(tHandler);
+  testCode.append(voidHandler);
 }

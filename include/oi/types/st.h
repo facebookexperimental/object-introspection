@@ -16,10 +16,50 @@
 #ifndef OI_TYPES_ST_H
 #define OI_TYPES_ST_H 1
 
-namespace ObjectIntrospection {
-namespace types {
-namespace st {
+/*
+ * Static Types
+ *
+ * OI employs a data segment to transfer information about the probed object to
+ * the debugger. Static Types are used with the `-ftyped-data-segment` feature
+ * to provide a compile time description of the contents of this data segment.
+ *
+ * DataBuffer represents any type with two methods: `void write_byte(uint8_t)`,
+ * which writes a given byte to the buffer; and, `size_t offset()`, which
+ * returns the number of bytes written. Each Static Type holds a DataBuffer
+ * which describes where to write data, and has no other fields. DataBuffers
+ * should remain pointer sized enabling trivial copies.
+ *
+ * Writing to an object of a given static type returns a different type which
+ * has had that part written. When there is no more to write, the type will
+ * return a Unit. There are two ways to write data from the JIT code into a
+ * static type:
+ *
+ * - .write(): This works if you can write an entire object from one input. For
+ *              example, VarInt::write(0) returns a Unit, and
+ *              Pair<VarInt, VarInt>::write(0) returns a VarInt.
+ *
+ * - .delegate(): This handles the remainder of the cases where you need to do
+ *              something more complicated. For example:
+ *              ```
+ *              using ComplexType = Pair<VarInt, VarInt>;
+ *              Pair<ComplexType, VarInt>::delegate([](auto ret) {
+ *               return ret.write(0).write(1);
+ *              }).write(2);
+ *              ```
+ *              In this case, `ret` is of type `ComplexType`. After the two
+ *              writes, the inner function returns `Unit`. Delegate then
+ *              internally converts this unit to a `VarInt`.
+ */
+namespace ObjectIntrospection::types::st {
 
+/*
+ * Unit
+ *
+ * Represents the case of having completely written the type, or having nothing
+ * of interest to write. Examples are after having written the final element of
+ * the object, after having completely delegated a field, or having a field of
+ * a struct that makes sense structurally but holds no interesting data.
+ */
 template <typename DataBuffer>
 class Unit {
  public:
@@ -30,20 +70,39 @@ class Unit {
     return _buf.offset();
   }
 
-  template <typename T>
-  T cast() {
-    return T(_buf);
-  }
-
   template <typename F>
   Unit<DataBuffer> delegate(F const& cb) {
     return cb(*this);
   }
 
  private:
+  /*
+   * Allows you to cast the Unit type to another Static Type. Think very
+   * carefully before using it. It is private so that only friends can access
+   * it. Good use cases are Pair::write and Pair::delegate to cast the result to
+   * the second element. Bad use cases are within a type handler because the
+   * type doesn't quite fit.
+   */
+  template <typename T>
+  T cast() {
+    return T(_buf);
+  }
+
+ private:
   DataBuffer _buf;
+
+  template <typename DB, typename T1, typename T2>
+  friend class Pair;
+  template <typename DB, typename T>
+  friend class ListContents;
 };
 
+/*
+ * VarInt
+ *
+ * Represents a variable length integer. The only primitive type at present,
+ * used for all data transfer.
+ */
 template <typename DataBuffer>
 class VarInt {
  public:
@@ -63,16 +122,25 @@ class VarInt {
   DataBuffer _buf;
 };
 
+/*
+ * Pair<T1,T2>
+ *
+ * Represents a pair of types. Can be combined to hold an arbitrary number of
+ * types, e.g. Pair<VarInt, Pair<VarInt, VarInt>> allows you to write three
+ * integers.
+ */
 template <typename DataBuffer, typename T1, typename T2>
 class Pair {
  public:
   Pair(DataBuffer db) : _buf(db) {
   }
+
   template <class U>
   T2 write(U val) {
     Unit<DataBuffer> second = T1(_buf).write(val);
     return second.template cast<T2>();
   }
+
   template <typename F>
   T2 delegate(F const& cb) {
     T1 first = T1(_buf);
@@ -84,9 +152,19 @@ class Pair {
   DataBuffer _buf;
 };
 
+/*
+ * Sum<Types...>
+ *
+ * Represents a tagged union of types.
+ */
 template <typename DataBuffer, typename... Types>
 class Sum {
  private:
+  /*
+   * Selector<I, Elements...>
+   *
+   * Selects the Ith type of Elements... and makes it available at ::type.
+   */
   template <size_t I, typename... Elements>
   struct Selector;
   template <size_t I, typename Head, typename... Tail>
@@ -104,12 +182,14 @@ class Sum {
  public:
   Sum(DataBuffer db) : _buf(db) {
   }
+
   template <size_t I>
   typename Selector<I, Types...>::type write() {
     Pair<DataBuffer, VarInt<DataBuffer>, typename Selector<I, Types...>::type>
         buf(_buf);
     return buf.write(I);
   }
+
   template <size_t I, typename F>
   Unit<DataBuffer> delegate(F const& cb) {
     auto tail = write<I>();
@@ -120,6 +200,12 @@ class Sum {
   DataBuffer _buf;
 };
 
+/*
+ * ListContents<T>
+ *
+ * Repeatedly delegate instances of type T, writing them one after the other.
+ * Terminate with a call to finish().
+ */
 template <typename DataBuffer, typename T>
 class ListContents {
  public:
@@ -141,11 +227,18 @@ class ListContents {
   DataBuffer _buf;
 };
 
+/*
+ * List<T>
+ *
+ * Holds the length of a list followed by the elements. Write the length of the
+ * list first then that number of elements.
+ *
+ * BEWARE: There is NO static or dynamic checking that you write the number of
+ * elements promised.
+ */
 template <typename DataBuffer, typename T>
 using List = Pair<DataBuffer, VarInt<DataBuffer>, ListContents<DataBuffer, T>>;
 
-}  // namespace st
-}  // namespace types
-}  // namespace ObjectIntrospection
+}  // namespace ObjectIntrospection::types::st
 
 #endif
