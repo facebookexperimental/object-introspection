@@ -46,15 +46,6 @@ void Flattener::accept(Type& type) {
 }
 
 namespace {
-// TODO this function is a massive hack. don't do it like this please
-Type& stripTypedefs(Type& type) {
-  Type* t = &type;
-  while (const Typedef* td = dynamic_cast<Typedef*>(t)) {
-    t = &td->underlyingType();
-  }
-  return *t;
-}
-
 void flattenParent(const Parent& parent,
                    std::vector<Member>& flattenedMembers) {
   Type& parentType = stripTypedefs(parent.type());

@@ -34,9 +34,15 @@ class TypeGraph;
 /*
  * AddChildren
  *
- * TODO
- * what about children which inherit through a typedef?  don't think that'll
- * work yet
+ * Populates the "children" field of Class types.
+ *
+ * DWARF only stores a mapping of [child -> parent], but sometimes we want the
+ * invserse: [parent -> child]. We must iterate over every single type to build
+ * up our own inverse mapping, before applying it to the relevant type nodes.
+ *
+ * This is expensive and only useful for types which make use of dynamic
+ * inheritance hierarchies (e.g. polymorphism), so is not done as part of the
+ * standard DrgnParser stage.
  */
 class AddChildren final : public RecursiveVisitor {
  public:
