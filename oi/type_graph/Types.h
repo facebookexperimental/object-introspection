@@ -235,7 +235,7 @@ class Class : public Type {
   std::vector<Parent> parents;  // Sorted by offset
   std::vector<Member> members;  // Sorted by offset
   std::vector<Function> functions;
-  std::vector<std::reference_wrapper<Type>>
+  std::vector<std::reference_wrapper<Class>>
       children;  // Only for dynamic classes
 
  private:
