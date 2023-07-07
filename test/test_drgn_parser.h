@@ -20,10 +20,11 @@ class DrgnParserTest : public ::testing::Test {
     delete symbols_;
   }
 
-  static type_graph::DrgnParser getDrgnParser(type_graph::TypeGraph& typeGraph, bool chaseRawPointers);
+  static type_graph::DrgnParser getDrgnParser(type_graph::TypeGraph& typeGraph,
+                                              bool chaseRawPointers);
   drgn_type* getDrgnRoot(std::string_view function);
 
-  std::string run(std::string_view function, bool chaseRawPointers);
+  virtual std::string run(std::string_view function, bool chaseRawPointers);
   void test(std::string_view function,
             std::string_view expected,
             bool chaseRawPointers = true);
@@ -39,6 +40,5 @@ class DrgnParserTest : public ::testing::Test {
                                  std::string_view expectedGcc,
                                  bool chaseRawPointers = true);
 
-private:
   static SymbolService* symbols_;
 };

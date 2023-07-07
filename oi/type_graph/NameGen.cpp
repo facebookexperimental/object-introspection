@@ -66,6 +66,10 @@ void NameGen::visit(Class& c) {
   // Deduplicate member names. Duplicates may be present after flattening.
   for (size_t i = 0; i < c.members.size(); i++) {
     c.members[i].name += "_" + std::to_string(i);
+
+    // GCC includes dots in vptr member names, e.g. "_vptr.MyClass"
+    // These aren't valid in C++, so we must replace them
+    std::replace(c.members[i].name.begin(), c.members[i].name.end(), '.', '$');
   }
 
   for (const auto& param : c.templateParams) {

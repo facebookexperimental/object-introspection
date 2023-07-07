@@ -34,7 +34,8 @@ const std::vector<ContainerInfo>& getContainerInfos() {
 }
 }  // namespace
 
-DrgnParser DrgnParserTest::getDrgnParser(TypeGraph& typeGraph, bool chaseRawPointers) {
+DrgnParser DrgnParserTest::getDrgnParser(TypeGraph& typeGraph,
+                                         bool chaseRawPointers) {
   DrgnParser drgnParser{typeGraph, getContainerInfos(), chaseRawPointers};
   return drgnParser;
 }
@@ -49,7 +50,7 @@ std::string DrgnParserTest::run(std::string_view function,
                                 bool chaseRawPointers) {
   TypeGraph typeGraph;
   auto drgnParser = getDrgnParser(typeGraph, chaseRawPointers);
-  auto *drgnRoot = getDrgnRoot(function);
+  auto* drgnRoot = getDrgnRoot(function);
 
   Type& type = drgnParser.parse(drgnRoot);
 

@@ -295,8 +295,8 @@ class Container : public Type {
 
 class Enum : public Type {
  public:
-  explicit Enum(const std::string& name, size_t size)
-      : name_(name), size_(size) {
+  explicit Enum(std::string name, size_t size)
+      : name_(std::move(name)), size_(size) {
   }
 
   DECLARE_ACCEPT
@@ -395,8 +395,8 @@ class Primitive : public Type {
 
 class Typedef : public Type {
  public:
-  explicit Typedef(NodeId id, const std::string& name, Type& underlyingType)
-      : name_(name), underlyingType_(underlyingType), id_(id) {
+  explicit Typedef(NodeId id, std::string name, Type& underlyingType)
+      : name_(std::move(name)), underlyingType_(underlyingType), id_(id) {
   }
 
   DECLARE_ACCEPT
@@ -519,6 +519,8 @@ class DummyAllocator : public Type {
   size_t size_;
   uint64_t align_;
 };
+
+Type& stripTypedefs(Type& type);
 
 }  // namespace type_graph
 
