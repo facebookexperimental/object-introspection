@@ -37,9 +37,9 @@ class AlignmentCalc final : public RecursiveVisitor {
   void calculateAlignments(
       const std::vector<std::reference_wrapper<Type>>& types);
 
-  using RecursiveVisitor::visit;
+  using RecursiveVisitor::accept;
 
-  void visit(Type& type) override;
+  void accept(Type& type) override;
   void visit(Class& c) override;
 
  private:

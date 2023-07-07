@@ -33,11 +33,11 @@ Pass Flattener::createPass() {
 
 void Flattener::flatten(std::vector<std::reference_wrapper<Type>>& types) {
   for (auto& type : types) {
-    visit(type);
+    accept(type);
   }
 }
 
-void Flattener::visit(Type& type) {
+void Flattener::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -146,13 +146,13 @@ void Flattener::visit(Class& c) {
 
   // Flatten types referenced by template params, parents and members
   for (const auto& param : c.templateParams) {
-    visit(param.type());
+    accept(param.type());
   }
   for (const auto& parent : c.parents) {
-    visit(parent.type());
+    accept(parent.type());
   }
   for (const auto& member : c.members) {
-    visit(member.type());
+    accept(member.type());
   }
 
   // Pull in functions from flattened parents
@@ -203,7 +203,7 @@ void Flattener::visit(Class& c) {
   // This must be run after flattening the current class in order to respect
   // the changes we have made here.
   for (const auto& child : c.children) {
-    visit(child);
+    accept(child);
   }
 }
 
@@ -211,7 +211,7 @@ void Flattener::visit(Container& c) {
   // Containers themselves don't need to be flattened, but their template
   // parameters might need to be
   for (const auto& templateParam : c.templateParams) {
-    visit(templateParam.type());
+    accept(templateParam.type());
   }
 }
 

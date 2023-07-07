@@ -43,9 +43,9 @@ class AddPadding final : public RecursiveVisitor {
       : typeGraph_(typeGraph), features_(features) {
   }
 
-  using RecursiveVisitor::visit;
+  using RecursiveVisitor::accept;
 
-  void visit(Type& type) override;
+  void accept(Type& type) override;
   void visit(Class& c) override;
 
   static const inline std::string MemberPrefix = "__oi_padding";

@@ -32,14 +32,14 @@ Pass AddPadding::createPass(FeatureSet features) {
   auto fn = [features](TypeGraph& typeGraph) {
     AddPadding pass(typeGraph, features);
     for (auto& type : typeGraph.rootTypes()) {
-      pass.visit(type);
+      pass.accept(type);
     }
   };
 
   return Pass("AddPadding", fn);
 }
 
-void AddPadding::visit(Type& type) {
+void AddPadding::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -54,10 +54,10 @@ void AddPadding::visit(Class& c) {
   assert(c.parents.empty());
 
   for (auto& param : c.templateParams) {
-    visit(param.type());
+    accept(param.type());
   }
   for (auto& member : c.members) {
-    visit(member.type());
+    accept(member.type());
   }
 
   if (c.kind() == Class::Kind::Union) {
@@ -94,7 +94,7 @@ void AddPadding::visit(Class& c) {
   c.members = std::move(paddedMembers);
 
   for (const auto& child : c.children) {
-    visit(child);
+    accept(child);
   }
 }
 
