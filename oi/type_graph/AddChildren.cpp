@@ -75,10 +75,28 @@ void AddChildren::visit(Class& c) {
         dynamic_cast<Class*>(&childType);  // TODO don't use dynamic_cast
     if (!childClass)                       // TODO dodgy error handling
       abort();
-    c.children.push_back(*childClass);
 
-    //    // Add recursive children to this class as well
-    //    enumerateClassChildren(drgnChild, children);
+    /*
+     * Confirm that this child is actually our child.
+     *
+     * We previously used unqualified names for speed, so types with the same
+     * name in different namespaces would have been grouped together.
+     */
+    bool isActuallyChild = false;
+    for (const auto& parent : childClass->parents) {
+      // TODO support parent containers?
+      auto* parentClass = dynamic_cast<Class*>(&stripTypedefs(parent.type()));
+      if (!parentClass)
+        continue;
+
+      if (parentClass->fqName() == c.fqName()) {
+        isActuallyChild = true;
+        break;
+      }
+    }
+
+    if (isActuallyChild)
+      c.children.push_back(*childClass);
   }
 
   // Recurse to find children-of-children
@@ -86,35 +104,6 @@ void AddChildren::visit(Class& c) {
     accept(child);
   }
 }
-
-// TODO how to flatten children of children?
-// void AddChildren::enumerateClassChildren(struct drgn_type *type,
-// std::vector<std::reference_wrapper<Class>> &children) {
-//  // This function is called recursively to find children-of-children, so the
-//  // "children" vector argument will not necessarily be empty.
-//
-//  const char* tag = drgn_type_tag(type);
-//  if (tag == nullptr) {
-//    return;
-//  }
-//  auto it = childClasses_.find(tag);
-//  if (it == childClasses_.end()) {
-//    return;
-//  }
-//
-//  const auto& drgnChildren = it->second;
-//  for (drgn_type* drgnChild : drgnChildren) {
-//    // TODO there shouldn't be any need for a dynamic cast here...
-//    Type *ttt = enumerateClass(drgnChild);
-//    auto *child = dynamic_cast<Class*>(ttt);
-//    if (!child)
-//      abort();
-//    children.push_back(*child);
-//
-//    // Add recursive children to this class as well
-//    enumerateClassChildren(drgnChild, children);
-//  }
-//}
 
 void AddChildren::recordChildren(drgn_type* type) {
   drgn_type_template_parameter* parents = drgn_type_parents(type);
@@ -141,9 +130,7 @@ void AddChildren::recordChildren(drgn_type* type) {
     }
 
     const char* parentName = drgn_type_tag(parent);
-    if (parentName == nullptr) {
-      //      VLOG(1) << "No name for parent class (" << parent << ") of "
-      //              << drgn_type_tag(type);
+    if (!parentName) {
       continue;
     }
 
@@ -151,10 +138,12 @@ void AddChildren::recordChildren(drgn_type* type) {
      * drgn pointers are not stable, so use string representation for reverse
      * mapping for now. We need to find a better way of creating this
      * childClasses map - ideally drgn would do this for us.
+     *
+     * Use unqualified names because fully-qualified names are too slow. We'll
+     * check against fully-qualified names once we've narrowed down the number
+     * of types to compare.
      */
     childClasses_[parentName].push_back(type);
-    //    VLOG(1) << drgn_type_tag(type) << "(" << type << ") is a child of "
-    //            << drgn_type_tag(parent) << "(" << parent << ")";
   }
 }
 

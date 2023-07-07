@@ -66,9 +66,13 @@ class CodeGen {
       thriftIssetMembers_;
 
   void genDefsThrift(const type_graph::TypeGraph& typeGraph, std::string& code);
+  void addGetSizeFuncDecls(const type_graph::TypeGraph& typeGraph,
+                           std::string& code) const;
+  void getClassSizeFuncDecl(const type_graph::Class& c,
+                            std::string& code) const;
   void addGetSizeFuncDefs(const type_graph::TypeGraph& typeGraph,
                           std::string& code);
-  void getClassSizeFuncDef(const type_graph::Class& c, std::string& code);
+  void getClassSizeFuncDef(const type_graph::Class& c, std::string& code) const;
   void getClassSizeFuncConcrete(std::string_view funcName,
                                 const type_graph::Class& c,
                                 std::string& code) const;

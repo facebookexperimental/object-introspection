@@ -49,6 +49,7 @@ target_link_libraries(integration_sleepy folly_headers)
 
 add_executable(test_type_graph
   main.cpp
+  test_add_children.cpp
   test_add_padding.cpp
   test_alignment_calc.cpp
   test_codegen.cpp

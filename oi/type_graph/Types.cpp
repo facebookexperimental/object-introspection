@@ -122,4 +122,13 @@ bool Class::isDynamic() const {
   return false;
 }
 
+// TODO this function is a massive hack. don't do it like this please
+Type& stripTypedefs(Type& type) {
+  Type* t = &type;
+  while (const Typedef* td = dynamic_cast<Typedef*>(t)) {
+    t = &td->underlyingType();
+  }
+  return *t;
+}
+
 }  // namespace type_graph

@@ -366,11 +366,15 @@ void addStandardGetSizeFuncDefs(std::string& code) {
     }
   )";
 }
+}  // namespace
 
-void getClassSizeFuncDecl(const Class& c, std::string& code) {
+void CodeGen::getClassSizeFuncDecl(const Class& c, std::string& code) const {
+  if (config_.features[Feature::PolymorphicInheritance] && c.isDynamic()) {
+    code += "void getSizeTypeConcrete(const " + c.name() +
+            " &t, size_t &returnArg);\n";
+  }
   code += "void getSizeType(const " + c.name() + " &t, size_t &returnArg);\n";
 }
-}  // namespace
 
 /*
  * Generates a getSizeType function for the given concrete class.
@@ -421,7 +425,7 @@ void CodeGen::getClassSizeFuncConcrete(std::string_view funcName,
   code += "}\n";
 }
 
-void CodeGen::getClassSizeFuncDef(const Class& c, std::string& code) {
+void CodeGen::getClassSizeFuncDef(const Class& c, std::string& code) const {
   if (!config_.features[Feature::PolymorphicInheritance] || !c.isDynamic()) {
     // Just directly use the concrete size function as this class' getSizeType()
     getClassSizeFuncConcrete("getSizeType", c, code);
@@ -438,9 +442,7 @@ void CodeGen::getClassSizeFuncDef(const Class& c, std::string& code) {
     if (childClass == nullptr) {
       abort();  // TODO
     }
-    //      TODO:
-    //      auto fqChildName = *fullyQualifiedName(child);
-    auto fqChildName = "TODO - implement me";
+    auto fqChildName = childClass->fqName();
 
     // We must split this assignment and append because the C++ standard lacks
     // an operator for concatenating std::string and std::string_view...
@@ -511,8 +513,10 @@ void getContainerSizeFuncDef(std::unordered_set<const ContainerInfo*>& used,
       boost::format(c.containerInfo_.codegen.func) % c.containerInfo_.typeName;
   code += fmt.str();
 }
+}  // namespace
 
-void addGetSizeFuncDecls(const TypeGraph& typeGraph, std::string& code) {
+void CodeGen::addGetSizeFuncDecls(const TypeGraph& typeGraph,
+                                  std::string& code) const {
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
       getClassSizeFuncDecl(*c, code);
@@ -521,8 +525,6 @@ void addGetSizeFuncDecls(const TypeGraph& typeGraph, std::string& code) {
     }
   }
 }
-
-}  // namespace
 
 void CodeGen::addGetSizeFuncDefs(const TypeGraph& typeGraph,
                                  std::string& code) {

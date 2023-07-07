@@ -204,7 +204,7 @@ void Printer::print_function(const Function& function) {
 void Printer::print_child(const Type& child) {
   depth_++;
   prefix();
-  out_ << "Child:" << std::endl;
+  out_ << "Child" << std::endl;
   print(child);
   depth_--;
 }
