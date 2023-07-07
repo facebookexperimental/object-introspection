@@ -25,7 +25,7 @@ Pass TypeIdentifier::createPass(
   auto fn = [&passThroughTypes](TypeGraph& typeGraph) {
     TypeIdentifier typeId{typeGraph, passThroughTypes};
     for (auto& type : typeGraph.rootTypes()) {
-      typeId.visit(type);
+      typeId.accept(type);
     }
   };
 
@@ -47,7 +47,7 @@ bool TypeIdentifier::isAllocator(Type& t) {
   return false;
 }
 
-void TypeIdentifier::visit(Type& type) {
+void TypeIdentifier::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -111,7 +111,7 @@ void TypeIdentifier::visit(Container& c) {
   }
 
   for (const auto& param : c.templateParams) {
-    visit(param.type());
+    accept(param.type());
   }
 }
 

@@ -42,9 +42,9 @@ class RemoveIgnored : public RecursiveVisitor {
       : typeGraph_(typeGraph), membersToIgnore_(membersToIgnore) {
   }
 
-  using RecursiveVisitor::visit;
+  using RecursiveVisitor::accept;
 
-  void visit(Type& type) override;
+  void accept(Type& type) override;
   void visit(Class& c) override;
 
  private:

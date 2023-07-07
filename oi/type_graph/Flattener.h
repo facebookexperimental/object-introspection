@@ -37,9 +37,9 @@ class Flattener : public RecursiveVisitor {
 
   void flatten(std::vector<std::reference_wrapper<Type>>& types);
 
-  using RecursiveVisitor::visit;
+  using RecursiveVisitor::accept;
 
-  void visit(Type& type) override;
+  void accept(Type& type) override;
   void visit(Class& c) override;
   void visit(Container& c) override;
 

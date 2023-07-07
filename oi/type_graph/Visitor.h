@@ -57,28 +57,28 @@ class LazyVisitor : public Visitor {
 class RecursiveVisitor : public Visitor {
  public:
   virtual ~RecursiveVisitor() = default;
-  virtual void visit(Type&) = 0;
-  virtual void visit(Type* type) {
+  virtual void accept(Type&) = 0;
+  virtual void accept(Type* type) {
     if (type)
-      visit(*type);
+      accept(*type);
   }
   virtual void visit(Class& c) {
     for (const auto& param : c.templateParams) {
-      visit(param.type());
+      accept(param.type());
     }
     for (const auto& parent : c.parents) {
-      visit(parent.type());
+      accept(parent.type());
     }
     for (const auto& mem : c.members) {
-      visit(mem.type());
+      accept(mem.type());
     }
     for (const auto& child : c.children) {
-      visit(child);
+      accept(child);
     }
   }
   virtual void visit(Container& c) {
     for (const auto& param : c.templateParams) {
-      visit(param.type());
+      accept(param.type());
     }
   }
   virtual void visit(Primitive&) {
@@ -86,18 +86,18 @@ class RecursiveVisitor : public Visitor {
   virtual void visit(Enum&) {
   }
   virtual void visit(Array& a) {
-    visit(a.elementType());
+    accept(a.elementType());
   }
   virtual void visit(Typedef& td) {
-    visit(td.underlyingType());
+    accept(td.underlyingType());
   }
   virtual void visit(Pointer& p) {
-    visit(p.pointeeType());
+    accept(p.pointeeType());
   }
   virtual void visit(Dummy&) {
   }
   virtual void visit(DummyAllocator& d) {
-    visit(d.allocType());
+    accept(d.allocType());
   }
 };
 

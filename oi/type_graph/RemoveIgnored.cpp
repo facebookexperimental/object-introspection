@@ -24,14 +24,14 @@ Pass RemoveIgnored::createPass(
   auto fn = [&membersToIgnore](TypeGraph& typeGraph) {
     RemoveIgnored removeIgnored{typeGraph, membersToIgnore};
     for (auto& type : typeGraph.rootTypes()) {
-      removeIgnored.visit(type);
+      removeIgnored.accept(type);
     }
   };
 
   return Pass("RemoveIgnored", fn);
 }
 
-void RemoveIgnored::visit(Type& type) {
+void RemoveIgnored::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 

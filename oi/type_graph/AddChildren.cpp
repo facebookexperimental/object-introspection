@@ -36,14 +36,14 @@ Pass AddChildren::createPass(DrgnParser& drgnParser, SymbolService& symbols) {
     AddChildren pass(typeGraph, drgnParser);
     pass.enumerateChildClasses(symbols);
     for (auto& type : typeGraph.rootTypes()) {
-      pass.visit(type);
+      pass.accept(type);
     }
   };
 
   return Pass("AddChildren", fn);
 }
 
-void AddChildren::visit(Type& type) {
+void AddChildren::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -53,10 +53,10 @@ void AddChildren::visit(Type& type) {
 
 void AddChildren::visit(Class& c) {
   for (auto& param : c.templateParams) {
-    visit(param.type());
+    accept(param.type());
   }
   for (auto& member : c.members) {
-    visit(member.type());
+    accept(member.type());
   }
 
   if (!c.isDynamic()) {
@@ -82,8 +82,8 @@ void AddChildren::visit(Class& c) {
   }
 
   // Recurse to find children-of-children
-  for (auto& child : c.children) {
-    visit(child);
+  for (const auto& child : c.children) {
+    accept(child);
   }
 }
 
