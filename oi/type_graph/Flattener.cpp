@@ -205,6 +205,14 @@ void Flattener::visit(Class& c) {
   for (const auto& child : c.children) {
     accept(child);
   }
+
+  // Pull in children from flattened children
+  //
+  // This may result in duplicates, but that shouldn't be a big deal
+  for (const Class& child : c.children) {
+    c.children.insert(c.children.end(), child.children.begin(),
+                      child.children.end());
+  }
 }
 
 void Flattener::visit(Container& c) {

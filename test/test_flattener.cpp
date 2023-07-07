@@ -681,6 +681,8 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
                 Primitive: int32_t
               Member: a (offset: 12)
                 Primitive: int32_t
+      Child
+        [2]
 )");
 }
 
