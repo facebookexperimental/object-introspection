@@ -37,7 +37,7 @@ void TopoSorter::sort(const std::vector<ref<Type>>& types) {
     typesToSort_.push(type);
   }
   while (!typesToSort_.empty()) {
-    visit(typesToSort_.front());
+    accept(typesToSort_.front());
     typesToSort_.pop();
   }
 }
@@ -46,7 +46,7 @@ const std::vector<ref<Type>>& TopoSorter::sortedTypes() const {
   return sortedTypes_;
 }
 
-void TopoSorter::visit(Type& type) {
+void TopoSorter::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -56,13 +56,13 @@ void TopoSorter::visit(Type& type) {
 
 void TopoSorter::visit(Class& c) {
   for (const auto& parent : c.parents) {
-    visit(parent.type());
+    accept(parent.type());
   }
   for (const auto& mem : c.members) {
-    visit(mem.type());
+    accept(mem.type());
   }
   for (const auto& param : c.templateParams) {
-    visit(param.type());
+    accept(param.type());
   }
   sortedTypes_.push_back(c);
 
@@ -97,7 +97,7 @@ bool containerAllowsIncompleteParams(const Container& c) {
 void TopoSorter::visit(Container& c) {
   if (!containerAllowsIncompleteParams(c)) {
     for (const auto& param : c.templateParams) {
-      visit(param.type());
+      accept(param.type());
     }
   }
   sortedTypes_.push_back(c);
@@ -113,7 +113,7 @@ void TopoSorter::visit(Enum& e) {
 }
 
 void TopoSorter::visit(Typedef& td) {
-  visit(td.underlyingType());
+  accept(td.underlyingType());
   sortedTypes_.push_back(td);
 }
 

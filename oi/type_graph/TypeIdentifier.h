@@ -43,9 +43,9 @@ class TypeIdentifier : public RecursiveVisitor {
       : typeGraph_(typeGraph), passThroughTypes_(passThroughTypes) {
   }
 
-  using RecursiveVisitor::visit;
+  using RecursiveVisitor::accept;
 
-  void visit(Type& type) override;
+  void accept(Type& type) override;
   void visit(Container& c) override;
 
  private:

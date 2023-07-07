@@ -32,14 +32,14 @@ class NameGen final : public RecursiveVisitor {
 
   void generateNames(const std::vector<std::reference_wrapper<Type>>& types);
 
-  using RecursiveVisitor::visit;
+  using RecursiveVisitor::accept;
 
   void visit(Class& c) override;
   void visit(Container& c) override;
   void visit(Typedef& td) override;
 
  private:
-  void visit(Type& type) override;
+  void accept(Type& type) override;
   void removeTemplateParams(std::string& name);
 
   std::unordered_set<Type*> visited_;

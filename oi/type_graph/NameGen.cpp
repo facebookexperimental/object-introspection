@@ -33,11 +33,11 @@ Pass NameGen::createPass() {
 
 void NameGen::generateNames(const std::vector<ref<Type>>& types) {
   for (auto& type : types) {
-    visit(type);
+    accept(type);
   }
 };
 
-void NameGen::visit(Type& type) {
+void NameGen::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -69,16 +69,16 @@ void NameGen::visit(Class& c) {
   }
 
   for (const auto& param : c.templateParams) {
-    visit(param.type());
+    accept(param.type());
   }
   for (const auto& parent : c.parents) {
-    visit(parent.type());
+    accept(parent.type());
   }
   for (const auto& member : c.members) {
-    visit(member.type());
+    accept(member.type());
   }
   for (const auto& child : c.children) {
-    visit(child);
+    accept(child);
   }
 }
 
@@ -88,7 +88,7 @@ void NameGen::visit(Container& c) {
   }
 
   for (const auto& template_param : c.templateParams) {
-    visit(template_param.type());
+    accept(template_param.type());
   }
 
   std::string name = c.name();
@@ -130,7 +130,7 @@ void NameGen::visit(Typedef& td) {
   // Append an incrementing number to ensure we don't get duplicates
   td.setName(name + "_" + std::to_string(n++));
 
-  visit(td.underlyingType());
+  accept(td.underlyingType());
 }
 
 }  // namespace type_graph

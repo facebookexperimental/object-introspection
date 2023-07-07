@@ -625,7 +625,7 @@ TEST(FlattenerTest, Children) {
 [0] Class: ClassB (size: 4)
       Member: b (offset: 0)
         Primitive: int32_t
-      Child:
+      Child
 [1]     Class: ClassA (size: 8)
           Member: b (offset: 0)
             Primitive: int32_t
@@ -665,13 +665,13 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
 [0] Class: ClassD (size: 4)
       Member: d (offset: 0)
         Primitive: int32_t
-      Child:
+      Child
 [1]     Class: ClassB (size: 8)
           Member: d (offset: 0)
             Primitive: int32_t
           Member: b (offset: 4)
             Primitive: int32_t
-          Child:
+          Child
 [2]         Class: ClassA (size: 16)
               Member: d (offset: 0)
                 Primitive: int32_t
@@ -681,6 +681,8 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
                 Primitive: int32_t
               Member: a (offset: 12)
                 Primitive: int32_t
+      Child
+        [2]
 )");
 }
 
