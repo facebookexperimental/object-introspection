@@ -70,6 +70,19 @@ TEST(NameGenTest, ClassMembers) {
   EXPECT_EQ(mymember2.name(), "MyMember_2");
 }
 
+TEST(NameGenTest, ClassMemberInvalidChar) {
+  auto myclass = Class{2, Class::Kind::Struct, "MyClass", 13};
+
+  auto myint = Primitive{Primitive::Kind::Int32};
+  myclass.members.push_back(Member{myint, "mem.Nope", 0});
+
+  NameGen nameGen;
+  nameGen.generateNames({myclass});
+
+  EXPECT_EQ(myclass.name(), "MyClass_0");
+  EXPECT_EQ(myclass.members[0].name, "mem$Nope_0");
+}
+
 TEST(NameGenTest, ClassChildren) {
   auto mychild1 = Class{0, Class::Kind::Struct, "MyChild", 13};
   auto mychild2 = Class{1, Class::Kind::Struct, "MyChild", 13};
