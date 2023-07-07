@@ -230,6 +230,7 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
       "--dump-json"s,
       "--config-file"s, thisConfig.string(),
       "--script-source"s, opts.scriptSource,
+      "--mode=strict"s,
       "--pid"s, std::to_string(targetProcess.id()),
   };
   // clang-format on
