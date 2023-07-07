@@ -104,6 +104,9 @@ class OIDebugger {
   void setHardDisableDrgn(bool val) {
     symbols->setHardDisableDrgn(val);
   }
+  void setStrict(bool val) {
+    treeBuilderConfig.strict = val;
+  }
 
   bool uploadCache() {
     return std::all_of(

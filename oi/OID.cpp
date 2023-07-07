@@ -143,7 +143,7 @@ constexpr static OIOpts opts{
         "Dump the data segment's content, before TreeBuilder processes it\n"
         "Each argument gets its own dump file: 'dataseg.<oid-pid>.<arg>.dump'"},
     OIOpt{'a', "log-all-structs", no_argument, nullptr, "Log all structures"},
-    OIOpt{'m', "mode", required_argument, "[prod]",
+    OIOpt{'m', "mode", required_argument, "MODE",
           "Allows to specify a mode of operation/group of settings"},
     OIOpt{'f', "enable-feature", required_argument, "FEATURE",
           "Enable feature"},
@@ -155,6 +155,14 @@ void usage() {
   std::cerr << "usage: oid ...\n";
   std::cerr << opts << std::endl;
   featuresHelp(std::cerr);
+
+  std::cerr << std::endl << "MODES SUMMARY" << std::endl;
+  std::cerr << "  prod    Disable drgn, enable remote caching, and chase raw "
+               "pointers."
+            << std::endl;
+  std::cerr << "  strict  Enable additional fatal error conditions such as "
+               "TreeBuilder reading too little data."
+            << std::endl;
 
   std::cerr << "\n\tFor problem reporting, questions and general comments "
                "please pop along"
@@ -254,6 +262,7 @@ struct Config {
   bool genPaddingStats = true;
   bool attachToProcess = true;
   bool hardDisableDrgn = false;
+  bool strict = false;
 };
 
 }  // namespace Oid
@@ -292,6 +301,7 @@ static ExitStatus::ExitStatus runScript(
   }
   oid->setCustomCodeFile(oidConfig.customCodeFile);
   oid->setHardDisableDrgn(oidConfig.hardDisableDrgn);
+  oid->setStrict(oidConfig.strict);
 
   VLOG(1) << "OIDebugger constructor took " << std::dec
           << time_ns(time_hr::now() - progStart) << " nsecs";
@@ -497,6 +507,8 @@ int main(int argc, char* argv[]) {
           oidConfig.cacheRemoteDownload = true;
           oidConfig.cacheBasePath = "/tmp/oid-cache";
           features[Feature::ChaseRawPointers] = true;
+        } else if (strcmp("strict", optarg) == 0) {
+          oidConfig.strict = true;
         } else {
           LOG(ERROR) << "Invalid mode: " << optarg << " specified!";
           usage();

@@ -254,6 +254,11 @@ void TreeBuilder::build(const std::vector<uint64_t>& data,
 
   // Were all object sizes consumed?
   if (oidDataIndex != oidData->size()) {
+    if (config.strict) {
+      LOG(FATAL) << "some object sizes not consumed and OID is in strict mode!"
+                 << "reported: " << oidData->size() << " consumed "
+                 << oidDataIndex;
+    }
     LOG(WARNING) << "WARNING: some object sizes not consumed;"
                  << "object tree may be inaccurate. "
                  << "reported: " << oidData->size() << " consumed "

@@ -45,6 +45,7 @@ class TreeBuilder {
     bool logAllStructs;
     bool dumpDataSegment;
     std::optional<std::string> jsonPath;
+    bool strict;
   };
 
   TreeBuilder(Config);
