@@ -22,26 +22,19 @@ namespace type_graph {
 
 Pass Flattener::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
-    Flattener flattener;
-    flattener.flatten(typeGraph.rootTypes());
-    // TODO should flatten just operate on a single type and we do the looping
-    // here?
+    Flattener flattener{typeGraph.resetTracker()};
+    for (auto& type : typeGraph.rootTypes()) {
+      flattener.accept(type);
+    }
   };
 
   return Pass("Flattener", fn);
 }
 
-void Flattener::flatten(std::vector<std::reference_wrapper<Type>>& types) {
-  for (auto& type : types) {
-    accept(type);
-  }
-}
-
 void Flattener::accept(Type& type) {
-  if (visited_.count(&type) != 0)
+  if (tracker_.visit(type))
     return;
 
-  visited_.insert(&type);
   type.accept(*this);
 }
 

@@ -24,6 +24,9 @@
  * to remain valid (i.e. don't store nodes directly in vectors). It is
  * recommended to use the TypeGraph class when building a complete type graph as
  * this will the memory allocations safely.
+ *
+ * All non-leaf nodes have IDs for efficient cycle detection and to assist
+ * debugging.
  */
 
 #include <cstddef>
@@ -49,6 +52,7 @@ struct ContainerInfo;
 
 namespace type_graph {
 
+// Must be signed. "-1" represents "leaf node"
 using NodeId = int32_t;
 
 enum class Qualifier {
@@ -65,7 +69,11 @@ class ConstVisitor;
 
 // TODO delete copy and move ctors
 
-// TODO type qualifiers are needed for some stuff?
+/*
+ * Type
+ *
+ * Abstract type base class. Attributes common to all types belong here.
+ */
 class Type {
  public:
   virtual ~Type() = default;
@@ -76,8 +84,14 @@ class Type {
   virtual std::string name() const = 0;
   virtual size_t size() const = 0;
   virtual uint64_t align() const = 0;
+  virtual NodeId id() const = 0;
 };
 
+/*
+ * Member
+ *
+ * A class' member variable.
+ */
 class Member {
  public:
   Member(Type& type,
@@ -146,13 +160,18 @@ class TemplateParam {
   }
 
  private:
-  Type* type_ = nullptr;  // Note: type is not always set
+  Type* type_ = nullptr;  // Note: type is not set when this param holds a value
 
  public:
   QualifierSet qualifiers;
   std::optional<std::string> value;
 };
 
+/*
+ * Class
+ *
+ * A class, struct or union.
+ */
 class Class : public Type {
  public:
   enum class Kind {
@@ -205,6 +224,10 @@ class Class : public Type {
     return align_;
   }
 
+  virtual NodeId id() const override {
+    return id_;
+  }
+
   void setAlign(uint64_t alignment) {
     align_ = alignment;
   }
@@ -226,10 +249,6 @@ class Class : public Type {
   }
 
   bool isDynamic() const;
-
-  NodeId id() const {
-    return id_;
-  }
 
   std::vector<TemplateParam> templateParams;
   std::vector<Parent> parents;  // Sorted by offset
@@ -280,7 +299,7 @@ class Container : public Type {
     return 8;  // TODO not needed for containers?
   }
 
-  NodeId id() const {
+  virtual NodeId id() const override {
     return id_;
   }
 
@@ -313,6 +332,10 @@ class Enum : public Type {
     return size();
   }
 
+  virtual NodeId id() const override {
+    return -1;
+  }
+
  private:
   std::string name_;
   size_t size_;
@@ -338,16 +361,16 @@ class Array : public Type {
     return elementType_.size();
   }
 
+  virtual NodeId id() const override {
+    return id_;
+  }
+
   Type& elementType() const {
     return elementType_;
   }
 
   size_t len() const {
     return len_;
-  }
-
-  NodeId id() const {
-    return id_;
   }
 
  private:
@@ -388,6 +411,9 @@ class Primitive : public Type {
   virtual uint64_t align() const override {
     return size();
   }
+  virtual NodeId id() const override {
+    return -1;
+  }
 
  private:
   Kind kind_;
@@ -417,12 +443,12 @@ class Typedef : public Type {
     return underlyingType_.align();
   }
 
-  Type& underlyingType() const {
-    return underlyingType_;
+  virtual NodeId id() const override {
+    return id_;
   }
 
-  NodeId id() const {
-    return id_;
+  Type& underlyingType() const {
+    return underlyingType_;
   }
 
  private:
@@ -451,12 +477,12 @@ class Pointer : public Type {
     return size();
   }
 
-  Type& pointeeType() const {
-    return pointeeType_;
+  virtual NodeId id() const override {
+    return id_;
   }
 
-  NodeId id() const {
-    return id_;
+  Type& pointeeType() const {
+    return pointeeType_;
   }
 
  private:
@@ -464,6 +490,11 @@ class Pointer : public Type {
   NodeId id_ = -1;
 };
 
+/*
+ * Dummy
+ *
+ * A type that just has a given size and alignment.
+ */
 class Dummy : public Type {
  public:
   explicit Dummy(size_t size, uint64_t align) : size_(size), align_(align) {
@@ -484,11 +515,21 @@ class Dummy : public Type {
     return align_;
   }
 
+  virtual NodeId id() const override {
+    return -1;
+  }
+
  private:
   size_t size_;
   uint64_t align_;
 };
 
+/*
+ * DummyAllocator
+ *
+ * A type with a given size and alignment, which also satisfies the C++
+ * allocator completeness requirements for a given type.
+ */
 class DummyAllocator : public Type {
  public:
   explicit DummyAllocator(Type& type, size_t size, uint64_t align)
@@ -508,6 +549,10 @@ class DummyAllocator : public Type {
 
   virtual uint64_t align() const override {
     return align_;
+  }
+
+  virtual NodeId id() const override {
+    return -1;
   }
 
   Type& allocType() const {

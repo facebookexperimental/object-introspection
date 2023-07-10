@@ -15,10 +15,9 @@
  */
 #pragma once
 
-#include <array>
-#include <unordered_set>
 #include <vector>
 
+#include "NodeTracker.h"
 #include "PassManager.h"
 #include "Types.h"
 #include "Visitor.h"
@@ -38,9 +37,12 @@ class TypeIdentifier : public RecursiveVisitor {
   static Pass createPass(const std::vector<ContainerInfo>& passThroughTypes);
   static bool isAllocator(Type& t);
 
-  TypeIdentifier(TypeGraph& typeGraph,
+  TypeIdentifier(NodeTracker& tracker,
+                 TypeGraph& typeGraph,
                  const std::vector<ContainerInfo>& passThroughTypes)
-      : typeGraph_(typeGraph), passThroughTypes_(passThroughTypes) {
+      : tracker_(tracker),
+        typeGraph_(typeGraph),
+        passThroughTypes_(passThroughTypes) {
   }
 
   using RecursiveVisitor::accept;
@@ -49,7 +51,7 @@ class TypeIdentifier : public RecursiveVisitor {
   void visit(Container& c) override;
 
  private:
-  std::unordered_set<Type*> visited_;
+  NodeTracker& tracker_;
   TypeGraph& typeGraph_;
   const std::vector<ContainerInfo>& passThroughTypes_;
 };

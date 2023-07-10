@@ -16,9 +16,9 @@
 #pragma once
 
 #include <string>
-#include <unordered_set>
 #include <vector>
 
+#include "NodeTracker.h"
 #include "PassManager.h"
 #include "Types.h"
 #include "Visitor.h"
@@ -28,14 +28,15 @@ namespace type_graph {
 /*
  * Flattener
  *
- * Flattens classes by removing parents and adding their members directly into
- * derived classes.
+ * Flattens classes by removing parents and adding their attributes directly
+ * into derived classes.
  */
 class Flattener : public RecursiveVisitor {
  public:
   static Pass createPass();
 
-  void flatten(std::vector<std::reference_wrapper<Type>>& types);
+  Flattener(NodeTracker& tracker) : tracker_(tracker) {
+  }
 
   using RecursiveVisitor::accept;
 
@@ -46,7 +47,7 @@ class Flattener : public RecursiveVisitor {
   static const inline std::string ParentPrefix = "__oi_parent";
 
  private:
-  std::unordered_set<Type*> visited_;
+  NodeTracker& tracker_;
   std::vector<Member> flattened_members_;
   std::vector<uint64_t> offset_stack_;
 };

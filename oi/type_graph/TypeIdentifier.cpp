@@ -23,7 +23,8 @@ namespace type_graph {
 Pass TypeIdentifier::createPass(
     const std::vector<ContainerInfo>& passThroughTypes) {
   auto fn = [&passThroughTypes](TypeGraph& typeGraph) {
-    TypeIdentifier typeId{typeGraph, passThroughTypes};
+    TypeIdentifier typeId{typeGraph.resetTracker(), typeGraph,
+                          passThroughTypes};
     for (auto& type : typeGraph.rootTypes()) {
       typeId.accept(type);
     }
@@ -48,10 +49,9 @@ bool TypeIdentifier::isAllocator(Type& t) {
 }
 
 void TypeIdentifier::accept(Type& type) {
-  if (visited_.count(&type) != 0)
+  if (tracker_.visit(type))
     return;
 
-  visited_.insert(&type);
   type.accept(*this);
 }
 
