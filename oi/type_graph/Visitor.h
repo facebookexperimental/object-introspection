@@ -15,6 +15,15 @@
  */
 #pragma once
 
+/*
+ * Visitors are used to walk over graphs of Type nodes.
+ *
+ * To implement a new visitor:
+ * 1. Inherit from one of the base visitor classes in this file
+ * 2. Override the `visit()` functions for the types your visitor must deal with
+ * 3. Implement `accept(Type&)` to perform double-dispatch and cycle detection
+ */
+
 #include "Types.h"
 
 namespace type_graph {
