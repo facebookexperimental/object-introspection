@@ -20,14 +20,14 @@ workflows:
             - build-gcc
           oid_test_args: "-ftype-graph"
           tests_regex: "OidIntegration\\..*"
-          exclude_regex: ".*inheritance_polymorphic.*|.*pointers_incomplete_containing_struct|.*ignored_a|.*arrays_member_int0"
+          exclude_regex: ".*inheritance_polymorphic.*|.*pointers_incomplete_containing_struct|.*arrays_member_int0"
       - test:
           name: test-typed-data-segment-gcc
           requires:
             - build-gcc
           oid_test_args: "-ftyped-data-segment"
           tests_regex: "OidIntegration\\..*"
-          exclude_regex: ".*inheritance_polymorphic.*|.*pointers.*|.*ignored_a|.*arrays_member_int0|.*cycles_.*"
+          exclude_regex: ".*inheritance_polymorphic.*|.*pointers.*|.*arrays_member_int0|.*cycles_.*"
       - coverage:
           name: coverage
           requires:

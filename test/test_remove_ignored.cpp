@@ -31,7 +31,7 @@ TEST(RemoveIgnoredTest, Match) {
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
-      Member: b (offset: 4)
+      Member: __oi_padding (offset: 4)
 [2]     Array: (length: 4)
           Primitive: int8_t
       Member: c (offset: 8)
