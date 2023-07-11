@@ -720,6 +720,11 @@ bool OICodeGen::enumerateTemplateParamIdxs(drgn_type* type,
                                            const std::vector<size_t>& paramIdxs,
                                            bool& ifStub) {
   if (paramIdxs.empty()) {
+    // Containers such as IOBuf and IOBufQueue don't have template params, but
+    // still should be added to containerTypeMap
+    containerTypeMapDrgn.emplace(
+        type,
+        std::pair(std::ref(containerInfo), std::vector<drgn_qualified_type>()));
     return true;
   }
 
