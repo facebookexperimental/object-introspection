@@ -62,6 +62,7 @@ add_executable(test_type_graph
   test_topo_sorter.cpp
   test_type_identifier.cpp
   type_graph_utils.cpp
+  TypeGraphParser.cpp
 )
 add_dependencies(test_type_graph integration_test_target)
 target_compile_definitions(test_type_graph PRIVATE
