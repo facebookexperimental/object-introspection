@@ -15,6 +15,7 @@
  */
 #include "RemoveIgnored.h"
 
+#include "AddPadding.h"
 #include "TypeGraph.h"
 
 namespace type_graph {
@@ -48,7 +49,7 @@ void RemoveIgnored::visit(Class& c) {
     auto& paddingArray =
         typeGraph_.makeType<Array>(primitive, c.members[i].type().size());
     c.members[i] =
-        Member{paddingArray, c.members[i].name, c.members[i].bitOffset};
+        Member{paddingArray, AddPadding::MemberPrefix, c.members[i].bitOffset};
   }
 }
 
