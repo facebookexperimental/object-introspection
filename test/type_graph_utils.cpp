@@ -6,6 +6,7 @@
 #include "oi/type_graph/PassManager.h"
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
+#include "test/TypeGraphParser.h"
 
 using type_graph::Container;
 using type_graph::NodeId;
@@ -26,8 +27,37 @@ void check(const std::vector<ref<Type>>& types,
     printer.print(type);
   }
 
-  expected.remove_prefix(1);  // Remove initial '\n'
+  if (expected[0] == '\n')
+    expected.remove_prefix(1);  // Remove initial '\n'
   ASSERT_EQ(expected, out.str()) << "Test failure " << comment;
+}
+
+void test(type_graph::Pass pass,
+          std::string_view input,
+          std::string_view expectedAfter) {
+  input.remove_prefix(1);  // Remove initial '\n'
+  TypeGraph typeGraph;
+  TypeGraphParser parser{typeGraph};
+  parser.parse(input);
+
+  // Validate input formatting
+  check(typeGraph.rootTypes(), input, " parsing input graph");
+
+  // Run pass and check results
+  test(pass, typeGraph.rootTypes(), expectedAfter);
+}
+
+void testNoChange(type_graph::Pass pass, std::string_view input) {
+  input.remove_prefix(1);  // Remove initial '\n'
+  TypeGraph typeGraph;
+  TypeGraphParser parser{typeGraph};
+  parser.parse(input);
+
+  // Validate input formatting
+  check(typeGraph.rootTypes(), input, " parsing input graph");
+
+  // Run pass and check results
+  test(pass, typeGraph.rootTypes(), input);
 }
 
 void test(type_graph::Pass pass,
