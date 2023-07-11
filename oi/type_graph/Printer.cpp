@@ -87,7 +87,10 @@ void Printer::visit(const Container& c) {
 
 void Printer::visit(const Primitive& p) {
   prefix();
-  out_ << "Primitive: " << p.name() << std::endl;
+  out_ << "Primitive: " << p.name();
+  if (p.kind() == Primitive::Kind::Incomplete)
+    out_ << " (incomplete)";
+  out_ << std::endl;
 }
 
 void Printer::visit(const Enum& e) {

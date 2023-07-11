@@ -411,6 +411,8 @@ class Primitive : public Type {
     UIntPtr,  // Really an alias, but useful to have as its own primitive
 
     Void,
+    Incomplete,  // Behaves the same as Void, but alerts us that the type was
+                 // stubbed out due to incomplete DWARF
   };
 
   explicit Primitive(Kind kind) : kind_(kind) {
@@ -427,6 +429,9 @@ class Primitive : public Type {
   }
   virtual NodeId id() const override {
     return -1;
+  }
+  Kind kind() const {
+    return kind_;
   }
 
  private:

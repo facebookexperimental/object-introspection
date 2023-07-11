@@ -83,8 +83,9 @@ Type& DrgnParser::enumerateType(struct drgn_type* type) {
   if (auto it = drgn_types_.find(type); it != drgn_types_.end())
     return it->second;
 
-  if (!drgn_utils::isSizeComplete(type)) {
-    return makeType<Primitive>(nullptr, Primitive::Kind::Void);
+  if (!drgn_utils::isSizeComplete(type) &&
+      drgn_type_kind(type) != DRGN_TYPE_VOID) {
+    return makeType<Primitive>(nullptr, Primitive::Kind::Incomplete);
   }
 
   enum drgn_type_kind kind = drgn_type_kind(type);
