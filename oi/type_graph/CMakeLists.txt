@@ -3,6 +3,7 @@ add_library(type_graph
   AddPadding.cpp
   AlignmentCalc.cpp
   DrgnParser.cpp
+  EnforceCompatibility.cpp
   Flattener.cpp
   NameGen.cpp
   PassManager.cpp

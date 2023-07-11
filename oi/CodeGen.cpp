@@ -29,6 +29,7 @@
 #include "type_graph/AddPadding.h"
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
+#include "type_graph/EnforceCompatibility.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
 #include "type_graph/Prune.h"
@@ -45,6 +46,7 @@ using type_graph::AlignmentCalc;
 using type_graph::Class;
 using type_graph::Container;
 using type_graph::DrgnParser;
+using type_graph::EnforceCompatibility;
 using type_graph::Enum;
 using type_graph::Flattener;
 using type_graph::Member;
@@ -825,10 +827,13 @@ void CodeGen::transform(TypeGraph& typeGraph) {
   // influence on the class' overall alignment.
   pm.addPass(AlignmentCalc::createPass());
   pm.addPass(RemoveMembers::createPass(config_.membersToStub));
+  if (!config_.features[Feature::TreeBuilderV2]) {
+    pm.addPass(EnforceCompatibility::createPass());
+  }
 
   // Add padding to fill in the gaps of removed members and ensure their
   // alignments
-  pm.addPass(AddPadding::createPass(config_.features));
+  pm.addPass(AddPadding::createPass());
 
   pm.addPass(NameGen::createPass());
   pm.addPass(TopoSorter::createPass());
