@@ -42,7 +42,7 @@ namespace {
 void flattenParent(const Parent& parent,
                    std::vector<Member>& flattenedMembers) {
   Type& parentType = stripTypedefs(parent.type());
-  if (Class* parentClass = dynamic_cast<Class*>(&parentType)) {
+  if (auto* parentClass = dynamic_cast<Class*>(&parentType)) {
     for (size_t i = 0; i < parentClass->members.size(); i++) {
       const auto& member = parentClass->members[i];
       flattenedMembers.push_back(member);
@@ -52,11 +52,15 @@ void flattenParent(const Parent& parent,
             std::max(flattenedMembers.back().align, parentClass->align());
       }
     }
-  } else if (Container* parentContainer =
-                 dynamic_cast<Container*>(&parentType)) {
+  } else if (auto* parentContainer = dynamic_cast<Container*>(&parentType)) {
     // Create a new member to represent this parent container
     flattenedMembers.emplace_back(*parentContainer, Flattener::ParentPrefix,
                                   parent.bitOffset);
+  } else if (auto* parentPrimitive = dynamic_cast<Primitive*>(&parentType);
+             parentPrimitive &&
+             parentPrimitive->kind() == Primitive::Kind::Incomplete) {
+    // Bad DWARF can lead to us seeing incomplete parent types. Just ignore
+    // these as there is nothing we can do to recover the missing info.
   } else {
     throw std::runtime_error("Invalid type for parent");
   }
