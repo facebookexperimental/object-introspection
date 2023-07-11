@@ -15,29 +15,26 @@
  */
 #pragma once
 
-#include <string>
-#include <unordered_set>
+#include <vector>
 
+#include "NodeTracker.h"
 #include "PassManager.h"
 #include "Types.h"
 #include "Visitor.h"
 
 namespace type_graph {
 
-class TypeGraph;
-
 /*
- * AddPadding
+ * EnforceCompatibility
  *
- * Adds members to classes to represent padding. This is necessary until we have
- * complete alignment information from DWARF, otherwise our classes may be
- * undersized.
+ * Transforms the type graph so that CodeGen produces code which is compatible
+ * with OICodeGen.
  */
-class AddPadding final : public RecursiveVisitor {
+class EnforceCompatibility : public RecursiveVisitor {
  public:
   static Pass createPass();
 
-  explicit AddPadding(TypeGraph& typeGraph) : typeGraph_(typeGraph) {
+  EnforceCompatibility(NodeTracker& tracker) : tracker_(tracker) {
   }
 
   using RecursiveVisitor::accept;
@@ -45,18 +42,8 @@ class AddPadding final : public RecursiveVisitor {
   void accept(Type& type) override;
   void visit(Class& c) override;
 
-  static const inline std::string MemberPrefix = "__oi_padding";
-
  private:
-  std::unordered_set<Type*> visited_;
-  TypeGraph& typeGraph_;
-
-  void addPadding(const Member& prevMember,
-                  uint64_t paddingEndBits,
-                  std::vector<Member>& paddedMembers);
-  void addPadding(uint64_t paddingStartBits,
-                  uint64_t paddingEndBits,
-                  std::vector<Member>& paddedMembers);
+  NodeTracker& tracker_;
 };
 
 }  // namespace type_graph

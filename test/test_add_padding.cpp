@@ -5,17 +5,6 @@
 #include "test/type_graph_utils.h"
 
 using namespace type_graph;
-using ObjectIntrospection::Feature;
-using ObjectIntrospection::FeatureSet;
-
-namespace {
-void test(std::vector<std::reference_wrapper<type_graph::Type>> rootTypes,
-          std::string_view expectedAfter) {
-  FeatureSet features;
-  features[Feature::TreeBuilderV2] = true;
-  ::test(AddPadding::createPass({}), rootTypes, expectedAfter);
-}
-}  // namespace
 
 TEST(AddPaddingTest, BetweenMembers) {
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 16};
@@ -24,7 +13,7 @@ TEST(AddPaddingTest, BetweenMembers) {
   myclass.members.push_back(Member{myint8, "n1", 0});
   myclass.members.push_back(Member{myint64, "n2", 8 * 8});
 
-  test({myclass}, R"(
+  test(AddPadding::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 16)
       Member: n1 (offset: 0)
         Primitive: int8_t
@@ -43,7 +32,7 @@ TEST(AddPaddingTest, AtEnd) {
   myclass.members.push_back(Member{myint64, "n1", 0});
   myclass.members.push_back(Member{myint8, "n2", 8 * 8});
 
-  test({myclass}, R"(
+  test(AddPadding::createPass(), {myclass}, R"(
 [0] Struct: MyStruct (size: 16)
       Member: n1 (offset: 0)
         Primitive: int64_t
@@ -62,7 +51,7 @@ TEST(AddPaddingTest, UnionBetweenMembers) {
   myclass.members.push_back(Member{myint64, "n1", 0});
   myclass.members.push_back(Member{myint8, "n2", 0});
 
-  test({myclass}, R"(
+  test(AddPadding::createPass(), {myclass}, R"(
 [0] Union: MyUnion (size: 8)
       Member: n1 (offset: 0)
         Primitive: int64_t
@@ -72,7 +61,7 @@ TEST(AddPaddingTest, UnionBetweenMembers) {
 }
 
 TEST(AddPaddingTest, UnionAtEnd) {
-  test(AddPadding::createPass({}), R"(
+  test(AddPadding::createPass(), R"(
 [0] Union: MyUnion (size: 16)
       Member: n1 (offset: 0)
         Primitive: int64_t
@@ -117,7 +106,7 @@ TEST(AddPaddingTest, Bitfields) {
   myclass.members.push_back(b4);
   myclass.members.push_back(n);
 
-  test({myclass}, R"(
+  test(AddPadding::createPass(), {myclass}, R"(
 [0] Class: MyClass (size: 16)
       Member: b1 (offset: 0, bitsize: 3)
         Primitive: int64_t
@@ -145,39 +134,14 @@ TEST(AddPaddingTest, Bitfields) {
 )");
 }
 
-TEST(AddPaddingTest, CodeGenCompatibility) {
-  auto myint = Primitive{Primitive::Kind::Int32};
-  auto vector = getVector(1);
-  vector.templateParams.push_back(TemplateParam{myint});
-
-  auto myclass = Class{0, Class::Kind::Class, "MyClass", 24};
-  myclass.members.push_back(Member{vector, "__oi_parent", 0});
-
-  FeatureSet features;
-  features[Feature::TreeBuilderV2] = false;
-  test(AddPadding::createPass(features), {myclass}, R"(
-[0] Class: MyClass (size: 24)
-      Member: __oi_parent (offset: 0)
-[1]     Container: std::vector (size: 24)
-          Param
-            Primitive: int32_t
-)",
-       R"(
-[0] Class: MyClass (size: 24)
-      Member: __oi_padding (offset: 0)
-[1]     Array: (length: 24)
-          Primitive: int8_t
-)");
-}
-
 TEST(AddPaddingTest, EmptyClass) {
-  testNoChange(AddPadding::createPass({}), R"(
+  testNoChange(AddPadding::createPass(), R"(
 [0] Class: MyClass (size: 0)
 )");
 }
 
 TEST(AddPaddingTest, MemberlessClass) {
-  test(AddPadding::createPass({}), R"(
+  test(AddPadding::createPass(), R"(
 [0] Class: MyClass (size: 12)
 )",
        R"(
@@ -189,7 +153,7 @@ TEST(AddPaddingTest, MemberlessClass) {
 }
 
 TEST(AddPaddingTest, MemberlessUnion) {
-  test(AddPadding::createPass({}), R"(
+  test(AddPadding::createPass(), R"(
 [0] Union: MyUnion (size: 16)
 )",
        R"(

@@ -41,6 +41,7 @@ add_executable(test_type_graph
   test_alignment_calc.cpp
   test_codegen.cpp
   test_drgn_parser.cpp
+  test_enforce_compatibility.cpp
   test_flattener.cpp
   test_name_gen.cpp
   test_node_tracker.cpp
