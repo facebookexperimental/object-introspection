@@ -1,0 +1,36 @@
+includes = ["tuple"]
+definitions = '''
+struct Foo {
+  std::tuple<uint64_t, uint64_t> t;
+};
+struct Bar {
+  std::optional<Foo> f;
+};
+'''
+[cases]
+  [cases.uint64_uint64]
+    param_types = ["Bar&"]
+    setup = '''
+      Foo f;
+      f.t = std::make_tuple<uint64_t, uint64_t>(1,2);
+      Bar b;
+      b.f = f;
+      return b;
+    '''
+    expect_json = '''
+    [
+      {
+        "staticSize": 24,
+        "dynamicSize": 0,
+        "members": [
+          {
+            "staticSize": 24,
+            "dynamicSize": 0,
+            "length": 1,
+            "capacity": 1,
+            "elementStaticSize": 16
+          }
+        ]
+      }
+    ]
+    '''

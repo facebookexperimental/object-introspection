@@ -73,7 +73,6 @@ OICodeGen::OICodeGen(const Config& c, SymbolService& s)
       "McServerSession",
       "Range",
       "ReadResumableHandle",
-      "tuple",
       "CountedIntrusiveList",
       "EventBaseAtomicNotificationQueue",
       /* Temporary IOBuf ring used for scattered read/write.
