@@ -952,3 +952,14 @@ TEST(FlattenerTest, ClassParam) {
             Primitive: int32_t
 )");
 }
+
+TEST(FlattenerTest, IncompleteParent) {
+  test(Flattener::createPass(), R"(
+[0] Class: MyClass (size: 4)
+      Parent (offset: 0)
+        Primitive: void (incomplete)
+)",
+       R"(
+[0] Class: MyClass (size: 4)
+)");
+}
