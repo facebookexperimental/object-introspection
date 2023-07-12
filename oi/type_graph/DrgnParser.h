@@ -29,6 +29,22 @@ struct ContainerInfo;
 
 namespace type_graph {
 
+/*
+ * DrgnParser
+ *
+ * Reads debug information from a drgn_type to build a type graph.
+ * Returns a reference to the Type node corresponding to the given drgn_type.
+ *
+ * DrgnParser tries to balance two philosophies:
+ * - Simplicity: containing minimal logic other than reading info from drgn
+ * - Performance: reading no more info from drgn than necessary
+ *
+ * For the most part we try to move logic out of DrgnParser and have later
+ * passes clean up the type graph, e.g. flattening parents. However, we do
+ * incorporate some extra logic here when it would allow us to read less DWARF
+ * information, e.g. matching containers in DrngParser means we don't read
+ * details about container internals.
+ */
 class DrgnParser {
  public:
   DrgnParser(TypeGraph& typeGraph,
@@ -63,11 +79,6 @@ class DrgnParser {
   void enumerateClassFunctions(struct drgn_type* type,
                                std::vector<Function>& functions);
 
-  // Store a mapping of drgn types to type graph nodes for deduplication during
-  // parsing. This stops us getting caught in cycles.
-  std::unordered_map<struct drgn_type*, std::reference_wrapper<Type>>
-      drgn_types_;
-
   template <typename T, typename... Args>
   T& makeType(struct drgn_type* drgnType, Args&&... args) {
     auto& newType = typeGraph_.makeType<T>(std::forward<Args>(args)...);
@@ -75,6 +86,11 @@ class DrgnParser {
     return newType;
   }
   bool chasePointer() const;
+
+  // Store a mapping of drgn types to type graph nodes for deduplication during
+  // parsing. This stops us getting caught in cycles.
+  std::unordered_map<struct drgn_type*, std::reference_wrapper<Type>>
+      drgn_types_;
 
   TypeGraph& typeGraph_;
   const std::vector<ContainerInfo>& containers_;

@@ -16,6 +16,7 @@
 #pragma once
 
 #include <functional>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
@@ -26,6 +27,11 @@
 namespace type_graph {
 
 // TODO make all final
+/*
+ * NameGen
+ *
+ * Generates unique names for all types in a type graph.
+ */
 class NameGen final : public RecursiveVisitor {
  public:
   static Pass createPass();
@@ -36,11 +42,14 @@ class NameGen final : public RecursiveVisitor {
 
   void visit(Class& c) override;
   void visit(Container& c) override;
+  void visit(Enum& e) override;
   void visit(Typedef& td) override;
+
+  static const inline std::string AnonPrefix = "__oi_anon";
 
  private:
   void accept(Type& type) override;
-  void removeTemplateParams(std::string& name);
+  void deduplicate(std::string& name);
 
   std::unordered_set<Type*> visited_;
   int n = 0;
