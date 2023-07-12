@@ -305,6 +305,10 @@ class Enum : public Type {
     return name_;
   }
 
+  void setName(std::string name) {
+    name_ = std::move(name);
+  }
+
   virtual size_t size() const override {
     return size_;
   }

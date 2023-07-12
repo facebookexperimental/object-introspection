@@ -45,23 +45,33 @@ void NameGen::accept(Type& type) {
   type.accept(*this);
 }
 
+namespace {
 /*
  * Remove template parameters from the type name
  *
  * "std::vector<int>" -> "std::vector"
  */
-void NameGen::removeTemplateParams(std::string& name) {
+void removeTemplateParams(std::string& name) {
   auto template_start_pos = name.find('<');
   if (template_start_pos != std::string::npos)
     name.erase(template_start_pos);
+}
+}  // namespace
+
+void NameGen::deduplicate(std::string& name) {
+  if (name == "")
+    name = AnonPrefix;
+
+  // Append an incrementing number to ensure we don't get duplicates
+  name += "_";
+  name += std::to_string(n++);
 }
 
 void NameGen::visit(Class& c) {
   std::string name = c.name();
   removeTemplateParams(name);
-
-  // Append an incrementing number to ensure we don't get duplicates
-  c.setName(name + "_" + std::to_string(n++));
+  deduplicate(name);
+  c.setName(name);
 
   // Deduplicate member names. Duplicates may be present after flattening.
   for (size_t i = 0; i < c.members.size(); i++) {
@@ -117,6 +127,12 @@ void NameGen::visit(Container& c) {
   c.setName(name);
 }
 
+void NameGen::visit(Enum& e) {
+  std::string name = e.name();
+  deduplicate(name);
+  e.setName(name);
+}
+
 void NameGen::visit(Typedef& td) {
   /*
    * Treat like class names.
@@ -130,9 +146,8 @@ void NameGen::visit(Typedef& td) {
    */
   std::string name = td.name();
   removeTemplateParams(name);
-
-  // Append an incrementing number to ensure we don't get duplicates
-  td.setName(name + "_" + std::to_string(n++));
+  deduplicate(name);
+  td.setName(name);
 
   accept(td.underlyingType());
 }

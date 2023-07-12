@@ -3,6 +3,7 @@ definitions = '''
   typedef uint64_t TdUInt64;
   using UsingUInt64 = uint64_t;
   using IntVector = std::vector<int>;
+  using Anonymous = struct { int n; };
 '''
 [cases]
   [cases.c_style]
@@ -58,4 +59,30 @@ definitions = '''
           "typeName":"vector<int, std::allocator<int> >",
           "NOT":"members"
         }
+      ]}]'''
+  [cases.anonymous]
+    oil_skip = "TreeBuilder crashes" # https://github.com/facebookexperimental/object-introspection/issues/232
+    param_types = ["const Anonymous&"]
+    setup = "return {};"
+    expect_json = '''[{
+      "staticSize":4,
+      "dynamicSize":0,
+      "exclusiveSize":0,
+      "isTypedef":true,
+      "typeName":"Anonymous",
+      "members":[
+        {
+          "staticSize":4,
+          "dynamicSize":0,
+          "exclusiveSize":0,
+          "isTypedef":false,
+          "members":[
+            {
+              "staticSize":4,
+              "dynamicSize":0,
+              "exclusiveSize":4,
+              "isTypedef":false,
+              "name": "n"
+            }
+        ]}
       ]}]'''

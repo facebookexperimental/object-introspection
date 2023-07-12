@@ -73,8 +73,6 @@ Primitive::Kind primitiveFloatKind(struct drgn_type* type) {
 
 }  // namespace
 
-// TODO type stubs
-
 Type& DrgnParser::parse(struct drgn_type* root) {
   depth_ = 0;
   return enumerateType(root);
@@ -161,11 +159,8 @@ Type& DrgnParser::enumerateClass(struct drgn_type* type) {
   if (container)
     return *container;
 
-  std::string name;
-  const char* type_tag = drgn_type_tag(type);
-  if (type_tag)
-    name = std::string(type_tag);
-  // else this is an anonymous type
+  const char* typeTag = drgn_type_tag(type);
+  std::string name = typeTag ? typeTag : "";
 
   auto size = get_drgn_type_size(type);
   int virtuality = 0;
@@ -418,17 +413,14 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type* type,
 }
 
 Enum& DrgnParser::enumerateEnum(struct drgn_type* type) {
-  // TODO anonymous enums
-  // TODO incomplete enum?
-  std::string name = drgn_type_tag(type);
+  const char* typeTag = drgn_type_tag(type);
+  std::string name = typeTag ? typeTag : "";
   uint64_t size = get_drgn_type_size(type);
-  ;
   return makeType<Enum>(type, name, size);
 }
 
 Typedef& DrgnParser::enumerateTypedef(struct drgn_type* type) {
   std::string name = drgn_type_name(type);
-  // TODO anonymous typedefs?
 
   struct drgn_type* underlyingType = drgn_type_type(type).type;
   auto& t = enumerateType(underlyingType);
@@ -437,8 +429,7 @@ Typedef& DrgnParser::enumerateTypedef(struct drgn_type* type) {
 
 Type& DrgnParser::enumeratePointer(struct drgn_type* type) {
   if (!chasePointer()) {
-    // TODO dodgy nullptr - primitives should be handled as singletons
-    return makeType<Primitive>(nullptr, Primitive::Kind::UIntPtr);
+    return makeType<Primitive>(type, Primitive::Kind::UIntPtr);
   }
 
   struct drgn_type* pointeeType = drgn_type_type(type).type;

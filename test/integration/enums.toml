@@ -17,6 +17,13 @@ definitions = '''
     CASE_B,
     CASE_C,
   };
+
+  struct Holder {
+    enum {
+      One,
+      Two,
+    } e;
+  };
 '''
 [cases]
   [cases.scoped]
@@ -31,3 +38,11 @@ definitions = '''
     param_types = ["UNSCOPED_ENUM"]
     setup = "return {};"
     expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+  [cases.anonymous]
+    skip = "TreeBuilder crashes" # https://github.com/facebookexperimental/object-introspection/issues/232
+    param_types = ["Holder&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "members":[
+        {"name":"e", "staticSize":4, "dynamicSize":0, "exclusiveSize":4}
+    ]}]'''

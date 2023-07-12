@@ -210,6 +210,17 @@ TEST(NameGenTest, ContainerParamsValue) {
   EXPECT_EQ(mycontainer.name(), "std::vector<123, MyEnum::OptionC>");
 }
 
+TEST(NameGenTest, Enum) {
+  auto myenum0 = Enum{"MyEnum", 4};
+  auto myenum1 = Enum{"MyEnum", 4};
+
+  NameGen nameGen;
+  nameGen.generateNames({myenum0, myenum1});
+
+  EXPECT_EQ(myenum0.name(), "MyEnum_0");
+  EXPECT_EQ(myenum1.name(), "MyEnum_1");
+}
+
 TEST(NameGenTest, Array) {
   auto myparam1 = Class{0, Class::Kind::Struct, "MyParam", 13};
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
@@ -331,4 +342,19 @@ TEST(NameGenTest, ContainerCycle) {
 
   EXPECT_EQ(myclass.name(), "MyClass_0");
   EXPECT_EQ(container.name(), "std::vector<MyClass_0>");
+}
+
+TEST(NameGenTest, AnonymousTypes) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+
+  auto myclass = Class{0, Class::Kind::Class, "", 69};
+  auto myenum = Enum{"", 4};
+  auto mytypedef = Typedef{1, "", myint};
+
+  NameGen nameGen;
+  nameGen.generateNames({myclass, myenum, mytypedef});
+
+  EXPECT_EQ(myclass.name(), "__oi_anon_0");
+  EXPECT_EQ(myenum.name(), "__oi_anon_1");
+  EXPECT_EQ(mytypedef.name(), "__oi_anon_2");
 }
