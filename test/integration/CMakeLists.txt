@@ -8,6 +8,7 @@ set(THRIFT_TEST_CONFIGS
   thrift_isset.toml
   thrift_isset_missing.toml
   thrift_namespaces.toml
+  thrift_unions.toml
 )
 
 find_package(Thrift)

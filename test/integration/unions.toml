@@ -1,0 +1,78 @@
+# TODO: The tagged union tests should be updated when tagged union support is in:
+# https://github.com/facebookexperimental/object-introspection/issues/234
+includes = ["string", "unordered_map", "vector"]
+definitions = '''
+  union MyUnion {
+    int n;
+    std::vector<int> vec;
+    std::unordered_map<std::string, std::string> map;
+
+    MyUnion(int n_) : n(n_) {}
+    MyUnion(const std::vector<int>& vec_) : vec(vec_) {}
+    MyUnion(const std::unordered_map<std::string, std::string>& map_) : map(map_) {}
+    ~MyUnion() {}
+  };
+
+  struct TaggedUnion {
+    MyUnion storage;
+    uint8_t tag;
+
+    TaggedUnion(const MyUnion& storage_, uint8_t tag_) : storage(0), tag(tag_) {
+      copyStorage(storage_);
+    }
+
+    TaggedUnion(const TaggedUnion& other) : storage(0), tag(other.tag) {
+      copyStorage(other.storage);
+    }
+
+    void copyStorage(const MyUnion& other) {
+      if (tag == 0) {
+        storage.n = other.n;
+      } else if (tag == 1) {
+        new (&storage.vec) decltype(MyUnion::vec){other.vec};
+      } else if (tag == 2) {
+        new (&storage.map) decltype(MyUnion::map){other.map};
+      } else {
+        assert(false);
+      }
+    }
+  };
+'''
+
+[cases]
+  [cases.int]
+    param_types = ["const MyUnion&"]
+    setup = "return 123;"
+    expect_json = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}]'
+  [cases.vector]
+    param_types = ["const MyUnion&"]
+    setup = "return std::vector{1,2,3};"
+    expect_json = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}]'
+  [cases.unordered_map]
+    param_types = ["const MyUnion&"]
+    setup = 'return std::unordered_map<std::string, std::string>{{"a", "b"}, {"c","d"}};'
+    expect_json = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}]'
+  [cases.tagged_int]
+    param_types = ["const TaggedUnion&"]
+    setup = "return TaggedUnion{MyUnion{123}, 0};"
+    expect_json = '''[
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
+        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"},
+        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "NOT":"members"}
+      ]}]'''
+  [cases.tagged_vector]
+    param_types = ["const TaggedUnion&"]
+    setup = "return TaggedUnion{MyUnion{std::vector{1,2,3}}, 1};"
+    expect_json = '''[
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
+        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"},
+        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "NOT":"members"}
+      ]}]'''
+  [cases.tagged_unordered_map]
+    param_types = ["const TaggedUnion&"]
+    setup = 'return TaggedUnion{MyUnion{std::unordered_map<std::string, std::string>{{"a", "b"}, {"c","d"}}}, 2};'
+    expect_json = '''[
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
+        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"},
+        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "NOT":"members"}
+      ]}]'''
