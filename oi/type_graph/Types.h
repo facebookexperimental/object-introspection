@@ -202,6 +202,8 @@ class Class : public Type {
       : Class(id, kind, name, name, size, virtuality) {
   }
 
+  static inline constexpr bool has_node_id = true;
+
   DECLARE_ACCEPT
 
   Kind kind() const {
@@ -277,6 +279,8 @@ class Container : public Type {
         id_(id) {
   }
 
+  static inline constexpr bool has_node_id = true;
+
   DECLARE_ACCEPT
 
   const std::string& containerName() const {
@@ -318,6 +322,8 @@ class Enum : public Type {
       : name_(std::move(name)), size_(size) {
   }
 
+  static inline constexpr bool has_node_id = false;
+
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
@@ -350,6 +356,8 @@ class Array : public Type {
   Array(NodeId id, Type& elementType, size_t len)
       : elementType_(elementType), len_(len), id_(id) {
   }
+
+  static inline constexpr bool has_node_id = true;
 
   DECLARE_ACCEPT
 
@@ -408,6 +416,8 @@ class Primitive : public Type {
   explicit Primitive(Kind kind) : kind_(kind) {
   }
 
+  static inline constexpr bool has_node_id = false;
+
   DECLARE_ACCEPT
 
   virtual std::string name() const override;
@@ -428,6 +438,8 @@ class Typedef : public Type {
   explicit Typedef(NodeId id, std::string name, Type& underlyingType)
       : name_(std::move(name)), underlyingType_(underlyingType), id_(id) {
   }
+
+  static inline constexpr bool has_node_id = true;
 
   DECLARE_ACCEPT
 
@@ -467,6 +479,8 @@ class Pointer : public Type {
       : pointeeType_(pointeeType), id_(id) {
   }
 
+  static inline constexpr bool has_node_id = true;
+
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
@@ -504,6 +518,8 @@ class Dummy : public Type {
   explicit Dummy(size_t size, uint64_t align) : size_(size), align_(align) {
   }
 
+  static inline constexpr bool has_node_id = false;
+
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
@@ -539,6 +555,8 @@ class DummyAllocator : public Type {
   explicit DummyAllocator(Type& type, size_t size, uint64_t align)
       : type_(type), size_(size), align_(align) {
   }
+
+  static inline constexpr bool has_node_id = false;
 
   DECLARE_ACCEPT
 

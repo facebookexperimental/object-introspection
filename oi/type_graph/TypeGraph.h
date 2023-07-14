@@ -57,10 +57,7 @@ class TypeGraph {
 
   template <typename T, typename... Args>
   T& makeType(NodeId id, Args&&... args) {
-    static_assert(std::is_same_v<T, Class> || std::is_same_v<T, Container> ||
-                      std::is_same_v<T, Array> || std::is_same_v<T, Typedef> ||
-                      std::is_same_v<T, Pointer>,
-                  "Unnecessary node ID provided");
+    static_assert(T::has_node_id, "Unnecessary node ID provided");
     auto type_unique_ptr = std::make_unique<T>(id, std::forward<Args>(args)...);
     auto type_raw_ptr = type_unique_ptr.get();
     types_.push_back(std::move(type_unique_ptr));
@@ -71,9 +68,7 @@ class TypeGraph {
   T& makeType(Args&&... args) {
     static_assert(!std::is_same_v<T, Primitive>,
                   "Primitive singleton override should be used");
-    if constexpr (std::is_same_v<T, Class> || std::is_same_v<T, Container> ||
-                  std::is_same_v<T, Array> || std::is_same_v<T, Typedef> ||
-                  std::is_same_v<T, Pointer>) {
+    if constexpr (T::has_node_id) {
       // Node ID required
       return makeType<T>(next_id_++, std::forward<Args>(args)...);
     } else {
