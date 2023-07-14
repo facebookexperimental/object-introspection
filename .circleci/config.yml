@@ -43,14 +43,17 @@ workflows:
           name: coverage-type-graph
           requires:
             - test-type-graph-gcc
+            - coverage
       - coverage:
           name: coverage-typed-data-segment
           requires:
             - test-typed-data-segment-gcc
+            - coverage-type-graph
       - coverage:
           name: coverage-tree-builder-type-checking
           requires:
             - test-tree-builder-type-checking-gcc
+            - coverage-typed-data-segment
 
       - build:
           name: build-clang
