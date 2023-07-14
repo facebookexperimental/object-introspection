@@ -27,7 +27,7 @@ workflows:
             - build-gcc
           oid_test_args: "-ftyped-data-segment"
           tests_regex: "OidIntegration\\..*"
-          exclude_regex: ".*inheritance_polymorphic.*|.*pointers.*|.*arrays_member_int0|OidIntegration.unions.*|.*thrift_unions_dynamic_.*|.*cycles_unique_ptr|.*cycles_shared_ptr"
+          exclude_regex: ".*inheritance_polymorphic.*|.*pointers.*|.*arrays_member_int0|OidIntegration.unions.*|.*thrift_unions_dynamic_.*"
       - test:
           name: test-tree-builder-type-checking-gcc
           requires:

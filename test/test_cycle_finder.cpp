@@ -59,3 +59,37 @@ TEST(CycleFinderTest, RawPointer) {
             [0]
 )");
 }
+
+TEST(CycleFinderTest, UniquePointer) {
+  // Original:
+  //   class UniqueNode {
+  //     int value;
+  //     std::unique_ptr<struct UniqueNode> next;
+  //   };
+  //
+  // After:
+  //   class std__unique_ptr_UniqueNode_UniqueNode;
+  //   class UniqueNode {
+  //     int value;
+  //     std::unique_ptr<std__unique_ptr_UniqueNode_UniqueNode> next;
+  //   };
+  test(CycleFinder::createPass(), R"(
+[0] Struct: UniqueNode (size: 16)
+      Member: value (offset: 0)
+        Primitive: int32_t
+      Member: next (offset: 8)
+[1]     Container: std::unique_ptr (size: 8)
+          Param
+            [0]
+)",
+       R"(
+[0] Struct: UniqueNode (size: 16)
+      Member: value (offset: 0)
+        Primitive: int32_t
+      Member: next (offset: 8)
+[1]     Container: std::unique_ptr (size: 8)
+          Param
+[2]         CycleBreaker
+              [0]
+)");
+}

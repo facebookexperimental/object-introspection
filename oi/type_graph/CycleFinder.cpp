@@ -38,7 +38,11 @@ void CycleFinder::accept(Type& type) {
     if (auto* p = dynamic_cast<Pointer*>(&from)) {
       p->setPointeeType(edge);
     } else if (auto* c = dynamic_cast<Container*>(&from)) {
-      throw std::runtime_error("TODO: cycle is from a Container");
+      for (auto& param : c->templateParams) {
+        if (param.type() == &type) {
+          param.setType(&edge);
+        }
+      }
     } else {
       throw std::logic_error(
           "all cycles are expected to come from a Pointer or Container");

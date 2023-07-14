@@ -72,6 +72,10 @@ ContainerInfo& getContainerInfo(std::string_view name) {
     static ContainerInfo info{"std::allocator", DUMMY_TYPE, "memory"};
     return info;
   }
+  if (name == "std::unique_ptr") {
+    static ContainerInfo info{"std::unique_ptr", UNIQ_PTR_TYPE, "memory"};
+    return info;
+  }
   throw TypeGraphParserError{"Unsupported container: " + std::string{name}};
 }
 

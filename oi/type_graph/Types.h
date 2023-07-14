@@ -158,6 +158,10 @@ class TemplateParam {
   TemplateParam(std::string value) : value(std::move(value)) {
   }
 
+  void setType(Type* type) {
+    type_ = type;
+  }
+
   Type* type() const {
     return type_;
   }
