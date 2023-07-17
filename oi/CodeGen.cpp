@@ -663,13 +663,14 @@ void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
   // the entire type instead of delegating the next part.
   std::string traverser;
   {
-    if (!c.members.empty()) {
-      traverser = "auto ret = returnArg";
-    }
     for (size_t i = 0; i < lastNonPaddingElement + 1; i++) {
       const auto& member = c.members[i];
       if (member.name.starts_with(type_graph::AddPadding::MemberPrefix)) {
         continue;
+      }
+
+      if (traverser.empty()) {
+        traverser = "auto ret = returnArg";
       }
 
       if (thriftIssetMember != nullptr && thriftIssetMember != &member) {
