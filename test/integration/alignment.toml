@@ -25,6 +25,11 @@ definitions = '''
     alignas(32) char c32;
   };
 
+  union UnionMember {
+    char c1;
+    alignas(32) char c2;
+  };
+
   struct MemberAlignmentOverriden {
     char c;
     alignas(32) Align16 alignmentIncreased;
@@ -106,6 +111,22 @@ definitions = '''
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
+  [cases.wrapper_union_member]
+    param_types = ["const Wrapper<UnionMember>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 64, "exclusiveSize": 31, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "UnionMember", "staticSize": 32, "exclusiveSize": 32, "NOT":"members"}
+    ]}]'''
+  [cases.container_union_member]
+    skip = "container alignment is broken (#143)"
+    param_types = ["const std::optional<UnionMember>&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 64, "exclusiveSize": 32, "members": [
+        {"typeName": "UnionMember", "staticSize": 32, "exclusiveSize": 32, "NOT":"members"}
+    ]}]'''
   [cases.wrapper_member_override]
     param_types = ["const Wrapper<MemberAlignmentOverriden>&"]
     setup = "return {};"
