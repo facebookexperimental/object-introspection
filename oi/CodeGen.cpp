@@ -783,6 +783,8 @@ void CodeGen::addDrgnRoot(struct drgn_type* drgnType,
 
 void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
   type_graph::PassManager pm;
+
+  // 1. Transformation passes
   pm.addPass(type_graph::Flattener::createPass());
   pm.addPass(type_graph::TypeIdentifier::createPass(config_.passThroughTypes));
   if (config_.features[Feature::PolymorphicInheritance]) {
@@ -796,11 +798,16 @@ void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
         type_graph::TypeIdentifier::createPass(config_.passThroughTypes));
   }
   pm.addPass(type_graph::RemoveIgnored::createPass(config_.membersToStub));
+  pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
+
+  // 2. Fixup passes to repair type graph after partial transformations
   pm.addPass(type_graph::AddPadding::createPass(config_.features));
+
+  // 3. Annotation passes
   pm.addPass(type_graph::NameGen::createPass());
   pm.addPass(type_graph::AlignmentCalc::createPass());
-  pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
   pm.addPass(type_graph::TopoSorter::createPass());
+
   pm.run(typeGraph);
 
   LOG(INFO) << "Sorted types:\n";
