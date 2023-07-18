@@ -58,6 +58,9 @@ class AddPadding final : public RecursiveVisitor {
   void addPadding(const Member& prevMember,
                   uint64_t paddingEndBits,
                   std::vector<Member>& paddedMembers);
+  void addPadding(uint64_t paddingStartBits,
+                  uint64_t paddingEndBits,
+                  std::vector<Member>& paddedMembers);
 };
 
 }  // namespace type_graph

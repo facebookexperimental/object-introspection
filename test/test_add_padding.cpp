@@ -176,6 +176,9 @@ TEST(AddPaddingTest, MemberlessClass) {
 )",
        R"(
 [0] Class: MyClass (size: 12)
+      Member: __oi_padding (offset: 0)
+[1]     Array: (length: 12)
+          Primitive: int8_t
 )");
 }
 
