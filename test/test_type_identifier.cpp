@@ -234,3 +234,124 @@ TEST(TypeIdentifierTest, DummyAllocatorNotReplaced) {
           Primitive: int32_t
 )");
 }
+
+TEST(TypeIdentifierTest, ClassParam) {
+  test(TypeIdentifier::createPass({}), R"(
+[0] Class: MyClass (size: 0)
+      Param
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Param
+[2]         Struct: MyParam (size: 4)
+              Member: a (offset: 0)
+                Primitive: int32_t
+)",
+       R"(
+[0] Class: MyClass (size: 0)
+      Param
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Param
+            Dummy (size: 4)
+)");
+}
+
+TEST(TypeIdentifierTest, ClassParent) {
+  test(TypeIdentifier::createPass({}), R"(
+[0] Class: MyClass (size: 0)
+      Parent (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Param
+[2]         Struct: MyParam (size: 4)
+              Member: a (offset: 0)
+                Primitive: int32_t
+)",
+       R"(
+[0] Class: MyClass (size: 0)
+      Parent (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Param
+            Dummy (size: 4)
+)");
+}
+
+TEST(TypeIdentifierTest, ClassMember) {
+  test(TypeIdentifier::createPass({}), R"(
+[0] Class: MyClass (size: 0)
+      Member: xxx (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Param
+[2]         Struct: MyParam (size: 4)
+              Member: a (offset: 0)
+                Primitive: int32_t
+)",
+       R"(
+[0] Class: MyClass (size: 0)
+      Member: xxx (offset: 0)
+[1]     Container: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Param
+            Dummy (size: 4)
+)");
+}
+
+TEST(TypeIdentifierTest, ClassChild) {
+  test(TypeIdentifier::createPass({}), R"(
+[0] Class: MyClass (size: 0)
+      Child
+[1]     Class: ChildClass (size: 0)
+          Parent (offset: 0)
+            [0]
+          Member: c (offset: 0)
+[2]         Container: std::vector (size: 24)
+              Param
+                Primitive: int32_t
+              Param
+[3]             Struct: MyParam (size: 4)
+                  Member: a (offset: 0)
+                    Primitive: int32_t
+)",
+       R"(
+[0] Class: MyClass (size: 0)
+      Child
+[1]     Class: ChildClass (size: 0)
+          Parent (offset: 0)
+            [0]
+          Member: c (offset: 0)
+[2]         Container: std::vector (size: 24)
+              Param
+                Primitive: int32_t
+              Param
+                Dummy (size: 4)
+)");
+}
+
+TEST(TypeIdentifierTest, Union) {
+  test(TypeIdentifier::createPass({}), R"(
+[0] Union: MyUnion (size: 12)
+      Member: a (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 4)
+        Primitive: int32_t
+      Member: c (offset: 8)
+        Primitive: int32_t
+)",
+       R"(
+[0] Union: MyUnion (size: 12)
+      Member: a (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 4)
+        Primitive: int32_t
+      Member: c (offset: 8)
+        Primitive: int32_t
+)");
+}
