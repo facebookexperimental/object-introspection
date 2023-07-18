@@ -38,10 +38,14 @@ void test(type_graph::Pass pass,
   input.remove_prefix(1);  // Remove initial '\n'
   TypeGraph typeGraph;
   TypeGraphParser parser{typeGraph};
-  parser.parse(input);
+  try {
+    parser.parse(input);
+  } catch (const TypeGraphParserError& err) {
+    FAIL() << "Error parsing input graph: " << err.what();
+  }
 
   // Validate input formatting
-  check(typeGraph.rootTypes(), input, " parsing input graph");
+  check(typeGraph.rootTypes(), input, "parsing input graph");
 
   // Run pass and check results
   test(pass, typeGraph.rootTypes(), expectedAfter);
@@ -51,10 +55,14 @@ void testNoChange(type_graph::Pass pass, std::string_view input) {
   input.remove_prefix(1);  // Remove initial '\n'
   TypeGraph typeGraph;
   TypeGraphParser parser{typeGraph};
-  parser.parse(input);
+  try {
+    parser.parse(input);
+  } catch (const TypeGraphParserError& err) {
+    FAIL() << "Error parsing input graph: " << err.what();
+  }
 
   // Validate input formatting
-  check(typeGraph.rootTypes(), input, " parsing input graph");
+  check(typeGraph.rootTypes(), input, "parsing input graph");
 
   // Run pass and check results
   test(pass, typeGraph.rootTypes(), input);

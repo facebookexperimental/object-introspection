@@ -49,7 +49,8 @@ Primitive::Kind getKind(std::string_view kindStr) {
     return Primitive::Kind::UIntPtr;
   if (kindStr == "void")
     return Primitive::Kind::Void;
-  throw std::runtime_error("Invalid Primitive::Kind: " + std::string{kindStr});
+  throw TypeGraphParserError{"Invalid Primitive::Kind: " +
+                             std::string{kindStr}};
 }
 
 ContainerInfo getContainerInfo(std::string_view name) {
@@ -71,14 +72,14 @@ ContainerInfo getContainerInfo(std::string_view name) {
     ContainerInfo info{"std::allocator", DUMMY_TYPE, "memory"};
     return info;
   }
-  throw std::runtime_error("Unsupported container: " + std::string{name});
+  throw TypeGraphParserError{"Unsupported container: " + std::string{name}};
 }
 
 Qualifier getQualifier(std::string_view line) {
   if (line == "const") {
     return Qualifier::Const;
   }
-  throw std::runtime_error("Unsupported qualifier: " + std::string{line});
+  throw TypeGraphParserError{"Unsupported qualifier: " + std::string{line}};
 }
 
 size_t stripIndent(std::string_view& line) {
@@ -96,9 +97,9 @@ bool tryRemovePrefix(std::string_view& line, std::string_view prefix) {
 
 void removePrefix(std::string_view& line, std::string_view prefix) {
   if (!tryRemovePrefix(line, prefix))
-    throw std::runtime_error("Unexpected line prefix. Expected '" +
-                             std::string{prefix} + "'. Got '" +
-                             std::string{line} + "'.");
+    throw TypeGraphParserError{"Unexpected line prefix. Expected '" +
+                               std::string{prefix} + "'. Got '" +
+                               std::string{line} + "'."};
 }
 
 std::optional<uint64_t> tryParseIntAttribute(std::string_view line,
@@ -120,9 +121,9 @@ uint64_t parseIntAttribute(std::string_view line,
                            std::string_view marker) {
   auto val = tryParseIntAttribute(line, marker);
   if (!val)
-    throw std::runtime_error(std::string{type} + " must have an attribute: '" +
-                             std::string{marker} + "'. Got: '" +
-                             std::string{line} + "'");
+    throw TypeGraphParserError{
+        std::string{type} + " must have an attribute: '" + std::string{marker} +
+        "'. Got: '" + std::string{line} + "'"};
   return *val;
 }
 
@@ -186,8 +187,8 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
 
   size_t indent = stripIndent(line) + idLen;
   if (indent != rootIndent)
-    throw std::runtime_error("Unexpected indent for line: " +
-                             std::string{line});
+    throw TypeGraphParserError{"Unexpected indent for line: " +
+                               std::string{line}};
 
   auto nodeEndPos = line.find_first_of(": \n");
   auto nodeTypeName = line.substr(0, nodeEndPos);
@@ -196,8 +197,8 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
   if (NodeId refId = getId(nodeTypeName); refId != -1) {
     auto it = nodesById_.find(refId);
     if (it == nodesById_.end())
-      throw std::runtime_error("Node ID referenced before definition: " +
-                               std::to_string(refId));
+      throw TypeGraphParserError{"Node ID referenced before definition: " +
+                                 std::to_string(refId)};
 
     type = &it->second.get();
   } else if (nodeTypeName == "Class" || nodeTypeName == "Struct" ||
@@ -281,8 +282,8 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
     type = &typeGraph_.makeType<Pointer>(id, pointeeType);
     nodesById_.insert({id, *type});
   } else {
-    throw std::runtime_error("Unsupported node type: " +
-                             std::string{nodeTypeName});
+    throw TypeGraphParserError{"Unsupported node type: " +
+                               std::string{nodeTypeName}};
   }
 
   return *type;
@@ -413,7 +414,7 @@ void TypeGraphParser::parseChildren(Class& c,
     Type& type = parseType(input, rootIndent + 2);
     auto* childClass = dynamic_cast<Class*>(&type);
     if (!childClass)
-      throw std::runtime_error("Invalid type for child");
+      throw TypeGraphParserError{"Invalid type for child"};
 
     c.children.push_back(*childClass);
   }
