@@ -10,6 +10,7 @@ definitions = '''
     MyUnion(int n_) : n(n_) {}
     MyUnion(const std::vector<int>& vec_) : vec(vec_) {}
     MyUnion(const std::unordered_map<std::string, std::string>& map_) : map(map_) {}
+    MyUnion(const MyUnion& /*other*/) { /* we don't know which field to copy */ }
     ~MyUnion() {}
   };
 
@@ -52,6 +53,17 @@ definitions = '''
     param_types = ["const MyUnion&"]
     setup = 'return std::unordered_map<std::string, std::string>{{"a", "b"}, {"c","d"}};'
     expect_json = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}]'
+
+  [cases.alignment]
+    # Wrap the union in a pair as a way of inferring its alignment
+    param_types = ["const std::pair<char, MyUnion>&"]
+    setup = 'return {{0, MyUnion{123}}};'
+    expect_json = '''[
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
+        {"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}
+      ]}]'''
+
   [cases.tagged_int]
     param_types = ["const TaggedUnion&"]
     setup = "return TaggedUnion{MyUnion{123}, 0};"
