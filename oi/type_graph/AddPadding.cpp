@@ -89,6 +89,9 @@ void AddPadding::visit(Class& c) {
 
   if (!c.members.empty()) {
     addPadding(c.members.back(), c.size() * 8, paddedMembers);
+  } else {
+    // Pad out empty classes
+    addPadding(0, c.size() * 8, paddedMembers);
   }
 
   c.members = std::move(paddedMembers);
@@ -109,7 +112,14 @@ void AddPadding::addPadding(const Member& prevMember,
   }
 
   uint64_t prevMemberEndBits = prevMember.bitOffset + prevMemberSizeBits;
-  uint64_t paddingBits = paddingEndBits - prevMemberEndBits;
+
+  addPadding(prevMemberEndBits, paddingEndBits, paddedMembers);
+}
+
+void AddPadding::addPadding(uint64_t paddingStartBits,
+                            uint64_t paddingEndBits,
+                            std::vector<Member>& paddedMembers) {
+  uint64_t paddingBits = paddingEndBits - paddingStartBits;
   if (paddingBits == 0)
     return;
 
@@ -117,11 +127,11 @@ void AddPadding::addPadding(const Member& prevMember,
     // Pad with an array of bytes
     auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
     auto& paddingArray = typeGraph_.makeType<Array>(primitive, paddingBits / 8);
-    paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEndBits);
+    paddedMembers.emplace_back(paddingArray, MemberPrefix, paddingStartBits);
   } else {
     // Pad with a bitfield
     auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int64);
-    paddedMembers.emplace_back(primitive, MemberPrefix, prevMemberEndBits,
+    paddedMembers.emplace_back(primitive, MemberPrefix, paddingStartBits,
                                paddingBits);
   }
 }
