@@ -53,23 +53,23 @@ Primitive::Kind getKind(std::string_view kindStr) {
                              std::string{kindStr}};
 }
 
-ContainerInfo getContainerInfo(std::string_view name) {
+ContainerInfo& getContainerInfo(std::string_view name) {
   if (name == "std::vector") {
-    ContainerInfo info{"std::vector", SEQ_TYPE, "vector"};
+    static ContainerInfo info{"std::vector", SEQ_TYPE, "vector"};
     info.stubTemplateParams = {1};
     return info;
   }
   if (name == "std::map") {
-    ContainerInfo info{"std::map", STD_MAP_TYPE, "utility"};
+    static ContainerInfo info{"std::map", STD_MAP_TYPE, "utility"};
     info.stubTemplateParams = {2, 3};
     return info;
   }
   if (name == "std::pair") {
-    ContainerInfo info{"std::pair", SEQ_TYPE, "utility"};
+    static ContainerInfo info{"std::pair", SEQ_TYPE, "utility"};
     return info;
   }
   if (name == "std::allocator") {
-    ContainerInfo info{"std::allocator", DUMMY_TYPE, "memory"};
+    static ContainerInfo info{"std::allocator", DUMMY_TYPE, "memory"};
     return info;
   }
   throw TypeGraphParserError{"Unsupported container: " + std::string{name}};
@@ -242,7 +242,7 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
     auto nameEndPos = line.find('(', nameStartPos + 1);
     auto name = line.substr(nameStartPos, nameEndPos - nameStartPos - 1);
 
-    auto info = getContainerInfo(name);
+    auto& info = getContainerInfo(name);
 
     auto size = parseIntAttribute(line, nodeTypeName, "size: ");
 
