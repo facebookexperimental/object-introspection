@@ -55,7 +55,7 @@ TEST(AddPaddingTest, AtEnd) {
 )");
 }
 
-TEST(AddPaddingTest, UnionNotPadded) {
+TEST(AddPaddingTest, UnionBetweenMembers) {
   auto myclass = Class{0, Class::Kind::Union, "MyUnion", 8};
   auto myint8 = Primitive{Primitive::Kind::Int8};
   auto myint64 = Primitive{Primitive::Kind::Int64};
@@ -64,6 +64,23 @@ TEST(AddPaddingTest, UnionNotPadded) {
 
   test({myclass}, R"(
 [0] Union: MyUnion (size: 8)
+      Member: n1 (offset: 0)
+        Primitive: int64_t
+      Member: n2 (offset: 0)
+        Primitive: int8_t
+)");
+}
+
+TEST(AddPaddingTest, UnionAtEnd) {
+  test(AddPadding::createPass({}), R"(
+[0] Union: MyUnion (size: 16)
+      Member: n1 (offset: 0)
+        Primitive: int64_t
+      Member: n2 (offset: 0)
+        Primitive: int8_t
+)",
+       R"(
+[0] Union: MyUnion (size: 16)
       Member: n1 (offset: 0)
         Primitive: int64_t
       Member: n2 (offset: 0)
@@ -144,6 +161,30 @@ TEST(AddPaddingTest, CodeGenCompatibility) {
       Member: __oi_padding (offset: 0)
 [1]     Array: (length: 24)
           Primitive: int8_t
+)");
+}
+
+TEST(AddPaddingTest, EmptyClass) {
+  testNoChange(AddPadding::createPass({}), R"(
+[0] Class: MyClass (size: 0)
+)");
+}
+
+TEST(AddPaddingTest, MemberlessClass) {
+  test(AddPadding::createPass({}), R"(
+[0] Class: MyClass (size: 12)
+)",
+       R"(
+[0] Class: MyClass (size: 12)
+)");
+}
+
+TEST(AddPaddingTest, MemberlessUnion) {
+  test(AddPadding::createPass({}), R"(
+[0] Union: MyUnion (size: 16)
+)",
+       R"(
+[0] Union: MyUnion (size: 16)
 )");
 }
 
