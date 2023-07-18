@@ -20,7 +20,7 @@ void getSizeType(const %1% &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%));
 
-    const IOBuf *head = container.front();
+    const folly::IOBuf *head = container.front();
     SAVE_DATA((uintptr_t)head);
     if (head && pointers.add((uintptr_t)head)) {
         SAVE_DATA(1);
