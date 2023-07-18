@@ -61,7 +61,14 @@ void AddPadding::visit(Class& c) {
   }
 
   if (c.kind() == Class::Kind::Union) {
-    // Don't pad unions
+    // Only apply padding to the full size of the union, not between members
+    for (const auto& member : c.members) {
+      if (member.bitsize == c.size() * 8 || member.type().size() == c.size())
+        return;  // Don't add padding to unions which don't need it
+    }
+    // This union's members aren't big enough to make up its size, so add a
+    // single padding member
+    addPadding(0, c.size() * 8, c.members);
     return;
   }
 
