@@ -85,6 +85,9 @@ TEST(AddPaddingTest, UnionAtEnd) {
         Primitive: int64_t
       Member: n2 (offset: 0)
         Primitive: int8_t
+      Member: __oi_padding (offset: 0)
+[1]     Array: (length: 16)
+          Primitive: int8_t
 )");
 }
 
@@ -188,6 +191,9 @@ TEST(AddPaddingTest, MemberlessUnion) {
 )",
        R"(
 [0] Union: MyUnion (size: 16)
+      Member: __oi_padding (offset: 0)
+[1]     Array: (length: 16)
+          Primitive: int8_t
 )");
 }
 
