@@ -165,3 +165,20 @@ TEST(AlignmentCalcTest, RecurseClassChild) {
             Primitive: int64_t
 )");
 }
+
+TEST(AlignmentCalcTest, Bitfields) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 8)
+      Member: a (offset: 0, bitsize: 2)
+        Primitive: int8_t
+      Member: b (offset: 0.25, bitsize: 30)
+        Primitive: int64_t
+)",
+       R"(
+[0] Class: MyClass (size: 8, align: 8)
+      Member: a (offset: 0, align: 1, bitsize: 2)
+        Primitive: int8_t
+      Member: b (offset: 0.25, align: 8, bitsize: 30)
+        Primitive: int64_t
+)");
+}
