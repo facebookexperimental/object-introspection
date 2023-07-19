@@ -28,6 +28,8 @@ namespace type_graph {
  *
  * Removes members as requested by the [[codegen.ignore]] section in the OI
  * config.
+ *
+ * Removes members from unions as we have no way of telling which one is active.
  */
 class RemoveMembers : public RecursiveVisitor {
  public:

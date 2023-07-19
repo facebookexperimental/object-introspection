@@ -185,3 +185,16 @@ TEST(RemoveMembersTest, RecurseClassChild) {
             Primitive: int32_t
 )");
 }
+
+TEST(RemoveMembersTest, Union) {
+  test(RemoveMembers::createPass({}), R"(
+[0] Union: MyUnion (size: 4)
+      Member: a (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 0)
+        Primitive: int32_t
+)",
+       R"(
+[0] Union: MyUnion (size: 4)
+)");
+}
