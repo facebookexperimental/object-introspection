@@ -81,3 +81,87 @@ TEST(AlignmentCalcTest, Packed) {
         Primitive: int64_t
 )");
 }
+
+TEST(AlignmentCalcTest, RecurseClassParam) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 0)
+      Param
+[1]     Class: ClassA (size: 16)
+          Member: a (offset: 0)
+            Primitive: int8_t
+          Member: b (offset: 4)
+            Primitive: int64_t
+)",
+       R"(
+[0] Class: MyClass (size: 0, align: 1)
+      Param
+[1]     Class: ClassA (size: 16, align: 8)
+          Member: a (offset: 0, align: 1)
+            Primitive: int8_t
+          Member: b (offset: 4, align: 8)
+            Primitive: int64_t
+)");
+}
+
+TEST(AlignmentCalcTest, RecurseClassParent) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 0)
+      Parent (offset: 0)
+[1]     Class: ClassA (size: 16)
+          Member: a (offset: 0)
+            Primitive: int8_t
+          Member: b (offset: 4)
+            Primitive: int64_t
+)",
+       R"(
+[0] Class: MyClass (size: 0, align: 1)
+      Parent (offset: 0)
+[1]     Class: ClassA (size: 16, align: 8)
+          Member: a (offset: 0, align: 1)
+            Primitive: int8_t
+          Member: b (offset: 4, align: 8)
+            Primitive: int64_t
+)");
+}
+
+TEST(AlignmentCalcTest, RecurseClassMember) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 0)
+      Member: xxx (offset: 0)
+[1]     Class: ClassA (size: 16)
+          Member: a (offset: 0)
+            Primitive: int8_t
+          Member: b (offset: 4)
+            Primitive: int64_t
+)",
+       R"(
+[0] Class: MyClass (size: 0, align: 8)
+      Member: xxx (offset: 0, align: 8)
+[1]     Class: ClassA (size: 16, align: 8)
+          Member: a (offset: 0, align: 1)
+            Primitive: int8_t
+          Member: b (offset: 4, align: 8)
+            Primitive: int64_t
+)");
+}
+
+TEST(AlignmentCalcTest, RecurseClassChild) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 0)
+      Child
+[1]     Class: ClassA (size: 16)
+          Member: a (offset: 0)
+            Primitive: int8_t
+          Member: b (offset: 4)
+            Primitive: int64_t
+)",
+       R"(
+[0] Class: MyClass (size: 0, align: 1)
+      Child
+[1]     Class: ClassA (size: 16, align: 8)
+          Member: a (offset: 0, align: 1)
+            Primitive: int8_t
+          Member: b (offset: 4, align: 8)
+            Primitive: int64_t
+)");
+}
