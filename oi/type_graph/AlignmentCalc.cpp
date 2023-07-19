@@ -47,11 +47,16 @@ void AlignmentCalc::accept(Type& type) {
   type.accept(*this);
 }
 
-// TODO we will need to calculate alignment for c.templateParams too??
-// TODO same for children. test this
 void AlignmentCalc::visit(Class& c) {
-  // AlignmentCalc should be run after Flattener
-  assert(c.parents.empty());
+  for (const auto& param : c.templateParams) {
+    accept(param.type());
+  }
+  for (const auto& parent : c.parents) {
+    accept(parent.type());
+  }
+  for (const auto& child : c.children) {
+    accept(child);
+  }
 
   uint64_t alignment = 1;
   for (auto& member : c.members) {
