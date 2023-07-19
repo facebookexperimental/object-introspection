@@ -130,16 +130,24 @@ void AddPadding::addPadding(uint64_t paddingStartBits,
   if (paddingBits == 0)
     return;
 
-  if (paddingBits % 8 == 0) {
-    // Pad with an array of bytes
-    auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
-    auto& paddingArray = typeGraph_.makeType<Array>(primitive, paddingBits / 8);
-    paddedMembers.emplace_back(paddingArray, MemberPrefix, paddingStartBits);
-  } else {
-    // Pad with a bitfield
-    auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int64);
+  // We must only use Int8s for padding in order to not accidentally increase
+  // the alignment requirements of this type. This applies to bitfield padding
+  // as well.
+  auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
+
+  if (paddingBits % 8 != 0) {
+    // Pad with a bitfield up to the next byte
     paddedMembers.emplace_back(primitive, MemberPrefix, paddingStartBits,
-                               paddingBits);
+                               paddingBits % 8);
+  }
+
+  uint64_t paddingBytes = paddingBits / 8;
+  if (paddingBytes > 0) {
+    // Pad with an array of bytes
+    uint64_t paddingStartByte = (paddingStartBits + 7) / 8;
+    auto& paddingArray = typeGraph_.makeType<Array>(primitive, paddingBytes);
+    paddedMembers.emplace_back(paddingArray, MemberPrefix,
+                               paddingStartByte * 8);
   }
 }
 

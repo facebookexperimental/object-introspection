@@ -124,20 +124,23 @@ TEST(AddPaddingTest, Bitfields) {
       Member: b2 (offset: 0.375, bitsize: 2)
         Primitive: int8_t
       Member: __oi_padding (offset: 0.625, bitsize: 3)
-        Primitive: int64_t
+        Primitive: int8_t
       Member: b3 (offset: 1, bitsize: 1)
         Primitive: int8_t
-      Member: __oi_padding (offset: 1.125, bitsize: 55)
-        Primitive: int64_t
+      Member: __oi_padding (offset: 1.125, bitsize: 7)
+        Primitive: int8_t
+      Member: __oi_padding (offset: 2)
+[1]     Array: (length: 6)
+          Primitive: int8_t
       Member: b4 (offset: 8, bitsize: 24)
         Primitive: int64_t
       Member: __oi_padding (offset: 11)
-[1]     Array: (length: 1)
+[2]     Array: (length: 1)
           Primitive: int8_t
       Member: n (offset: 12)
         Primitive: int16_t
       Member: __oi_padding (offset: 14)
-[2]     Array: (length: 2)
+[3]     Array: (length: 2)
           Primitive: int8_t
 )");
 }
