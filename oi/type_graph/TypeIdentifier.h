@@ -48,7 +48,6 @@ class TypeIdentifier : public RecursiveVisitor {
   using RecursiveVisitor::accept;
 
   void accept(Type& type) override;
-  void visit(Class& c) override;
   void visit(Container& c) override;
 
  private:

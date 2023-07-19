@@ -41,6 +41,19 @@ void RemoveIgnored::accept(Type& type) {
 }
 
 void RemoveIgnored::visit(Class& c) {
+  for (const auto& param : c.templateParams) {
+    accept(param.type());
+  }
+  for (const auto& parent : c.parents) {
+    accept(parent.type());
+  }
+  for (const auto& mem : c.members) {
+    accept(mem.type());
+  }
+  for (const auto& child : c.children) {
+    accept(child);
+  }
+
   for (size_t i = 0; i < c.members.size(); i++) {
     if (!ignoreMember(c.name(), c.members[i].name)) {
       continue;

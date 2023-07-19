@@ -55,21 +55,6 @@ void TypeIdentifier::accept(Type& type) {
   type.accept(*this);
 }
 
-void TypeIdentifier::visit(Class& c) {
-  for (const auto& param : c.templateParams) {
-    accept(param.type());
-  }
-  for (const auto& parent : c.parents) {
-    accept(parent.type());
-  }
-  for (const auto& mem : c.members) {
-    accept(mem.type());
-  }
-  for (const auto& child : c.children) {
-    accept(child);
-  }
-}
-
 void TypeIdentifier::visit(Container& c) {
   const auto& stubParams = c.containerInfo_.stubTemplateParams;
   // TODO these two arrays could be looped over in sync for better performance
