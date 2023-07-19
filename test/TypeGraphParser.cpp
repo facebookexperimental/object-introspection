@@ -102,28 +102,28 @@ void removePrefix(std::string_view& line, std::string_view prefix) {
                                std::string{line} + "'."};
 }
 
-std::optional<uint64_t> tryParseIntAttribute(std::string_view line,
-                                             std::string_view marker) {
+std::optional<double> tryParseNumericAttribute(std::string_view line,
+                                               std::string_view marker) {
   auto attrStartPos = line.find(marker);
   if (attrStartPos == line.npos)
     return {};
 
   auto valStartPos = attrStartPos + marker.size();
-  auto valEndPos = line.find_first_not_of("0123456789", valStartPos);
+  auto valEndPos = line.find_first_not_of("0123456789.", valStartPos);
 
   auto valStr = line.substr(valStartPos, valEndPos);
-  uint64_t val = std::stoi(std::string{valStr});  // Makes a string copy :'(
+  double val = std::stod(std::string{valStr});  // Makes a string copy :'(
   return val;
 }
 
-uint64_t parseIntAttribute(std::string_view line,
-                           std::string_view type,
-                           std::string_view marker) {
-  auto val = tryParseIntAttribute(line, marker);
+double parseNumericAttribute(std::string_view line,
+                             std::string_view type,
+                             std::string_view marker) {
+  auto val = tryParseNumericAttribute(line, marker);
   if (!val)
     throw TypeGraphParserError{
-        std::string{type} + " must have an attribute: '" + std::string{marker} +
-        "'. Got: '" + std::string{line} + "'"};
+        std::string{type} + " must have a numeric attribute: '" +
+        std::string{marker} + "'. Got: '" + std::string{line} + "'"};
   return *val;
 }
 
@@ -219,12 +219,12 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
     auto nameEndPos = line.find('(', nameStartPos + 1);
     auto name = line.substr(nameStartPos, nameEndPos - nameStartPos - 1);
 
-    auto size = parseIntAttribute(line, nodeTypeName, "size: ");
-    auto align = tryParseIntAttribute(line, "align: ");
+    auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
+    auto align = tryParseNumericAttribute(line, "align: ");
 
     Class& c = typeGraph_.makeType<Class>(id, kind, std::string{name}, size);
     if (align)
-      c.setAlign(*align);
+      c.setAlign(static_cast<uint64_t>(*align));
     nodesById_.insert({id, c});
 
     parseParams(c, input, indent + 2);
@@ -244,7 +244,7 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
 
     auto& info = getContainerInfo(name);
 
-    auto size = parseIntAttribute(line, nodeTypeName, "size: ");
+    auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
 
     Container& c = typeGraph_.makeType<Container>(id, info, size);
     nodesById_.insert({id, c});
@@ -262,11 +262,11 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
     removePrefix(line, "Enum: ");
     auto nameEndPos = line.find(' ');
     auto name = line.substr(0, nameEndPos);
-    auto size = parseIntAttribute(line, nodeTypeName, "size: ");
+    auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
     type = &typeGraph_.makeType<Enum>(std::string{name}, size);
   } else if (nodeTypeName == "Array") {
     // Format: "Array: (length: 5)
-    auto len = parseIntAttribute(line, nodeTypeName, "length: ");
+    auto len = parseNumericAttribute(line, nodeTypeName, "length: ");
     auto& elementType = parseType(input, indent + 2);
     type = &typeGraph_.makeType<Array>(id, elementType, len);
   } else if (nodeTypeName == "Typedef") {
@@ -337,7 +337,7 @@ void TypeGraphParser::parseParents(Class& c,
     if (!tryRemovePrefix(line, "Parent "))
       break;
 
-    auto offset = parseIntAttribute(line, "Parent", "offset: ");
+    auto offset = parseNumericAttribute(line, "Parent", "offset: ");
     Type& type = parseType(input, rootIndent + 2);
 
     c.parents.emplace_back(type, offset * 8);
@@ -361,13 +361,16 @@ void TypeGraphParser::parseMembers(Class& c,
 
     auto nameEndPos = line.find(' ');
     auto name = line.substr(0, nameEndPos);
-    auto offset = parseIntAttribute(line, "Member", "offset: ");
-    auto align = tryParseIntAttribute(line, "align: ");
+    auto offset = parseNumericAttribute(line, "Member", "offset: ");
+    auto align = tryParseNumericAttribute(line, "align: ");
+    auto bitsize = tryParseNumericAttribute(line, "bitsize: ");
     Type& type = parseType(input, rootIndent + 2);
 
-    Member member{type, std::string{name}, offset * 8};
+    Member member{type, std::string{name}, static_cast<uint64_t>(offset * 8)};
     if (align)
-      member.align = *align;
+      member.align = static_cast<uint64_t>(*align);
+    if (bitsize)
+      member.bitsize = static_cast<uint64_t>(*bitsize);
 
     c.members.push_back(member);
   }
