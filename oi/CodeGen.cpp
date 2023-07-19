@@ -251,6 +251,13 @@ void genDefsClass(const Class& c, std::string& code) {
     code += "__attribute__((__packed__)) ";
   }
 
+  if (c.kind() == Class::Kind::Union) {
+    // Need to specify alignment manually for unions as their members have been
+    // removed. It would be nice to do this for all types, but our alignment
+    // information is not complete, so it would result in some errors.
+    code += "alignas(" + std::to_string(c.align()) + ") ";
+  }
+
   code += c.name() + " {\n";
   for (const auto& mem : c.members) {
     code += "  " + mem.type().name() + " " + mem.name;

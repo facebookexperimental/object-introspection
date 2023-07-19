@@ -41,6 +41,12 @@ void RemoveMembers::accept(Type& type) {
 }
 
 void RemoveMembers::visit(Class& c) {
+  if (c.kind() == Class::Kind::Union) {
+    // In general, we can't tell which member is active in a union, so it is not
+    // safe to try and measure any of them.
+    c.members.clear();
+  }
+
   for (const auto& param : c.templateParams) {
     accept(param.type());
   }

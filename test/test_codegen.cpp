@@ -201,9 +201,8 @@ TEST(CodeGenTest, UnionMembersAlignment) {
 )",
                 R"(
 [0] Union: MyUnion_0 (size: 8, align: 8)
-      Member: a_0 (offset: 0, align: 1)
-        Primitive: int8_t
-      Member: b_1 (offset: 8, align: 8)
-        Primitive: int64_t
+      Member: __oi_padding_0 (offset: 0)
+[1]     Array: (length: 8)
+          Primitive: int8_t
 )");
 }
