@@ -54,6 +54,16 @@ target_compile_options(stl_logging_unittest PRIVATE "-w")
 target_compile_options(symbolize_unittest PRIVATE "-w")
 target_compile_options(utilities_unittest PRIVATE "-w")
 
+### googletest
+# Do this in the main file so it can be fetched before setting project warnings.
+# After this is fixed with FetchContent, move to test/CMakeLists.txt.
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        1ed6a8c67a0bd675149ece27bbec0ef1759854cf
+)
+FetchContent_MakeAvailable(googletest)
+
 ### rocksdb
 FetchContent_Declare(
     rocksdb

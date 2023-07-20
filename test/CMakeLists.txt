@@ -1,16 +1,3 @@
-find_package(GTest REQUIRED)
-if (TARGET GTest::gmock_main)
-  # Only modern version of GTest defines the gmock_main target
-  set(GMOCK_MAIN_LIBS GTest::gmock_main)
-else()
-  # To support older version of the lib,
-  # We manually locate the lib and its dependencies instead
-  find_library(GMOCK_MAIN_LIB NAMES libgmock_main.a REQUIRED)
-  find_library(GMOCK_LIB NAMES libgmock.a REQUIRED)
-  set(GMOCK_MAIN_LIBS ${GMOCK_MAIN_LIB} ${GMOCK_LIB} GTest::GTest)
-endif()
-message(STATUS "Using GMockMain: ${GMOCK_MAIN_LIBS}")
-
 enable_testing()
 include(GoogleTest)
 
@@ -28,7 +15,7 @@ function(cpp_unittest)
 
   target_link_libraries(
     ${TEST_NAME}
-    ${GMOCK_MAIN_LIBS} glog
+    GTest::gmock_main glog
     ${TEST_DEPS}
   )
 
@@ -73,7 +60,7 @@ target_link_libraries(test_type_graph
   container_info
   type_graph
 
-  ${GMOCK_MAIN_LIBS}
+  GTest::gmock_main
 )
 include(GoogleTest)
 gtest_discover_tests(test_type_graph)

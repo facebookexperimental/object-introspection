@@ -54,9 +54,8 @@ target_link_libraries(integration_test_target PRIVATE oil Boost::headers ${Boost
 
 add_executable(integration_test_runner ${INTEGRATION_TEST_RUNNER_SRC} runner_common.cpp)
 target_include_directories(integration_test_runner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-# GMOCK_MAIN_LIBS is set in test/CMakeLists.txt
 target_link_libraries(integration_test_runner PRIVATE
-  ${GMOCK_MAIN_LIBS}
+  GTest::gmock_main
   Boost::headers
   ${Boost_LIBRARIES}
   toml
