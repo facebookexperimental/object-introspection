@@ -64,7 +64,7 @@ class OIDebugger {
   OIDebugger::processTrapRet processTrap(pid_t, bool = true, bool = true);
   bool contTargetThread(bool detach = true) const;
   bool isGlobalDataProbeEnabled(void) const;
-  static uint64_t singlestepInst(pid_t, struct user_regs_struct&);
+  static uint64_t singleStepInst(pid_t, struct user_regs_struct&);
   static bool singleStepFunc(pid_t, uint64_t);
   bool parseScript(std::istream& script);
   bool patchFunctions();
