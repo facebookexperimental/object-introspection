@@ -14,6 +14,12 @@ definitions = '''
     int value;
     std::shared_ptr<struct SharedNode> next;
   };
+
+  template <typename T>
+  struct Wrapper {
+    Wrapper(T t_) : t(t_) {};
+    T t;
+  };
 '''
 [cases]
   [cases.raw_ptr]
@@ -87,6 +93,64 @@ definitions = '''
         ]
       }
     ]
+    '''
+
+  [cases.raw_ptr_wrapped]
+    oil_disable = "oil can't chase pointers safely"
+    param_types = ["Wrapper<RawNode*>&"]
+    setup = '''
+      RawNode *first  = new RawNode{1, nullptr};
+      RawNode *second = new RawNode{2, nullptr};
+      RawNode *third  = new RawNode{3, nullptr};
+      first->next = second;
+      second->next = third;
+      third->next = first;
+      return Wrapper<RawNode*>(first);
+    '''
+    cli_options = ["-fchase-raw-pointers"]
+    expect_json = '''[{
+      "staticSize": 8,
+      "dynamicSize": 48,
+      "members": [{
+        "name": "t",
+        "typeName": "struct RawNode *",
+        "staticSize": 8,
+        "dynamicSize": 48,
+        "members": [{
+          "typeName": "RawNode",
+          "staticSize": 16,
+          "dynamicSize": 32,
+          "members": [
+            { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
+            {
+              "name": "next",
+              "typeName": "struct RawNode *",
+              "staticSize": 8,
+              "dynamicSize": 32,
+              "members": [{
+                "typeName": "RawNode",
+                "staticSize": 16,
+                "dynamicSize": 16,
+                "members": [
+                  { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
+                  {
+                    "name": "next",
+                    "typeName": "struct RawNode *",
+                    "staticSize": 8,
+                    "dynamicSize": 16,
+                    "members": [{
+                      "typeName": "RawNode",
+                      "staticSize": 16,
+                      "dynamicSize": 0,
+                      "members": [
+                        { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
+                        {
+                          "name": "next",
+                          "typeName": "struct RawNode *",
+                          "staticSize": 8,
+                          "dynamicSize": 0
+                        }
+    ]}]}]}]}]}]}]}]
     '''
 
   [cases.unique_ptr]
