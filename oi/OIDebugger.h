@@ -235,6 +235,7 @@ class OIDebugger {
   static bool isExtendedWait(int);
   void dumpAlltaskStates(void);
   std::optional<std::vector<uintptr_t>> findRetLocs(FuncDesc&);
+  bool contTargetThread(pid_t, unsigned long = 0) const;
 
   OICompiler::Config compilerConfig{};
   const OICodeGen::Config& generatorConfig;
