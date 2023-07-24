@@ -427,6 +427,17 @@ Typedef& DrgnParser::enumerateTypedef(struct drgn_type* type) {
   return makeType<Typedef>(type, name, t);
 }
 
+static drgn_type* getPtrUnderlyingType(drgn_type* type) {
+  drgn_type* underlyingType = type;
+
+  while (drgn_type_kind(underlyingType) == DRGN_TYPE_POINTER ||
+         drgn_type_kind(underlyingType) == DRGN_TYPE_TYPEDEF) {
+    underlyingType = drgn_type_type(underlyingType).type;
+  }
+
+  return underlyingType;
+}
+
 Type& DrgnParser::enumeratePointer(struct drgn_type* type) {
   if (!chasePointer()) {
     return makeType<Primitive>(type, Primitive::Kind::UIntPtr);
@@ -434,7 +445,9 @@ Type& DrgnParser::enumeratePointer(struct drgn_type* type) {
 
   struct drgn_type* pointeeType = drgn_type_type(type).type;
 
-  // TODO why was old CodeGen following funciton pointers?
+  if (drgn_type_kind(getPtrUnderlyingType(type)) == DRGN_TYPE_FUNCTION) {
+    return makeType<Primitive>(type, Primitive::Kind::UIntPtr);
+  }
 
   Type& t = enumerateType(pointeeType);
   return makeType<Pointer>(type, t);

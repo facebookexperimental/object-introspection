@@ -543,9 +543,7 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
 [0] Pointer
 [1]   Class: A (size: 16)
         Member: _vptr$A (offset: 0)
-[2]       Pointer
-[3]         Pointer
-              Primitive: void
+          Primitive: uintptr_t
         Member: int_a (offset: 8)
           Primitive: int32_t
         Function: ~A (virtual)
@@ -557,9 +555,7 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
 [0] Pointer
 [1]   Class: A (size: 16)
         Member: _vptr.A (offset: 0)
-[2]       Pointer
-[3]         Pointer
-              Primitive: void
+          Primitive: uintptr_t
         Member: int_a (offset: 8)
           Primitive: int32_t
         Function: operator=
