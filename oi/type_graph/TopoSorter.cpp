@@ -69,7 +69,7 @@ void TopoSorter::visit(Class& c) {
   // Same as pointers, children do not create a dependency so are delayed until
   // the end.
   for (const auto& child : c.children) {
-    visitAfter(child);
+    acceptAfter(child);
   }
 }
 
@@ -103,7 +103,7 @@ void TopoSorter::visit(Container& c) {
   sortedTypes_.push_back(c);
   if (containerAllowsIncompleteParams(c)) {
     for (const auto& param : c.templateParams) {
-      visitAfter(param.type());
+      acceptAfter(param.type());
     }
   }
 }
@@ -118,9 +118,16 @@ void TopoSorter::visit(Typedef& td) {
 }
 
 void TopoSorter::visit(Pointer& p) {
+  if (dynamic_cast<Typedef*>(&p.pointeeType())) {
+    // Typedefs can not be forward declared, so we must sort them before
+    // pointers which reference them
+    accept(p.pointeeType());
+    return;
+  }
+
   // Pointers do not create a dependency, but we do still care about the types
   // they point to, so delay them until the end.
-  visitAfter(p.pointeeType());
+  acceptAfter(p.pointeeType());
 }
 
 /*
@@ -131,13 +138,13 @@ void TopoSorter::visit(Pointer& p) {
  * program. This means we can delay processing them until after all of the true
  * dependencies have been sorted.
  */
-void TopoSorter::visitAfter(Type& type) {
+void TopoSorter::acceptAfter(Type& type) {
   typesToSort_.push(type);
 }
 
-void TopoSorter::visitAfter(Type* type) {
+void TopoSorter::acceptAfter(Type* type) {
   if (type) {
-    visitAfter(*type);
+    acceptAfter(*type);
   }
 }
 

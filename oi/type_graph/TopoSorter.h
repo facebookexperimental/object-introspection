@@ -52,8 +52,8 @@ class TopoSorter : public RecursiveVisitor {
   std::vector<std::reference_wrapper<Type>> sortedTypes_;
   std::queue<std::reference_wrapper<Type>> typesToSort_;
 
-  void visitAfter(Type& type);
-  void visitAfter(Type* type);
+  void acceptAfter(Type& type);
+  void acceptAfter(Type* type);
 };
 
 }  // namespace type_graph
