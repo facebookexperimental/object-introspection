@@ -209,10 +209,16 @@ aliasA
 
 TEST(TopoSorterTest, Pointers) {
   // Pointers do not require pointee types to be defined first
-  auto myclass = Class{0, Class::Kind::Class, "MyClass", 69};
-  auto mypointer = Pointer{1, myclass};
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 69};
+  auto mypointer = Pointer{1, classA};
 
-  test({mypointer}, "MyClass");
+  auto myclass = Class{2, Class::Kind::Class, "MyClass", 69};
+  myclass.members.push_back(Member{mypointer, "ptr", 0});
+
+  test({myclass}, R"(
+MyClass
+ClassA
+)");
 }
 
 TEST(TopoSorterTest, PointerCycle) {
@@ -236,6 +242,22 @@ ClassB
 ClassA
 )");
   }
+}
+
+TEST(TopoSorterTest, PointerToTypedef) {
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 8};
+  auto aliasA = Typedef{1, "aliasA", classA};
+
+  auto mypointer = Pointer{1, aliasA};
+
+  auto myclass = Class{2, Class::Kind::Class, "MyClass", 69};
+  myclass.members.push_back(Member{mypointer, "ptrToTypedef", 0});
+
+  test({myclass}, R"(
+ClassA
+aliasA
+MyClass
+)");
 }
 
 TEST(TopoSorterTest, TwoDeep) {
