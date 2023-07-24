@@ -65,9 +65,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
 [0]  Pointer
 [1]    Class: A (size: 16)
          Member: _vptr$A (offset: 0)
-[2]        Pointer
-[3]          Pointer
-               Primitive: void
+           Primitive: uintptr_t
          Member: int_a (offset: 8)
            Primitive: int32_t
          Function: ~A (virtual)
@@ -75,20 +73,20 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
          Function: A
          Function: A
          Child
-[4]        Class: B (size: 40)
+[2]        Class: B (size: 40)
              Parent (offset: 0)
                [1]
              Member: vec_b (offset: 16)
-[5]            Container: std::vector (size: 24)
+[3]            Container: std::vector (size: 24)
                  Param
                    Primitive: int32_t
                  Param
-[6]                Class: allocator<int> (size: 1)
+[4]                Class: allocator<int> (size: 1)
                      Param
                        Primitive: int32_t
                      Parent (offset: 0)
-[7]                    Typedef: __allocator_base<int>
-[8]                      Class: new_allocator<int> (size: 1)
+[5]                    Typedef: __allocator_base<int>
+[6]                      Class: new_allocator<int> (size: 1)
                            Param
                              Primitive: int32_t
                            Function: new_allocator
@@ -107,9 +105,9 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
              Function: B
              Function: B
              Child
-[9]            Class: C (size: 48)
+[7]            Class: C (size: 48)
                  Parent (offset: 0)
-                   [4]
+                   [2]
                  Member: int_c (offset: 40)
                    Primitive: int32_t
                  Function: ~C (virtual)
@@ -121,9 +119,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
 [0]  Pointer
 [1]    Class: A (size: 16)
          Member: _vptr.A (offset: 0)
-[2]        Pointer
-[3]          Pointer
-               Primitive: void
+           Primitive: uintptr_t
          Member: int_a (offset: 8)
            Primitive: int32_t
          Function: operator=
@@ -132,17 +128,17 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
          Function: ~A (virtual)
          Function: myfunc (virtual)
          Child
-[4]        Class: B (size: 40)
+[2]        Class: B (size: 40)
              Parent (offset: 0)
                [1]
              Member: vec_b (offset: 16)
-[5]            Container: std::vector (size: 24)
+[3]            Container: std::vector (size: 24)
                  Param
                    Primitive: int32_t
                  Param
-[6]                Class: allocator<int> (size: 1)
+[4]                Class: allocator<int> (size: 1)
                      Parent (offset: 0)
-[7]                    Class: new_allocator<int> (size: 1)
+[5]                    Class: new_allocator<int> (size: 1)
                          Param
                            Primitive: int32_t
                          Function: new_allocator
@@ -162,9 +158,9 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
              Function: ~B (virtual)
              Function: myfunc (virtual)
              Child
-[8]            Class: C (size: 48)
+[6]            Class: C (size: 48)
                  Parent (offset: 0)
-                   [4]
+                   [2]
                  Member: int_c (offset: 40)
                    Primitive: int32_t
                  Function: operator=
