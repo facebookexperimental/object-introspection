@@ -277,24 +277,23 @@ void genDefs(const TypeGraph& typeGraph, std::string& code) {
 }
 
 void genStaticAssertsClass(const Class& c, std::string& code) {
-  code += "static_assert(sizeof(" + c.name() +
-          ") == " + std::to_string(c.size()) +
-          ", \"Unexpected size of struct " + c.name() + "\");\n";
+  code += "static_assert(validate_size<" + c.name() + ", " +
+          std::to_string(c.size()) + ">::value);\n";
   for (const auto& member : c.members) {
     if (member.bitsize > 0)
       continue;
-    code += "static_assert(offsetof(" + c.name() + ", " + member.name +
-            ") == " + std::to_string(member.bitOffset / 8) +
-            ", \"Unexpected offset of " + c.name() + "::" + member.name +
-            "\");\n";
+
+    code += "static_assert(validate_offset<offsetof(" + c.name() + ", " +
+            member.name + "), " + std::to_string(member.bitOffset / 8) +
+            ">::value, \"Unexpected offset of " + c.name() +
+            "::" + member.name + "\");\n";
   }
   code.push_back('\n');
 }
 
 void genStaticAssertsContainer(const Container& c, std::string& code) {
-  code += "static_assert(sizeof(" + c.name() +
-          ") == " + std::to_string(c.size()) +
-          ", \"Unexpected size of container " + c.name() + "\");\n";
+  code += "static_assert(validate_size<" + c.name() + ", " +
+          std::to_string(c.size()) + ">::value);\n";
   code.push_back('\n');
 }
 
