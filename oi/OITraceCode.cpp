@@ -148,3 +148,17 @@ struct alignas(Align) DummyAllocator
 
 template <typename T>
 struct DummyAllocator<T, 0> : DummyAllocatorBase<DummyAllocator, T, 0, 0> {};
+
+template <typename Type, size_t ExpectedSize, size_t ActualSize = 0>
+struct validate_size : std::true_type {
+  static_assert(ExpectedSize == ActualSize);
+};
+
+template <typename Type, size_t ExpectedSize>
+struct validate_size<Type, ExpectedSize>
+    : validate_size<Type, ExpectedSize, sizeof(Type)> {};
+
+template <size_t ExpectedOffset, size_t ActualOffset>
+struct validate_offset : std::true_type {
+  static_assert(ExpectedOffset == ActualOffset);
+};
