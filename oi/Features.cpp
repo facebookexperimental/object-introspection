@@ -34,6 +34,8 @@ std::string_view featureHelp(Feature f) {
       return "Capture isset data for Thrift object.";
     case Feature::TypeGraph:
       return "Use Type Graph for code generation (CodeGen v2).";
+    case Feature::PruneTypeGraph:
+      return "Prune unreachable nodes from the type graph";
     case Feature::TypedDataSegment:
       return "Use Typed Data Segment in generated code.";
     case Feature::TreeBuilderTypeChecking:

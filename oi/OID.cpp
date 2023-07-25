@@ -468,6 +468,7 @@ int main(int argc, char* argv[]) {
   std::map<Feature, bool> features = {
       {Feature::PackStructs, true},
       {Feature::GenPaddingStats, true},
+      {Feature::PruneTypeGraph, true},
   };
 
   bool logAllStructs = true;

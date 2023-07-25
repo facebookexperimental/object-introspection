@@ -31,6 +31,7 @@
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
+#include "type_graph/Prune.h"
 #include "type_graph/RemoveMembers.h"
 #include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"
@@ -38,13 +39,24 @@
 #include "type_graph/TypeIdentifier.h"
 #include "type_graph/Types.h"
 
+using type_graph::AddChildren;
+using type_graph::AddPadding;
+using type_graph::AlignmentCalc;
 using type_graph::Class;
 using type_graph::Container;
+using type_graph::DrgnParser;
 using type_graph::Enum;
+using type_graph::Flattener;
 using type_graph::Member;
+using type_graph::NameGen;
+using type_graph::Prune;
+using type_graph::RemoveMembers;
+using type_graph::RemoveTopLevelPointer;
+using type_graph::TopoSorter;
 using type_graph::Type;
 using type_graph::Typedef;
 using type_graph::TypeGraph;
+using type_graph::TypeIdentifier;
 
 template <typename T>
 using ref = std::reference_wrapper<T>;
@@ -407,7 +419,7 @@ void CodeGen::getClassSizeFuncConcrete(std::string_view funcName,
 
   for (size_t i = 0; i < c.members.size(); i++) {
     const auto& member = c.members[i];
-    if (member.name.starts_with(type_graph::AddPadding::MemberPrefix))
+    if (member.name.starts_with(AddPadding::MemberPrefix))
       continue;
 
     if (thriftIssetMember && thriftIssetMember != &member) {
@@ -610,7 +622,7 @@ void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
   size_t lastNonPaddingElement = -1;
   for (size_t i = 0; i < c.members.size(); i++) {
     const auto& el = c.members[i];
-    if (!el.name.starts_with(type_graph::AddPadding::MemberPrefix)) {
+    if (!el.name.starts_with(AddPadding::MemberPrefix)) {
       lastNonPaddingElement = i;
     }
   }
@@ -627,7 +639,7 @@ void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
 
     for (size_t i = 0; i < lastNonPaddingElement + 1; i++) {
       const auto& member = c.members[i];
-      if (member.name.starts_with(type_graph::AddPadding::MemberPrefix)) {
+      if (member.name.starts_with(AddPadding::MemberPrefix)) {
         continue;
       }
 
@@ -671,7 +683,7 @@ void CodeGen::getClassTypeHandler(const Class& c, std::string& code) {
   {
     for (size_t i = 0; i < lastNonPaddingElement + 1; i++) {
       const auto& member = c.members[i];
-      if (member.name.starts_with(type_graph::AddPadding::MemberPrefix)) {
+      if (member.name.starts_with(AddPadding::MemberPrefix)) {
         continue;
       }
 
@@ -761,7 +773,7 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
     return false;
   }
 
-  type_graph::TypeGraph typeGraph;
+  TypeGraph typeGraph;
   try {
     addDrgnRoot(drgnType, typeGraph);
   } catch (const type_graph::DrgnParserError& err) {
@@ -779,46 +791,47 @@ void CodeGen::registerContainer(const fs::path& path) {
   VLOG(1) << "Registered container: " << info.typeName;
 }
 
-void CodeGen::addDrgnRoot(struct drgn_type* drgnType,
-                          type_graph::TypeGraph& typeGraph) {
-  type_graph::DrgnParser drgnParser{
-      typeGraph, containerInfos_, config_.features[Feature::ChaseRawPointers]};
+void CodeGen::addDrgnRoot(struct drgn_type* drgnType, TypeGraph& typeGraph) {
+  DrgnParser drgnParser{typeGraph, containerInfos_,
+                        config_.features[Feature::ChaseRawPointers]};
   Type& parsedRoot = drgnParser.parse(drgnType);
   typeGraph.addRoot(parsedRoot);
 }
 
-void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
+void CodeGen::transform(TypeGraph& typeGraph) {
   type_graph::PassManager pm;
 
   // Simplify the type graph first so there is less work for later passes
-  pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
-  pm.addPass(type_graph::Flattener::createPass());
-  pm.addPass(type_graph::TypeIdentifier::createPass(config_.passThroughTypes));
+  pm.addPass(RemoveTopLevelPointer::createPass());
+  pm.addPass(Flattener::createPass());
+  pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
+  if (config_.features[Feature::PruneTypeGraph])
+    pm.addPass(Prune::createPass());
 
   if (config_.features[Feature::PolymorphicInheritance]) {
     // Parse new children nodes
-    type_graph::DrgnParser drgnParser{
-        typeGraph, containerInfos_,
-        config_.features[Feature::ChaseRawPointers]};
-    pm.addPass(type_graph::AddChildren::createPass(drgnParser, symbols_));
+    DrgnParser drgnParser{typeGraph, containerInfos_,
+                          config_.features[Feature::ChaseRawPointers]};
+    pm.addPass(AddChildren::createPass(drgnParser, symbols_));
 
     // Re-run passes over newly added children
-    pm.addPass(type_graph::Flattener::createPass());
-    pm.addPass(
-        type_graph::TypeIdentifier::createPass(config_.passThroughTypes));
+    pm.addPass(Flattener::createPass());
+    pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
+    if (config_.features[Feature::PruneTypeGraph])
+      pm.addPass(Prune::createPass());
   }
 
   // Calculate alignment before removing members, as those members may have an
   // influence on the class' overall alignment.
-  pm.addPass(type_graph::AlignmentCalc::createPass());
-  pm.addPass(type_graph::RemoveMembers::createPass(config_.membersToStub));
+  pm.addPass(AlignmentCalc::createPass());
+  pm.addPass(RemoveMembers::createPass(config_.membersToStub));
 
   // Add padding to fill in the gaps of removed members and ensure their
   // alignments
-  pm.addPass(type_graph::AddPadding::createPass(config_.features));
+  pm.addPass(AddPadding::createPass(config_.features));
 
-  pm.addPass(type_graph::NameGen::createPass());
-  pm.addPass(type_graph::TopoSorter::createPass());
+  pm.addPass(NameGen::createPass());
+  pm.addPass(TopoSorter::createPass());
 
   pm.run(typeGraph);
 
@@ -829,7 +842,7 @@ void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
 }
 
 void CodeGen::generate(
-    type_graph::TypeGraph& typeGraph,
+    TypeGraph& typeGraph,
     std::string& code,
     struct drgn_type* drgnType /* TODO: this argument should not be required */
 ) {

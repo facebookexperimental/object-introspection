@@ -89,6 +89,7 @@ bool OILibraryImpl::processConfigFile() {
       {
           {Feature::ChaseRawPointers, _self->opts.chaseRawPointers},
           {Feature::PackStructs, true},
+          {Feature::PruneTypeGraph, true},
           {Feature::GenJitDebug, _self->opts.generateJitDebugInfo},
       },
       compilerConfig, generatorConfig);

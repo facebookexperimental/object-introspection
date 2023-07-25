@@ -185,6 +185,7 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
 
   std::map<Feature, bool> featuresMap = {
       {Feature::PackStructs, true},
+      {Feature::PruneTypeGraph, true},
   };
 
   OICodeGen::Config generatorConfig{};
