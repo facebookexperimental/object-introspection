@@ -44,7 +44,7 @@ add_executable(test_type_graph
   test_flattener.cpp
   test_name_gen.cpp
   test_node_tracker.cpp
-  test_remove_ignored.cpp
+  test_remove_members.cpp
   test_remove_top_level_pointer.cpp
   test_topo_sorter.cpp
   test_type_identifier.cpp

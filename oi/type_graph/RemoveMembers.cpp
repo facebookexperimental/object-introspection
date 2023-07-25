@@ -13,26 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "RemoveIgnored.h"
+#include "RemoveMembers.h"
 
 #include "AddPadding.h"
 #include "TypeGraph.h"
 
 namespace type_graph {
 
-Pass RemoveIgnored::createPass(
+Pass RemoveMembers::createPass(
     const std::vector<std::pair<std::string, std::string>>& membersToIgnore) {
   auto fn = [&membersToIgnore](TypeGraph& typeGraph) {
-    RemoveIgnored removeIgnored{typeGraph, membersToIgnore};
+    RemoveMembers removeMembers{membersToIgnore};
     for (auto& type : typeGraph.rootTypes()) {
-      removeIgnored.accept(type);
+      removeMembers.accept(type);
     }
   };
 
-  return Pass("RemoveIgnored", fn);
+  return Pass("RemoveMembers", fn);
 }
 
-void RemoveIgnored::accept(Type& type) {
+void RemoveMembers::accept(Type& type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -40,7 +40,7 @@ void RemoveIgnored::accept(Type& type) {
   type.accept(*this);
 }
 
-void RemoveIgnored::visit(Class& c) {
+void RemoveMembers::visit(Class& c) {
   for (const auto& param : c.templateParams) {
     accept(param.type());
   }
@@ -54,19 +54,12 @@ void RemoveIgnored::visit(Class& c) {
     accept(child);
   }
 
-  for (size_t i = 0; i < c.members.size(); i++) {
-    if (!ignoreMember(c.name(), c.members[i].name)) {
-      continue;
-    }
-    auto& primitive = typeGraph_.makeType<Primitive>(Primitive::Kind::Int8);
-    auto& paddingArray =
-        typeGraph_.makeType<Array>(primitive, c.members[i].type().size());
-    c.members[i] =
-        Member{paddingArray, AddPadding::MemberPrefix, c.members[i].bitOffset};
-  }
+  std::erase_if(c.members, [this, &c](Member member) {
+    return ignoreMember(c.name(), member.name);
+  });
 }
 
-bool RemoveIgnored::ignoreMember(const std::string& typeName,
+bool RemoveMembers::ignoreMember(const std::string& typeName,
                                  const std::string& memberName) const {
   for (const auto& [ignoredType, ignoredMember] : membersToIgnore_) {
     if (typeName == ignoredType && memberName == ignoredMember) {

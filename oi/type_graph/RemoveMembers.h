@@ -23,23 +23,20 @@
 
 namespace type_graph {
 
-class TypeGraph;
-
 /*
- * RemoveIgnored
+ * RemoveMembers
  *
- * Remove types and members as requested by the [[codegen.ignore]] section in
- * the OI config.
+ * Removes members as requested by the [[codegen.ignore]] section in the OI
+ * config.
  */
-class RemoveIgnored : public RecursiveVisitor {
+class RemoveMembers : public RecursiveVisitor {
  public:
   static Pass createPass(
       const std::vector<std::pair<std::string, std::string>>& membersToIgnore);
 
-  RemoveIgnored(
-      TypeGraph& typeGraph,
+  RemoveMembers(
       const std::vector<std::pair<std::string, std::string>>& membersToIgnore)
-      : typeGraph_(typeGraph), membersToIgnore_(membersToIgnore) {
+      : membersToIgnore_(membersToIgnore) {
   }
 
   using RecursiveVisitor::accept;
@@ -52,7 +49,6 @@ class RemoveIgnored : public RecursiveVisitor {
                     const std::string& memberName) const;
 
   std::unordered_set<Type*> visited_;
-  TypeGraph& typeGraph_;
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore_;
 };
 
