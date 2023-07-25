@@ -159,10 +159,14 @@ class OIDebugger {
     diskSleep,
     stopped,
     other,
+    parked,
+    idle,
     bad
   };
   static OIDebugger::StatusType getTaskState(pid_t pid);
   static std::string taskStateToString(OIDebugger::StatusType);
+  static bool isThreadWaitable(OIDebugger::StatusType);
+  static bool isThreadTraced(OIDebugger::StatusType);
   size_t dataSegSize{1 << 20};
   size_t textSegSize{(1 << 22) + (1 << 20)};
   std::vector<pid_t> threadList;
@@ -231,11 +235,13 @@ class OIDebugger {
   bool processGlobal(const std::string&);
   static void dumpRegs(const char*, pid_t, struct user_regs_struct*);
   std::optional<uintptr_t> nextReplayInstrAddr(const trapInfo&);
-  static int getExtendedWaitEventType(int);
-  static bool isExtendedWait(int);
+  static int getPtraceEventType(int);
+  static bool isPtraceEvent(int);
+  bool processPtraceEvent(pid_t, int);
+  void processSignalStop(pid_t, int, bool, processTrapRet&);
   void dumpAlltaskStates(void);
   std::optional<std::vector<uintptr_t>> findRetLocs(FuncDesc&);
-  bool contTargetThread(pid_t, unsigned long = 0) const;
+  bool contTargetThread(pid_t targetPid, unsigned long = 0) const;
 
   OICompiler::Config compilerConfig{};
   const OICodeGen::Config& generatorConfig;

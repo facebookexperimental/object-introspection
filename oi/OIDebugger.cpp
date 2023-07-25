@@ -37,6 +37,7 @@ extern "C" {
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/ptrace.h>
+#include <sys/syscall.h>
 #include <sys/uio.h>
 #include <sys/user.h>
 #include <sys/wait.h>
@@ -379,11 +380,30 @@ void OIDebugger::deleteSegmentConfig(bool deleteSegConfigFile) {
  */
 std::string OIDebugger::taskStateToString(OIDebugger::StatusType status) {
   /* Must reflect the order of OIDebugger::StatusType enum */
-  static const std::array enumMapping{"SLEEP",   "TRACED", "RUNNING",
-                                      "ZOMBIE",  "DEAD",   "DISK SLEEP",
-                                      "STOPPED", "OTHER",  "BAD"};
+  static const std::array enumMapping{
+      "SLEEP",   "TRACED", "RUNNING", "ZOMBIE", "DEAD", "DISK SLEEP",
+      "STOPPED", "OTHER",  "PARKED",  "IDLE",   "BAD"};
 
   return enumMapping[static_cast<int>(status)];
+}
+
+/*
+ * This doesn't guarantee a thread is currently waitable, more that it is in
+ * a state where it is open to transitioning into a stoppable state via
+ * a signal delivery if needed.
+ */
+bool OIDebugger::isThreadWaitable(OIDebugger::StatusType status) {
+  return (status == OIDebugger::StatusType::sleep ||
+          status == OIDebugger::StatusType::traced ||
+          status == OIDebugger::StatusType::running ||
+          status == OIDebugger::StatusType::stopped ||
+          status == OIDebugger::StatusType::idle ||
+          status ==
+              OIDebugger::StatusType::other); /* Note sure about 'other' */
+}
+
+bool OIDebugger::isThreadTraced(OIDebugger::StatusType status) {
+  return status == OIDebugger::StatusType::traced;
 }
 
 OIDebugger::StatusType OIDebugger::getTaskState(pid_t pid) {
@@ -406,7 +426,6 @@ OIDebugger::StatusType OIDebugger::getTaskState(pid_t pid) {
   char state = '\0';
   stat >> state;
 
-  /* XXX Need to add other states */
   OIDebugger::StatusType ret = StatusType::other;
   if (state == 'S') {
     ret = StatusType::sleep;
@@ -422,6 +441,10 @@ OIDebugger::StatusType OIDebugger::getTaskState(pid_t pid) {
     ret = StatusType::diskSleep;
   } else if (state == 'T') {
     ret = StatusType::stopped;
+  } else if (state == 'P') {
+    ret = StatusType::parked;
+  } else if (state == 'I') {
+    ret = StatusType::idle;
   }
 
   return ret;
@@ -437,12 +460,30 @@ void OIDebugger::dumpAlltaskStates(void) {
   }
 }
 
-int OIDebugger::getExtendedWaitEventType(int status) {
-  return (status >> 16);
+int OIDebugger::getPtraceEventType(int status) {
+  switch (status >> 8) {
+    case (SIGTRAP | PTRACE_EVENT_FORK << 8):
+      return PTRACE_EVENT_FORK;
+    case (SIGTRAP | PTRACE_EVENT_VFORK << 8):
+      return PTRACE_EVENT_VFORK;
+    case (SIGTRAP | PTRACE_EVENT_CLONE << 8):
+      return PTRACE_EVENT_CLONE;
+    case (SIGTRAP | PTRACE_EVENT_EXEC << 8):
+      return PTRACE_EVENT_EXEC;
+    case (SIGTRAP | PTRACE_EVENT_VFORK_DONE << 8):
+      return PTRACE_EVENT_VFORK_DONE;
+    case (SIGTRAP | PTRACE_EVENT_EXIT << 8):
+      return PTRACE_EVENT_EXIT;
+    case (SIGTRAP | PTRACE_EVENT_STOP << 8):
+      return PTRACE_EVENT_STOP;
+    default:
+      return 0;
+  }
 }
 
-bool OIDebugger::isExtendedWait(int status) {
-  return (getExtendedWaitEventType(status) != 0);
+bool OIDebugger::isPtraceEvent(int status) {
+  return (WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP &&
+          getPtraceEventType(status) != 0);
 }
 
 /*
@@ -916,6 +957,289 @@ bool OIDebugger::canProcessTrapForThread(pid_t thread_pid) const {
   return threadTrapState.find(thread_pid) != end(threadTrapState);
 }
 
+bool OIDebugger::processPtraceEvent(pid_t pid, int status) {
+  bool ret = true;
+  int type = getPtraceEventType(status);
+
+  if (type == PTRACE_EVENT_CLONE || type == PTRACE_EVENT_FORK ||
+      type == PTRACE_EVENT_VFORK) {
+    unsigned long ptraceMsg = 0;
+
+    if (ptrace(PTRACE_GETEVENTMSG, pid, NULL, &ptraceMsg) < 0) {
+      LOG(ERROR) << "processTrap: PTRACE_GETEVENTMSG failed: "
+                 << strerror(errno);
+    }
+
+    pid_t childPid = static_cast<pid_t>(ptraceMsg);
+    VLOG(4) << "New child created. pid " << std::dec << childPid
+            << " (type: " << type << ")";
+
+    threadList.push_back(childPid);
+
+    /*
+     * ptrace() semantics are opaque to say the least. The new child
+     * has a pending SIGSTOP so we need to relieve it of that burden.
+     */
+    int tstatus = 0;
+    int tret = 0;
+    tret = waitpid(childPid, &tstatus, __WALL | WSTOPPED | WEXITED);
+
+    if (tret == -1) {
+      VLOG(4) << "processTrap: Error waiting for new child " << std::dec
+              << childPid << " (Reason: " << strerror(errno) << ")";
+    } else if (tret != childPid) {
+      VLOG(4) << "processTrap: Unexpected pid waiting for child: " << std::dec
+              << tret;
+    } else if (!WIFSTOPPED(tstatus)) {
+      VLOG(4) << "processTrap: Unexpected status returned when "
+                 "waiting for child: "
+              << std::hex << tstatus;
+    }
+
+    if (WIFSTOPPED(tstatus)) {
+      VLOG(4) << "child was stopped with: " << WSTOPSIG(tstatus);
+    }
+
+    ptrace(PTRACE_SETOPTIONS, childPid, NULL,
+           PTRACE_O_TRACESYSGOOD | PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE |
+               PTRACE_O_TRACEVFORK);
+
+    contTargetThread(childPid);
+  } else if (type == PTRACE_EVENT_EXIT) {
+    VLOG(4) << "Thread exiting!! pid " << std::dec << pid;
+    threadList.erase(std::remove(threadList.begin(), threadList.end(), pid),
+                     threadList.end());
+  } else if (type == PTRACE_EVENT_STOP) {
+    VLOG(4) << "PTRACE_EVENT_STOP!";
+    /*
+     * Automatically attached children stop with a PTRACE_EVENT_STOP
+     * and the stop signal is SIGTRAP. The child should already be in the
+     * thread list but check and add if not.
+     */
+    if (std::find(threadList.begin(), threadList.end(), pid) ==
+        threadList.end()) {
+      VLOG(4) << "Adding " << pid << " to threadList";
+    }
+  } else {
+    VLOG(4) << "unhandled extended wait event type: " << type;
+    ret = false;
+  }
+
+  contTargetThread(pid);
+
+  return ret;
+}
+
+void OIDebugger::processSignalStop(pid_t pid,
+                                   int status,
+                                   bool blocking,
+                                   processTrapRet& ret) {
+  siginfo_t info;
+
+  VLOG(4) << "processSignalStop sig: " << std::dec << WSTOPSIG(status);
+
+  if (ptrace(PTRACE_GETSIGINFO, pid, nullptr, &info) < 0) {
+    LOG(ERROR) << "PTRACE_GETSIGINFO failed with " << strerror(errno);
+  } else {
+    bool stopped = !!info.si_status;
+    VLOG(4) << "PTRACE_GETSIGINFO pid " << pid << " signo " << info.si_signo
+            << " code " << info.si_code << " status " << info.si_status
+            << " stopped: " << stopped;
+  }
+
+  int sig = WSTOPSIG(status);
+  switch (sig) {
+      /*
+       * One of the massive advantages of controlling a target via the ptrace
+       * interface is that fatal signals are not delivered to the target but
+       * come to us first. This means that we can pretty much do whatever we
+       * want in our jitted code and get away with it...
+       */
+    case SIGALRM: {
+      VLOG(4) << "SIGALRM received!!";
+      contTargetThread(pid, SIGALRM);
+      break;
+    }
+
+    case SIGSTOP:
+    case SIGTSTP:
+    case SIGTTIN:
+    case SIGTTOU: {
+      LOG(ERROR) << "Maybe a group stop. This is a problem! "
+                 << "sig: " << sig;
+      break;
+    }
+
+    case SIGSEGV: {
+      {
+        errno = 0;
+        struct user_regs_struct regs {};
+        if (ptrace(PTRACE_GETREGS, pid, nullptr, &regs) < 0) {
+          LOG(ERROR) << "SIGSEGV handling: failed to read registers"
+                     << strerror(errno);
+        }
+
+        dumpRegs("SIGSEGV", pid, &regs);
+        LOG(ERROR) << "SIGSEGV: faulting addr " << std::hex << info.si_addr
+                   << " rip " << regs.rip << " (pid " << std::dec << pid << ")";
+      }
+
+      if (auto iter{threadTrapState.find(pid)};
+          iter != std::end(threadTrapState)) {
+        auto t{iter->second};
+
+        LOG(ERROR) << "SEGV handling trap state found for " << std::dec << pid;
+
+        errno = 0;
+        if (ptrace(PTRACE_SETREGS, pid, NULL, &t->savedRegs) < 0) {
+          LOG(ERROR) << "processTrap: Couldn't restore registers: "
+                     << strerror(errno);
+        }
+        dumpRegs("After1", pid, &t->savedRegs);
+
+        errno = 0;
+        if (ptrace(PTRACE_SETFPREGS, pid, NULL, &t->savedFPregs) < 0) {
+          LOG(ERROR) << "processTrap: Couldn't restore fp registers: "
+                     << strerror(errno);
+        }
+
+        replayTrappedInstr(*t, pid, t->savedRegs, t->savedFPregs);
+        threadTrapState.erase(pid);
+
+        contTargetThread(pid);
+      } else {
+        // We are not the source of the SIGSEGV so forward it to the target.
+        contTargetThread(pid, sig);
+      }
+      ret = OIDebugger::OID_DONE;
+      break;
+    }
+
+    case SIGBUS: {
+      LOG(ERROR) << "SIGBUS: " << std::hex << info.si_addr << "(pid " << pid
+                 << ")";
+      ret = OIDebugger::OID_DONE;
+      break;
+    }
+
+    case SIGCHLD: {
+      VLOG(4) << "SIGCHLD processing for pid " << pid;
+      contTargetThread(pid, sig);
+
+      break;
+    }
+
+    case SIGTRAP: {
+      /*
+       * Posix dictates that siginfo.si_addr is only used for SIGILL,
+       * SIGFPE, SIGSEGV and SIGBUS. Use PTRACE_GETREGS for SIGTRAP.
+       *
+       * We use INT3 for several purposes: in segment setup,
+       * instrumentation code execution and in pid provider style
+       * entry/return point vectoring. We therefore must be able to match
+       * which interrupt this is for and act accordingly.
+       */
+      struct user_regs_struct regs {};
+      struct user_fpregs_struct fpregs {};
+
+      errno = 0;
+      if (ptrace(PTRACE_GETREGS, pid, nullptr, &regs) < 0) {
+        LOG(ERROR) << "processTrap failed to read registers for process "
+                   << traceePid << " " << strerror(errno);
+
+        ret = OIDebugger::OID_ERR;
+        break;
+      }
+
+      errno = 0;
+      if (ptrace(PTRACE_GETFPREGS, pid, nullptr, &fpregs) < 0) {
+        LOG(ERROR) << "processTrap failed to read fp regs for process "
+                   << traceePid << " " << strerror(errno);
+
+        ret = OIDebugger::OID_ERR;
+        break;
+      }
+
+      /*
+       * If we do not remove the breakpoint trap instructions then we
+       * need to not adjust the %rip and ensure we replay the original
+       * instruction that has been patched before we return the thread
+       * to it's next instruction.
+       */
+      uint64_t bpaddr = regs.rip - sizeofInt3;
+
+      if (auto it{activeTraps.find(bpaddr)}; it != std::end(activeTraps)) {
+        /*
+         * This HAS TO BE a COPY and not a reference! removeTrap() would
+         * otherwise delete the only instance of the std::shared_ptr, leading
+         * to the destruction of the tInfo and many use-after-free!
+         */
+        auto tInfo = it->second;
+        assert(bpaddr == tInfo->trapAddr);
+
+        if (!blocking || !canProcessTrapForThread(pid)) {
+          /*
+           * Only one probe is allowed to run at a time. We skip the other
+           * traps by replaying their instruction and continuing their thread.
+           */
+          if (blocking) {
+            VLOG(4)
+                << "Another probe already running, skipping trap for thread "
+                << pid;
+          } else {
+            VLOG(4) << "Resuming thread " << pid;
+          }
+
+          replayTrappedInstr(*tInfo, pid, regs, fpregs);
+          contTargetThread(pid);
+
+          break;
+        }
+
+        /* Remove the trap right before we process it */
+        removeTrap(pid, *tInfo);
+
+        if (tInfo->trapKind == OID_TRAP_JITCODERET) {
+          ret = processJitCodeRet(*tInfo, pid);
+        } else {
+          ret = processFuncTrap(*tInfo, pid, regs, fpregs);
+        }
+      } else {
+        LOG(ERROR) << "Error! SIGTRAP: " << std::hex << bpaddr
+                   << " No activeTraps entry found, resuming thread "
+                   << std::dec << pid;
+
+        // Resuming at the breakpoint
+        regs.rip = bpaddr;
+
+        errno = 0;
+        if (ptrace(PTRACE_SETREGS, pid, NULL, &regs) < 0) {
+          LOG(ERROR) << "processTrap failed to set registers for process "
+                     << pid << " " << strerror(errno);
+        }
+
+        contTargetThread(pid);
+      }
+
+      break;
+    }
+
+    case SIGILL: {
+      VLOG(4) << "OOPS! SIGILL received for pid " << pid
+              << " addr: " << std::hex << info.si_addr;
+
+      break;
+    }
+
+    default:
+      VLOG(4) << "contAndExecute: Explictly unhandled signal. Forwarding "
+              << strsignal(WSTOPSIG(status));
+
+      contTargetThread(pid, sig);
+      break;
+  }
+}
+
 /*
  * Wait for a thread to stop and process whatever caused it to stop. Which
  * thread is waited for is controlled by the 'anyPid' parameter: if true
@@ -931,8 +1255,7 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
   pid_t pidToWaitFor = -1;
 
   if (threadList.empty()) {
-    LOG(ERROR)
-        << "Thread list is empty: the target process must have died. Abort...";
+    LOG(ERROR) << "Thread list is empty. Aborting.";
     return OID_DONE;
   }
 
@@ -962,266 +1285,21 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
   }
 
   if (!WIFSTOPPED(status)) {
-    LOG(ERROR) << "contAndExecute: process not stopped!";
+    LOG(ERROR) << "contAndExecute: process not stopped!" << newpid
+               << " status: " << status;
     return blocking ? OID_ERR : OID_CONT;
   }
-  siginfo_t info;
 
-  auto stopsig = WSTOPSIG(status);
-  VLOG(4) << "Stop sig: " << std::dec << stopsig;
-  if (ptrace(PTRACE_GETSIGINFO, newpid, nullptr, &info) < 0) {
-    LOG(ERROR) << "PTRACE_GETSIGINFO failed with " << strerror(errno);
-  } else {
-    bool stopped = !!info.si_status;
-    VLOG(4) << "PTRACE_GETSIGINFO pid " << newpid << " signo " << info.si_signo
-            << " code " << info.si_code << " status " << info.si_status
-            << " stopped: " << stopped;
-  }
-
-  /*
-   * Process PTRACE_EVENT stops (extended waits).
-   */
-  if (isExtendedWait(status)) {
-    int type = getExtendedWaitEventType(status);
-
-    if (type == PTRACE_EVENT_CLONE || type == PTRACE_EVENT_FORK ||
-        type == PTRACE_EVENT_VFORK) {
-      unsigned long ptraceMsg = 0;
-      if (ptrace(PTRACE_GETEVENTMSG, newpid, NULL, &ptraceMsg) < 0) {
-        LOG(ERROR) << "processTrap: PTRACE_GETEVENTMSG failed: "
-                   << strerror(errno);
-      }
-
-      pid_t childPid = static_cast<pid_t>(ptraceMsg);
-      VLOG(4) << "New child created. pid " << std::dec << childPid
-              << " (type: " << type << ")";
-      threadList.push_back(childPid);
-
-      /*
-       * ptrace() semantics are opaque to say the least. The new child
-       * has a pending SIGSTOP so we need to relieve it of that burden.
-       */
-      int tstatus = 0;
-      int tret = 0;
-      tret = waitpid(childPid, &tstatus, __WALL | WSTOPPED | WEXITED);
-
-      if (tret == -1) {
-        VLOG(4) << "processTrap: Error waiting for new child " << std::dec
-                << childPid << " (Reason: " << strerror(errno) << ")";
-      } else if (tret != childPid) {
-        VLOG(4) << "processTrap: Unexpected pid waiting for child: " << std::dec
-                << tret;
-      } else if (!WIFSTOPPED(tstatus)) {
-        VLOG(4) << "processTrap: Unexpected status returned when "
-                   "waiting for child: "
-                << std::hex << tstatus;
-      }
-
-      if (WIFSTOPPED(tstatus)) {
-        VLOG(4) << "child was stopped with: " << WSTOPSIG(tstatus);
-      }
-
-      ptrace(PTRACE_SETOPTIONS, childPid, NULL,
-             PTRACE_O_TRACESYSGOOD | PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE |
-                 PTRACE_O_TRACEVFORK);
-
-      contTargetThread(childPid);
-    } else if (type == PTRACE_EVENT_EXIT) {
-      VLOG(4) << "Thread exiting!! pid " << std::dec << newpid;
-      threadList.erase(
-          std::remove(threadList.begin(), threadList.end(), newpid),
-          threadList.end());
-    } else if (type == PTRACE_EVENT_STOP) {
-      VLOG(4) << "PTRACE_EVENT_STOP!";
-    } else {
-      VLOG(4) << "unhandled extended wait event type: " << type;
+  /* Process PTRACE_EVENT stops (extended waits). */
+  if (isPtraceEvent(status)) {
+    if (!processPtraceEvent(newpid, status)) {
+      VLOG(1) << "Problem processing ptrace event for " << newpid;
     }
-
-    contTargetThread(newpid);
-
     return ret;
   }
 
-  int sig = WSTOPSIG(status);
-  switch (sig) {
-      /*
-       * One of the massive advantages of controlling a target via the ptrace
-       * interface is that fatal signals are not delivered to the target but
-       * come to us first. This means that we can pretty much do whatever we
-       * want in our jitted code and get away with it...
-       */
-    case SIGALRM: {
-      VLOG(4) << "SIGALRM received!!";
-      contTargetThread(newpid, SIGALRM);
-      break;
-    }
-
-    case SIGSEGV: {
-      {
-        errno = 0;
-        struct user_regs_struct regs {};
-        if (ptrace(PTRACE_GETREGS, newpid, nullptr, &regs) < 0) {
-          LOG(ERROR) << "SIGSEGV handling: failed to read registers"
-                     << strerror(errno);
-        }
-
-        dumpRegs("SIGSEGV", newpid, &regs);
-        LOG(ERROR) << "SIGSEGV: faulting addr " << std::hex << info.si_addr
-                   << " rip " << regs.rip << " (pid " << std::dec << newpid
-                   << ")";
-      }
-
-      if (auto iter{threadTrapState.find(newpid)};
-          iter != std::end(threadTrapState)) {
-        auto t{iter->second};
-
-        LOG(ERROR) << "SEGV handling trap state found for " << std::dec
-                   << newpid;
-
-        errno = 0;
-        if (ptrace(PTRACE_SETREGS, newpid, NULL, &t->savedRegs) < 0) {
-          LOG(ERROR) << "processTrap: Couldn't restore registers: "
-                     << strerror(errno);
-        }
-        dumpRegs("After1", newpid, &t->savedRegs);
-
-        errno = 0;
-        if (ptrace(PTRACE_SETFPREGS, newpid, NULL, &t->savedFPregs) < 0) {
-          LOG(ERROR) << "processTrap: Couldn't restore fp registers: "
-                     << strerror(errno);
-        }
-
-        replayTrappedInstr(*t, newpid, t->savedRegs, t->savedFPregs);
-        threadTrapState.erase(newpid);
-
-        contTargetThread(newpid);
-      } else {
-        // We are not the source of the SIGSEGV so forward it to the target.
-        contTargetThread(newpid, sig);
-      }
-      return OIDebugger::OID_DONE;
-    }
-
-    case SIGBUS: {
-      LOG(ERROR) << "SIGBUS: " << std::hex << info.si_addr << "(pid " << newpid
-                 << ")";
-      return OIDebugger::OID_DONE;
-    }
-
-    case SIGCHLD: {
-      VLOG(4) << "SIGCHLD processing for pid " << newpid;
-      contTargetThread(newpid, sig);
-
-      break;
-    }
-
-    case SIGTRAP: {
-      /*
-       * Posix dictates that siginfo.si_addr is only used for SIGILL,
-       * SIGFPE, SIGSEGV and SIGBUS. Use PTRACE_GETREGS for SIGTRAP.
-       *
-       * We use INT3 for several purposes: in segment setup,
-       * instrumentation code execution and in pid provider style
-       * entry/return point vectoring. We therefore must be able to match
-       * which interrupt this is for and act accordingly.
-       */
-      struct user_regs_struct regs {};
-      struct user_fpregs_struct fpregs {};
-
-      errno = 0;
-      if (ptrace(PTRACE_GETREGS, newpid, nullptr, &regs) < 0) {
-        LOG(ERROR) << "processTrap failed to read registers for process "
-                   << traceePid << " " << strerror(errno);
-
-        return OIDebugger::OID_ERR;
-      }
-
-      errno = 0;
-      if (ptrace(PTRACE_GETFPREGS, newpid, nullptr, &fpregs) < 0) {
-        LOG(ERROR) << "processTrap failed to read fp regs for process "
-                   << traceePid << " " << strerror(errno);
-
-        return OIDebugger::OID_ERR;
-      }
-
-      /*
-       * If we do not remove the breakpoint trap instructions then we
-       * need to not adjust the %rip and ensure we replay the original
-       * instruction that has been patched before we return the thread
-       * to it's next instruction.
-       */
-      uint64_t bpaddr = regs.rip - sizeofInt3;
-
-      if (auto it{activeTraps.find(bpaddr)}; it != std::end(activeTraps)) {
-        /*
-         * This HAS TO BE a COPY and not a reference! removeTrap() would
-         * otherwise delete the only instance of the std::shared_ptr, leading
-         * to the destruction of the tInfo and many use-after-free!
-         */
-        auto tInfo = it->second;
-        assert(bpaddr == tInfo->trapAddr);
-
-        if (!blocking || !canProcessTrapForThread(newpid)) {
-          /*
-           * Only one probe is allowed to run at a time. We skip the other
-           * traps by replaying their instruction and continuing their thread.
-           */
-          if (blocking) {
-            VLOG(4)
-                << "Another probe already running, skipping trap for thread "
-                << newpid;
-          } else {
-            VLOG(4) << "Resuming thread " << newpid;
-          }
-
-          replayTrappedInstr(*tInfo, newpid, regs, fpregs);
-          contTargetThread(newpid);
-
-          break;
-        }
-
-        /* Remove the trap right before we process it */
-        removeTrap(newpid, *tInfo);
-
-        if (tInfo->trapKind == OID_TRAP_JITCODERET) {
-          ret = processJitCodeRet(*tInfo, newpid);
-        } else {
-          ret = processFuncTrap(*tInfo, newpid, regs, fpregs);
-        }
-      } else {
-        LOG(ERROR) << "Error! SIGTRAP: " << std::hex << bpaddr
-                   << " No activeTraps entry found, resuming thread "
-                   << std::dec << newpid;
-
-        // Resuming at the breakpoint
-        regs.rip = bpaddr;
-
-        errno = 0;
-        if (ptrace(PTRACE_SETREGS, newpid, NULL, &regs) < 0) {
-          LOG(ERROR) << "processTrap failed to set registers for process "
-                     << newpid << " " << strerror(errno);
-        }
-
-        contTargetThread(newpid);
-      }
-
-      break;
-    }
-
-    case SIGILL: {
-      VLOG(4) << "OOPS! SIGILL received for pid " << newpid
-              << " addr: " << std::hex << info.si_addr;
-
-      break;
-    }
-
-    default:
-      VLOG(4) << "contAndExecute: Explictly unhandled signal. Forwarding "
-              << strsignal(WSTOPSIG(status));
-
-      contTargetThread(newpid, sig);
-      break;
-  }
+  /* Regular signal delivery. Group stops are not yet implemented. */
+  processSignalStop(newpid, status, blocking, ret);
 
   return ret;
 }
@@ -1648,7 +1726,9 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
     }
 
     int status = 0;
-    waitpid(traceePid, &status, 0);
+    if (waitpid(traceePid, &status, 0) == -1) {
+      PLOG(ERROR) << "singlestep waitpid error";
+    }
 
     if (!WIFSTOPPED(status)) {
       LOG(ERROR) << "process not stopped!";
@@ -2335,8 +2415,6 @@ void OIDebugger::restoreState(void) {
 
   Metrics::Tracing _("restore_state");
 
-  int status = 0;
-
   /*
    * (1) Check if the thread is already stopped (because it hit a SIGTRAP),
    * (2) If thread is not already stopped, interrupt it so that we can detach
@@ -2347,13 +2425,21 @@ void OIDebugger::restoreState(void) {
    * execution path.
    */
   for (auto const& p : threadList) {
+    int status = 0;
     auto state = getTaskState(p);
+
     VLOG(1) << "Task " << p << " state: " << taskStateToString(state) << " ("
             << static_cast<int>(state) << ")";
+
     pid_t ret = waitpid(p, &status, WNOHANG | WSTOPPED);
     if (ret < 0) {
       LOG(ERROR) << "Error in waitpid (pid " << p << ")" << strerror(errno);
     } else if (ret == 0) {
+      /*
+       * A return of 0 with waitpid(,,WNOHANG) indicates that the
+       * process has not yet changed state. We'll try and force it to
+       * stop if possible.
+       */
       if (WIFSTOPPED(status)) {
         VLOG(1) << "Process " << p << " signal-delivery-stopped "
                 << WSTOPSIG(status);
@@ -2369,19 +2455,38 @@ void OIDebugger::restoreState(void) {
       }
       VLOG(1) << "Stopping PID : " << p;
 
-      if (ptrace(PTRACE_INTERRUPT, p, NULL, NULL) < 0) {
-        VLOG(1) << "Couldn't interrupt target pid " << p
-                << " (Reason: " << strerror(errno) << ")";
+      /*
+       * This is paranoia trying to guard against synchronously waiting on a
+       * thread which is unwaitable. Yes, the thread state data may be old
+       * but we need to guard against threads in uninterruptable sleeps
+       * amongst other things.
+       */
+      long sysRet = 0;
+      if ((sysRet = syscall(__NR_tkill, 0)) == -1) {
+        VLOG(3) << "tkill failed with error: " << strerror(errno);
       }
 
-      VLOG(1) << "Waiting to stop PID : " << p;
+      if (sysRet == 0 && isThreadWaitable(getTaskState(p))) {
+        if (syscall(__NR_tkill, 0) < 0) {
+          VLOG(3) << "tkill failed with error: " << strerror(errno);
+        }
 
-      if (waitpid(p, 0, WSTOPPED) != p) {
-        LOG(ERROR) << "failed to wait for process " << p
-                   << " (Reason: " << strerror(errno) << ")";
+        if (ptrace(PTRACE_INTERRUPT, p, NULL, NULL) < 0) {
+          VLOG(1) << "Couldn't interrupt target pid " << p
+                  << " (Reason: " << strerror(errno) << ")";
+        }
+
+        VLOG(1) << "Waiting to stop PID : " << p;
+
+        if (waitpid(p, 0, WSTOPPED) != p) {
+          LOG(ERROR) << "failed to wait for process " << p
+                     << " (Reason: " << strerror(errno) << ")";
+        }
+
+        VLOG(1) << "Stopped PID : " << p;
+      } else {
+        VLOG(1) << "Thread " << p << " is unresponsive or not waitable";
       }
-
-      VLOG(1) << "Stopped PID : " << p;
     } else if (WSTOPSIG(status) == SIGTRAP) {
       VLOG(1) << "Thread already stopped PID : " << p << " signal is "
               << WSTOPSIG(status);
@@ -2391,8 +2496,8 @@ void OIDebugger::restoreState(void) {
        * the correct way for testing for the existence of a ptrace event
        * stop but it seems to work.
        */
-      if (status >> 16) {
-        int type = (status >> 16);
+      if (isPtraceEvent(status)) {
+        int type = getPtraceEventType(status);
 
         if (type == PTRACE_EVENT_CLONE || type == PTRACE_EVENT_FORK ||
             type == PTRACE_EVENT_VFORK) {
@@ -2565,6 +2670,70 @@ bool OIDebugger::targetAttach() {
                        PTRACE_O_TRACEVFORK | PTRACE_O_TRACEEXIT) < 0) {
           LOG(ERROR) << "Couldn't seize thread " << pid
                      << " (Reason: " << strerror(errno) << ")";
+
+          /*
+           * An EPERM indicates that the thread can't be traced most
+           * likely owing to:
+           * - insufficient permissions
+           * - it is dying or dead.
+           * - it is already traced.
+           * Being already traced is a problem here. Consider the following
+           * scenario: if a thread exists as a result of a clone from a
+           * previously seized thread it is possible for it to sneak into our
+           * racy directory-iterator approach and we will attempt to seize it.
+           * It will be seized (i.e., parented by us) and stopped in a
+           * signal-delivery-stopped waiting for its tracer (us!) to continue
+           * it. The parent will also be stopped in a PTRACE_EVENT stop.
+           *
+           * Note that the following EPERM handling code is slightly noisy in
+           * terms of debug logging. These statements will be removed when
+           * confidence is higher.
+           */
+          if (errno == EPERM && !threadList.empty()) {
+            VLOG(3) << "EPERM encountered in seize. Attempting a waitpid()"
+                    << std::endl;
+
+            int status = 0;
+            int ret = waitpid(pid, &status, WNOHANG);
+
+            if (ret == 0) {
+              /*
+               * A return of 0 from a WNOHANG waitpid() indicates that the
+               * thread exists but has not yet changed state. We'll try a
+               * continue request and add it to the managed thread list if
+               * that succeeds.
+               */
+              VLOG(3) << "EPERM seize waitpid 0 attempting continue";
+              if (contTargetThread(pid)) {
+                threadList.push_back(pid);
+              } else {
+                VLOG(3) << "EPERM seize waitpid 0 continue failed";
+              }
+            } else if (ret > 0) {
+              /*
+               * This is a newly cloned thread so according to the man page
+               * it should be a regular signal-delivery-stop and not a
+               * PTRACE_EVENT stop.
+               */
+              if (WIFSTOPPED(status)) {
+                VLOG(3) << "Process " << pid << " stopped with "
+                        << WIFSTOPPED(status);
+
+                if (!contTargetThread(pid)) {
+                  VLOG(3) << "targetAttach failed to continue EPERM'd thread";
+                } else {
+                  // Success! Let's consider this thread ours to own now.
+                  threadList.push_back(pid);
+                }
+              } else {
+                // The thread must be stopped: this should be impossible.
+                std::cout << "targetAttach EPERM thread not stopped!"
+                          << std::endl;
+              }
+            } else {
+              VLOG(3) << "EPERM seize, waitpid failed. Ignoring thread.";
+            }
+          }
         } else {
           threadList.push_back(pid);
         }
