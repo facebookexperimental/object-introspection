@@ -17,3 +17,16 @@ TEST(EnforceCompatibilityTest, ParentContainers) {
 [0] Class: MyClass (size: 24)
 )");
 }
+
+TEST(EnforceCompatibilityTest, TypesToStub) {
+  test(EnforceCompatibility::createPass(), R"(
+[0] Class: EnumMap (size: 8)
+      Member: a (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 4)
+        Primitive: int32_t
+)",
+       R"(
+[0] Class: EnumMap (size: 8)
+)");
+}
