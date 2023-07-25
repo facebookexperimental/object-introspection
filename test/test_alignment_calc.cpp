@@ -182,3 +182,41 @@ TEST(AlignmentCalcTest, Bitfields) {
         Primitive: int64_t
 )");
 }
+
+TEST(AlignmentCalcTest, Array) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 1)
+      Member: a (offset: 0)
+[1]     Array: (length: 1)
+[2]       Class: AlignedClass (size: 1)
+            Member: b (offset: 0, align: 16)
+              Primitive: int8_t
+)",
+       R"(
+[0] Class: MyClass (size: 1, align: 16, packed)
+      Member: a (offset: 0, align: 16)
+[1]     Array: (length: 1)
+[2]       Class: AlignedClass (size: 1, align: 16, packed)
+            Member: b (offset: 0, align: 16)
+              Primitive: int8_t
+)");
+}
+
+TEST(AlignmentCalcTest, Typedef) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 1)
+      Member: a (offset: 0)
+[1]     Typedef: MyTypedef
+[2]       Class: AlignedClass (size: 1)
+            Member: b (offset: 0, align: 16)
+              Primitive: int8_t
+)",
+       R"(
+[0] Class: MyClass (size: 1, align: 16, packed)
+      Member: a (offset: 0, align: 16)
+[1]     Typedef: MyTypedef
+[2]       Class: AlignedClass (size: 1, align: 16, packed)
+            Member: b (offset: 0, align: 16)
+              Primitive: int8_t
+)");
+}

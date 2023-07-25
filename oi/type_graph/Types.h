@@ -370,7 +370,7 @@ class Array : public Type {
   }
 
   virtual uint64_t align() const override {
-    return elementType_.size();
+    return elementType_.align();
   }
 
   virtual NodeId id() const override {
