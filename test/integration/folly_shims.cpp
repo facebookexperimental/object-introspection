@@ -1,3 +1,4 @@
+#include <folly/ScopeGuard.h>
 #include <folly/lang/SafeAssert.h>
 
 namespace folly {
@@ -15,6 +16,10 @@ void safe_assert_terminate<false>(safe_assert_arg const* /*arg*/,
 
 template <>
 void safe_assert_terminate<true>(safe_assert_arg const* /*arg*/, ...) noexcept {
+  abort();
+}
+
+void ScopeGuardImplBase::terminate() noexcept {
   abort();
 }
 

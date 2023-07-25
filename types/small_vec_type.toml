@@ -2,6 +2,7 @@
 type_name = "folly::small_vector"
 ctype = "SMALL_VEC_TYPE"
 header = "folly/small_vector.h"
+stub_template_params = [2]
 
 # Old:
 typeName = "folly::small_vector<"
@@ -20,6 +21,17 @@ template <class V, std::size_t N, class P>
 void getSizeType(const %1%<V, N, P> &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<V, N, P>));
+
+    bool dataInlined = ((uintptr_t)container.data() >= (uintptr_t)&container) &&
+                       ((uintptr_t)container.data() < (uintptr_t)(&container + sizeof(%1%<V, N, P>)));
+    if (dataInlined) {
+      // Don't double count inlined elements
+      SAVE_SIZE(-(container.size() * sizeof(V)));
+    } else {
+      // Account for wasted space in the buffer
+      SAVE_SIZE((container.capacity() - container.size()) * sizeof(V));
+    }
+
     SAVE_DATA((uintptr_t)(N));
     SAVE_DATA((uintptr_t)container.capacity());
     SAVE_DATA((uintptr_t)container.size());
@@ -28,4 +40,30 @@ void getSizeType(const %1%<V, N, P> &container, size_t& returnArg)
         getSizeType(it, returnArg);
     }
 }
+"""
+handler = """
+template <typename DB, typename T0, std::size_t N0, typename T1>
+struct TypeHandler<DB, %1%<T0, N0, T1>> {
+  using type = types::st::Pair<
+      DB, types::st::VarInt<DB>,
+      types::st::Pair<
+          DB, types::st::VarInt<DB>,
+          types::st::List<DB, typename TypeHandler<DB, T0>::type>>>;
+
+  static types::st::Unit<DB> getSizeType(
+      const %1%<T0, N0, T1> & container,
+      typename TypeHandler<DB, %1%<T0, N0, T1>>::type returnArg) {
+    auto tail = returnArg.write(N0)
+                    .write(container.capacity())
+                    .write(container.size());
+
+    for (auto& it : container) {
+      tail = tail.delegate([&it](auto ret) {
+        return OIInternal::getSizeType<DB>(it, ret);
+      });
+    }
+
+    return tail.finish();
+  }
+};
 """

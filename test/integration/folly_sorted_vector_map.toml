@@ -1,0 +1,21 @@
+includes = ["folly/sorted_vector_types.h", "vector"]
+[cases]
+  [cases.int_int_empty]
+    param_types = ["const folly::sorted_vector_map<int, int>&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":24, "dynamicSize":0, "exclusiveSize":24, "length":0, "capacity":0, "elementStaticSize":8}]'
+  [cases.int_int_some]
+    param_types = ["const folly::sorted_vector_map<int, int>&"]
+    setup = "return {{ {1,2}, {3,4} }};"
+    expect_json = '[{"staticSize":24, "dynamicSize":16, "exclusiveSize":40, "length":2, "capacity":2, "elementStaticSize":8}]'
+
+  [cases.int_vector_empty]
+    skip = "Wrong results" # https://github.com/facebookexperimental/object-introspection/issues/258
+    param_types = ["const folly::sorted_vector_map<int, std::vector<int>>&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":24, "dynamicSize":0, "exclusiveSize":24, "length":0, "capacity":0, "elementStaticSize":32}]'
+  [cases.int_vector_some]
+    skip = "Wrong results" # https://github.com/facebookexperimental/object-introspection/issues/258
+    param_types = ["const folly::sorted_vector_map<int, std::vector<int>>&"]
+    setup = "return {{ {1,{2,3}}, {4,{5,6,7}} }};"
+    #expect_json = "TODO"

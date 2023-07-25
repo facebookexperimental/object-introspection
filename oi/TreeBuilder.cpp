@@ -798,7 +798,12 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
       containerStats.length = containerStats.capacity = next();
       break;
     case SMALL_VEC_TYPE: {
-      size_t maxInline = next();
+      size_t requestedMaxInline = next();
+      size_t maxInline =
+          requestedMaxInline == 0
+              ? 0
+              : std::max(sizeof(uintptr_t) / containerStats.elementStaticSize,
+                         requestedMaxInline);
       containerStats.capacity = next();
       containerStats.length = next();
       contentsStoredInline = containerStats.capacity <= maxInline;

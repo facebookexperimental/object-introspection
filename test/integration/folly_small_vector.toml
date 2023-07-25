@@ -1,0 +1,43 @@
+includes = ["folly/small_vector.h", "vector"]
+[cases]
+  [cases.int_default_empty]
+    param_types = ["const folly::small_vector<int>&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "length":0, "capacity":2, "elementStaticSize":4}]'
+  [cases.int_default_inlined]
+    param_types = ["const folly::small_vector<int>&"]
+    setup = "return {{1,2}};"
+    expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "length":2, "capacity":2, "elementStaticSize":4}]'
+  [cases.int_default_overflow]
+    param_types = ["const folly::small_vector<int>&"]
+    setup = "return {{1,2,3,4}};"
+    expect_json = '[{"staticSize":16, "dynamicSize":24, "exclusiveSize":40, "length":4, "capacity":6, "elementStaticSize":4}]'
+
+  [cases.vector_3_empty]
+    param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":80, "dynamicSize":0, "exclusiveSize":80, "length":0, "capacity":3, "elementStaticSize":24}]'
+  [cases.vector_3_inlined]
+    param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
+    setup = "return {{ {1,2,3}, {4}, {5,6} }};"
+    expect_json = '''[
+      {"staticSize":80, "dynamicSize":24, "length":3, "exclusiveSize":8, "capacity":3, "elementStaticSize":24, "members":[
+        {"staticSize":24, "dynamicSize":12, "exclusiveSize":36, "length":3, "capacity":3, "elementStaticSize":4},
+        {"staticSize":24, "dynamicSize":4, "exclusiveSize":28, "length":1, "capacity":1, "elementStaticSize":4},
+        {"staticSize":24, "dynamicSize":8, "exclusiveSize":32, "length":2, "capacity":2, "elementStaticSize":4}
+    ]}]'''
+  [cases.vector_3_overflow]
+    param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
+    setup = "return {{ {1,2,3}, {4}, {5,6}, {7} }};"
+    expect_json = '''[
+      {"staticSize":80, "dynamicSize":148, "length":4, "exclusiveSize":104, "capacity":5, "elementStaticSize":24, "members":[
+        {"staticSize":24, "dynamicSize":12, "exclusiveSize":36, "length":3, "capacity":3, "elementStaticSize":4},
+        {"staticSize":24, "dynamicSize":4, "exclusiveSize":28, "length":1, "capacity":1, "elementStaticSize":4},
+        {"staticSize":24, "dynamicSize":8, "exclusiveSize":32, "length":2, "capacity":2, "elementStaticSize":4},
+        {"staticSize":24, "dynamicSize":4, "exclusiveSize":28, "length":1, "capacity":1, "elementStaticSize":4}
+    ]}]'''
+
+  [cases.int_always_heap]
+    param_types = ["const folly::small_vector<int, 0>&"]
+    setup = "return {{1}};"
+    expect_json = '[{"staticSize":16, "dynamicSize":4, "exclusiveSize":20, "length":1, "capacity":1, "elementStaticSize":4}]'
