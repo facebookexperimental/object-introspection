@@ -15,12 +15,14 @@
  */
 #include "EnforceCompatibility.h"
 
+#include <algorithm>
 #include <cassert>
 
 #include "AddPadding.h"
 #include "Flattener.h"
 #include "TypeGraph.h"
 #include "TypeIdentifier.h"
+#include "oi/OICodeGen.h"
 
 namespace type_graph {
 
@@ -42,7 +44,21 @@ void EnforceCompatibility::accept(Type& type) {
   type.accept(*this);
 }
 
+namespace {
+bool isTypeToStub(const Class& c) {
+  auto it = std::ranges::find_if(OICodeGen::typesToStub,
+                                 [&c](const auto& typeToStub) {
+                                   return c.name().starts_with(typeToStub);
+                                 });
+  return it != OICodeGen::typesToStub.end();
+}
+}  // namespace
+
 void EnforceCompatibility::visit(Class& c) {
+  if (isTypeToStub(c)) {
+    c.members.clear();
+  }
+
   for (auto& param : c.templateParams) {
     accept(param.type());
   }
