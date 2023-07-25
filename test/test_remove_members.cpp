@@ -1,12 +1,12 @@
 #include <gtest/gtest.h>
 
-#include "oi/type_graph/RemoveIgnored.h"
+#include "oi/type_graph/RemoveMembers.h"
 #include "oi/type_graph/Types.h"
 #include "test/type_graph_utils.h"
 
 using namespace type_graph;
 
-TEST(RemoveIgnoredTest, Match) {
+TEST(RemoveMembersTest, Match) {
   auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
   auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
@@ -18,7 +18,7 @@ TEST(RemoveIgnoredTest, Match) {
       {"ClassA", "b"},
   };
 
-  test(RemoveIgnored::createPass(membersToIgnore), {classA}, R"(
+  test(RemoveMembers::createPass(membersToIgnore), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -31,15 +31,12 @@ TEST(RemoveIgnoredTest, Match) {
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
-      Member: __oi_padding (offset: 4)
-[2]     Array: (length: 4)
-          Primitive: int8_t
       Member: c (offset: 8)
         [1]
 )");
 }
 
-TEST(RemoveIgnoredTest, TypeMatchMemberMiss) {
+TEST(RemoveMembersTest, TypeMatchMemberMiss) {
   auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
   auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
@@ -51,7 +48,7 @@ TEST(RemoveIgnoredTest, TypeMatchMemberMiss) {
       {"ClassA", "x"},
   };
 
-  test(RemoveIgnored::createPass(membersToIgnore), {classA}, R"(
+  test(RemoveMembers::createPass(membersToIgnore), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -62,7 +59,7 @@ TEST(RemoveIgnoredTest, TypeMatchMemberMiss) {
 )");
 }
 
-TEST(RemoveIgnoredTest, MemberMatchWrongType) {
+TEST(RemoveMembersTest, MemberMatchWrongType) {
   auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
 
   auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
@@ -74,7 +71,7 @@ TEST(RemoveIgnoredTest, MemberMatchWrongType) {
       {"ClassB", "b"},
   };
 
-  test(RemoveIgnored::createPass(membersToIgnore), {classA}, R"(
+  test(RemoveMembers::createPass(membersToIgnore), {classA}, R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -85,11 +82,11 @@ TEST(RemoveIgnoredTest, MemberMatchWrongType) {
 )");
 }
 
-TEST(RemoveIgnoredTest, RecurseClassParam) {
+TEST(RemoveMembersTest, RecurseClassParam) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveIgnored::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore), R"(
 [0] Class: MyClass (size: 0)
       Param
 [1]     Class: ClassA (size: 12)
@@ -106,19 +103,16 @@ TEST(RemoveIgnoredTest, RecurseClassParam) {
 [1]     Class: ClassA (size: 12)
           Member: a (offset: 0)
             Primitive: int32_t
-          Member: __oi_padding (offset: 4)
-[2]         Array: (length: 4)
-              Primitive: int8_t
           Member: c (offset: 8)
             Primitive: int32_t
 )");
 }
 
-TEST(RemoveIgnoredTest, RecurseClassParent) {
+TEST(RemoveMembersTest, RecurseClassParent) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveIgnored::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore), R"(
 [0] Class: MyClass (size: 0)
       Parent (offset: 0)
 [1]     Class: ClassA (size: 12)
@@ -135,19 +129,16 @@ TEST(RemoveIgnoredTest, RecurseClassParent) {
 [1]     Class: ClassA (size: 12)
           Member: a (offset: 0)
             Primitive: int32_t
-          Member: __oi_padding (offset: 4)
-[2]         Array: (length: 4)
-              Primitive: int8_t
           Member: c (offset: 8)
             Primitive: int32_t
 )");
 }
 
-TEST(RemoveIgnoredTest, RecurseClassMember) {
+TEST(RemoveMembersTest, RecurseClassMember) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveIgnored::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore), R"(
 [0] Class: MyClass (size: 0)
       Member: xxx (offset: 0)
 [1]     Class: ClassA (size: 12)
@@ -164,19 +155,16 @@ TEST(RemoveIgnoredTest, RecurseClassMember) {
 [1]     Class: ClassA (size: 12)
           Member: a (offset: 0)
             Primitive: int32_t
-          Member: __oi_padding (offset: 4)
-[2]         Array: (length: 4)
-              Primitive: int8_t
           Member: c (offset: 8)
             Primitive: int32_t
 )");
 }
 
-TEST(RemoveIgnoredTest, RecurseClassChild) {
+TEST(RemoveMembersTest, RecurseClassChild) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveIgnored::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore), R"(
 [0] Class: MyClass (size: 0)
       Child
 [1]     Class: ClassA (size: 12)
@@ -193,9 +181,6 @@ TEST(RemoveIgnoredTest, RecurseClassChild) {
 [1]     Class: ClassA (size: 12)
           Member: a (offset: 0)
             Primitive: int32_t
-          Member: __oi_padding (offset: 4)
-[2]         Array: (length: 4)
-              Primitive: int8_t
           Member: c (offset: 8)
             Primitive: int32_t
 )");

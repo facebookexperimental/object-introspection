@@ -5,6 +5,7 @@
 #include <string_view>
 #include <vector>
 
+#include "TypeGraphParser.h"
 #include "mocks.h"
 #include "oi/CodeGen.h"
 #include "oi/type_graph/Printer.h"
@@ -32,6 +33,33 @@ void testTransform(Type& type,
   codegen.transform(typeGraph);
 
   check({type}, expectedAfter, "after transform");
+}
+
+void testTransform(OICodeGen::Config& config,
+                   std::string_view input,
+                   std::string_view expectedAfter) {
+  input.remove_prefix(1);  // Remove initial '\n'
+  TypeGraph typeGraph;
+  TypeGraphParser parser{typeGraph};
+  try {
+    parser.parse(input);
+  } catch (const TypeGraphParserError& err) {
+    FAIL() << "Error parsing input graph: " << err.what();
+  }
+
+  // Validate input formatting
+  check(typeGraph.rootTypes(), input, "parsing input graph");
+
+  MockSymbolService symbols;
+  CodeGen codegen{config, symbols};
+  codegen.transform(typeGraph);
+
+  check(typeGraph.rootTypes(), expectedAfter, "after transform");
+}
+
+void testTransform(std::string_view input, std::string_view expectedAfter) {
+  OICodeGen::Config config;
+  testTransform(config, input, expectedAfter);
 }
 }  // namespace
 
@@ -133,5 +161,49 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
               Qualifiers: const
             Param
               Primitive: int32_t
+)");
+}
+
+TEST(CodeGenTest, RemovedMemberAlignment) {
+  OICodeGen::Config config;
+  config.membersToStub = {{"MyClass", "b"}};
+  testTransform(config, R"(
+[0] Class: MyClass (size: 24)
+      Member: a (offset: 0)
+        Primitive: int8_t
+      Member: b (offset: 8)
+        Primitive: int64_t
+      Member: c (offset: 16)
+        Primitive: int8_t
+)",
+                R"(
+[0] Class: MyClass_0 (size: 24, align: 8)
+      Member: a_0 (offset: 0, align: 1)
+        Primitive: int8_t
+      Member: __oi_padding_1 (offset: 1)
+[1]     Array: (length: 15)
+          Primitive: int8_t
+      Member: c_2 (offset: 16, align: 1)
+        Primitive: int8_t
+      Member: __oi_padding_3 (offset: 17)
+[2]     Array: (length: 7)
+          Primitive: int8_t
+)");
+}
+
+TEST(CodeGenTest, UnionMembersAlignment) {
+  testTransform(R"(
+[0] Union: MyUnion (size: 8)
+      Member: a (offset: 0)
+        Primitive: int8_t
+      Member: b (offset: 8)
+        Primitive: int64_t
+)",
+                R"(
+[0] Union: MyUnion_0 (size: 8, align: 8)
+      Member: a_0 (offset: 0, align: 1)
+        Primitive: int8_t
+      Member: b_1 (offset: 8, align: 8)
+        Primitive: int64_t
 )");
 }

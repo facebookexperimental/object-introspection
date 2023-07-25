@@ -31,7 +31,7 @@
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
-#include "type_graph/RemoveIgnored.h"
+#include "type_graph/RemoveMembers.h"
 #include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/TypeGraph.h"
@@ -783,28 +783,34 @@ void CodeGen::addDrgnRoot(struct drgn_type* drgnType,
 void CodeGen::transform(type_graph::TypeGraph& typeGraph) {
   type_graph::PassManager pm;
 
-  // 1. Transformation passes
+  // Simplify the type graph first so there is less work for later passes
+  pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
   pm.addPass(type_graph::Flattener::createPass());
   pm.addPass(type_graph::TypeIdentifier::createPass(config_.passThroughTypes));
+
   if (config_.features[Feature::PolymorphicInheritance]) {
+    // Parse new children nodes
     type_graph::DrgnParser drgnParser{
         typeGraph, containerInfos_,
         config_.features[Feature::ChaseRawPointers]};
     pm.addPass(type_graph::AddChildren::createPass(drgnParser, symbols_));
+
     // Re-run passes over newly added children
     pm.addPass(type_graph::Flattener::createPass());
     pm.addPass(
         type_graph::TypeIdentifier::createPass(config_.passThroughTypes));
   }
-  pm.addPass(type_graph::RemoveIgnored::createPass(config_.membersToStub));
-  pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
 
-  // 2. Fixup passes to repair type graph after partial transformations
+  // Calculate alignment before removing members, as those members may have an
+  // influence on the class' overall alignment.
+  pm.addPass(type_graph::AlignmentCalc::createPass());
+  pm.addPass(type_graph::RemoveMembers::createPass(config_.membersToStub));
+
+  // Add padding to fill in the gaps of removed members and ensure their
+  // alignments
   pm.addPass(type_graph::AddPadding::createPass(config_.features));
 
-  // 3. Annotation passes
   pm.addPass(type_graph::NameGen::createPass());
-  pm.addPass(type_graph::AlignmentCalc::createPass());
   pm.addPass(type_graph::TopoSorter::createPass());
 
   pm.run(typeGraph);
