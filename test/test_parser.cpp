@@ -9,7 +9,7 @@
 
 using ::testing::HasSubstr;
 
-using namespace ObjectIntrospection;
+using namespace oi::detail;
 
 // Utilities
 static ParseData parseString(const std::string& script) {

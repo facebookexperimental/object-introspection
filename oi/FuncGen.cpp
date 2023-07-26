@@ -22,9 +22,7 @@
 
 #include "oi/ContainerInfo.h"
 
-using ObjectIntrospection::Feature;
-using ObjectIntrospection::FeatureSet;
-
+namespace oi::detail {
 namespace {
 
 const std::string typedValueFunc = R"(
@@ -538,7 +536,7 @@ void FuncGen::DeclareGetContainer(std::string& testCode) {
  */
 void FuncGen::DefineDataSegmentDataBuffer(std::string& testCode) {
   constexpr std::string_view func = R"(
-    namespace ObjectIntrospection::DataBuffer {
+    namespace oi::detail::DataBuffer {
 
     class DataSegment {
       public:
@@ -560,7 +558,7 @@ void FuncGen::DefineDataSegmentDataBuffer(std::string& testCode) {
         uint8_t* buf;
     };
 
-    } // namespace ObjectIntrospection::DataBuffer
+    } // namespace oi::detail::DataBuffer
   )";
 
   testCode.append(func);
@@ -632,3 +630,5 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
   testCode.append(tHandler);
   testCode.append(voidHandler);
 }
+
+}  // namespace oi::detail

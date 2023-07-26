@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 class TypeGraph;
 class Type;
@@ -59,4 +59,4 @@ class PassManager {
   std::vector<Pass> passes_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

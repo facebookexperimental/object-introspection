@@ -4,7 +4,7 @@
 #include "oi/types/dy.h"
 #include "oi/types/st.h"
 
-using namespace ObjectIntrospection;
+using namespace oi;
 
 class DummyDataBuffer {};
 

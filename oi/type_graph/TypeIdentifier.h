@@ -23,7 +23,7 @@
 #include "Visitor.h"
 #include "oi/ContainerInfo.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 class TypeGraph;
 
@@ -56,4 +56,4 @@ class TypeIdentifier : public RecursiveVisitor {
   const std::vector<ContainerInfo>& passThroughTypes_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

@@ -15,16 +15,16 @@
  */
 
 /*
- * This is the bison grammar responsible for generating the ObjectIntrospection::OIParser class.
- * This class gives us a number of things worth calling out here if only to
- * remind me later :-):
+ * This is the bison grammar responsible for generating the oi::detail::OIParser
+ * class. This class gives us a number of things worth calling out here if only
+ * to remind me later :-):
  *
  * - A variant interface that replaces the C union interface for the
  * parsers semantic values. Enabled by setting 'api.value.type variant' below.
  */
 %skeleton "lalr1.cc"
 %defines
-%define api.namespace {ObjectIntrospection}
+%define api.namespace {oi::detail}
 %define api.parser.class {OIParser}
 %define parse.trace
 %define parse.error verbose
@@ -32,14 +32,14 @@
 
 %code requires{
   #include <list>
-  namespace ObjectIntrospection {
+  namespace oi::detail {
     class OIScanner;
   }
   class ParseData;
 }
 
 /*
- * ObjectIntrospection::OI_Parser constructor parameters. The scanner object is produced
+ * oi::detail::OIParser constructor parameters. The scanner object is produced
  * by flex and is derived from the yyFlexLexer class. The parser calls
  * its yylex() implementation to generate input tokens. The ParseData
  * object is spopulated by the lexer/parser introspection specifications
@@ -100,7 +100,7 @@ oi_block: OI_PROBETYPE OI_COLON OI_FUNC OI_COLON oi_args
 
 
 void
-ObjectIntrospection::OIParser::error(const location_type &l, const std::string &err_message)
+oi::detail::OIParser::error(const location_type &l, const std::string &err_message)
 {
   LOG(ERROR) << "OI Parse Error: " << err_message << " at " << l;
 }

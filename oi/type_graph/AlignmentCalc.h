@@ -23,7 +23,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * AlignmentCalc
@@ -46,4 +46,4 @@ class AlignmentCalc final : public RecursiveVisitor {
   std::unordered_set<Type*> visited_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

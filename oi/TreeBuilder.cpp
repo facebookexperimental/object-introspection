@@ -39,6 +39,8 @@ extern "C" {
 #include <sys/types.h>
 }
 
+namespace oi::detail {
+
 /* Tag indicating if the pointer has  been followed or skipped */
 enum class TrackPointerTag : uint64_t {
   /* The content has been skipped.
@@ -229,7 +231,7 @@ void TreeBuilder::build(const std::vector<uint64_t>& data,
 
   oidDataIndex = 4;  // HACK: OID's first 4 outputs are dummy 0s
 
-  ObjectIntrospection::Metrics::Tracing _("build_tree");
+  metrics::Tracing _("build_tree");
   VLOG(1) << "Building tree...";
 
   {
@@ -971,3 +973,5 @@ void TreeBuilder::JSON(NodeID id, std::ofstream& output) {
   }
   output << "}";
 }
+
+}  // namespace oi::detail

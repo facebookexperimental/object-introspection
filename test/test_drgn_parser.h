@@ -4,11 +4,15 @@
 
 #include "oi/type_graph/DrgnParser.h"
 
-namespace type_graph {
+namespace oi::detail {
+class SymbolService;
+}
+namespace oi::detail::type_graph {
 class TypeGraph;
 }
-class SymbolService;
 struct drgn_type;
+
+using namespace oi::detail;
 
 class DrgnParserTest : public ::testing::Test {
  protected:

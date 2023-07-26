@@ -21,7 +21,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * RemoveMembers
@@ -54,4 +54,4 @@ class RemoveMembers : public RecursiveVisitor {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

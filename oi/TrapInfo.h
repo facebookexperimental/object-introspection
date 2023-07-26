@@ -25,6 +25,8 @@ extern "C" {
 #include <sys/user.h>
 }
 
+namespace oi::detail {
+
 /*
  * Breakpoint traps (INT3) instructions are the primary mechanism used to
  * transfer control from the traced process to the debugger. There are several
@@ -114,7 +116,7 @@ class trapInfo {
    */
   uintptr_t replayInstAddr{};
 
-  ObjectIntrospection::Metrics::Tracing lifetime{"trap"};
+  metrics::Tracing lifetime{"trap"};
 
   trapInfo() = default;
   trapInfo(trapType t, uint64_t ta, uint64_t po = 0, bool fv = false)
@@ -132,3 +134,5 @@ inline std::ostream& operator<<(std::ostream& out, const trapInfo& t) {
   return out << "Trap " << trapTypeDescs[t.trapKind] << " @"
              << (void*)t.trapAddr;
 }
+
+}  // namespace oi::detail

@@ -24,7 +24,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 // TODO make all final
 /*
@@ -55,4 +55,4 @@ class NameGen final : public RecursiveVisitor {
   int n = 0;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

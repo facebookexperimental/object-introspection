@@ -2,8 +2,8 @@
 
 #include "oi/exporters/TypeCheckingWalker.h"
 
-using namespace ObjectIntrospection;
-using exporters::TypeCheckingWalker;
+using namespace oi;
+using oi::detail::exporters::TypeCheckingWalker;
 
 TEST(TypeCheckingWalker, TestUnit) {
   // ASSIGN

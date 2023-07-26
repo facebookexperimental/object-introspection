@@ -27,7 +27,7 @@ struct drgn_error;
 
 struct ContainerInfo;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * DrgnParser
@@ -110,4 +110,4 @@ class DrgnParserError : public std::runtime_error {
   struct drgn_error* err_ = nullptr;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

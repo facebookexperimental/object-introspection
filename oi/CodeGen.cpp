@@ -40,6 +40,8 @@
 #include "type_graph/TypeIdentifier.h"
 #include "type_graph/Types.h"
 
+namespace oi::detail {
+
 using type_graph::AddChildren;
 using type_graph::AddPadding;
 using type_graph::AlignmentCalc;
@@ -861,7 +863,8 @@ void CodeGen::generate(
 
   if (config_.features[Feature::TypedDataSegment]) {
     FuncGen::DefineDataSegmentDataBuffer(code);
-    code += "using namespace ObjectIntrospection;\n";
+    code += "using namespace oi;\n";
+    code += "using namespace oi::detail;\n";
 
     code += "namespace OIInternal {\nnamespace {\n";
     FuncGen::DefineBasicTypeHandlers(code);
@@ -927,3 +930,5 @@ void CodeGen::generate(
     std::cout << code;
   }
 }
+
+}  // namespace oi::detail

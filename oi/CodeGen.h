@@ -26,14 +26,16 @@
 #include "OICodeGen.h"
 
 struct drgn_type;
-
+namespace oi::detail {
 class SymbolService;
-
-namespace type_graph {
+}
+namespace oi::detail::type_graph {
 class Class;
 class Member;
 class TypeGraph;
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph
+
+namespace oi::detail {
 
 class CodeGen {
  public:
@@ -76,3 +78,5 @@ class CodeGen {
                        std::string& code);
   void getClassTypeHandler(const type_graph::Class& c, std::string& code);
 };
+
+}  // namespace oi::detail

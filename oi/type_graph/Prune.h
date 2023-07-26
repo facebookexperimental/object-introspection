@@ -23,7 +23,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * Prune
@@ -48,4 +48,4 @@ class Prune : public RecursiveVisitor {
   NodeTracker& tracker_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

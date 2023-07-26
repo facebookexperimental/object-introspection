@@ -19,7 +19,7 @@
 #include <numeric>
 #include <stdexcept>
 
-namespace ObjectIntrospection {
+namespace oi::detail {
 namespace {
 
 std::string_view featureHelp(Feature f) {
@@ -101,4 +101,4 @@ void featuresHelp(std::ostream& out) {
   }
 }
 
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail

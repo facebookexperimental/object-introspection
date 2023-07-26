@@ -23,7 +23,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * Flattener
@@ -52,4 +52,4 @@ class Flattener : public RecursiveVisitor {
   std::vector<uint64_t> offset_stack_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

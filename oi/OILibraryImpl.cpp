@@ -35,6 +35,8 @@ extern "C" {
 
 namespace ObjectIntrospection {
 
+using namespace oi::detail;
+
 OILibraryImpl::OILibraryImpl(OILibrary* self, void* TemplateFunc)
     : _self(self), _TemplateFunc(TemplateFunc) {
   if (_self->opts.debugLevel != 0) {
@@ -84,7 +86,7 @@ void OILibraryImpl::initCompiler() {
 }
 
 bool OILibraryImpl::processConfigFile() {
-  auto features = OIUtils::processConfigFile(
+  auto features = utils::processConfigFile(
       _self->opts.configFilePath,
       {
           {Feature::ChaseRawPointers, _self->opts.chaseRawPointers},

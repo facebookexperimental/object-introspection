@@ -20,7 +20,7 @@
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass NameGen::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -152,4 +152,4 @@ void NameGen::visit(Typedef& td) {
   accept(td.underlyingType());
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

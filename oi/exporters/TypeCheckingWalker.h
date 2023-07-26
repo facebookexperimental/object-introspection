@@ -36,8 +36,7 @@
 
 #include "oi/types/dy.h"
 
-namespace ObjectIntrospection {
-namespace exporters {
+namespace oi::detail::exporters {
 
 class TypeCheckingWalker {
  public:
@@ -74,5 +73,4 @@ class TypeCheckingWalker {
   }
 };
 
-}  // namespace exporters
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail::exporters

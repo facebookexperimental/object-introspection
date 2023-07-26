@@ -18,7 +18,7 @@
 #include "TypeGraph.h"
 #include "TypeIdentifier.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass Prune::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -62,4 +62,4 @@ void Prune::visit(Class& c) {
   c.functions.shrink_to_fit();
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

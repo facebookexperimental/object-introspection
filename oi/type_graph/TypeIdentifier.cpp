@@ -18,7 +18,7 @@
 #include "TypeGraph.h"
 #include "oi/ContainerInfo.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass TypeIdentifier::createPass(
     const std::vector<ContainerInfo>& passThroughTypes) {
@@ -115,4 +115,4 @@ void TypeIdentifier::visit(Container& c) {
   }
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

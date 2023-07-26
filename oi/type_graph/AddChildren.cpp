@@ -29,7 +29,7 @@ extern "C" {
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass AddChildren::createPass(DrgnParser& drgnParser, SymbolService& symbols) {
   auto fn = [&drgnParser, &symbols](TypeGraph& typeGraph) {
@@ -202,4 +202,4 @@ void AddChildren::enumerateChildClasses(SymbolService& symbols) {
   drgn_type_iterator_destroy(typesIterator);
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

@@ -5,11 +5,11 @@
 
 #include "oi/type_graph/Types.h"
 
-using namespace type_graph;
-
-namespace type_graph {
+namespace oi::detail::type_graph {
 class TypeGraph;
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph
+
+using namespace oi::detail::type_graph;
 
 /*
  * TypeGraphParser

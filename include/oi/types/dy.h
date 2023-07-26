@@ -29,9 +29,9 @@
  * translating these types to OID/OITB they cannot be compiled in, so we
  * represent the template arguments with member fields instead.
  *
- * Each type in this namespace corresponds 1-1 with a type in
- * ObjectIntrospection::types::st, except Dynamic which references them all. See
- * the types in st.h for the description of what each type contains.
+ * Each type in this namespace corresponds 1-1 with a type in oi::types::st,
+ * except Dynamic which references them all. See the types in st.h for the
+ * description of what each type contains.
  *
  * All types in this file include a constexpr constructor. This allows a single
  * extern const variable in the JIT code to include pointer references to other
@@ -43,7 +43,7 @@
 #include <span>
 #include <variant>
 
-namespace ObjectIntrospection::types::dy {
+namespace oi::types::dy {
 
 class Unit;
 class VarInt;
@@ -93,6 +93,6 @@ class List {
   Dynamic element;
 };
 
-}  // namespace ObjectIntrospection::types::dy
+}  // namespace oi::types::dy
 
 #endif

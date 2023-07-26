@@ -38,11 +38,10 @@ extern "C" {
 #include "oi/TimeUtils.h"
 #include "oi/TreeBuilder.h"
 
+namespace oi::detail {
+
 /* Global for signal handling */
 std::weak_ptr<OIDebugger> weak_oid;
-
-namespace fs = std::filesystem;
-using namespace ObjectIntrospection;
 
 // Using an enum inside a namespace here instead of an `enum class` because
 // enums defined via `enum class` aren't implicitly convertible to `int`, and
@@ -432,7 +431,7 @@ static ExitStatus::ExitStatus runScript(
 
     {  // Resume stopped thread before cleanup
       VLOG(1) << "Resuming stopped threads...";
-      Metrics::Tracing __("resume_threads");
+      metrics::Tracing __("resume_threads");
       while (oid->processTrap(oidConfig.pid, false) == OIDebugger::OID_CONT) {
       }
     }
@@ -457,7 +456,11 @@ static ExitStatus::ExitStatus runScript(
   return ExitStatus::Success;
 }
 
+}  // namespace oi::detail
+
 int main(int argc, char* argv[]) {
+  using namespace oi::detail;
+
   int debugLevel = 1;
   Oid::Config oidConfig = {};
   std::string scriptFile;
@@ -474,7 +477,7 @@ int main(int argc, char* argv[]) {
   bool logAllStructs = true;
   bool dumpDataSegment = false;
 
-  Metrics::Tracing _("main");
+  metrics::Tracing _("main");
 #ifndef OSS_ENABLE
   folly::InitOptions init;
   init.useGFlags(false);
@@ -679,8 +682,8 @@ int main(int argc, char* argv[]) {
       .jsonPath = jsonPath,
   };
 
-  auto featureSet = OIUtils::processConfigFile(oidConfig.configFile, features,
-                                               compilerConfig, codeGenConfig);
+  auto featureSet = utils::processConfigFile(oidConfig.configFile, features,
+                                             compilerConfig, codeGenConfig);
   if (!featureSet) {
     return ExitStatus::UsageError;
   }
@@ -708,11 +711,11 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (Metrics::Tracing::isEnabled()) {
-    LOG(INFO) << "Will write metrics (" << Metrics::Tracing::isEnabled()
-              << ") in " << Metrics::Tracing::outputPath();
+  if (metrics::Tracing::isEnabled()) {
+    LOG(INFO) << "Will write metrics (" << metrics::Tracing::isEnabled()
+              << ") in " << metrics::Tracing::outputPath();
   } else {
-    LOG(INFO) << "Will not write any metric: " << Metrics::Tracing::isEnabled();
+    LOG(INFO) << "Will not write any metric: " << metrics::Tracing::isEnabled();
   }
 
   return ExitStatus::Success;

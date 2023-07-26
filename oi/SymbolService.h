@@ -26,11 +26,11 @@
 #include "oi/Descs.h"
 #include "oi/TypeHierarchy.h"
 
-namespace fs = std::filesystem;
-
 struct Dwfl;
 struct drgn_program;
 struct irequest;
+
+namespace oi::detail {
 
 struct SymbolInfo {
   uint64_t addr;
@@ -40,7 +40,7 @@ struct SymbolInfo {
 class SymbolService {
  public:
   SymbolService(pid_t);
-  SymbolService(fs::path);
+  SymbolService(std::filesystem::path);
   SymbolService(const SymbolService&) = delete;
   SymbolService& operator=(const SymbolService&) = delete;
   ~SymbolService();
@@ -64,13 +64,13 @@ class SymbolService {
   }
 
  private:
-  std::variant<pid_t, fs::path> target;
+  std::variant<pid_t, std::filesystem::path> target;
   struct Dwfl* dwfl{nullptr};
   struct drgn_program* prog{nullptr};
 
   bool loadModules();
   bool loadModulesFromPid(pid_t);
-  bool loadModulesFromPath(const fs::path&);
+  bool loadModulesFromPath(const std::filesystem::path&);
 
   std::vector<std::pair<uint64_t, uint64_t>> executableAddrs{};
   bool hardDisableDrgn = false;
@@ -78,3 +78,5 @@ class SymbolService {
  protected:
   SymbolService() = default;  // For unit tests
 };
+
+}  // namespace oi::detail

@@ -29,6 +29,8 @@
 #include "oi/SymbolService.h"
 #include "oi/X86InstDefs.h"
 
+namespace oi::detail {
+
 namespace fs = std::filesystem;
 
 class OIMemoryManager;
@@ -42,7 +44,7 @@ class OICompiler {
  public:
   /* Configuration option for `OICompiler` */
   struct Config {
-    ObjectIntrospection::FeatureSet features;
+    FeatureSet features;
 
     std::vector<fs::path> userHeaderPaths{};
     std::vector<fs::path> sysHeaderPaths{};
@@ -221,3 +223,5 @@ std::optional<std::vector<uintptr_t>> OICompiler::locateOpcodes(
 
   return locs;
 }
+
+}  // namespace oi::detail

@@ -21,7 +21,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * Printer
@@ -60,4 +60,4 @@ class Printer : public ConstVisitor {
   std::unordered_map<const Type*, int> nodeNums_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

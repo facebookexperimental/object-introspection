@@ -30,6 +30,8 @@
 #include "cea/object-introspection/internal/ManifoldCache.h"
 #endif
 
+namespace oi::detail {
+
 static std::optional<std::reference_wrapper<const std::string>> getEntName(
     SymbolService& symbols, const irequest& req, OICache::Entity ent) {
   if (ent == OICache::Entity::FuncDescs ||
@@ -250,3 +252,5 @@ std::string OICache::generateRemoteHash(const irequest& req) {
   LOG(INFO) << "generating remote hash from: " << remote_cache_id;
   return std::to_string(std::hash<std::string>{}(remote_cache_id));
 }
+
+}  // namespace oi::detail

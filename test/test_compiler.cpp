@@ -9,6 +9,8 @@
 
 #include "oi/OICompiler.h"
 
+using namespace oi::detail;
+
 namespace fs = std::filesystem;
 
 /* Add the suffix operator _b to easily create array of uint8_t. */

@@ -19,7 +19,7 @@
 
 #include "Types.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * NodeTracker
@@ -67,4 +67,4 @@ class NodeTracker {
   std::vector<bool> visited_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

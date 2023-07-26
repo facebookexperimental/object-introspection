@@ -23,7 +23,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * TopoSorter
@@ -56,4 +56,4 @@ class TopoSorter : public RecursiveVisitor {
   void acceptAfter(Type* type);
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

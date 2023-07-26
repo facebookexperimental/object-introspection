@@ -36,7 +36,7 @@
   X(JitTiming, "jit-timing")                               \
   X(PolymorphicInheritance, "polymorphic-inheritance")
 
-namespace ObjectIntrospection {
+namespace oi::detail {
 
 enum class Feature {
   UnknownFeature,
@@ -58,4 +58,4 @@ constexpr std::array allFeatures = {
 // Use "size+1" to account for UnknownFeature"
 using FeatureSet = EnumBitset<Feature, allFeatures.size() + 1>;
 
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail

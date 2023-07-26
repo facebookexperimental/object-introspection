@@ -36,12 +36,14 @@ class DB;
 // Forward declared, comes from PaddingInfo.h
 struct PaddingInfo;
 
+namespace oi::detail {
+
 class TreeBuilder {
  public:
   struct Config {
     // Don't set default values for the config so the user gets
     // an "unitialized field" warning if he missed any.
-    ObjectIntrospection::FeatureSet features;
+    FeatureSet features;
     bool logAllStructs;
     bool dumpDataSegment;
     std::optional<std::string> jsonPath;
@@ -118,3 +120,5 @@ class TreeBuilder {
                       uint64_t dynamicSize,
                       uint64_t memberSizes);
 };
+
+}  // namespace oi::detail

@@ -22,7 +22,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * EnforceCompatibility
@@ -46,4 +46,4 @@ class EnforceCompatibility : public RecursiveVisitor {
   NodeTracker& tracker_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

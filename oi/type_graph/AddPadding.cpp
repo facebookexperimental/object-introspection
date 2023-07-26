@@ -22,7 +22,7 @@
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass AddPadding::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -135,4 +135,4 @@ void AddPadding::addPadding(uint64_t paddingStartBits,
   }
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

@@ -32,7 +32,7 @@
 
 namespace fs = std::filesystem;
 
-using namespace ObjectIntrospection;
+using namespace oi::detail;
 
 constexpr static OIOpts opts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit"},

@@ -18,7 +18,7 @@
 #include "TypeGraph.h"
 #include "TypeIdentifier.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass Flattener::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -212,4 +212,4 @@ void Flattener::visit(Container& c) {
   }
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

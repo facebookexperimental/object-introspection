@@ -22,7 +22,7 @@
 #include "NodeTracker.h"
 #include "Types.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * TypeGraph
@@ -91,4 +91,4 @@ class TypeGraph {
   NodeId next_id_ = 0;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

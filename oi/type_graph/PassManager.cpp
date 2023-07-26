@@ -26,7 +26,7 @@
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 void Pass::run(TypeGraph& typeGraph) {
   fn_(typeGraph);
@@ -72,4 +72,4 @@ void PassManager::run(TypeGraph& typeGraph) {
   }
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

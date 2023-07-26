@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-namespace ObjectIntrospection::Metrics {
+namespace oi::detail::metrics {
 
 constexpr auto traceEnvKey = "OID_METRICS_TRACE";
 constexpr auto outputEnvKey = "OID_METRICS_OUTPUT";
@@ -75,9 +75,9 @@ class Tracing final {
 
  public:
   /*
-   *   Metrics::Tracing("bad");
+   *   metrics::Tracing("bad");
    *
-   * Usage is Metrics::Tracing __varname_(...) The code above is an improper
+   * Usage is metrics::Tracing __varname_(...) The code above is an improper
    * use of the Tracing library. The tracing object above is not stored in a
    * variable. So it is immediately destroyed and won't record the expected
    * results. [[nodiscard]] flags the code above with a warning, which we
@@ -170,4 +170,4 @@ std::ostream& operator<<(std::ostream&, const TraceFlags&);
 std::ostream& operator<<(std::ostream&, const Span&);
 std::ostream& operator<<(std::ostream&, const std::vector<Span>&);
 
-}  // namespace ObjectIntrospection::Metrics
+}  // namespace oi::detail::metrics

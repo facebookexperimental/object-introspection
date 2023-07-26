@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Printer::Printer(std::ostream& out, size_t numTypes) : out_(out) {
   if (numTypes == 0) {
@@ -236,4 +236,4 @@ std::string Printer::align_str(uint64_t align) {
   return ", align: " + std::to_string(align);
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph
