@@ -92,6 +92,15 @@ MyClass
 )");
 }
 
+TEST(TopoSorterTest, TemplateParamValue) {
+  auto myclass = Class{1, Class::Kind::Class, "MyClass", 69};
+  myclass.templateParams.push_back(TemplateParam{"123"});
+
+  test({myclass}, R"(
+MyClass
+)");
+}
+
 TEST(TopoSorterTest, Children) {
   auto mymember = Class{0, Class::Kind::Struct, "MyMember", 13};
   auto mychild = Class{1, Class::Kind::Struct, "MyChild", 13};
