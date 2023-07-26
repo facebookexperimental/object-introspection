@@ -25,6 +25,22 @@ TEST(AddPaddingTest, BetweenMembers) {
 )");
 }
 
+TEST(AddPaddingTest, AtBeginning) {
+  test(AddPadding::createPass(), R"(
+[0] Struct: MyStruct (size: 16)
+      Member: n1 (offset: 8)
+        Primitive: int64_t
+)",
+       R"(
+[0] Struct: MyStruct (size: 16)
+      Member: __oi_padding (offset: 0)
+[1]     Array: (length: 8)
+          Primitive: int8_t
+      Member: n1 (offset: 8)
+        Primitive: int64_t
+)");
+}
+
 TEST(AddPaddingTest, AtEnd) {
   auto myclass = Class{0, Class::Kind::Struct, "MyStruct", 16};
   auto myint8 = Primitive{Primitive::Kind::Int8};
