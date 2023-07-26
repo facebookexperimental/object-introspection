@@ -23,7 +23,6 @@
 #include <unordered_map>
 #include <vector>
 
-class SymbolService;
 struct irequest;
 
 #include "oi/ContainerInfo.h"
@@ -36,8 +35,11 @@ extern "C" {
 #include <drgn.h>
 }
 
-using namespace ObjectIntrospection;
-namespace fs = std::filesystem;
+namespace oi::detail {
+class SymbolService;
+}
+
+namespace oi::detail {
 
 struct ParentMember {
   drgn_type* type;
@@ -59,7 +61,7 @@ class OICodeGen {
 
     bool useDataSegment;
     FeatureSet features;
-    std::set<fs::path> containerConfigPaths;
+    std::set<std::filesystem::path> containerConfigPaths;
     std::set<std::string> defaultHeaders;
     std::set<std::string> defaultNamespaces;
     std::vector<std::pair<std::string, std::string>> membersToStub;
@@ -360,3 +362,5 @@ class OICodeGen {
       std::vector<std::string>& template_params_strings,
       const std::string& nameWithoutTemplate);
 };
+
+}  // namespace oi::detail

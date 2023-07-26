@@ -29,7 +29,7 @@
  *
  * You can instrument some code with:
  * ```
- * auto t = Metrics::Tracing("name_of_your_trace");
+ * auto t = metrics::Tracing("name_of_your_trace");
  * [... some code ...]
  * t.stop();
  * ```
@@ -40,13 +40,13 @@
  * Alternatively, you can use automatically deal with this in every return
  * point thanks to C++'s RAII:
  * ```
- * Metrics::Tracing unused_var("name_of_your_trace");
+ * metrics::Tracing unused_var("name_of_your_trace");
  * ```
  *
  * When you want to collect the data, `::showTraces()` to print the data to
  * stdout, and `::saveTraces(file)` to save it to disk using JSON.
  */
-namespace ObjectIntrospection::Metrics {
+namespace oi::detail::metrics {
 
 static inline TraceFlags parseTraceFlags(const char* flags) {
   if (flags == nullptr) {
@@ -204,4 +204,4 @@ std::ostream& operator<<(std::ostream& out, const std::vector<Span>& spans) {
   return out;
 }
 
-}  // namespace ObjectIntrospection::Metrics
+}  // namespace oi::detail::metrics

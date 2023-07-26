@@ -20,7 +20,7 @@
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass TopoSorter::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -148,4 +148,4 @@ void TopoSorter::acceptAfter(Type* type) {
   }
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

@@ -4,8 +4,7 @@ target_include_directories(resources PRIVATE ../)
 
 function(embed_headers output)
   file(WRITE ${output} "#include \"oi/Headers.h\"\n\n")
-  file(APPEND ${output} "namespace ObjectIntrospection {\n")
-  file(APPEND ${output} "namespace headers {\n\n")
+  file(APPEND ${output} "namespace oi::detail::headers {\n")
 
   set(HEADERS
     ../include/oi/types/dy.h
@@ -33,8 +32,7 @@ function(embed_headers output)
     file(APPEND ${output} "const std::string_view ${varname} = R\"CONTENTS(${contents})CONTENTS\";\n\n")
   endforeach()
 
-  file(APPEND ${output} "} // namespace headers\n")
-  file(APPEND ${output} "} // namespace ObjectIntrospection\n")
+  file(APPEND ${output} "} // namespace oi::detail::headers\n")
 endfunction()
 
 embed_headers(${CMAKE_BINARY_DIR}/resources/headers.cpp)

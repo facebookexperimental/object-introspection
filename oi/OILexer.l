@@ -21,11 +21,11 @@
 #include "oi/OILexer.h"
 #undef  YY_DECL
 #define YY_DECL \
-  int ObjectIntrospection::OIScanner::yylex(ObjectIntrospection::OIParser::semantic_type * const lval, \
-                           ObjectIntrospection::OIParser::location_type *loc )
+  int oi::detail::OIScanner::yylex(oi::detail::OIParser::semantic_type * const lval, \
+                           oi::detail::OIParser::location_type *loc )
 
 /* typedef to make the returns for the tokens shorter */
-using token = ObjectIntrospection::OIParser::token;
+using token = oi::detail::OIParser::token;
 
 /* update location on matching */
 #define YY_USER_ACTION loc->step(); loc->columns(yyleng);
@@ -33,7 +33,7 @@ using token = ObjectIntrospection::OIParser::token;
 
 %option debug
 %option nodefault
-%option yyclass="ObjectIntrospection::OIScanner"
+%option yyclass="oi::detail::OIScanner"
 %option noyywrap
 %option c++
 
@@ -90,7 +90,7 @@ using token = ObjectIntrospection::OIParser::token;
 
 <<EOF>>   {
             if (YYSTATE == COMMENT) {
-              throw ObjectIntrospection::OIParser::syntax_error(
+              throw oi::detail::OIParser::syntax_error(
                 *loc, "unterminated /* comment");
             } else {
               return( token::OI_EOF );

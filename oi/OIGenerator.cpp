@@ -28,7 +28,7 @@
 #include "oi/Headers.h"
 #include "oi/OIUtils.h"
 
-namespace ObjectIntrospection {
+namespace oi::detail {
 
 std::unordered_map<std::string, std::string>
 OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
@@ -191,8 +191,8 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   OICodeGen::Config generatorConfig{};
   OICompiler::Config compilerConfig{};
 
-  auto features = OIUtils::processConfigFile(configFilePath, featuresMap,
-                                             compilerConfig, generatorConfig);
+  auto features = utils::processConfigFile(configFilePath, featuresMap,
+                                           compilerConfig, generatorConfig);
   if (!features) {
     LOG(ERROR) << "failed to process config file";
     return -1;
@@ -223,4 +223,4 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   return 0;
 }
 
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail

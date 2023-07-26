@@ -22,7 +22,7 @@
 #include "oi/OICodeGen.h"
 #include "oi/OICompiler.h"
 
-namespace ObjectIntrospection {
+namespace oi::detail {
 
 class OIGenerator {
  public:
@@ -61,4 +61,4 @@ class OIGenerator {
       SymbolService& symbols);
 };
 
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail

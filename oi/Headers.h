@@ -15,13 +15,11 @@
  */
 #include <string_view>
 
-namespace ObjectIntrospection {
-namespace headers {
+namespace oi::detail::headers {
 
 // These externs are provided by our build system. See resources/CMakeLists.txt
 extern const std::string_view oi_OITraceCode_cpp;
 extern const std::string_view oi_types_st_h;
 extern const std::string_view oi_types_dy_h;
 
-}  // namespace headers
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail::headers

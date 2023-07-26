@@ -24,6 +24,8 @@
 
 namespace fs = std::filesystem;
 
+namespace oi::detail {
+
 class FuncGen {
  public:
   static void DeclareStoreData(std::string& testCode);
@@ -40,10 +42,10 @@ class FuncGen {
 
   bool DeclareGetSizeFuncs(std::string& testCode,
                            const ContainerInfoRefSet& containerInfo,
-                           ObjectIntrospection::FeatureSet features);
+                           FeatureSet features);
   bool DefineGetSizeFuncs(std::string& testCode,
                           const ContainerInfoRefSet& containerInfo,
-                          ObjectIntrospection::FeatureSet features);
+                          FeatureSet features);
 
   static void DeclareGetContainer(std::string& testCode);
 
@@ -55,24 +57,21 @@ class FuncGen {
                                           const std::string& type,
                                           const std::string& linkageName);
 
-  static void DefineTopLevelGetSizeRef(
-      std::string& testCode,
-      const std::string& rawType,
-      ObjectIntrospection::FeatureSet features);
-  static void DefineTopLevelGetSizeRefTyped(
-      std::string& testCode,
-      const std::string& rawType,
-      ObjectIntrospection::FeatureSet features);
+  static void DefineTopLevelGetSizeRef(std::string& testCode,
+                                       const std::string& rawType,
+                                       FeatureSet features);
+  static void DefineTopLevelGetSizeRefTyped(std::string& testCode,
+                                            const std::string& rawType,
+                                            FeatureSet features);
   static void DefineOutputType(std::string& testCode,
                                const std::string& rawType);
 
   static void DefineTopLevelGetSizeRefRet(std::string& testCode,
                                           const std::string& type);
 
-  static void DefineTopLevelGetSizeSmartPtr(
-      std::string& testCode,
-      const std::string& rawType,
-      ObjectIntrospection::FeatureSet features);
+  static void DefineTopLevelGetSizeSmartPtr(std::string& testCode,
+                                            const std::string& rawType,
+                                            FeatureSet features);
 
   static void DefineGetSizeTypedValueFunc(std::string& testCode,
                                           const std::string& ctype);
@@ -80,3 +79,5 @@ class FuncGen {
   static void DefineDataSegmentDataBuffer(std::string& testCode);
   static void DefineBasicTypeHandlers(std::string& testCode);
 };
+
+}  // namespace oi::detail

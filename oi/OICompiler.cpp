@@ -47,11 +47,12 @@ extern "C" {
 #include <llvm-c/Disassembler.h>
 }
 
+namespace oi::detail {
+
 using namespace std;
 using namespace clang;
 using namespace llvm;
 using namespace llvm::object;
-using namespace ObjectIntrospection;
 
 static const char* symbolLookupCallback(
     [[maybe_unused]] void* disInfo,
@@ -467,7 +468,7 @@ static void debugDisAsm(
 bool OICompiler::compile(const std::string& code,
                          const fs::path& sourcePath,
                          const fs::path& objectPath) {
-  Metrics::Tracing _("compile");
+  metrics::Tracing _("compile");
 
   /*
    * Note to whoever: if you're having problems compiling code, especially
@@ -588,7 +589,7 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
     uintptr_t baseRelocAddress,
     const std::set<fs::path>& objectFiles,
     const std::unordered_map<std::string, uintptr_t>& syntheticSymbols) {
-  Metrics::Tracing relocationTracing("relocation");
+  metrics::Tracing relocationTracing("relocation");
 
   memMgr = std::make_unique<OIMemoryManager>(symbols, syntheticSymbols);
   RuntimeDyld dyld(*memMgr, *memMgr);
@@ -666,3 +667,5 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
 
   return res;
 }
+
+}  // namespace oi::detail

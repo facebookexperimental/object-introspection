@@ -60,7 +60,8 @@ extern "C" {
 #endif
 
 using namespace std;
-using namespace ObjectIntrospection;
+
+namespace oi::detail {
 
 constexpr int oidMagicId = 0x01DE8;
 
@@ -70,7 +71,7 @@ bool OIDebugger::isGlobalDataProbeEnabled(void) const {
 }
 
 bool OIDebugger::parseScript(std::istream& script) {
-  Metrics::Tracing _("parse_script");
+  metrics::Tracing _("parse_script");
 
   OIScanner scanner(&script);
   OIParser parser(scanner, pdata);
@@ -96,7 +97,7 @@ bool OIDebugger::parseScript(std::istream& script) {
 
 bool OIDebugger::patchFunctions(void) {
   assert(pdata.numReqs() != 0);
-  Metrics::Tracing _("patch_functions");
+  metrics::Tracing _("patch_functions");
 
   for (const auto& preq : pdata) {
     VLOG(1) << "Type " << preq.type << " Func " << preq.func
@@ -126,7 +127,7 @@ bool OIDebugger::patchFunctions(void) {
 uint64_t OIDebugger::singlestepInst(pid_t pid, struct user_regs_struct& regs) {
   int status = 0;
 
-  Metrics::Tracing _("single_step_inst");
+  metrics::Tracing _("single_step_inst");
 
   if (ptrace(PTRACE_SINGLESTEP, pid, 0, 0) == -1) {
     LOG(ERROR) << "Error in singlestep!";
@@ -740,7 +741,7 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
     auto t{iter->second};
     t->lifetime.stop();
 
-    auto jitTrapProcessTime = Metrics::Tracing("jit_ret");
+    auto jitTrapProcessTime = metrics::Tracing("jit_ret");
 
     VLOG(4) << "Hit the return path from vector. Redirect to " << std::hex
             << t->trapAddr;
@@ -1526,7 +1527,7 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
   static_assert(sizeof...(_args) == Sys::ArgsCount,
                 "Wrong number of arguments");
 
-  Metrics::Tracing _("syscall");
+  metrics::Tracing _("syscall");
   VLOG(1) << "syscall enter " << Sys::Name;
 
   auto sym = symbols->locateSymbol("main");
@@ -1675,7 +1676,7 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
 }
 
 bool OIDebugger::setupSegment(SegType seg) {
-  Metrics::Tracing _("setup_segment");
+  metrics::Tracing _("setup_segment");
 
   std::optional<void*> segAddr;
   if (seg == SegType::text) {
@@ -1717,7 +1718,7 @@ bool OIDebugger::setupSegment(SegType seg) {
 }
 
 bool OIDebugger::unmapSegment(SegType seg) {
-  Metrics::Tracing _("unmap_segment");
+  metrics::Tracing _("unmap_segment");
   auto addr =
       (seg == SegType::text) ? segConfig.textSegBase : segConfig.dataSegBase;
   auto size = (seg == SegType::text) ? textSegSize : dataSegSize;
@@ -1762,7 +1763,7 @@ bool OIDebugger::unmapSegments(bool deleteSegConfFile) {
  * Unfortunately there is no cheap way to assert this.
  */
 bool OIDebugger::removeTraps(pid_t pid) {
-  Metrics::Tracing removeTrapsTracing("remove_traps");
+  metrics::Tracing removeTrapsTracing("remove_traps");
 
   pid_t targetPid = pid ? pid : traceePid;
 
@@ -2333,7 +2334,7 @@ void OIDebugger::restoreState(void) {
           << activeTrapsCount;
   assert(activeTrapsCount == 0);
 
-  Metrics::Tracing _("restore_state");
+  metrics::Tracing _("restore_state");
 
   int status = 0;
 
@@ -2775,7 +2776,7 @@ static bool dumpDataSegment(const irequest& req,
 }
 
 bool OIDebugger::processTargetData() {
-  Metrics::Tracing _("process_target_data");
+  metrics::Tracing _("process_target_data");
 
   std::vector<std::byte> buf{dataSegSize};
   if (!readTargetMemory(reinterpret_cast<void*>(segConfig.dataSegBase),
@@ -2928,3 +2929,5 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
 
   return code;
 }
+
+}  // namespace oi::detail

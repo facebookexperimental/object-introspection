@@ -20,8 +20,7 @@
 template <class>
 inline constexpr bool always_false_v = false;
 
-namespace ObjectIntrospection {
-namespace exporters {
+namespace oi::detail::exporters {
 
 std::optional<TypeCheckingWalker::Element> TypeCheckingWalker::advance() {
   if (stack.empty()) {
@@ -76,5 +75,4 @@ std::optional<TypeCheckingWalker::Element> TypeCheckingWalker::advance() {
       el);
 }
 
-}  // namespace exporters
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail::exporters

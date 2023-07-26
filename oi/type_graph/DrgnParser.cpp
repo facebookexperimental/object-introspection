@@ -27,7 +27,7 @@ extern "C" {
 
 #include <regex>
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 namespace {
 
 uint64_t get_drgn_type_size(struct drgn_type* type) {
@@ -499,4 +499,4 @@ DrgnParserError::~DrgnParserError() {
   drgn_error_destroy(err_);
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

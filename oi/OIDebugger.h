@@ -29,7 +29,7 @@
 #include "oi/TreeBuilder.h"
 #include "oi/X86InstDefs.h"
 
-namespace fs = std::filesystem;
+namespace oi::detail {
 
 class OIDebugger {
   OIDebugger(const OICodeGen::Config&, OICompiler::Config, TreeBuilder::Config);
@@ -39,7 +39,7 @@ class OIDebugger {
              const OICodeGen::Config&,
              OICompiler::Config,
              TreeBuilder::Config);
-  OIDebugger(fs::path,
+  OIDebugger(std::filesystem::path,
              const OICodeGen::Config&,
              OICompiler::Config,
              TreeBuilder::Config);
@@ -77,11 +77,12 @@ class OIDebugger {
     return oidShouldExit;
   };
 
-  void setCacheBasePath(fs::path basePath) {
-    if (fs::exists(basePath.parent_path()) && !fs::exists(basePath)) {
+  void setCacheBasePath(std::filesystem::path basePath) {
+    if (std::filesystem::exists(basePath.parent_path()) &&
+        !std::filesystem::exists(basePath)) {
       // Create cachedir if parent directory exists
       // TODO if returning false here, throw an error
-      fs::create_directory(basePath);
+      std::filesystem::create_directory(basePath);
     }
     cache.basePath = std::move(basePath);
   }
@@ -140,7 +141,7 @@ class OIDebugger {
     return std::get<2>(typeInfos.at(pdata.getReq().getReqForArg()));
   }
 
-  void setCustomCodeFile(fs::path newCCT) {
+  void setCustomCodeFile(std::filesystem::path newCCT) {
     customCodeFile = std::move(newCCT);
   }
 
@@ -243,8 +244,8 @@ class OIDebugger {
   std::optional<std::string> generateCode(const irequest&);
 
   std::fstream segmentConfigFile;
-  fs::path segConfigFilePath;
-  fs::path customCodeFile;
+  std::filesystem::path segConfigFilePath;
+  std::filesystem::path customCodeFile;
 
   struct c {
     uintptr_t textSegBase{};
@@ -293,3 +294,5 @@ class OIDebugger {
   static constexpr size_t prologueLength = 64;
   static constexpr size_t constLength = 64;
 };
+
+}  // namespace oi::detail

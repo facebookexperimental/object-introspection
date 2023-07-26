@@ -50,7 +50,7 @@
 
 struct ContainerInfo;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 // Must be signed. "-1" represents "leaf node"
 using NodeId = int32_t;
@@ -589,6 +589,6 @@ class DummyAllocator : public Type {
 
 Type& stripTypedefs(Type& type);
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph
 
 #undef DECLARE_ACCEPT

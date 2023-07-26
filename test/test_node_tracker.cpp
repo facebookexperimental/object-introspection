@@ -2,7 +2,7 @@
 
 #include "oi/type_graph/NodeTracker.h"
 
-using namespace type_graph;
+using namespace oi::detail::type_graph;
 
 TEST(NodeTrackerTest, LeafNodes) {
   Primitive myint32{Primitive::Kind::Int32};

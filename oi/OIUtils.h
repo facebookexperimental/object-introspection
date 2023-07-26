@@ -22,12 +22,11 @@
 #include "oi/OICodeGen.h"
 #include "oi/OICompiler.h"
 
-namespace OIUtils {
+namespace oi::detail::utils {
 
-std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
-    const std::string& configFilePath,
-    std::map<Feature, bool> featureMap,
-    OICompiler::Config& compilerConfig,
-    OICodeGen::Config& generatorConfig);
+std::optional<FeatureSet> processConfigFile(const std::string& configFilePath,
+                                            std::map<Feature, bool> featureMap,
+                                            OICompiler::Config& compilerConfig,
+                                            OICodeGen::Config& generatorConfig);
 
-}  // namespace OIUtils
+}  // namespace oi::detail::utils

@@ -27,12 +27,11 @@
 
 namespace fs = std::filesystem;
 
-namespace OIUtils {
+namespace oi::detail::utils {
 
-using namespace ObjectIntrospection;
 using namespace std::literals;
 
-std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
+std::optional<FeatureSet> processConfigFile(
     const std::string& configFilePath,
     std::map<Feature, bool> featureMap,
     OICompiler::Config& compilerConfig,
@@ -173,7 +172,7 @@ std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
     }
   }
 
-  ObjectIntrospection::FeatureSet featuresSet;
+  FeatureSet featuresSet;
   for (auto [k, v] : featureMap) {
     if (v) {
       featuresSet[k] = true;
@@ -208,4 +207,4 @@ std::optional<ObjectIntrospection::FeatureSet> processConfigFile(
   return featuresSet;
 }
 
-}  // namespace OIUtils
+}  // namespace oi::detail::utils

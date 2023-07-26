@@ -17,7 +17,7 @@
 
 #include "TypeGraph.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass RemoveTopLevelPointer::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -42,4 +42,4 @@ void RemoveTopLevelPointer::visit(Pointer& p) {
   topLevelType_ = &p.pointeeType();
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

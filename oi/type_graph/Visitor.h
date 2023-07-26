@@ -26,7 +26,7 @@
 
 #include "Types.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * Visitor
@@ -145,4 +145,4 @@ class LazyConstVisitor : public ConstVisitor {
 #undef X
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

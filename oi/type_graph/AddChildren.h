@@ -23,10 +23,12 @@
 #include "Types.h"
 #include "Visitor.h"
 
-class SymbolService;
 struct drgn_type;
+namespace oi::detail {
+class SymbolService;
+}
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 class DrgnParser;
 class TypeGraph;
@@ -74,4 +76,4 @@ class AddChildren final : public RecursiveVisitor {
   std::unordered_map<std::string, std::vector<drgn_type*>> childClasses_;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

@@ -34,6 +34,10 @@ extern "C" {
 #include "dwarf.h"
 }
 
+namespace fs = std::filesystem;
+
+namespace oi::detail {
+
 template <typename... Ts>
 struct visitor : Ts... {
   using Ts::operator()...;
@@ -885,3 +889,5 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
 
   return RootInfo{paramName, paramType};
 }
+
+}  // namespace oi::detail

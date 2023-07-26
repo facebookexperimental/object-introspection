@@ -6,9 +6,11 @@
 
 #include "oi/type_graph/Types.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 class Pass;
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph
+
+using namespace oi::detail;
 
 void check(const std::vector<std::reference_wrapper<type_graph::Type>>& types,
            std::string_view expected,

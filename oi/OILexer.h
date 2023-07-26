@@ -27,7 +27,7 @@
 #include "OIParser.tab.hh"
 #include "location.hh"
 
-namespace ObjectIntrospection {
+namespace oi::detail {
 
 class OIScanner : public yyFlexLexer {
  public:
@@ -48,4 +48,4 @@ class OIScanner : public yyFlexLexer {
   OIParser::semantic_type* yylval = nullptr;
 };
 
-}  // namespace ObjectIntrospection
+}  // namespace oi::detail

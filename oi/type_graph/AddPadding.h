@@ -22,7 +22,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 class TypeGraph;
 
@@ -59,4 +59,4 @@ class AddPadding final : public RecursiveVisitor {
                   std::vector<Member>& paddedMembers);
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

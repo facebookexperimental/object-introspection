@@ -17,7 +17,7 @@
 
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 #define X(OI_TYPE_NAME)                              \
   void OI_TYPE_NAME::accept(Visitor& v) {            \
@@ -131,4 +131,4 @@ Type& stripTypedefs(Type& type) {
   return *t;
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

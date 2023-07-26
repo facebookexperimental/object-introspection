@@ -24,7 +24,7 @@
 #include "oi/OIParser.h"
 #include "oi/SymbolService.h"
 
-namespace fs = std::filesystem;
+namespace oi::detail {
 
 class OICache {
  public:
@@ -32,7 +32,7 @@ class OICache {
       : generatorConfig(generatorConfig) {
   }
 
-  fs::path basePath{};
+  std::filesystem::path basePath{};
   std::shared_ptr<SymbolService> symbols{};
   bool downloadedRemote = false;
   bool enableUpload = false;
@@ -60,7 +60,7 @@ class OICache {
   bool isEnabled() const {
     return !basePath.empty();
   }
-  std::optional<fs::path> getPath(const irequest&, Entity) const;
+  std::optional<std::filesystem::path> getPath(const irequest&, Entity) const;
   template <typename T>
   bool store(const irequest&, Entity, const T&);
   template <typename T>
@@ -72,3 +72,5 @@ class OICache {
  private:
   std::string generateRemoteHash(const irequest&);
 };
+
+}  // namespace oi::detail

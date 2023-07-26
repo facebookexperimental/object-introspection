@@ -55,7 +55,7 @@
  * dynamic description of their type as the constexpr field `describe`. Compound
  * types compose appropriately.
  */
-namespace ObjectIntrospection::types::st {
+namespace oi::types::st {
 
 #ifdef DEFINE_DESCRIBE
 #include "oi/types/dy.h"
@@ -280,6 +280,6 @@ class List
 #endif
 };
 
-}  // namespace ObjectIntrospection::types::st
+}  // namespace oi::types::st
 
 #endif

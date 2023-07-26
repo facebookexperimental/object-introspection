@@ -40,6 +40,8 @@
 
 namespace fs = std::filesystem;
 
+namespace oi::detail {
+
 static size_t g_level = 0;
 
 #undef VLOG
@@ -3773,3 +3775,5 @@ std::vector<std::string> OICodeGen::Config::toOptions() const {
 void OICodeGen::initializeCodeGen() {
   LOG(WARNING) << "OICodeGen::initializeCodeGen is no longer necessary";
 };
+
+}  // namespace oi::detail

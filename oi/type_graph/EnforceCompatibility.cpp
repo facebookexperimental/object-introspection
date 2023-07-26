@@ -24,7 +24,7 @@
 #include "TypeIdentifier.h"
 #include "oi/OICodeGen.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass EnforceCompatibility::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -78,4 +78,4 @@ void EnforceCompatibility::visit(Class& c) {
   });
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

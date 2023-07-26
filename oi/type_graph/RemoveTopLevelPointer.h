@@ -22,7 +22,7 @@
 #include "Types.h"
 #include "Visitor.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 /*
  * RemoveTopLevelPointer
@@ -41,4 +41,4 @@ class RemoveTopLevelPointer : public LazyVisitor {
   Type* topLevelType_ = nullptr;
 };
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

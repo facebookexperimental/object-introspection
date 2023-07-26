@@ -22,7 +22,7 @@
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass AlignmentCalc::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
@@ -76,4 +76,4 @@ void AlignmentCalc::visit(Class& c) {
   }
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

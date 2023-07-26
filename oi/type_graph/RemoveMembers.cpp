@@ -18,7 +18,7 @@
 #include "AddPadding.h"
 #include "TypeGraph.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 Pass RemoveMembers::createPass(
     const std::vector<std::pair<std::string, std::string>>& membersToIgnore) {
@@ -75,4 +75,4 @@ bool RemoveMembers::ignoreMember(const std::string& typeName,
   return false;
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph

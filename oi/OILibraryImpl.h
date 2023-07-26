@@ -39,9 +39,9 @@ class OILibraryImpl {
 
   void* _TemplateFunc;
 
-  OICompiler::Config compilerConfig{};
-  OICodeGen::Config generatorConfig{};
-  std::shared_ptr<SymbolService> symbols{};
+  oi::detail::OICompiler::Config compilerConfig{};
+  oi::detail::OICodeGen::Config generatorConfig{};
+  std::shared_ptr<oi::detail::SymbolService> symbols{};
 
   struct c {
     void* textSegBase = nullptr;

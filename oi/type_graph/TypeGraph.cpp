@@ -15,7 +15,7 @@
  */
 #include "TypeGraph.h"
 
-namespace type_graph {
+namespace oi::detail::type_graph {
 
 NodeTracker& TypeGraph::resetTracker() noexcept {
   tracker_.reset();
@@ -74,4 +74,4 @@ Primitive& TypeGraph::makeType<Primitive>(Primitive::Kind kind) {
   }
 }
 
-}  // namespace type_graph
+}  // namespace oi::detail::type_graph
