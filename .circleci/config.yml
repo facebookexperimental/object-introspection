@@ -57,6 +57,10 @@ workflows:
           cc: /usr/bin/clang-12
           cxx: /usr/bin/clang++-12
           warnings_as_errors: "ON"
+      - iwyu:
+          name: iwyu
+          requires:
+            - build-clang
       - test:
           name: test-clang
           requires:
@@ -151,7 +155,6 @@ jobs:
               libgflags-dev \
               libgmock-dev \
               libgoogle-glog-dev \
-              libgtest-dev \
               libjemalloc-dev \
               libmsgpack-dev \
               libzstd-dev \
@@ -166,16 +169,50 @@ jobs:
       - run:
           name: Build
           command: |
-            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
+            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -D CMAKE_EXPORT_COMPILE_COMMANDS=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
             cmake --build build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
       - persist_to_workspace:
           root: .
           paths:
+            - include/*
+            - oi/*
+            - test/*
             - build/*
             - extern/*
             - types/*
+
+  iwyu:
+    executor: ubuntu-docker
+    working_directory: /tmp/object-introspection
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update
+            apt-get install -y \
+              clang-12 \
+              flex \
+              libboost-all-dev \
+              libclang-12-dev \
+              libdouble-conversion-dev \
+              libfmt-dev \
+              libgflags-dev \
+              libjemalloc-dev \
+              libmsgpack-dev \
+              llvm-12-dev \
+              iwyu
+      - run:
+          name: iwyu
+          command: |
+            find oi/ test/ -type f \
+              -name '*.cpp' \
+              -not -name 'OITraceCode.cpp' \
+              -not -name 'integration_mttest.cpp' \
+              | xargs iwyu_tool -p build/
 
   test:
     executor: big-boy
