@@ -139,6 +139,11 @@ void NameGen::visit(Enum& e) {
   e.setName(name);
 }
 
+void NameGen::visit(Array& a) {
+  accept(a.elementType());
+  a.regenerateName();
+}
+
 void NameGen::visit(Typedef& td) {
   /*
    * Treat like class names.
@@ -156,6 +161,16 @@ void NameGen::visit(Typedef& td) {
   td.setName(name);
 
   accept(td.underlyingType());
+}
+
+void NameGen::visit(Pointer& p) {
+  accept(p.pointeeType());
+  p.regenerateName();
+}
+
+void NameGen::visit(DummyAllocator& d) {
+  accept(d.allocType());
+  d.regenerateName();
 }
 
 }  // namespace oi::detail::type_graph

@@ -80,8 +80,7 @@ class Type {
   virtual void accept(Visitor& v) = 0;
   virtual void accept(ConstVisitor& v) const = 0;
 
-  // TODO don't always return a copy for name()
-  virtual std::string name() const = 0;
+  virtual const std::string& name() const = 0;
   virtual size_t size() const = 0;
   virtual uint64_t align() const = 0;
   virtual NodeId id() const = 0;
@@ -210,7 +209,7 @@ class Class : public Type {
     return kind_;
   }
 
-  virtual std::string name() const override {
+  virtual const std::string& name() const override {
     return name_;
   }
 
@@ -287,7 +286,7 @@ class Container : public Type {
     return containerInfo_.typeName;
   }
 
-  virtual std::string name() const override {
+  virtual const std::string& name() const override {
     return name_;
   }
 
@@ -339,7 +338,7 @@ class Enum : public Type {
 
   DECLARE_ACCEPT
 
-  virtual std::string name() const override {
+  virtual const std::string& name() const override {
     return name_;
   }
 
@@ -368,14 +367,20 @@ class Array : public Type {
  public:
   Array(NodeId id, Type& elementType, size_t len)
       : elementType_(elementType), len_(len), id_(id) {
+    regenerateName();
   }
 
   static inline constexpr bool has_node_id = true;
 
   DECLARE_ACCEPT
 
-  virtual std::string name() const override {
-    return "OIArray<" + elementType_.name() + ", " + std::to_string(len_) + ">";
+  virtual const std::string& name() const override {
+    return name_;
+  }
+
+  void regenerateName() {
+    name_ = std::string{"OIArray<"} + elementType_.name() + ", " +
+            std::to_string(len_) + ">";
   }
 
   virtual size_t size() const override {
@@ -402,6 +407,8 @@ class Array : public Type {
   Type& elementType_;
   size_t len_;
   NodeId id_ = -1;
+
+  std::string name_;
 };
 
 class Primitive : public Type {
@@ -428,14 +435,16 @@ class Primitive : public Type {
                  // stubbed out due to incomplete DWARF
   };
 
-  explicit Primitive(Kind kind) : kind_(kind) {
+  explicit Primitive(Kind kind) : kind_(kind), name_(getName(kind)) {
   }
 
   static inline constexpr bool has_node_id = false;
 
   DECLARE_ACCEPT
 
-  virtual std::string name() const override;
+  virtual const std::string& name() const override {
+    return name_;
+  }
   virtual size_t size() const override;
   virtual uint64_t align() const override {
     return size();
@@ -449,6 +458,9 @@ class Primitive : public Type {
 
  private:
   Kind kind_;
+  std::string name_;
+
+  static std::string getName(Kind kind);
 };
 
 class Typedef : public Type {
@@ -461,7 +473,7 @@ class Typedef : public Type {
 
   DECLARE_ACCEPT
 
-  virtual std::string name() const override {
+  virtual const std::string& name() const override {
     return name_;
   }
 
@@ -495,14 +507,19 @@ class Pointer : public Type {
  public:
   explicit Pointer(NodeId id, Type& pointeeType)
       : pointeeType_(pointeeType), id_(id) {
+    regenerateName();
   }
 
   static inline constexpr bool has_node_id = true;
 
   DECLARE_ACCEPT
 
-  virtual std::string name() const override {
-    return pointeeType_.name() + "*";
+  virtual const std::string& name() const override {
+    return name_;
+  }
+
+  void regenerateName() {
+    name_ = pointeeType_.name() + "*";
   }
 
   virtual size_t size() const override {
@@ -524,6 +541,8 @@ class Pointer : public Type {
  private:
   Type& pointeeType_;
   NodeId id_ = -1;
+
+  std::string name_;
 };
 
 /*
@@ -533,16 +552,19 @@ class Pointer : public Type {
  */
 class Dummy : public Type {
  public:
-  explicit Dummy(size_t size, uint64_t align) : size_(size), align_(align) {
+  explicit Dummy(size_t size, uint64_t align)
+      : size_(size),
+        align_(align),
+        name_(std::string{"DummySizedOperator<"} + std::to_string(size) + ", " +
+              std::to_string(align) + ">") {
   }
 
   static inline constexpr bool has_node_id = false;
 
   DECLARE_ACCEPT
 
-  virtual std::string name() const override {
-    return "DummySizedOperator<" + std::to_string(size_) + ", " +
-           std::to_string(align_) + ">";
+  virtual const std::string& name() const override {
+    return name_;
   }
 
   virtual size_t size() const override {
@@ -560,6 +582,8 @@ class Dummy : public Type {
  private:
   size_t size_;
   uint64_t align_;
+
+  std::string name_;
 };
 
 /*
@@ -572,15 +596,20 @@ class DummyAllocator : public Type {
  public:
   explicit DummyAllocator(Type& type, size_t size, uint64_t align)
       : type_(type), size_(size), align_(align) {
+    regenerateName();
   }
 
   static inline constexpr bool has_node_id = false;
 
   DECLARE_ACCEPT
 
-  virtual std::string name() const override {
-    return "DummyAllocator<" + type_.name() + ", " + std::to_string(size_) +
-           ", " + std::to_string(align_) + ">";
+  virtual const std::string& name() const override {
+    return name_;
+  }
+
+  void regenerateName() {
+    name_ = std::string{"DummyAllocator<"} + type_.name() + ", " +
+            std::to_string(size_) + ", " + std::to_string(align_) + ">";
   }
 
   virtual size_t size() const override {
@@ -603,6 +632,8 @@ class DummyAllocator : public Type {
   Type& type_;
   size_t size_;
   uint64_t align_;
+
+  std::string name_;
 };
 
 Type& stripTypedefs(Type& type);
