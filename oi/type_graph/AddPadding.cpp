@@ -71,7 +71,9 @@ void AddPadding::visit(Class& c) {
   std::vector<Member> paddedMembers;
   paddedMembers.reserve(c.members.size());
   for (size_t i = 0; i < c.members.size(); i++) {
-    if (i >= 1) {
+    if (i == 0) {
+      addPadding(0, c.members[0].bitOffset, paddedMembers);
+    } else {
       addPadding(c.members[i - 1], c.members[i].bitOffset, paddedMembers);
     }
 
