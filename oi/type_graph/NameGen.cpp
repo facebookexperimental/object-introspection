@@ -15,6 +15,12 @@
  */
 #include "NameGen.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <memory>
+#include <optional>
+
+#include "PassManager.h"
 #include "TypeGraph.h"
 
 template <typename T>

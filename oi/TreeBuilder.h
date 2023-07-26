@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 #pragma once
+#include <cstddef>
+#include <cstdint>
+#include <fstream>
 #include <map>
 #include <memory>
-#include <msgpack/sbuffer_decl.hpp>
+#include <msgpack/sbuffer_decl.hpp>  // IWYU pragma: keep
 #include <optional>
-#include <set>
 #include <string>
-#include <unordered_set>
+#include <string_view>
 #include <vector>
+// IWYU pragma: no_forward_declare msgpack::v1::sbuffer
 
 #include "oi/Features.h"
-#include "oi/TypeHierarchy.h"
 
-// The rocksdb includes are extremely heavy and bloat compile times,
-// so we just forward-declare `DB` to avoid making other compile units
-// pay the cost of including the relevant headers.
 namespace rocksdb {
 class DB;
 }
+struct TypeHierarchy;
 
 // Forward declared, comes from PaddingInfo.h
 struct PaddingInfo;

@@ -1,7 +1,11 @@
 #pragma once
-
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
+#include <string>
+#include <string_view>
+
+#include "oi/SymbolService.h"
 #include "oi/type_graph/DrgnParser.h"
 
 namespace type_graph {

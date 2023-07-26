@@ -18,20 +18,32 @@
 #include <glog/logging.h>
 
 #include <algorithm>
+#include <boost/core/demangle.hpp>
 #include <boost/scope_exit.hpp>
 #include <cassert>
+#include <cstdio>
 #include <cstring>
+#include <ext/alloc_traits.h>
 #include <fstream>
+#include <iterator>
+#include <sstream>
+#include <stdexcept>
+#include <string_view>
 
+#include "oi/Descs.h"
 #include "oi/DrgnUtils.h"
 #include "oi/OIParser.h"
+#include "oi/TypeHierarchy.h"
 
 extern "C" {
-#include <elfutils/known-dwarf.h>
+#include <drgn.h>
+#include <elf.h>
+#include <elfutils/libdw.h>
 #include <elfutils/libdwfl.h>
-
-#include "drgn.h"
-#include "dwarf.h"
+#include <gelf.h>
+#include <inttypes.h>
+#include <libdw/dwarf.h>
+#include <libelf.h>
 }
 
 template <typename... Ts>
@@ -407,7 +419,7 @@ std::optional<std::string> SymbolService::locateBuildID() {
   return buildID;
 }
 
-struct drgn_program* SymbolService::getDrgnProgram() {
+drgn_program* SymbolService::getDrgnProgram() {
   if (hardDisableDrgn) {
     LOG(ERROR) << "drgn is disabled, refusing to initialize";
     return nullptr;
@@ -466,8 +478,8 @@ struct drgn_program* SymbolService::getDrgnProgram() {
  * task is to extract the location information for this parameter if any exist.
  */
 static void parseFormalParam(Dwarf_Die& param,
-                             struct drgn_elf_file* file,
-                             struct drgn_program* prog,
+                             drgn_elf_file* file,
+                             drgn_program* prog,
                              Dwarf_Die& funcDie,
                              std::shared_ptr<FuncDesc>& fd) {
   /*
@@ -513,11 +525,11 @@ static void parseFormalParam(Dwarf_Die& param,
 /*
 static bool handleInlinedFunction(const irequest& request,
                                   std::shared_ptr<FuncDesc> funcDesc,
-                                  struct drgn_qualified_type& funcType,
+                                  drgn_qualified_type& funcType,
                                   Dwarf_Die& funcDie,
-                                  struct drgn_module*& module) {
+                                  drgn_module*& module) {
   VLOG(1) << "Function '" << funcDesc->symName << "' has been inlined";
-  struct drgn_type_inlined_instances_iterator* iter = nullptr;
+  drgn_type_inlined_instances_iterator* iter = nullptr;
   auto* err = drgn_type_inlined_instances_iterator_init(funcType.type, &iter);
   if (err) {
     LOG(ERROR) << "Error creating inlined instances iterator: " << err->message;
@@ -531,7 +543,7 @@ static bool handleInlinedFunction(const irequest& request,
     return false;
   }
   auto* argumentName = drgn_type_parameters(funcType.type)[index.value()].name;
-  struct drgn_type* inlinedInstance = nullptr;
+  drgn_type* inlinedInstance = nullptr;
   bool foundInstance = false;
   // The index at which the parameter was actually found in the inlined
   // instance. This may differ from the index of the parameter in the function
@@ -573,7 +585,7 @@ static bool handleInlinedFunction(const irequest& request,
         drgn_type_num_parameters(funcType.type);
     // Allocating with `calloc` since `drgn` manages the lifetimes of its
     // own structures, and it is written in C.
-    inlinedInstance->_private.parameters = (struct drgn_type_parameter*)calloc(
+    inlinedInstance->_private.parameters = (drgn_type_parameter*)calloc(
         inlinedInstance->_private.num_parameters,
         sizeof(*inlinedInstance->_private.parameters));
     inlinedInstance->_private.parameters[index.value()] = targetParameter;
@@ -591,7 +603,7 @@ static bool handleInlinedFunction(const irequest& request,
 */
 
 static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
-    struct drgn_program* prog, const irequest& request) {
+    drgn_program* prog, const irequest& request) {
   VLOG(1) << "Creating function description for: " << request.func;
 
   auto ft = findTypeOfSymbol(prog, request.func);
@@ -710,7 +722,7 @@ std::shared_ptr<FuncDesc> SymbolService::findFuncDesc(const irequest& request) {
     return it->second;
   }
 
-  struct drgn_program* drgnProg = getDrgnProgram();
+  drgn_program* drgnProg = getDrgnProgram();
   if (drgnProg == nullptr) {
     return nullptr;
   }
@@ -742,14 +754,14 @@ std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
   VLOG(1) << "locateGlobal: address of " << global << " " << std::hex
           << sym->addr;
 
-  struct drgn_program* drgnProg = getDrgnProgram();
+  drgn_program* drgnProg = getDrgnProgram();
   if (drgnProg == nullptr) {
     return nullptr;
   }
 
   auto gd = std::make_shared<GlobalDesc>(global, sym->addr);
 
-  struct drgn_object globalObj {};
+  drgn_object globalObj{};
   drgn_object_init(&globalObj, drgnProg);
   BOOST_SCOPE_EXIT_ALL(&) {
     drgn_object_deinit(&globalObj);
@@ -771,7 +783,7 @@ std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
   return gd;
 }
 
-std::string SymbolService::getTypeName(struct drgn_type* type) {
+std::string SymbolService::getTypeName(drgn_type* type) {
   if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
     type = drgn_type_type(type).type;
   }

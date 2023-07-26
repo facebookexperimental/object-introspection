@@ -15,6 +15,17 @@
  */
 #include "TypeIdentifier.h"
 
+#include <stddef.h>
+
+#include <algorithm>
+#include <ext/alloc_traits.h>
+#include <functional>
+#include <memory>
+#include <regex>
+#include <string>
+
+#include "NodeTracker.h"
+#include "PassManager.h"
 #include "TypeGraph.h"
 #include "oi/ContainerInfo.h"
 

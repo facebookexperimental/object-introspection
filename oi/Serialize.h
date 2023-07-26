@@ -17,16 +17,22 @@
 
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/archive/text_oarchive.hpp>
+#include <boost/mpl/assert.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/version.hpp>
 
+#include "oi/Descs.h"
 #include "oi/PaddingHunter.h"
-#include "oi/SymbolService.h"
 #include "oi/TypeHierarchy.h"
+
+extern "C" {
+#include "drgn.h"
+}
 
 #define DEFINE_TYPE_VERSION(Type, size, version)                             \
   static_assert(                                                             \

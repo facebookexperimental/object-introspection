@@ -16,14 +16,34 @@
 #include "CodeGen.h"
 
 #include <glog/logging.h>
+#include <glog/vlog_is_on.h>
 
+#include <bitset>
 #include <boost/format.hpp>
+#include <boost/format/alt_sstream.hpp>
+#include <boost/format/format_class.hpp>
+#include <boost/format/format_fwd.hpp>
+#include <boost/format/format_implementation.hpp>
+#include <boost/optional/optional.hpp>
+#include <cassert>
+#include <cstdint>
+#include <cstdlib>
+#include <ext/alloc_traits.h>
+#include <functional>
 #include <iostream>
+#include <memory>
+#include <optional>
 #include <set>
+#include <stdexcept>
 #include <string_view>
+#include <utility>
 
+#include "oi/ContainerInfo.h"
+#include "oi/ContainerTypeEnum.h"
+#include "oi/Features.h"
 #include "oi/FuncGen.h"
 #include "oi/Headers.h"
+#include "oi/OICodeGen.h"
 #include "oi/SymbolService.h"
 #include "type_graph/AddChildren.h"
 #include "type_graph/AddPadding.h"
@@ -31,6 +51,7 @@
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
+#include "type_graph/PassManager.h"
 #include "type_graph/RemoveMembers.h"
 #include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"

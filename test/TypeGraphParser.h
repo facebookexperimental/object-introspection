@@ -1,6 +1,10 @@
 #pragma once
 
+#include <cstddef>
 #include <functional>
+#include <stdexcept>
+#include <string>
+#include <string_view>
 #include <unordered_map>
 
 #include "oi/type_graph/Types.h"

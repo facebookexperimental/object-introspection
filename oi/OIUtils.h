@@ -15,8 +15,9 @@
  */
 #pragma once
 
+#include <map>
 #include <optional>
-#include <set>
+#include <string>
 
 #include "oi/Features.h"
 #include "oi/OICodeGen.h"

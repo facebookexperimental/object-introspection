@@ -15,6 +15,8 @@
  */
 #include "Types.h"
 
+#include <cstdlib>
+
 #include "Visitor.h"
 
 namespace type_graph {

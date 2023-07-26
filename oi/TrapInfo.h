@@ -18,6 +18,7 @@
 #include <cstdint>
 #include <string>
 
+#include "oi/Descs.h"
 #include "oi/Metrics.h"
 #include "oi/OICompiler.h"
 

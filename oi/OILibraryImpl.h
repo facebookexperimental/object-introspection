@@ -15,10 +15,16 @@
  */
 #pragma once
 
-#include "ObjectIntrospection.h"
+#include <cstddef>
+#include <memory>
+
 #include "oi/OICodeGen.h"
 #include "oi/OICompiler.h"
-#include "oi/SymbolService.h"
+
+class SymbolService;
+namespace ObjectIntrospection {
+class OILibrary;
+}
 
 namespace ObjectIntrospection {
 

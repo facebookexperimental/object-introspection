@@ -15,22 +15,34 @@
  */
 #include "oi/OILibraryImpl.h"
 
-#include <fcntl.h>
 #include <glog/logging.h>
-#include <stdio.h>
 #include <string.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
 #include <boost/format.hpp>
+#include <cstdio>
+#include <filesystem>
 #include <fstream>
+#include <optional>
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <unordered_map>
+#include <vector>
 
+#include "ObjectIntrospection.h"
+#include "glog/vlog_is_on.h"
+#include "oi/Features.h"
 #include "oi/Headers.h"
 #include "oi/OIParser.h"
 #include "oi/OIUtils.h"
+#include "oi/SymbolService.h"
+#include "oi/TypeHierarchy.h"
 
 extern "C" {
-#include <libelf.h>
+#include <drgn.h>
+#include <sys/mman.h>
 }
 
 namespace ObjectIntrospection {

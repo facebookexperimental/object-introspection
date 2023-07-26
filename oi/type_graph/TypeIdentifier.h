@@ -17,15 +17,15 @@
 
 #include <vector>
 
-#include "NodeTracker.h"
 #include "PassManager.h"
-#include "Types.h"
 #include "Visitor.h"
-#include "oi/ContainerInfo.h"
+
+struct ContainerInfo;
 
 namespace type_graph {
 
 class TypeGraph;
+class NodeTracker;
 
 /*
  * TODO Pass Name

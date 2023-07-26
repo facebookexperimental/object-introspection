@@ -15,21 +15,28 @@
  */
 #pragma once
 
+#include <sys/types.h>
+
+#include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <memory>
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
-#include "oi/Descs.h"
-#include "oi/TypeHierarchy.h"
+class GlobalDesc;
+struct FuncDesc;
+struct RootInfo;
 
 namespace fs = std::filesystem;
 
 struct Dwfl;
 struct drgn_program;
+struct drgn_type;
 struct irequest;
 
 struct SymbolInfo {
@@ -45,7 +52,7 @@ class SymbolService {
   SymbolService& operator=(const SymbolService&) = delete;
   ~SymbolService();
 
-  struct drgn_program* getDrgnProgram();
+  drgn_program* getDrgnProgram();
 
   std::optional<std::string> locateBuildID();
   std::optional<SymbolInfo> locateSymbol(const std::string&,
@@ -53,7 +60,7 @@ class SymbolService {
 
   std::shared_ptr<FuncDesc> findFuncDesc(const irequest&);
   std::shared_ptr<GlobalDesc> findGlobalDesc(const std::string&);
-  static std::string getTypeName(struct drgn_type*);
+  static std::string getTypeName(drgn_type*);
   std::optional<RootInfo> getRootType(const irequest&);
 
   std::unordered_map<std::string, std::shared_ptr<FuncDesc>> funcDescs;
@@ -65,8 +72,8 @@ class SymbolService {
 
  private:
   std::variant<pid_t, fs::path> target;
-  struct Dwfl* dwfl{nullptr};
-  struct drgn_program* prog{nullptr};
+  Dwfl* dwfl{nullptr};
+  drgn_program* prog{nullptr};
 
   bool loadModules();
   bool loadModulesFromPid(pid_t);

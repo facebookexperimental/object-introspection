@@ -17,10 +17,20 @@
 #pragma once
 
 #include <filesystem>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
-#include "oi/DrgnUtils.h"
 #include "oi/OICodeGen.h"
 #include "oi/OICompiler.h"
+
+class SymbolService;
+struct drgn_qualified_type;
+namespace drgnplusplus {
+class program;
+}
 
 namespace ObjectIntrospection {
 

@@ -15,6 +15,12 @@
  */
 #include "RemoveTopLevelPointer.h"
 
+#include <cstddef>
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <string>
+
+#include "PassManager.h"
 #include "TypeGraph.h"
 
 namespace type_graph {

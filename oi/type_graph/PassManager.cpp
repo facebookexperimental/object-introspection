@@ -16,9 +16,10 @@
 #include "PassManager.h"
 
 #include <glog/logging.h>
+#include <glog/vlog_is_on.h>
 
+#include <cstddef>
 #include <iostream>
-#include <sstream>
 
 #include "Printer.h"
 #include "TypeGraph.h"

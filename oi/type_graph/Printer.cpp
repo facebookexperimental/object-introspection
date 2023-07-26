@@ -16,6 +16,10 @@
 #include "Printer.h"
 
 #include <cmath>
+#include <functional>
+#include <optional>
+#include <utility>
+#include <vector>
 
 namespace type_graph {
 

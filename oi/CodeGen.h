@@ -16,8 +16,8 @@
 #pragma once
 
 #include <filesystem>
-#include <functional>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -45,16 +45,15 @@ class CodeGen {
    * Helper function to perform all the steps required for code generation for a
    * single drgn_type.
    */
-  bool codegenFromDrgn(struct drgn_type* drgnType, std::string& code);
+  bool codegenFromDrgn(drgn_type* drgnType, std::string& code);
 
   void registerContainer(const std::filesystem::path& path);
-  void addDrgnRoot(struct drgn_type* drgnType,
-                   type_graph::TypeGraph& typeGraph);
+  void addDrgnRoot(drgn_type* drgnType, type_graph::TypeGraph& typeGraph);
   void transform(type_graph::TypeGraph& typeGraph);
-  void generate(type_graph::TypeGraph& typeGraph,
-                std::string& code,
-                struct drgn_type*
-                    drgnType /* TODO: this argument should not be required */
+  void generate(
+      type_graph::TypeGraph& typeGraph,
+      std::string& code,
+      drgn_type* drgnType /* TODO: this argument should not be required */
   );
 
  private:

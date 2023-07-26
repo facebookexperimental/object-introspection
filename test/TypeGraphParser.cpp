@@ -1,7 +1,15 @@
 #include "TypeGraphParser.h"
 
+#include <bitset>
+#include <cstdint>
+#include <cstdlib>
+#include <optional>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include "oi/ContainerInfo.h"
+#include "oi/ContainerTypeEnum.h"
 #include "oi/type_graph/TypeGraph.h"
 
 namespace {

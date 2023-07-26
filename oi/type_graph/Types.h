@@ -30,8 +30,12 @@
  */
 
 #include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <optional>
 #include <string>
+#include <type_traits>
+#include <utility>
 #include <vector>
 
 #include "oi/ContainerInfo.h"
@@ -48,9 +52,20 @@
   X(Dummy)           \
   X(DummyAllocator)
 
-struct ContainerInfo;
-
 namespace type_graph {
+
+class Array;
+class Class;
+class Container;
+class Dummy;
+class DummyAllocator;
+class Enum;
+class Pointer;
+class Primitive;
+class Typedef;
+
+class ConstVisitor;
+class Visitor;
 
 // Must be signed. "-1" represents "leaf node"
 using NodeId = int32_t;
@@ -61,8 +76,6 @@ enum class Qualifier {
 };
 using QualifierSet = EnumBitset<Qualifier, static_cast<size_t>(Qualifier::Max)>;
 
-class Visitor;
-class ConstVisitor;
 #define DECLARE_ACCEPT              \
   void accept(Visitor& v) override; \
   void accept(ConstVisitor& v) const override;
@@ -124,7 +137,6 @@ struct Function {
   int virtuality;
 };
 
-class Class;
 struct Parent {
   Parent(Type& type, uint64_t bitOffset) : type_(type), bitOffset(bitOffset) {
   }

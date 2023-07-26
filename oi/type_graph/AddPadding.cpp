@@ -15,9 +15,15 @@
  */
 #include "AddPadding.h"
 
+#include <bitset>
 #include <cassert>
+#include <cstddef>
+#include <functional>
+#include <memory>
+#include <utility>
 
 #include "Flattener.h"
+#include "PassManager.h"
 #include "TypeGraph.h"
 
 template <typename T>

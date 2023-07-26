@@ -18,15 +18,30 @@
 
 #include <glog/logging.h>
 
+#include <array>
 #include <boost/core/demangle.hpp>
 #include <fstream>
 #include <iostream>
+#include <iterator>
+#include <map>
+#include <memory>
+#include <optional>
+#include <span>
+#include <string_view>
+#include <type_traits>
 #include <unordered_map>
-#include <variant>
 
 #include "oi/DrgnUtils.h"
+#include "oi/Features.h"
 #include "oi/Headers.h"
 #include "oi/OIUtils.h"
+
+extern "C" {
+#include <drgn.h>
+}
+
+class SymbolService;
+struct drgn_symbol;
 
 namespace ObjectIntrospection {
 

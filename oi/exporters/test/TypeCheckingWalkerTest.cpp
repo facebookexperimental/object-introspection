@@ -1,6 +1,15 @@
 #include <gtest/gtest.h>
 
+#include <array>
+#include <cstdint>
+#include <optional>
+#include <span>
+#include <string>
+#include <variant>
+#include <vector>
+
 #include "oi/exporters/TypeCheckingWalker.h"
+#include "oi/types/dy.h"
 
 using namespace ObjectIntrospection;
 using exporters::TypeCheckingWalker;

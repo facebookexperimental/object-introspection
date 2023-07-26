@@ -15,7 +15,15 @@
  */
 #include "TopoSorter.h"
 
+#include <ext/alloc_traits.h>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include "PassManager.h"
 #include "TypeGraph.h"
+#include "oi/ContainerInfo.h"
+#include "oi/ContainerTypeEnum.h"
 
 template <typename T>
 using ref = std::reference_wrapper<T>;

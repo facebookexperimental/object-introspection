@@ -15,6 +15,15 @@
  */
 #include "Flattener.h"
 
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <memory>
+#include <stdexcept>
+#include <utility>
+
+#include "NodeTracker.h"
+#include "PassManager.h"
 #include "TypeGraph.h"
 #include "TypeIdentifier.h"
 

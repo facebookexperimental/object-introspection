@@ -238,7 +238,8 @@ set(CMAKE_BUILD_RPATH
 )
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-include_directories(SYSTEM "${DRGN_PATH}")
+include_directories(SYSTEM "${PROJECT_SOURCE_DIR}/extern/drgn/libdrgn/velfutils")
+include_directories(SYSTEM "${DRGN_PATH}" "${DRGN_PATH}/include")
 
 if (STATIC_LINK)
   # glog links against the `gflags` target, which is an alias for `gflags_shared`

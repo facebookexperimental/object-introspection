@@ -17,12 +17,12 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace type_graph {
 
 class TypeGraph;
-class Type;
 
 /*
  * Pass

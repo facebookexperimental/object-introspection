@@ -15,7 +15,9 @@
  */
 #include "RemoveMembers.h"
 
-#include "AddPadding.h"
+#include <functional>
+
+#include "PassManager.h"
 #include "TypeGraph.h"
 
 namespace type_graph {

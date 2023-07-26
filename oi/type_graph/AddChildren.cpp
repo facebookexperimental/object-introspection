@@ -15,9 +15,11 @@
  */
 #include "AddChildren.h"
 
-#include <cassert>
+#include <cstdlib>
+#include <utility>
 
 #include "DrgnParser.h"
+#include "PassManager.h"
 #include "TypeGraph.h"
 #include "oi/DrgnUtils.h"
 #include "oi/SymbolService.h"
@@ -25,6 +27,8 @@
 extern "C" {
 #include <drgn.h>
 }
+
+struct drgn_type_iterator;
 
 template <typename T>
 using ref = std::reference_wrapper<T>;

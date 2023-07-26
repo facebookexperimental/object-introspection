@@ -14,11 +14,17 @@
  * limitations under the License.
  */
 #pragma once
+#include <compare>
+#include <cstddef>
 #include <filesystem>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <regex>
 #include <set>
+#include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "oi/ContainerTypeEnum.h"

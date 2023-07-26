@@ -18,9 +18,20 @@
 #include <boost/format.hpp>
 #include <boost/serialization/serialization.hpp>
 #include <boost/serialization/version.hpp>
+#include <cstdlib>
+#include <cstring>
+#include <limits>
+#include <ostream>
 #include <stdexcept>
+#include <string>
+#include <typeinfo>
 
 #include "oi/DrgnUtils.h"
+#include "oi/SymbolService.h"
+
+extern "C" {
+#include <drgn.h>
+}
 
 namespace boost::serialization {
 

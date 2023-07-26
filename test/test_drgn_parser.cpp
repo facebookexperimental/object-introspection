@@ -1,15 +1,25 @@
+#include "test_drgn_parser.h"
+
 #include <gtest/gtest.h>
 
+#include <optional>
 #include <regex>
+#include <sstream>
+#include <utility>
+#include <vector>
 
-#include "oi/SymbolService.h"
-// TODO needed?:
 #include "oi/ContainerInfo.h"
+#include "oi/ContainerTypeEnum.h"
 #include "oi/OIParser.h"
+#include "oi/SymbolService.h"
+#include "oi/TypeHierarchy.h"
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "oi/type_graph/Types.h"
-#include "test_drgn_parser.h"
+
+extern "C" {
+#include <drgn.h>
+}
 
 using namespace type_graph;
 using ::testing::HasSubstr;

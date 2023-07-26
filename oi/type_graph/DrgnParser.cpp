@@ -17,14 +17,18 @@
 
 #include <glog/logging.h>
 
+#include "Types.h"
 #include "oi/ContainerInfo.h"
 #include "oi/DrgnUtils.h"
-#include "oi/SymbolService.h"
 
 extern "C" {
 #include <drgn.h>
 }
 
+#include <algorithm>
+#include <bitset>
+#include <cassert>
+#include <ostream>
 #include <regex>
 
 namespace type_graph {

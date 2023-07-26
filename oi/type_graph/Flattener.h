@@ -15,15 +15,16 @@
  */
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
-#include "NodeTracker.h"
 #include "PassManager.h"
-#include "Types.h"
 #include "Visitor.h"
 
 namespace type_graph {
+
+class NodeTracker;
 
 /*
  * Flattener

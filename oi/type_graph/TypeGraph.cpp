@@ -15,6 +15,9 @@
  */
 #include "TypeGraph.h"
 
+#include "NodeTracker.h"
+#include "Types.h"
+
 namespace type_graph {
 
 NodeTracker& TypeGraph::resetTracker() noexcept {

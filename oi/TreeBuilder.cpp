@@ -16,27 +16,37 @@
 #include "oi/TreeBuilder.h"
 
 #include <glog/logging.h>
+#include <rocksdb/compression_type.h>
+#include <rocksdb/status.h>
+#include <unistd.h>
 
-#include <boost/algorithm/string/regex.hpp>
+#include <algorithm>
+#include <boost/algorithm/string/regex.hpp>  // IWYU pragma: keep
 #include <boost/scope_exit.hpp>
+#include <cassert>
+#include <cstddef>
 #include <fstream>
-#include <iostream>
+#include <functional>
+#include <iterator>
 #include <limits>
-#include <msgpack.hpp>
+#include <msgpack.hpp>  // IWYU pragma: keep
+#include <set>
 #include <stdexcept>
+#include <type_traits>
+#include <utility>
 
-#include "oi/ContainerInfo.h"
+#include "oi/ContainerTypeEnum.h"
 #include "oi/DrgnUtils.h"
 #include "oi/Metrics.h"
 #include "oi/OICodeGen.h"
 #include "oi/PaddingHunter.h"
+#include "oi/TypeHierarchy.h"
 #include "rocksdb/db.h"
 #include "rocksdb/options.h"
 #include "rocksdb/statistics.h"
 
 extern "C" {
 #include <drgn.h>
-#include <sys/types.h>
 }
 
 /* Tag indicating if the pointer has  been followed or skipped */

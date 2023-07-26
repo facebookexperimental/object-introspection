@@ -46,6 +46,7 @@ extern "C" {
 
 #include "oi/CodeGen.h"
 #include "oi/ContainerInfo.h"
+#include "oi/Descs.h"
 #include "oi/Headers.h"
 #include "oi/Metrics.h"
 #include "oi/OILexer.h"

@@ -1,15 +1,27 @@
 #include "runner_common.h"
 
+#include <getopt.h>
+#include <gtest/gtest.h>
+
 #include <algorithm>
+#include <array>
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
+#include <chrono>
+#include <cstdio>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <initializer_list>
 #include <ios>
 #include <iostream>
+#include <iterator>
+#include <memory>
+#include <sstream>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <utility>
 
 #include "oi/OIOpts.h"

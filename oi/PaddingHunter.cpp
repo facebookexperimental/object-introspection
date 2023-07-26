@@ -16,7 +16,9 @@
 #include "oi/PaddingHunter.h"
 
 #include <algorithm>
+#include <cstdint>
 #include <fstream>
+#include <utility>
 
 void PaddingHunter::processLocalPaddingInfo() {
   for (auto& lPS : localPaddedStructs) {

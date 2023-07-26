@@ -15,6 +15,8 @@
  */
 #include "TypeCheckingWalker.h"
 
+#include <cstddef>
+#include <string>
 #include <type_traits>
 
 template <class>

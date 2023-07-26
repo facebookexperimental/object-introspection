@@ -1,5 +1,10 @@
 #include <folly/ScopeGuard.h>
-#include <folly/lang/SafeAssert.h>
+
+#include <cstdlib>
+
+namespace folly::detail {
+struct safe_assert_arg;
+}  // namespace folly::detail
 
 namespace folly {
 namespace detail {

@@ -15,11 +15,12 @@
  */
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <unordered_set>
+#include <vector>
 
 #include "PassManager.h"
-#include "Types.h"
 #include "Visitor.h"
 #include "oi/Features.h"
 

@@ -15,10 +15,12 @@
  */
 #pragma once
 
+#include <string>
 #include <unordered_set>
+#include <utility>
+#include <vector>
 
 #include "PassManager.h"
-#include "Types.h"
 #include "Visitor.h"
 
 namespace type_graph {

@@ -15,10 +15,12 @@
  */
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
 #include <ostream>
+#include <string>
 #include <unordered_map>
 
-#include "Types.h"
 #include "Visitor.h"
 
 namespace type_graph {

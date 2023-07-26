@@ -15,8 +15,11 @@
  */
 #include "AlignmentCalc.h"
 
-#include <cassert>
+#include <algorithm>
+#include <cstdint>
+#include <string>
 
+#include "PassManager.h"
 #include "TypeGraph.h"
 
 template <typename T>

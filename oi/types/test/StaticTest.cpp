@@ -1,5 +1,10 @@
 #include <gtest/gtest.h>
 
+#include <functional>
+#include <span>
+#include <string>
+#include <variant>
+
 #define DEFINE_DESCRIBE 1
 #include "oi/types/dy.h"
 #include "oi/types/st.h"

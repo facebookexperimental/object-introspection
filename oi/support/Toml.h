@@ -14,4 +14,4 @@
  * limitations under the License.
  */
 #define TOML_HEADER_ONLY 0
-#include <toml++/toml.h>
+#include <toml++/toml.h>  // IWYU pragma: export
