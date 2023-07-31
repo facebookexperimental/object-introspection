@@ -267,10 +267,14 @@ void genDefsClass(const Class& c, std::string& code) {
     code += "__attribute__((__packed__)) ";
   }
 
-  if (c.kind() == Class::Kind::Union) {
-    // Need to specify alignment manually for unions as their members have been
-    // removed. It would be nice to do this for all types, but our alignment
-    // information is not complete, so it would result in some errors.
+  if (c.members.size() == 1 &&
+      c.members[0].name.starts_with(AddPadding::MemberPrefix)) {
+    // Need to specify alignment manually for types which have been stubbed.
+    // It would be nice to do this for all types, but our alignment information
+    // is not complete, so it would result in some errors.
+    //
+    // Once we are able to read alignment info from DWARF, then this should be
+    // able to be applied to everything.
     code += "alignas(" + std::to_string(c.align()) + ") ";
   }
 
