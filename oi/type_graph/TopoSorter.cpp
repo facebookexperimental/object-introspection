@@ -85,6 +85,8 @@ bool containerAllowsIncompleteParams(const Container& c) {
   switch (c.containerInfo_.ctype) {
     case SEQ_TYPE:
     case LIST_TYPE:
+    case UNIQ_PTR_TYPE:
+    case SHRD_PTR_TYPE:
       // Also std::forward_list, if we ever support that
       // Would be good to have this as an option in the TOML files
       return true;
