@@ -17,16 +17,16 @@
 
 #include <glog/logging.h>
 
-#include <cassert>
 #include <map>
 #include <numeric>
+#include <optional>
 #include <span>
 #include <stdexcept>
 
 namespace oi::detail {
 namespace {
 
-std::string_view featureHelp(Feature f) {
+std::optional<std::string_view> featureHelp(Feature f) {
   switch (f) {
     case Feature::ChaseRawPointers:
       return "Chase raw pointers in the probed object.";
@@ -114,10 +114,11 @@ void featuresHelp(std::ostream& out) {
       });
 
   for (Feature f : allFeatures) {
-    std::string_view name(featureToStr(f));
-
-    out << "  " << name << std::string(longestName - name.size() + 2, ' ')
-        << featureHelp(f) << std::endl;
+    if (const auto h = featureHelp(f)) {
+      std::string_view name(featureToStr(f));
+      out << "  " << name << std::string(longestName - name.size() + 2, ' ')
+          << *h << std::endl;
+    }
   }
 }
 
