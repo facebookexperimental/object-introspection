@@ -72,9 +72,22 @@ void EnforceCompatibility::visit(Class& c) {
     accept(child);
   }
 
-  // CodeGen v1 replaces parent containers with padding
   std::erase_if(c.members, [](Member member) {
-    return member.name.starts_with(Flattener::ParentPrefix);
+    // CodeGen v1 replaces parent containers with padding
+    if (member.name.starts_with(Flattener::ParentPrefix))
+      return true;
+
+    if (auto* ptr = dynamic_cast<Pointer*>(&member.type())) {
+      if (auto* primitive = dynamic_cast<Primitive*>(&ptr->pointeeType())) {
+        if (primitive->kind() == Primitive::Kind::Incomplete) {
+          // This is a pointer to an incomplete type. CodeGen v1 does not record
+          // the pointer's address in this case.
+          return true;
+        }
+      }
+    }
+
+    return false;
   });
 }
 

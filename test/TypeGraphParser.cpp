@@ -49,6 +49,8 @@ Primitive::Kind getKind(std::string_view kindStr) {
     return Primitive::Kind::UIntPtr;
   if (kindStr == "void")
     return Primitive::Kind::Void;
+  if (kindStr == "void (incomplete)")
+    return Primitive::Kind::Incomplete;
   throw TypeGraphParserError{"Invalid Primitive::Kind: " +
                              std::string{kindStr}};
 }
