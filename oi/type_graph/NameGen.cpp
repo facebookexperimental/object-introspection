@@ -113,10 +113,16 @@ void NameGen::visit(Container& c) {
     if (param.value) {
       name += *param.value;
     } else {
-      if (param.qualifiers[Qualifier::Const]) {
-        name += "const ";
-      }
       name += param.type()->name();
+      // The "const" keyword must come after the type name so that pointers are
+      // handled correctly.
+      //
+      // When we're told that we have a const member with type "Foo*", we want
+      // "Foo* const", meaning const pointer to Foo, rather than "const Foo*",
+      // meaning pointer to const Foo.
+      if (param.qualifiers[Qualifier::Const]) {
+        name += " const";
+      }
     }
     name += ", ";
   }

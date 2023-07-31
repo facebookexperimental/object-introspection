@@ -148,14 +148,14 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
           Function: deallocate
 )",
                 R"(
-[0] Container: std::map<int32_t, int32_t, DummyAllocator<std::pair<const int32_t, int32_t>, 0, 0>> (size: 24)
+[0] Container: std::map<int32_t, int32_t, DummyAllocator<std::pair<int32_t const, int32_t>, 0, 0>> (size: 24)
       Param
         Primitive: int32_t
       Param
         Primitive: int32_t
       Param
         DummyAllocator (size: 0)
-[1]       Container: std::pair<const int32_t, int32_t> (size: 8)
+[1]       Container: std::pair<int32_t const, int32_t> (size: 8)
             Param
               Primitive: int32_t
               Qualifiers: const

@@ -171,18 +171,24 @@ TEST(NameGenTest, ContainerParamsDuplicatesAcrossContainers) {
 TEST(NameGenTest, ContainerParamsConst) {
   auto myparam1 = Class{0, Class::Kind::Struct, "MyConstParam", 13};
   auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
+  auto ptrParam = Class{2, Class::Kind::Struct, "PtrParam", 13};
+  auto myparam3 = Pointer{3, ptrParam};
 
   auto mycontainer = getVector();
   mycontainer.templateParams.push_back(
       TemplateParam{myparam1, {Qualifier::Const}});
   mycontainer.templateParams.push_back(TemplateParam{myparam2});
+  mycontainer.templateParams.push_back(
+      TemplateParam{myparam3, {Qualifier::Const}});
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer});
 
   EXPECT_EQ(myparam1.name(), "MyConstParam_0");
   EXPECT_EQ(myparam2.name(), "MyParam_1");
-  EXPECT_EQ(mycontainer.name(), "std::vector<const MyConstParam_0, MyParam_1>");
+  EXPECT_EQ(myparam3.name(), "PtrParam_2*");
+  EXPECT_EQ(mycontainer.name(),
+            "std::vector<MyConstParam_0 const, MyParam_1, PtrParam_2* const>");
 }
 
 TEST(NameGenTest, ContainerNoParams) {
