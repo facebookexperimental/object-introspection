@@ -94,6 +94,8 @@ jobs:
               python3-pip
             # click broke semver with 8.1.0, causing issues for black
             pip install click==8.0.0 black isort
+          environment:
+            DEBIAN_FRONTEND: noninteractive
       - checkout
       - run:
           name: clang-format
@@ -200,6 +202,8 @@ jobs:
               llvm-12-dev \
               libfmt-dev \
               libjemalloc-dev
+          environment:
+            DEBIAN_FRONTEND: noninteractive
       - run:
           name: Test
           environment:
@@ -253,6 +257,8 @@ jobs:
             cd lcov-2.0
             make install
             popd
+          environment:
+            DEBIAN_FRONTEND: noninteractive
       - checkout
       - attach_workspace:
           at: .
