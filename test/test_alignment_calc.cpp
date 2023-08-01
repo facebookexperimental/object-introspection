@@ -6,13 +6,14 @@
 using namespace type_graph;
 
 TEST(AlignmentCalcTest, PrimitiveMembers) {
-  auto myclass = Class{0, Class::Kind::Class, "MyClass", 16};
-  auto myint8 = Primitive{Primitive::Kind::Int8};
-  auto myint64 = Primitive{Primitive::Kind::Int64};
-  myclass.members.push_back(Member{myint8, "n", 0});
-  myclass.members.push_back(Member{myint64, "n", 8 * 8});
-
-  test(AlignmentCalc::createPass(), {myclass}, R"(
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 16)
+      Member: n (offset: 0)
+        Primitive: int8_t
+      Member: n (offset: 8)
+        Primitive: int64_t
+)",
+       R"(
 [0] Class: MyClass (size: 16, align: 8)
       Member: n (offset: 0, align: 1)
         Primitive: int8_t
@@ -22,17 +23,18 @@ TEST(AlignmentCalcTest, PrimitiveMembers) {
 }
 
 TEST(AlignmentCalcTest, StructMembers) {
-  auto mystruct = Class{1, Class::Kind::Struct, "MyStruct", 8};
-  auto myint32 = Primitive{Primitive::Kind::Int32};
-  mystruct.members.push_back(Member{myint32, "n1", 0});
-  mystruct.members.push_back(Member{myint32, "n2", 4 * 8});
-
-  auto myclass = Class{0, Class::Kind::Class, "MyClass", 12};
-  auto myint8 = Primitive{Primitive::Kind::Int8};
-  myclass.members.push_back(Member{myint8, "n", 0});
-  myclass.members.push_back(Member{mystruct, "s", 4 * 8});
-
-  test(AlignmentCalc::createPass(), {myclass}, R"(
+  test(AlignmentCalc::createPass(), R"(
+[0] Class: MyClass (size: 12)
+      Member: n (offset: 0)
+        Primitive: int8_t
+      Member: s (offset: 4)
+[1]     Struct: MyStruct (size: 8)
+          Member: n1 (offset: 0)
+            Primitive: int32_t
+          Member: n2 (offset: 4)
+            Primitive: int32_t
+)",
+       R"(
 [0] Class: MyClass (size: 12, align: 4)
       Member: n (offset: 0, align: 1)
         Primitive: int8_t
@@ -46,17 +48,17 @@ TEST(AlignmentCalcTest, StructMembers) {
 }
 
 TEST(AlignmentCalcTest, StructInContainer) {
-  auto myclass = Class{1, Class::Kind::Class, "MyClass", 16};
-  auto myint8 = Primitive{Primitive::Kind::Int8};
-  auto myint64 = Primitive{Primitive::Kind::Int64};
-  myclass.members.push_back(Member{myint8, "n", 0});
-  myclass.members.push_back(Member{myint64, "n", 8 * 8});
-
-  auto mycontainer = Container{0, ContainerInfo{}, 8};
-  mycontainer.templateParams.push_back(myclass);
-
-  test(AlignmentCalc::createPass(), {mycontainer}, R"(
-[0] Container:  (size: 8)
+  test(AlignmentCalc::createPass(), R"(
+[0] Container: std::vector (size: 8)
+      Param
+[1]     Class: MyClass (size: 16)
+          Member: n (offset: 0)
+            Primitive: int8_t
+          Member: n (offset: 8)
+            Primitive: int64_t
+)",
+       R"(
+[0] Container: std::vector (size: 8)
       Param
 [1]     Class: MyClass (size: 16, align: 8)
           Member: n (offset: 0, align: 1)

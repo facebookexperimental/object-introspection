@@ -7,18 +7,11 @@
 using namespace type_graph;
 
 TEST(RemoveMembersTest, Match) {
-  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
-
-  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
-  classA.members.push_back(Member{classB, "a", 0});
-  classA.members.push_back(Member{classB, "b", 4 * 8});
-  classA.members.push_back(Member{classB, "c", 8 * 8});
-
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
 
-  test(RemoveMembers::createPass(membersToIgnore), {classA}, R"(
+  test(RemoveMembers::createPass(membersToIgnore), R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -37,18 +30,11 @@ TEST(RemoveMembersTest, Match) {
 }
 
 TEST(RemoveMembersTest, TypeMatchMemberMiss) {
-  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
-
-  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
-  classA.members.push_back(Member{classB, "a", 0});
-  classA.members.push_back(Member{classB, "b", 4 * 8});
-  classA.members.push_back(Member{classB, "c", 8 * 8});
-
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "x"},
   };
 
-  test(RemoveMembers::createPass(membersToIgnore), {classA}, R"(
+  testNoChange(RemoveMembers::createPass(membersToIgnore), R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -60,18 +46,11 @@ TEST(RemoveMembersTest, TypeMatchMemberMiss) {
 }
 
 TEST(RemoveMembersTest, MemberMatchWrongType) {
-  auto classB = Class{1, Class::Kind::Class, "ClassB", 4};
-
-  auto classA = Class{0, Class::Kind::Class, "ClassA", 12};
-  classA.members.push_back(Member{classB, "a", 0});
-  classA.members.push_back(Member{classB, "b", 4 * 8});
-  classA.members.push_back(Member{classB, "c", 8 * 8});
-
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassB", "b"},
   };
 
-  test(RemoveMembers::createPass(membersToIgnore), {classA}, R"(
+  testNoChange(RemoveMembers::createPass(membersToIgnore), R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
