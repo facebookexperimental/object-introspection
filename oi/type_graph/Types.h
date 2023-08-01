@@ -300,7 +300,20 @@ class Container : public Type {
   }
 
   virtual uint64_t align() const override {
-    return 8;  // TODO not needed for containers?
+    // XXX Big hack!
+    // We can not assume that all containers have 8-byte alignment. However, to
+    // properly calculate alignment would require significant refactoring of
+    // the container identification code:
+    //  - DrgnParser needs to return Class objects instead of Containers
+    //  - They must be flattened
+    //  - We must calculate alignment based on their members
+    //  - Then we are able to convert them into Container objects
+    //
+    // As a quick, hopefully temporary solution, hardcode some known container
+    // alignments here
+    if (containerInfo_.ctype == THRIFT_ISSET_TYPE)
+      return 1;
+    return 8;
   }
 
   virtual NodeId id() const override {
