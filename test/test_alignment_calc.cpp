@@ -66,19 +66,49 @@ TEST(AlignmentCalcTest, StructInContainer) {
 )");
 }
 
-TEST(AlignmentCalcTest, Packed) {
-  auto mystruct = Class{0, Class::Kind::Struct, "MyStruct", 9};
-  auto myint8 = Primitive{Primitive::Kind::Int8};
-  auto myint64 = Primitive{Primitive::Kind::Int64};
-  mystruct.members.push_back(Member{myint8, "n1", 0});
-  mystruct.members.push_back(Member{myint64, "n2", 1 * 8});
-
-  test(AlignmentCalc::createPass(), {mystruct}, R"(
-[0] Struct: MyStruct (size: 9, align: 8, packed)
+TEST(AlignmentCalcTest, PackedMembers) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Struct: MyStruct (size: 8)
+      Member: n1 (offset: 0)
+        Primitive: int8_t
+      Member: n2 (offset: 1)
+        Primitive: int32_t
+      Member: n3 (offset: 5)
+        Primitive: int8_t
+      Member: n4 (offset: 6)
+        Primitive: int8_t
+      Member: n5 (offset: 7)
+        Primitive: int8_t
+)",
+       R"(
+[0] Struct: MyStruct (size: 8, align: 4, packed)
       Member: n1 (offset: 0, align: 1)
         Primitive: int8_t
-      Member: n2 (offset: 1, align: 8)
-        Primitive: int64_t
+      Member: n2 (offset: 1, align: 4)
+        Primitive: int32_t
+      Member: n3 (offset: 5, align: 1)
+        Primitive: int8_t
+      Member: n4 (offset: 6, align: 1)
+        Primitive: int8_t
+      Member: n5 (offset: 7, align: 1)
+        Primitive: int8_t
+)");
+}
+
+TEST(AlignmentCalcTest, PackedTailPadding) {
+  test(AlignmentCalc::createPass(), R"(
+[0] Struct: MyStruct (size: 5)
+      Member: n1 (offset: 0)
+        Primitive: int32_t
+      Member: n2 (offset: 4)
+        Primitive: int8_t
+)",
+       R"(
+[0] Struct: MyStruct (size: 5, align: 4, packed)
+      Member: n1 (offset: 0, align: 4)
+        Primitive: int32_t
+      Member: n2 (offset: 4, align: 1)
+        Primitive: int8_t
 )");
 }
 
@@ -89,7 +119,7 @@ TEST(AlignmentCalcTest, RecurseClassParam) {
 [1]     Class: ClassA (size: 16)
           Member: a (offset: 0)
             Primitive: int8_t
-          Member: b (offset: 4)
+          Member: b (offset: 8)
             Primitive: int64_t
 )",
        R"(
@@ -98,7 +128,7 @@ TEST(AlignmentCalcTest, RecurseClassParam) {
 [1]     Class: ClassA (size: 16, align: 8)
           Member: a (offset: 0, align: 1)
             Primitive: int8_t
-          Member: b (offset: 4, align: 8)
+          Member: b (offset: 8, align: 8)
             Primitive: int64_t
 )");
 }
@@ -110,7 +140,7 @@ TEST(AlignmentCalcTest, RecurseClassParent) {
 [1]     Class: ClassA (size: 16)
           Member: a (offset: 0)
             Primitive: int8_t
-          Member: b (offset: 4)
+          Member: b (offset: 8)
             Primitive: int64_t
 )",
        R"(
@@ -119,7 +149,7 @@ TEST(AlignmentCalcTest, RecurseClassParent) {
 [1]     Class: ClassA (size: 16, align: 8)
           Member: a (offset: 0, align: 1)
             Primitive: int8_t
-          Member: b (offset: 4, align: 8)
+          Member: b (offset: 8, align: 8)
             Primitive: int64_t
 )");
 }
@@ -131,7 +161,7 @@ TEST(AlignmentCalcTest, RecurseClassMember) {
 [1]     Class: ClassA (size: 16)
           Member: a (offset: 0)
             Primitive: int8_t
-          Member: b (offset: 4)
+          Member: b (offset: 8)
             Primitive: int64_t
 )",
        R"(
@@ -140,7 +170,7 @@ TEST(AlignmentCalcTest, RecurseClassMember) {
 [1]     Class: ClassA (size: 16, align: 8)
           Member: a (offset: 0, align: 1)
             Primitive: int8_t
-          Member: b (offset: 4, align: 8)
+          Member: b (offset: 8, align: 8)
             Primitive: int64_t
 )");
 }
@@ -152,7 +182,7 @@ TEST(AlignmentCalcTest, RecurseClassChild) {
 [1]     Class: ClassA (size: 16)
           Member: a (offset: 0)
             Primitive: int8_t
-          Member: b (offset: 4)
+          Member: b (offset: 8)
             Primitive: int64_t
 )",
        R"(
@@ -161,7 +191,7 @@ TEST(AlignmentCalcTest, RecurseClassChild) {
 [1]     Class: ClassA (size: 16, align: 8)
           Member: a (offset: 0, align: 1)
             Primitive: int8_t
-          Member: b (offset: 4, align: 8)
+          Member: b (offset: 8, align: 8)
             Primitive: int64_t
 )");
 }

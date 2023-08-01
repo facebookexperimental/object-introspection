@@ -67,11 +67,17 @@ void AlignmentCalc::visit(Class& c) {
       member.align = member.type().align();
     }
     alignment = std::max(alignment, member.align);
+
+    if (member.align != 0 && (member.bitOffset / 8) % member.align != 0) {
+      // Mark as packed if members are not aligned
+      c.setPacked();
+    }
   }
 
   c.setAlign(alignment);
 
   if (c.size() % c.align() != 0) {
+    // Mark as packed if there is no tail padding
     c.setPacked();
   }
 }
