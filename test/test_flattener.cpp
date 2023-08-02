@@ -363,7 +363,7 @@ TEST(FlattenerTest, MemberOfParent) {
       Member: b (offset: 0)
         Primitive: int32_t
       Member: c (offset: 4)
-[1]     Class: ClassC (size: 4)
+[2]     Class: ClassC (size: 4)
           Member: c (offset: 0)
             Primitive: int32_t
       Member: a (offset: 8)
@@ -771,7 +771,7 @@ TEST(FlattenerTest, ParentClassAndContainer) {
       Member: b (offset: 0)
         Primitive: int32_t
       Member: __oi_parent (offset: 8)
-[1]     Container: std::vector (size: 24)
+[2]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
 )");
@@ -809,7 +809,7 @@ TEST(FlattenerTest, AllocatorParamInParent) {
       Param
 [1]     Struct: MyAlloc<std::pair<const int, int>> (size: 1)
           Param
-[2]         Container: std::pair (size: 8)
+[3]         Container: std::pair (size: 8)
               Param
                 Primitive: int32_t
                 Qualifiers: const

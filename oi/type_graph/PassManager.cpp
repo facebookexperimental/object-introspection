@@ -42,7 +42,7 @@ void print(const TypeGraph& typeGraph) {
     return;
 
   std::stringstream out;
-  Printer printer{out, typeGraph.size()};
+  Printer printer{out, typeGraph.resetTracker(), typeGraph.size()};
   for (const auto& type : typeGraph.rootTypes()) {
     printer.print(type);
   }

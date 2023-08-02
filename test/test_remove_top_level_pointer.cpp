@@ -14,7 +14,7 @@ TEST(RemoveTopLevelPointerTest, TopLevelPointerRemoved) {
           Primitive: int32_t
 )",
        R"(
-[0] Class: MyClass (size: 4)
+[1] Class: MyClass (size: 4)
       Member: n (offset: 0)
         Primitive: int32_t
 )");

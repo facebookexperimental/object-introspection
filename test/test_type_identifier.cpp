@@ -101,7 +101,7 @@ TEST(TypeIdentifierTest, PassThroughTypes) {
       Param
         Primitive: int32_t
       Param
-[1]     Container: std::allocator (size: 1)
+[2]     Container: std::allocator (size: 1)
           Param
             Primitive: int32_t
 )");
