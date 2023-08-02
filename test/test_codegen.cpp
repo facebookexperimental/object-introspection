@@ -8,7 +8,6 @@
 #include "TypeGraphParser.h"
 #include "mocks.h"
 #include "oi/CodeGen.h"
-#include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "oi/type_graph/Types.h"
 #include "type_graph_utils.h"
@@ -32,13 +31,13 @@ void testTransform(OICodeGen::Config& config,
   }
 
   // Validate input formatting
-  check(typeGraph.rootTypes(), input, "parsing input graph");
+  check(typeGraph, input, "parsing input graph");
 
   MockSymbolService symbols;
   CodeGen codegen{config, symbols};
   codegen.transform(typeGraph);
 
-  check(typeGraph.rootTypes(), expectedAfter, "after transform");
+  check(typeGraph, expectedAfter, "after transform");
 }
 
 void testTransform(std::string_view input, std::string_view expectedAfter) {
@@ -100,7 +99,7 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
         Primitive: int32_t
       Param
         DummyAllocator (size: 0)
-[1]       Container: std::pair<int32_t const, int32_t> (size: 8)
+[3]       Container: std::pair<int32_t const, int32_t> (size: 8)
             Param
               Primitive: int32_t
               Qualifiers: const

@@ -48,7 +48,7 @@ class TypeGraph {
     rootTypes_.push_back(type);
   }
 
-  NodeTracker& resetTracker() noexcept;
+  NodeTracker& resetTracker() const noexcept;
 
   // Override of the generic makeType function that returns singleton Primitive
   // objects
@@ -58,6 +58,7 @@ class TypeGraph {
   template <typename T, typename... Args>
   T& makeType(NodeId id, Args&&... args) {
     static_assert(T::has_node_id, "Unnecessary node ID provided");
+    next_id_ = std::max(next_id_, id + 1);
     auto type_unique_ptr = std::make_unique<T>(id, std::forward<Args>(args)...);
     auto type_raw_ptr = type_unique_ptr.get();
     types_.push_back(std::move(type_unique_ptr));
@@ -87,7 +88,7 @@ class TypeGraph {
   std::vector<std::reference_wrapper<Type>> rootTypes_;
   // Store all type objects in vectors for ownership. Order is not significant.
   std::vector<std::unique_ptr<Type>> types_;
-  NodeTracker tracker_;
+  mutable NodeTracker tracker_;
   NodeId next_id_ = 0;
 };
 

@@ -16,8 +16,8 @@
 #pragma once
 
 #include <ostream>
-#include <unordered_map>
 
+#include "NodeTracker.h"
 #include "Types.h"
 #include "Visitor.h"
 
@@ -28,7 +28,7 @@ namespace oi::detail::type_graph {
  */
 class Printer : public ConstVisitor {
  public:
-  Printer(std::ostream& out, size_t numTypes);
+  Printer(std::ostream& out, NodeTracker& tracker, size_t numTypes);
 
   void print(const Type& type);
 
@@ -53,11 +53,10 @@ class Printer : public ConstVisitor {
   void print_qualifiers(const QualifierSet& qualifiers);
   static std::string align_str(uint64_t align);
 
+  NodeTracker& tracker_;
   std::ostream& out_;
   int baseIndent_;
   int depth_ = -1;
-  int nextNodeNum_ = 0;
-  std::unordered_map<const Type*, int> nodeNums_;
 };
 
 }  // namespace oi::detail::type_graph

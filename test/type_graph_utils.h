@@ -8,11 +8,12 @@
 
 namespace oi::detail::type_graph {
 class Pass;
+class TypeGraph;
 }  // namespace oi::detail::type_graph
 
 using namespace oi::detail;
 
-void check(const std::vector<std::reference_wrapper<type_graph::Type>>& types,
+void check(const type_graph::TypeGraph& typeGraph,
            std::string_view expected,
            std::string_view comment);
 
@@ -21,15 +22,6 @@ void test(type_graph::Pass pass,
           std::string_view expectedAfter);
 
 void testNoChange(type_graph::Pass pass, std::string_view input);
-
-void test(type_graph::Pass pass,
-          std::vector<std::reference_wrapper<type_graph::Type>> rootTypes,
-          std::string_view expectedBefore,
-          std::string_view expectedAfter);
-
-void test(type_graph::Pass pass,
-          std::vector<std::reference_wrapper<type_graph::Type>> rootTypes,
-          std::string_view expectedAfter);
 
 type_graph::Container getVector(type_graph::NodeId id = 0);
 type_graph::Container getMap(type_graph::NodeId id = 0);

@@ -17,7 +17,7 @@
 
 namespace oi::detail::type_graph {
 
-NodeTracker& TypeGraph::resetTracker() noexcept {
+NodeTracker& TypeGraph::resetTracker() const noexcept {
   tracker_.reset();
   tracker_.resize(size());
   return tracker_;

@@ -17,13 +17,13 @@ using type_graph::TypeGraph;
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-void check(const std::vector<ref<Type>>& types,
+void check(const TypeGraph& typeGraph,
            std::string_view expected,
            std::string_view comment) {
   std::stringstream out;
-  type_graph::Printer printer(out, types.size());
+  type_graph::Printer printer(out, typeGraph.resetTracker(), typeGraph.size());
 
-  for (const auto& type : types) {
+  for (const auto& type : typeGraph.rootTypes()) {
     printer.print(type);
   }
 
@@ -45,52 +45,15 @@ void test(type_graph::Pass pass,
   }
 
   // Validate input formatting
-  check(typeGraph.rootTypes(), input, "parsing input graph");
-
-  // Run pass and check results
-  test(pass, typeGraph.rootTypes(), expectedAfter);
-}
-
-void testNoChange(type_graph::Pass pass, std::string_view input) {
-  input.remove_prefix(1);  // Remove initial '\n'
-  TypeGraph typeGraph;
-  TypeGraphParser parser{typeGraph};
-  try {
-    parser.parse(input);
-  } catch (const TypeGraphParserError& err) {
-    FAIL() << "Error parsing input graph: " << err.what();
-  }
-
-  // Validate input formatting
-  check(typeGraph.rootTypes(), input, "parsing input graph");
-
-  // Run pass and check results
-  test(pass, typeGraph.rootTypes(), input);
-}
-
-void test(type_graph::Pass pass,
-          std::vector<ref<Type>> rootTypes,
-          std::string_view expectedBefore,
-          std::string_view expectedAfter) {
-  if (expectedBefore.data()) {
-    check(rootTypes, expectedBefore, "before running pass");
-  }
-
-  TypeGraph typeGraph;
-  for (const auto& type : rootTypes) {
-    typeGraph.addRoot(type);
-  }
+  check(typeGraph, input, "parsing input graph");
 
   pass.run(typeGraph);
 
-  // Must use typeGraph's root types here, as the pass may have modified them
-  check(typeGraph.rootTypes(), expectedAfter, "after running pass");
+  check(typeGraph, expectedAfter, "after running pass");
 }
 
-void test(type_graph::Pass pass,
-          std::vector<ref<Type>> rootTypes,
-          std::string_view expectedAfter) {
-  test(pass, rootTypes, {}, expectedAfter);
+void testNoChange(type_graph::Pass pass, std::string_view input) {
+  test(pass, input, input);
 }
 
 Container getVector(NodeId id) {

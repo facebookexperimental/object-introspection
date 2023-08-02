@@ -19,7 +19,8 @@
 
 namespace oi::detail::type_graph {
 
-Printer::Printer(std::ostream& out, size_t numTypes) : out_(out) {
+Printer::Printer(std::ostream& out, NodeTracker& tracker, size_t numTypes)
+    : tracker_(tracker), out_(out) {
   if (numTypes == 0) {
     baseIndent_ = 0;
     return;
@@ -139,19 +140,16 @@ bool Printer::prefix(const Type* type) {
   int indent = baseIndent_ + depth_ * 2;
 
   if (type) {
-    if (auto it = nodeNums_.find(type); it != nodeNums_.end()) {
+    if (tracker_.visit(*type)) {
       // Node has already been printed - print a reference to it this time
       out_ << std::string(indent, ' ');
-      int nodeNum = it->second;
-      out_ << "[" << nodeNum << "]" << std::endl;
+      out_ << "[" << type->id() << "]" << std::endl;
       return true;
     }
 
-    int nodeNum = nextNodeNum_++;
-    std::string nodeId = "[" + std::to_string(nodeNum) + "]";
+    std::string nodeId = "[" + std::to_string(type->id()) + "]";
     out_ << nodeId;
     indent -= nodeId.size();
-    nodeNums_.insert({type, nodeNum});
   }
 
   out_ << std::string(indent, ' ');
