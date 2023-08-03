@@ -16,6 +16,7 @@
 #pragma once
 
 #include <array>
+#include <optional>
 #include <ostream>
 #include <string_view>
 
@@ -45,10 +46,6 @@ enum class Feature {
 #undef X
 };
 
-Feature featureFromStr(std::string_view);
-const char* featureToStr(Feature);
-void featuresHelp(std::ostream& out);
-
 constexpr std::array allFeatures = {
 #define X(name, _) Feature::name,
     OI_FEATURE_LIST
@@ -57,5 +54,11 @@ constexpr std::array allFeatures = {
 
 // Use "size+1" to account for UnknownFeature"
 using FeatureSet = EnumBitset<Feature, allFeatures.size() + 1>;
+
+Feature featureFromStr(std::string_view);
+const char* featureToStr(Feature);
+void featuresHelp(std::ostream& out);
+std::optional<FeatureSet> handleFeatureConflicts(FeatureSet enabled,
+                                                 const FeatureSet& disabled);
 
 }  // namespace oi::detail
