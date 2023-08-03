@@ -15,8 +15,12 @@
  */
 #include "Features.h"
 
+#include <glog/logging.h>
+
+#include <cassert>
 #include <map>
 #include <numeric>
+#include <span>
 #include <stdexcept>
 
 namespace oi::detail {
@@ -54,6 +58,22 @@ std::string_view featureHelp(Feature f) {
 
     case Feature::UnknownFeature:
       throw std::runtime_error("should not ask for help for UnknownFeature!");
+  }
+}
+
+std::span<const Feature> requirements(Feature f) {
+  switch (f) {
+    case Feature::TypedDataSegment:
+      static constexpr std::array tds = {Feature::TypeGraph};
+      return tds;
+    case Feature::TreeBuilderTypeChecking:
+      static constexpr std::array tc = {Feature::TypedDataSegment};
+      return tc;
+    case Feature::TreeBuilderV2:
+      static constexpr std::array tb2 = {Feature::TreeBuilderTypeChecking};
+      return tb2;
+    default:
+      return {};
   }
 }
 
@@ -99,6 +119,34 @@ void featuresHelp(std::ostream& out) {
     out << "  " << name << std::string(longestName - name.size() + 2, ' ')
         << featureHelp(f) << std::endl;
   }
+}
+
+std::optional<FeatureSet> handleFeatureConflicts(FeatureSet enabled,
+                                                 const FeatureSet& disabled) {
+  FeatureSet toCheck = enabled;
+  while (toCheck.any()) {
+    for (const auto f : allFeatures) {
+      if (!toCheck[f])
+        continue;
+      toCheck[f] = false;
+
+      for (const auto r : requirements(f)) {
+        if (enabled[r])
+          continue;
+        if (disabled[r]) {
+          LOG(ERROR) << featureToStr(f) << " feature requires "
+                     << featureToStr(r) << "but it was explicitly disabled!";
+          return std::nullopt;
+        }
+        enabled[r] = true;
+        toCheck[r] = true;
+        LOG(WARNING) << featureToStr(f) << " feature requires "
+                     << featureToStr(r) << ", enabling it now.";
+      }
+    }
+  }
+
+  return enabled;
 }
 
 }  // namespace oi::detail

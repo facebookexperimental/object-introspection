@@ -172,39 +172,16 @@ std::optional<FeatureSet> processConfigFile(
     }
   }
 
-  FeatureSet featuresSet;
+  FeatureSet enabledFeatures;
+  FeatureSet disabledFeatures;
   for (auto [k, v] : featureMap) {
     if (v) {
-      featuresSet[k] = true;
+      enabledFeatures[k] = true;
+    } else {
+      disabledFeatures[k] = true;
     }
   }
-
-  if (featuresSet[Feature::TreeBuilderTypeChecking] &&
-      !featuresSet[Feature::TypedDataSegment]) {
-    if (auto search = featureMap.find(Feature::TypedDataSegment);
-        search != featureMap.end() && !search->second) {
-      LOG(ERROR) << "TreeBuilderTypeChecking feature requires TypedDataSegment "
-                    "feature to be enabled but it was explicitly disabled!";
-      return {};
-    }
-    featuresSet[Feature::TypedDataSegment] = true;
-    LOG(WARNING) << "TreeBuilderTypeChecking feature requires TypedDataSegment "
-                    "feature to be enabled, enabling now.";
-  }
-  if (featuresSet[Feature::TypedDataSegment] &&
-      !featuresSet[Feature::TypeGraph]) {
-    if (auto search = featureMap.find(Feature::TypeGraph);
-        search != featureMap.end() && !search->second) {
-      LOG(ERROR) << "TypedDataSegment feature requires TypeGraph feature to be "
-                    "enabled but it was explicitly disabled!";
-      return {};
-    }
-    featuresSet[Feature::TypeGraph] = true;
-    LOG(WARNING) << "TypedDataSegment feature requires TypeGraph feature to be "
-                    "enabled, enabling now.";
-  }
-
-  return featuresSet;
+  return handleFeatureConflicts(enabledFeatures, disabledFeatures);
 }
 
 }  // namespace oi::detail::utils
