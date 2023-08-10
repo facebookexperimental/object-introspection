@@ -76,7 +76,10 @@ class CodeGen {
                                 std::string& code) const;
   void addTypeHandlers(const type_graph::TypeGraph& typeGraph,
                        std::string& code);
-  void getClassTypeHandler(const type_graph::Class& c, std::string& code);
+
+  void genClassTypeHandler(const type_graph::Class& c, std::string& code);
+  void genClassStaticType(const type_graph::Class& c, std::string& code);
+  void genClassTraversalFunction(const type_graph::Class& c, std::string& code);
 };
 
 }  // namespace oi::detail
