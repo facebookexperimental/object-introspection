@@ -67,7 +67,8 @@ class DrgnParser {
   Array& enumerateArray(struct drgn_type* type);
   Primitive& enumeratePrimitive(struct drgn_type* type);
 
-  void enumerateTemplateParam(drgn_type_template_parameter* tparams,
+  void enumerateTemplateParam(struct drgn_type* type,
+                              drgn_type_template_parameter* tparams,
                               size_t i,
                               std::vector<TemplateParam>& params);
   void enumerateClassTemplateParams(struct drgn_type* type,
