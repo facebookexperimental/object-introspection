@@ -100,11 +100,12 @@ void TypeIdentifier::visit(Container& c) {
         auto* allocator = dynamic_cast<Class*>(
             &param.type());  // TODO please don't do this...
         Type& typeToAllocate = allocator->templateParams.at(0).type();
-        auto& dummy = typeGraph_.makeType<DummyAllocator>(typeToAllocate, size,
-                                                          param.type().align());
+        auto& dummy = typeGraph_.makeType<DummyAllocator>(
+            typeToAllocate, size, param.type().align(), allocator->name());
         c.templateParams[i] = dummy;
       } else {
-        auto& dummy = typeGraph_.makeType<Dummy>(size, param.type().align());
+        auto& dummy = typeGraph_.makeType<Dummy>(size, param.type().align(),
+                                                 param.type().name());
         c.templateParams[i] = dummy;
       }
     }

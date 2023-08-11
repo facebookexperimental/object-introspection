@@ -63,7 +63,7 @@ TEST(CodeGenTest, TransformContainerAllocator) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator (size: 8)
+        DummyAllocator [MyAlloc] (size: 8)
           Primitive: int32_t
 )");
 }
@@ -98,7 +98,7 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator (size: 0)
+        DummyAllocator [MyAlloc<std::pair<const int, int>>] (size: 0)
 [3]       Container: std::pair<int32_t const, int32_t> (size: 8)
             Param
               Primitive: int32_t
@@ -121,16 +121,16 @@ TEST(CodeGenTest, RemovedMemberAlignment) {
         Primitive: int8_t
 )",
                 R"(
-[0] Class: MyClass_0 (size: 24, align: 8)
-      Member: a_0 (offset: 0, align: 1)
+[0] Class: MyClass_0 [MyClass] (size: 24, align: 8)
+      Member: a_0 [a] (offset: 0, align: 1)
         Primitive: int8_t
       Member: __oi_padding_1 (offset: 1)
-[1]     Array: (length: 15)
+[1]     Array: [int8_t[15]] (length: 15)
           Primitive: int8_t
-      Member: c_2 (offset: 16, align: 1)
+      Member: c_2 [c] (offset: 16, align: 1)
         Primitive: int8_t
       Member: __oi_padding_3 (offset: 17)
-[2]     Array: (length: 7)
+[2]     Array: [int8_t[7]] (length: 7)
           Primitive: int8_t
 )");
 }
@@ -144,9 +144,9 @@ TEST(CodeGenTest, UnionMembersAlignment) {
         Primitive: int64_t
 )",
                 R"(
-[0] Union: MyUnion_0 (size: 8, align: 8)
+[0] Union: MyUnion_0 [MyUnion] (size: 8, align: 8)
       Member: __oi_padding_0 (offset: 0)
-[1]     Array: (length: 8)
+[1]     Array: [int8_t[8]] (length: 8)
           Primitive: int8_t
 )");
 }
