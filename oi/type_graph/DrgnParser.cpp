@@ -71,6 +71,10 @@ Primitive::Kind primitiveFloatKind(struct drgn_type* type) {
   }
 }
 
+void warnForDrgnError(struct drgn_type* type,
+                      const std::string& msg,
+                      struct drgn_error* err);
+
 }  // namespace
 
 Type& DrgnParser::parse(struct drgn_type* root) {
@@ -209,8 +213,9 @@ void DrgnParser::enumerateClassParents(struct drgn_type* type,
     struct drgn_error* err =
         drgn_template_parameter_type(&drgn_parents[i], &parent_qual_type);
     if (err) {
-      throw DrgnParserError{
-          "Error looking up parent type (" + std::to_string(i) + ")", err};
+      warnForDrgnError(
+          type, "Error looking up parent (" + std::to_string(i) + ")", err);
+      continue;
     }
 
     auto& ptype = enumerateType(parent_qual_type.type);
@@ -237,8 +242,9 @@ void DrgnParser::enumerateClassMembers(struct drgn_type* type,
     struct drgn_error* err =
         drgn_member_type(&drgn_members[i], &member_qual_type, &bit_field_size);
     if (err) {
-      throw DrgnParserError{
-          "Error looking up member type (" + std::to_string(i) + ")", err};
+      warnForDrgnError(
+          type, "Error looking up member (" + std::to_string(i) + ")", err);
+      continue;
     }
 
     struct drgn_type* member_type = member_qual_type.type;
@@ -272,14 +278,17 @@ void DrgnParser::enumerateClassMembers(struct drgn_type* type,
   });
 }
 
-void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter* tparams,
+void DrgnParser::enumerateTemplateParam(struct drgn_type* type,
+                                        drgn_type_template_parameter* tparams,
                                         size_t i,
                                         std::vector<TemplateParam>& params) {
   const drgn_object* obj = nullptr;
   if (auto* err = drgn_template_parameter_object(&tparams[i], &obj)) {
-    throw DrgnParserError{"Error looking up template parameter object (" +
-                              std::to_string(i) + ")",
-                          err};
+    warnForDrgnError(type,
+                     "Error looking up template parameter object (" +
+                         std::to_string(i) + ")",
+                     err);
+    return;
   }
 
   struct drgn_qualified_type tparamQualType;
@@ -288,9 +297,11 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter* tparams,
     struct drgn_error* err =
         drgn_template_parameter_type(&tparams[i], &tparamQualType);
     if (err) {
-      throw DrgnParserError{"Error looking up template parameter type (" +
-                                std::to_string(i) + ")",
-                            err};
+      warnForDrgnError(type,
+                       "Error looking up template parameter type (" +
+                           std::to_string(i) + ")",
+                       err);
+      return;
     }
 
     struct drgn_type* tparamType = tparamQualType.type;
@@ -385,7 +396,7 @@ void DrgnParser::enumerateClassTemplateParams(
   struct drgn_type_template_parameter* tparams =
       drgn_type_template_parameters(type);
   for (size_t i = 0; i < numParams; i++) {
-    enumerateTemplateParam(tparams, i, params);
+    enumerateTemplateParam(type, tparams, i, params);
   }
 }
 
@@ -399,10 +410,9 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type* type,
   for (size_t i = 0; i < num_functions; i++) {
     drgn_qualified_type t{};
     if (auto* err = drgn_member_function_type(&drgn_functions[i], &t)) {
-      LOG(WARNING) << "Error looking up member function (" + std::to_string(i) +
-                          "): " + std::to_string(err->code) + " " +
-                          err->message;
-      drgn_error_destroy(err);
+      warnForDrgnError(
+          type, "Error looking up member function (" + std::to_string(i) + ")",
+          err);
       continue;
     }
 
@@ -499,5 +509,20 @@ DrgnParserError::DrgnParserError(const std::string& msg, struct drgn_error* err)
 DrgnParserError::~DrgnParserError() {
   drgn_error_destroy(err_);
 }
+
+namespace {
+void warnForDrgnError(struct drgn_type* type,
+                      const std::string& msg,
+                      struct drgn_error* err) {
+  const char* name = nullptr;
+  if (drgn_type_has_tag(type))
+    name = drgn_type_tag(type);
+  else if (drgn_type_has_name(type))
+    name = drgn_type_name(type);
+  LOG(WARNING) << msg << (name ? std::string{" for type '"} + name + "'" : "")
+               << ": " << err->code << " " << err->message;
+  drgn_error_destroy(err);
+}
+}  // namespace
 
 }  // namespace oi::detail::type_graph
