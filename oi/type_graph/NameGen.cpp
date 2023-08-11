@@ -106,14 +106,28 @@ void NameGen::visit(Container& c) {
   }
 
   std::string name = c.name();
-  removeTemplateParams(name);
+  std::string inputName{c.inputName()};
 
-  name.push_back('<');
+  removeTemplateParams(name);
+  removeTemplateParams(inputName);
+
+  name += '<';
+  inputName += '<';
+
+  bool first = true;
   for (const auto& param : c.templateParams) {
+    if (!first) {
+      name += ", ";
+      inputName += ", ";
+    }
+    first = false;
+
     if (param.value) {
       name += *param.value;
+      inputName += *param.value;
     } else {
       name += param.type().name();
+      inputName += param.type().inputName();
       // The "const" keyword must come after the type name so that pointers are
       // handled correctly.
       //
@@ -122,15 +136,16 @@ void NameGen::visit(Container& c) {
       // meaning pointer to const Foo.
       if (param.qualifiers[Qualifier::Const]) {
         name += " const";
+        inputName += " const";
       }
     }
-    name += ", ";
   }
-  name.pop_back();
-  name.pop_back();
-  name.push_back('>');
+
+  name += '>';
+  inputName += '>';
 
   c.setName(name);
+  c.setInputName(inputName);
 }
 
 void NameGen::visit(Enum& e) {
@@ -140,8 +155,12 @@ void NameGen::visit(Enum& e) {
 }
 
 void NameGen::visit(Array& a) {
-  accept(a.elementType());
+  RecursiveVisitor::visit(a);
+
   a.regenerateName();
+  std::string name{a.elementType().inputName()};
+  name += "[" + std::to_string(a.len()) + "]";
+  a.setInputName(name);
 }
 
 void NameGen::visit(Typedef& td) {
@@ -164,12 +183,15 @@ void NameGen::visit(Typedef& td) {
 }
 
 void NameGen::visit(Pointer& p) {
-  accept(p.pointeeType());
+  RecursiveVisitor::visit(p);
   p.regenerateName();
+  std::string inputName{p.pointeeType().inputName()};
+  inputName += '*';
+  p.setInputName(inputName);
 }
 
 void NameGen::visit(DummyAllocator& d) {
-  accept(d.allocType());
+  RecursiveVisitor::visit(d);
   d.regenerateName();
 }
 

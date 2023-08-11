@@ -33,6 +33,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "oi/ContainerInfo.h"
@@ -82,6 +83,8 @@ class Type {
   virtual void accept(ConstVisitor& v) const = 0;
 
   virtual const std::string& name() const = 0;
+  // Return the name as described in the input code for textual representation.
+  virtual std::string_view inputName() const = 0;
   virtual size_t size() const = 0;
   virtual uint64_t align() const = 0;
   virtual NodeId id() const = 0;
@@ -95,10 +98,14 @@ class Type {
 class Member {
  public:
   Member(Type& type,
-         const std::string& name,
+         const std::string& name_,
          uint64_t bitOffset,
          uint64_t bitsize = 0)
-      : type_(type), name(name), bitOffset(bitOffset), bitsize(bitsize) {
+      : type_(type),
+        name(name_),
+        inputName(name_),
+        bitOffset(bitOffset),
+        bitsize(bitsize) {
   }
 
   Type& type() const {
@@ -110,6 +117,7 @@ class Member {
 
  public:
   std::string name;
+  std::string inputName;
   uint64_t bitOffset;
   uint64_t bitsize;
   uint64_t align = 0;
@@ -186,7 +194,8 @@ class Class : public Type {
         std::string fqName,
         size_t size,
         int virtuality = 0)
-      : name_(std::move(name)),
+      : name_(name),
+        inputName_(std::move(name)),
         fqName_(std::move(fqName)),
         size_(size),
         kind_(kind),
@@ -212,6 +221,10 @@ class Class : public Type {
 
   virtual const std::string& name() const override {
     return name_;
+  }
+
+  virtual std::string_view inputName() const override {
+    return inputName_;
   }
 
   void setName(std::string name) {
@@ -261,6 +274,7 @@ class Class : public Type {
 
  private:
   std::string name_;
+  std::string inputName_;
   std::string fqName_;
   size_t size_;
   uint64_t align_ = 0;
@@ -275,6 +289,7 @@ class Container : public Type {
   Container(NodeId id, const ContainerInfo& containerInfo, size_t size)
       : containerInfo_(containerInfo),
         name_(containerInfo.typeName),
+        inputName_(containerInfo.typeName),
         size_(size),
         id_(id) {
   }
@@ -293,6 +308,14 @@ class Container : public Type {
 
   void setName(std::string name) {
     name_ = std::move(name);
+  }
+
+  virtual std::string_view inputName() const override {
+    return inputName_;
+  }
+
+  void setInputName(std::string name) {
+    inputName_ = std::move(name);
   }
 
   virtual size_t size() const override {
@@ -325,6 +348,7 @@ class Container : public Type {
 
  private:
   std::string name_;
+  std::string inputName_;
   size_t size_;
   NodeId id_ = -1;
 };
@@ -334,7 +358,8 @@ class Enum : public Type {
   explicit Enum(std::string name,
                 size_t size,
                 std::map<int64_t, std::string> enumerators = {})
-      : name_(std::move(name)),
+      : name_(name),
+        inputName_(std::move(name)),
         size_(size),
         enumerators_(std::move(enumerators)) {
   }
@@ -345,6 +370,10 @@ class Enum : public Type {
 
   virtual const std::string& name() const override {
     return name_;
+  }
+
+  virtual std::string_view inputName() const override {
+    return inputName_;
   }
 
   void setName(std::string name) {
@@ -369,6 +398,7 @@ class Enum : public Type {
 
  private:
   std::string name_;
+  std::string inputName_;
   size_t size_;
   std::map<int64_t, std::string> enumerators_;
 };
@@ -393,6 +423,14 @@ class Array : public Type {
             std::to_string(len_) + ">";
   }
 
+  virtual std::string_view inputName() const override {
+    return inputName_;
+  }
+
+  void setInputName(std::string name) {
+    inputName_ = std::move(name);
+  }
+
   virtual size_t size() const override {
     return len_ * elementType_.size();
   }
@@ -415,6 +453,7 @@ class Array : public Type {
 
  private:
   Type& elementType_;
+  std::string inputName_;
   size_t len_;
   NodeId id_ = -1;
 
@@ -455,6 +494,9 @@ class Primitive : public Type {
   virtual const std::string& name() const override {
     return name_;
   }
+  virtual std::string_view inputName() const override {
+    return name_;
+  }
   virtual size_t size() const override;
   virtual uint64_t align() const override {
     return size();
@@ -476,7 +518,10 @@ class Primitive : public Type {
 class Typedef : public Type {
  public:
   explicit Typedef(NodeId id, std::string name, Type& underlyingType)
-      : name_(std::move(name)), underlyingType_(underlyingType), id_(id) {
+      : name_(name),
+        inputName_(std::move(name)),
+        underlyingType_(underlyingType),
+        id_(id) {
   }
 
   static inline constexpr bool has_node_id = true;
@@ -485,6 +530,10 @@ class Typedef : public Type {
 
   virtual const std::string& name() const override {
     return name_;
+  }
+
+  virtual std::string_view inputName() const override {
+    return inputName_;
   }
 
   void setName(std::string name) {
@@ -509,6 +558,7 @@ class Typedef : public Type {
 
  private:
   std::string name_;
+  std::string inputName_;
   Type& underlyingType_;
   NodeId id_ = -1;
 };
@@ -532,6 +582,14 @@ class Pointer : public Type {
     name_ = pointeeType_.name() + "*";
   }
 
+  virtual std::string_view inputName() const override {
+    return inputName_;
+  }
+
+  void setInputName(std::string name) {
+    inputName_ = std::move(name);
+  }
+
   virtual size_t size() const override {
     return sizeof(uintptr_t);
   }
@@ -550,6 +608,7 @@ class Pointer : public Type {
 
  private:
   Type& pointeeType_;
+  std::string inputName_;
   NodeId id_ = -1;
 
   std::string name_;
@@ -562,11 +621,12 @@ class Pointer : public Type {
  */
 class Dummy : public Type {
  public:
-  explicit Dummy(size_t size, uint64_t align)
+  explicit Dummy(size_t size, uint64_t align, std::string inputName)
       : size_(size),
         align_(align),
         name_(std::string{"DummySizedOperator<"} + std::to_string(size) + ", " +
-              std::to_string(align) + ">") {
+              std::to_string(align) + ">"),
+        inputName_(std::move(inputName)) {
   }
 
   static inline constexpr bool has_node_id = false;
@@ -575,6 +635,10 @@ class Dummy : public Type {
 
   virtual const std::string& name() const override {
     return name_;
+  }
+
+  virtual std::string_view inputName() const override {
+    return inputName_;
   }
 
   virtual size_t size() const override {
@@ -594,6 +658,7 @@ class Dummy : public Type {
   uint64_t align_;
 
   std::string name_;
+  std::string inputName_;
 };
 
 /*
@@ -604,8 +669,14 @@ class Dummy : public Type {
  */
 class DummyAllocator : public Type {
  public:
-  explicit DummyAllocator(Type& type, size_t size, uint64_t align)
-      : type_(type), size_(size), align_(align) {
+  explicit DummyAllocator(Type& type,
+                          size_t size,
+                          uint64_t align,
+                          std::string inputName)
+      : type_(type),
+        size_(size),
+        align_(align),
+        inputName_(std::move(inputName)) {
     regenerateName();
   }
 
@@ -620,6 +691,10 @@ class DummyAllocator : public Type {
   void regenerateName() {
     name_ = std::string{"DummyAllocator<"} + type_.name() + ", " +
             std::to_string(size_) + ", " + std::to_string(align_) + ">";
+  }
+
+  virtual std::string_view inputName() const override {
+    return inputName_;
   }
 
   virtual size_t size() const override {
@@ -644,6 +719,7 @@ class DummyAllocator : public Type {
   uint64_t align_;
 
   std::string name_;
+  std::string inputName_;
 };
 
 Type& stripTypedefs(Type& type);

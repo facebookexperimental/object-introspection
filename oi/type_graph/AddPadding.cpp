@@ -132,8 +132,10 @@ void AddPadding::addPadding(uint64_t paddingStartBits,
     // Pad with an array of bytes
     uint64_t paddingStartByte = (paddingStartBits + 7) / 8;
     auto& paddingArray = typeGraph_.makeType<Array>(primitive, paddingBytes);
-    paddedMembers.emplace_back(paddingArray, MemberPrefix,
-                               paddingStartByte * 8);
+    // Set inputName to an empty string as it has no name in the input
+    auto& m =
+        paddedMembers.emplace_back(paddingArray, "", paddingStartByte * 8);
+    m.name = MemberPrefix;
   }
 }
 

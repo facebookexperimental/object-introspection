@@ -52,8 +52,11 @@ void Printer::visit(const Class& c) {
       kind = "Union";
       break;
   }
-  out_ << kind << ": " << c.name() << " (size: " << c.size()
-       << align_str(c.align());
+  std::string name = c.name();
+  out_ << kind << ": " << name;
+  if (auto inp = c.inputName(); inp != name)
+    out_ << " [" << inp << "]";
+  out_ << " (size: " << c.size() << align_str(c.align());
   if (c.packed()) {
     out_ << ", packed";
   }
@@ -106,7 +109,10 @@ void Printer::visit(const Array& a) {
   if (prefix(&a))
     return;
 
-  out_ << "Array: (length: " << a.len() << ")" << std::endl;
+  out_ << "Array: ";
+  if (auto inp = a.inputName(); !inp.empty())
+    out_ << "[" << inp << "] ";
+  out_ << "(length: " << a.len() << ")" << std::endl;
   print(a.elementType());
 }
 
@@ -114,7 +120,11 @@ void Printer::visit(const Typedef& td) {
   if (prefix(&td))
     return;
 
-  out_ << "Typedef: " << td.name() << std::endl;
+  auto name = td.name();
+  out_ << "Typedef: " << name;
+  if (auto inp = td.inputName(); inp != name)
+    out_ << " [" << inp << "]";
+  out_ << std::endl;
   print(td.underlyingType());
 }
 
@@ -122,20 +132,25 @@ void Printer::visit(const Pointer& p) {
   if (prefix(&p))
     return;
 
-  out_ << "Pointer" << std::endl;
+  out_ << "Pointer";
+  if (auto inp = p.inputName(); !inp.empty())
+    out_ << " [" << inp << "]";
+  out_ << std::endl;
   print(p.pointeeType());
 }
 
 void Printer::visit(const Dummy& d) {
   prefix();
-  out_ << "Dummy (size: " << d.size() << align_str(d.align()) << ")"
-       << std::endl;
+  out_ << "Dummy ";
+  out_ << "[" << d.inputName() << "] ";
+  out_ << "(size: " << d.size() << align_str(d.align()) << ")" << std::endl;
 }
 
 void Printer::visit(const DummyAllocator& d) {
   prefix();
-  out_ << "DummyAllocator (size: " << d.size() << align_str(d.align()) << ")"
-       << std::endl;
+  out_ << "DummyAllocator ";
+  out_ << "[" << d.inputName() << "] ";
+  out_ << "(size: " << d.size() << align_str(d.align()) << ")" << std::endl;
   print(d.allocType());
 }
 
@@ -183,8 +198,10 @@ void Printer::print_parent(const Parent& parent) {
 void Printer::print_member(const Member& member) {
   depth_++;
   prefix();
-  out_ << "Member: " << member.name
-       << " (offset: " << static_cast<double>(member.bitOffset) / 8;
+  out_ << "Member: " << member.name;
+  if (member.inputName != member.name && !member.inputName.empty())
+    out_ << " [" << member.inputName << "]";
+  out_ << " (offset: " << static_cast<double>(member.bitOffset) / 8;
   out_ << align_str(member.align);
   if (member.bitsize != 0) {
     out_ << ", bitsize: " << member.bitsize;

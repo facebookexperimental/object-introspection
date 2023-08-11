@@ -23,7 +23,7 @@ TEST(TypeIdentifierTest, StubbedParam) {
       Param
         Primitive: int32_t
       Param
-        Dummy (size: 4)
+        Dummy [MyParam] (size: 4)
       Param
         Primitive: int32_t
 )");
@@ -48,7 +48,7 @@ TEST(TypeIdentifierTest, Allocator) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator (size: 8)
+        DummyAllocator [MyAlloc] (size: 8)
           Primitive: int32_t
       Param
         Primitive: int32_t
@@ -74,7 +74,7 @@ TEST(TypeIdentifierTest, AllocatorSize1) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator (size: 0)
+        DummyAllocator [MyAlloc] (size: 0)
           Primitive: int32_t
       Param
         Primitive: int32_t
@@ -134,7 +134,7 @@ TEST(TypeIdentifierTest, DummyNotReplaced) {
       Param
         Primitive: int32_t
       Param
-        Dummy (size: 22)
+        Dummy [InputName] (size: 22)
 )");
 }
 
@@ -144,7 +144,7 @@ TEST(TypeIdentifierTest, DummyAllocatorNotReplaced) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator (size: 22)
+        DummyAllocator [InputName] (size: 22)
           Primitive: int32_t
 )");
 }

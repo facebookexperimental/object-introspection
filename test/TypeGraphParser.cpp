@@ -151,6 +151,14 @@ std::optional<std::string_view> tryParseStringValue(std::string_view& input,
   return val;
 }
 
+std::optional<std::string_view> tryParseInputName(std::string_view input) {
+  auto left = input.find_first_of('[');
+  auto right = input.find_last_of(']');
+  if (left == std::string_view::npos || right == std::string_view::npos)
+    return {};
+  return input.substr(left + 1, right - left - 1);
+}
+
 NodeId getId(std::string_view str, size_t* idLen = nullptr) {
   if (idLen)
     *idLen = 0;
@@ -286,12 +294,15 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
   } else if (nodeTypeName == "Dummy") {
     // Format: "Dummy (size: 4)"
     auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
-    type = &typeGraph_.makeType<Dummy>(size, 0);
+    std::string inputName{*tryParseInputName(line)};
+    type = &typeGraph_.makeType<Dummy>(size, 0, inputName);
   } else if (nodeTypeName == "DummyAllocator") {
     // Format: "DummyAllocator (size: 8)"
     auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
+    std::string inputName{*tryParseInputName(line)};
     auto& typeToAlloc = parseType(input, indent + 2);
-    type = &typeGraph_.makeType<DummyAllocator>(typeToAlloc, size, 0);
+    type =
+        &typeGraph_.makeType<DummyAllocator>(typeToAlloc, size, 0, inputName);
   } else {
     throw TypeGraphParserError{"Unsupported node type: " +
                                std::string{nodeTypeName}};
