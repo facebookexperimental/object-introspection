@@ -59,12 +59,53 @@ class NodeTracker {
     std::fill(visited_.begin(), visited_.end(), false);
   }
 
+  /*
+   * resize
+   *
+   * Resizes the underlying vector to the requested size, with the same
+   * semantics as std::vector::resize().
+   */
   void resize(size_t size) {
     visited_.resize(size);
   }
 
  private:
   std::vector<bool> visited_;
+};
+
+/*
+ * NodeTrackerHolder
+ *
+ * Wrapper which ensures that the contained NodeTracker has been reset before
+ * allowing access to it.
+ */
+class NodeTrackerHolder {
+ public:
+  /*
+   * Implicit ctor from NodeTracker
+   */
+  NodeTrackerHolder(NodeTracker& tracker) : tracker_(tracker) {
+  }
+
+  /*
+   * get
+   *
+   * Returns a reference to a NodeTracker which has been reset, i.e. one in
+   * which all nodes are marked "not visited".
+   */
+  NodeTracker& get() {
+    tracker_.reset();
+    return tracker_;
+  }
+
+  NodeTracker& get(size_t size) {
+    tracker_.reset();
+    tracker_.resize(size);
+    return tracker_;
+  }
+
+ private:
+  NodeTracker& tracker_;
 };
 
 }  // namespace oi::detail::type_graph

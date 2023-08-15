@@ -25,7 +25,7 @@ using ref = std::reference_wrapper<T>;
 namespace oi::detail::type_graph {
 
 Pass AlignmentCalc::createPass() {
-  auto fn = [](TypeGraph& typeGraph) {
+  auto fn = [](TypeGraph& typeGraph, NodeTracker&) {
     AlignmentCalc alignmentCalc;
     alignmentCalc.calculateAlignments(typeGraph.rootTypes());
   };

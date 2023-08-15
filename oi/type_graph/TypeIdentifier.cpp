@@ -22,9 +22,8 @@ namespace oi::detail::type_graph {
 
 Pass TypeIdentifier::createPass(
     const std::vector<ContainerInfo>& passThroughTypes) {
-  auto fn = [&passThroughTypes](TypeGraph& typeGraph) {
-    TypeIdentifier typeId{typeGraph.resetTracker(), typeGraph,
-                          passThroughTypes};
+  auto fn = [&passThroughTypes](TypeGraph& typeGraph, NodeTracker& tracker) {
+    TypeIdentifier typeId{tracker, typeGraph, passThroughTypes};
     for (auto& type : typeGraph.rootTypes()) {
       typeId.accept(type);
     }

@@ -32,7 +32,7 @@ using ref = std::reference_wrapper<T>;
 namespace oi::detail::type_graph {
 
 Pass AddChildren::createPass(DrgnParser& drgnParser, SymbolService& symbols) {
-  auto fn = [&drgnParser, &symbols](TypeGraph& typeGraph) {
+  auto fn = [&drgnParser, &symbols](TypeGraph& typeGraph, NodeTracker&) {
     AddChildren pass(typeGraph, drgnParser);
     pass.enumerateChildClasses(symbols);
     for (auto& type : typeGraph.rootTypes()) {

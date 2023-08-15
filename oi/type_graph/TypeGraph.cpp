@@ -17,12 +17,6 @@
 
 namespace oi::detail::type_graph {
 
-NodeTracker& TypeGraph::resetTracker() const noexcept {
-  tracker_.reset();
-  tracker_.resize(size());
-  return tracker_;
-}
-
 template <>
 Primitive& TypeGraph::makeType<Primitive>(Primitive::Kind kind) {
   switch (kind) {

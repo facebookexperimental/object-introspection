@@ -82,3 +82,33 @@ TEST(NodeTrackerTest, LargeIds) {
   EXPECT_TRUE(tracker.visit(myclass1));
   EXPECT_TRUE(tracker.visit(myclass2));
 }
+
+TEST(NodeTrackerTest, NodeTrackerHolder) {
+  Class myclass{0, Class::Kind::Class, "myclass", 0};
+  Array myarray{1, myclass, 3};
+
+  NodeTracker baseTracker_doNotUse;
+  NodeTrackerHolder holder{baseTracker_doNotUse};
+
+  {
+    auto& tracker = holder.get();
+    // First visit
+    EXPECT_FALSE(tracker.visit(myarray));
+    EXPECT_FALSE(tracker.visit(myclass));
+
+    // Second visit
+    EXPECT_TRUE(tracker.visit(myarray));
+    EXPECT_TRUE(tracker.visit(myclass));
+  }
+
+  {
+    auto& tracker = holder.get();
+    // First visit, fresh tracker
+    EXPECT_FALSE(tracker.visit(myarray));
+    EXPECT_FALSE(tracker.visit(myclass));
+
+    // Second visit, fresh tracker
+    EXPECT_TRUE(tracker.visit(myarray));
+    EXPECT_TRUE(tracker.visit(myclass));
+  }
+}
