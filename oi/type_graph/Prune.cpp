@@ -21,8 +21,8 @@
 namespace oi::detail::type_graph {
 
 Pass Prune::createPass() {
-  auto fn = [](TypeGraph& typeGraph) {
-    Prune pass{typeGraph.resetTracker()};
+  auto fn = [](TypeGraph& typeGraph, NodeTracker& tracker) {
+    Prune pass{tracker};
     for (auto& type : typeGraph.rootTypes()) {
       pass.accept(type);
     }

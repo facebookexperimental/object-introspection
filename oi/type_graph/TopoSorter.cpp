@@ -23,7 +23,7 @@ using ref = std::reference_wrapper<T>;
 namespace oi::detail::type_graph {
 
 Pass TopoSorter::createPass() {
-  auto fn = [](TypeGraph& typeGraph) {
+  auto fn = [](TypeGraph& typeGraph, NodeTracker&) {
     TopoSorter sorter;
     sorter.sort(typeGraph.rootTypes());
     typeGraph.finalTypes = std::move(sorter.sortedTypes());

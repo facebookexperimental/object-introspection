@@ -25,7 +25,7 @@ using ref = std::reference_wrapper<T>;
 namespace oi::detail::type_graph {
 
 Pass AddPadding::createPass() {
-  auto fn = [](TypeGraph& typeGraph) {
+  auto fn = [](TypeGraph& typeGraph, NodeTracker&) {
     AddPadding pass(typeGraph);
     for (auto& type : typeGraph.rootTypes()) {
       pass.accept(type);

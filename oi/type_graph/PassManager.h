@@ -21,6 +21,8 @@
 
 namespace oi::detail::type_graph {
 
+class NodeTrackerHolder;
+class NodeTracker;
 class TypeGraph;
 class Type;
 
@@ -30,12 +32,13 @@ class Type;
  * TODO
  */
 class Pass {
-  using PassFn = std::function<void(TypeGraph& typeGraph)>;
+  using PassFn =
+      std::function<void(TypeGraph& typeGraph, NodeTracker& tracker)>;
 
  public:
   Pass(std::string name, PassFn fn) : name_(std::move(name)), fn_(fn) {
   }
-  void run(TypeGraph& typeGraph);
+  void run(TypeGraph& typeGraph, NodeTrackerHolder tracker);
   std::string& name() {
     return name_;
   };

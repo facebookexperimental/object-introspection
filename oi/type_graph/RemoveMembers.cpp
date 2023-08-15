@@ -22,7 +22,7 @@ namespace oi::detail::type_graph {
 
 Pass RemoveMembers::createPass(
     const std::vector<std::pair<std::string, std::string>>& membersToIgnore) {
-  auto fn = [&membersToIgnore](TypeGraph& typeGraph) {
+  auto fn = [&membersToIgnore](TypeGraph& typeGraph, NodeTracker&) {
     RemoveMembers removeMembers{membersToIgnore};
     for (auto& type : typeGraph.rootTypes()) {
       removeMembers.accept(type);

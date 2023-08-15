@@ -19,7 +19,6 @@
 #include <memory>
 #include <vector>
 
-#include "NodeTracker.h"
 #include "Types.h"
 
 namespace oi::detail::type_graph {
@@ -47,8 +46,6 @@ class TypeGraph {
   void addRoot(Type& type) {
     rootTypes_.push_back(type);
   }
-
-  NodeTracker& resetTracker() const noexcept;
 
   // Override of the generic makeType function that returns singleton Primitive
   // objects
@@ -88,7 +85,6 @@ class TypeGraph {
   std::vector<std::reference_wrapper<Type>> rootTypes_;
   // Store all type objects in vectors for ownership. Order is not significant.
   std::vector<std::unique_ptr<Type>> types_;
-  mutable NodeTracker tracker_;
   NodeId next_id_ = 0;
 };
 

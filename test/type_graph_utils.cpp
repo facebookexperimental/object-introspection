@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include "oi/ContainerInfo.h"
+#include "oi/type_graph/NodeTracker.h"
 #include "oi/type_graph/PassManager.h"
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
@@ -21,7 +22,8 @@ void check(const TypeGraph& typeGraph,
            std::string_view expected,
            std::string_view comment) {
   std::stringstream out;
-  type_graph::Printer printer(out, typeGraph.resetTracker(), typeGraph.size());
+  NodeTracker tracker;
+  type_graph::Printer printer(out, tracker, typeGraph.size());
 
   for (const auto& type : typeGraph.rootTypes()) {
     printer.print(type);
@@ -47,7 +49,8 @@ void test(type_graph::Pass pass,
   // Validate input formatting
   check(typeGraph, input, "parsing input graph");
 
-  pass.run(typeGraph);
+  NodeTracker tracker;
+  pass.run(typeGraph, tracker);
 
   check(typeGraph, expectedAfter, "after running pass");
 }

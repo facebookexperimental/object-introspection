@@ -2,6 +2,7 @@
 
 #include "oi/SymbolService.h"
 #include "oi/type_graph/AddChildren.h"
+#include "oi/type_graph/NodeTracker.h"
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "test_drgn_parser.h"
@@ -22,12 +23,13 @@ std::string AddChildrenTest::run(std::string_view function,
 
   Type& type = drgnParser.parse(drgnRoot);
   typeGraph.addRoot(type);
+  NodeTracker tracker;
 
   auto pass = AddChildren::createPass(drgnParser, *symbols_);
-  pass.run(typeGraph);
+  pass.run(typeGraph, tracker);
 
   std::stringstream out;
-  Printer printer{out, typeGraph.resetTracker(), typeGraph.size()};
+  Printer printer{out, tracker, typeGraph.size()};
   printer.print(type);
 
   return out.str();

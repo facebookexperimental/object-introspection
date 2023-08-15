@@ -23,7 +23,7 @@ using ref = std::reference_wrapper<T>;
 namespace oi::detail::type_graph {
 
 Pass NameGen::createPass() {
-  auto fn = [](TypeGraph& typeGraph) {
+  auto fn = [](TypeGraph& typeGraph, NodeTracker&) {
     NameGen nameGen;
     nameGen.generateNames(typeGraph.rootTypes());
   };

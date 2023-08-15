@@ -20,6 +20,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "NodeTracker.h"
 #include "Printer.h"
 #include "TypeGraph.h"
 
@@ -28,8 +29,8 @@ using ref = std::reference_wrapper<T>;
 
 namespace oi::detail::type_graph {
 
-void Pass::run(TypeGraph& typeGraph) {
-  fn_(typeGraph);
+void Pass::run(TypeGraph& typeGraph, NodeTrackerHolder tracker) {
+  fn_(typeGraph, tracker.get(typeGraph.size()));
 }
 
 void PassManager::addPass(Pass p) {
@@ -37,12 +38,12 @@ void PassManager::addPass(Pass p) {
 }
 
 namespace {
-void print(const TypeGraph& typeGraph) {
+void print(const TypeGraph& typeGraph, NodeTrackerHolder tracker) {
   if (!VLOG_IS_ON(1))
     return;
 
   std::stringstream out;
-  Printer printer{out, typeGraph.resetTracker(), typeGraph.size()};
+  Printer printer{out, tracker.get(typeGraph.size()), typeGraph.size()};
   for (const auto& type : typeGraph.rootTypes()) {
     printer.print(type);
   }
@@ -55,19 +56,21 @@ void print(const TypeGraph& typeGraph) {
 const std::string separator = "----------------";
 
 void PassManager::run(TypeGraph& typeGraph) {
+  NodeTracker tracker;
+
   VLOG(1) << separator;
   VLOG(1) << "Parsed Type Graph:";
   VLOG(1) << separator;
-  print(typeGraph);
+  print(typeGraph, tracker);
   VLOG(1) << separator;
 
   for (size_t i = 0; i < passes_.size(); i++) {
     auto& pass = passes_[i];
     LOG(INFO) << "Running pass (" << i + 1 << "/" << passes_.size()
               << "): " << pass.name();
-    pass.run(typeGraph);
+    pass.run(typeGraph, tracker);
     VLOG(1) << separator;
-    print(typeGraph);
+    print(typeGraph, tracker);
     VLOG(1) << separator;
   }
 }

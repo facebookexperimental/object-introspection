@@ -6,6 +6,7 @@
 // TODO needed?:
 #include "oi/ContainerInfo.h"
 #include "oi/OIParser.h"
+#include "oi/type_graph/NodeTracker.h"
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "oi/type_graph/Types.h"
@@ -55,7 +56,8 @@ std::string DrgnParserTest::run(std::string_view function,
   Type& type = drgnParser.parse(drgnRoot);
 
   std::stringstream out;
-  Printer printer{out, typeGraph.resetTracker(), typeGraph.size()};
+  NodeTracker tracker;
+  Printer printer{out, tracker, typeGraph.size()};
   printer.print(type);
 
   return out.str();

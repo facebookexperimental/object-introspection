@@ -20,7 +20,7 @@
 namespace oi::detail::type_graph {
 
 Pass RemoveTopLevelPointer::createPass() {
-  auto fn = [](TypeGraph& typeGraph) {
+  auto fn = [](TypeGraph& typeGraph, NodeTracker&) {
     RemoveTopLevelPointer pass;
     pass.removeTopLevelPointers(typeGraph.rootTypes());
   };
