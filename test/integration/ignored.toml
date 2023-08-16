@@ -10,6 +10,7 @@ definitions = '''
 
 [cases]
   [cases.a]
+    oil_skip = 'v2 hides the member entirely when it should show it with static size' # todo: github issue
     param_types = ["const Bar&"]
     setup = """
       return Bar{

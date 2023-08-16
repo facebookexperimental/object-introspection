@@ -334,9 +334,18 @@ target_link_libraries(treebuilder
 
 ## OI Outputs
 ### Object Introspection as a Library (OIL)
-add_library(oil oi/OILibrary.cpp oi/OILibraryImpl.cpp)
+add_library(oil
+  oi/IntrospectionResult.cpp
+  oi/exporters/ParsedData.cpp
+)
+target_link_libraries(oil folly_headers)
 target_include_directories(oil PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(oil oicore)
+
+add_library(oil_jit
+  oi/OILibrary.cpp
+  oi/OILibraryImpl.cpp
+)
+target_link_libraries(oil_jit oicore oil)
 
 ### Object Introspection as a Library Generator (OILGen)
 add_executable(oilgen

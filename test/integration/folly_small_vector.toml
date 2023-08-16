@@ -1,23 +1,28 @@
 includes = ["folly/small_vector.h", "vector"]
 [cases]
   [cases.int_default_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/321
     param_types = ["const folly::small_vector<int>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "length":0, "capacity":2, "elementStaticSize":4}]'
   [cases.int_default_inlined]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/321
     param_types = ["const folly::small_vector<int>&"]
     setup = "return {{1,2}};"
     expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "length":2, "capacity":2, "elementStaticSize":4}]'
   [cases.int_default_overflow]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/321
     param_types = ["const folly::small_vector<int>&"]
     setup = "return {{1,2,3,4}};"
     expect_json = '[{"staticSize":16, "dynamicSize":24, "exclusiveSize":40, "length":4, "capacity":6, "elementStaticSize":4}]'
 
   [cases.vector_3_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/321
     param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":80, "dynamicSize":0, "exclusiveSize":80, "length":0, "capacity":3, "elementStaticSize":24}]'
   [cases.vector_3_inlined]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/321
     param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
     setup = "return {{ {1,2,3}, {4}, {5,6} }};"
     expect_json = '''[
@@ -27,6 +32,7 @@ includes = ["folly/small_vector.h", "vector"]
         {"staticSize":24, "dynamicSize":8, "exclusiveSize":32, "length":2, "capacity":2, "elementStaticSize":4}
     ]}]'''
   [cases.vector_3_overflow]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/321
     param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
     setup = "return {{ {1,2,3}, {4}, {5,6}, {7} }};"
     expect_json = '''[
@@ -38,6 +44,7 @@ includes = ["folly/small_vector.h", "vector"]
     ]}]'''
 
   [cases.int_always_heap]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/321
     param_types = ["const folly::small_vector<int, 0>&"]
     setup = "return {{1}};"
     expect_json = '[{"staticSize":16, "dynamicSize":4, "exclusiveSize":20, "length":1, "capacity":1, "elementStaticSize":4}]'

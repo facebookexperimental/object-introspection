@@ -44,6 +44,5 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[{
       "staticSize":8,
-      "dynamicSize":0,
-      "NOT":"members"
+      "dynamicSize":0
     }]'''

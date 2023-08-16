@@ -37,6 +37,7 @@
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_os_ostream.h>
 
+#include <array>
 #include <boost/range/combine.hpp>
 #include <boost/scope_exit.hpp>
 
@@ -516,21 +517,32 @@ bool OICompiler::compile(const std::string& code,
         path.c_str(), clang::frontend::IncludeDirGroup::System, false, false);
   }
 
-  if (config.features[Feature::TypedDataSegment]) {
+  static const auto syntheticHeaders = std::array<
+      std::pair<Feature, std::pair<std::string_view, std::string>>, 5>{{
+      {Feature::TypedDataSegment, {headers::oi_types_st_h, "oi/types/st.h"}},
+      {Feature::TreeBuilderTypeChecking,
+       {headers::oi_types_dy_h, "oi/types/dy.h"}},
+      {Feature::TreeBuilderV2,
+       {headers::oi_exporters_inst_h, "oi/exporters/inst.h"}},
+      {Feature::TreeBuilderV2,
+       {headers::oi_exporters_ParsedData_h, "oi/exporters/ParsedData.h"}},
+      {Feature::TreeBuilderV2,
+       {headers::oi_result_Element_h, "oi/result/Element.h"}},
+  }};
+  for (const auto& [k, v] : syntheticHeaders) {
+    if (!config.features[k])
+      continue;
     compInv->getPreprocessorOpts().addRemappedFile(
-        "/synthetic/headers/oi/types/st.h",
-        MemoryBuffer::getMemBuffer(headers::oi_types_st_h).release());
-    headerSearchOptions.AddPath(
-        "/synthetic/headers", clang::frontend::IncludeDirGroup::IndexHeaderMap,
-        false, false);
+        std::string{"/synthetic/headers/"} + v.second,
+        MemoryBuffer::getMemBuffer(v.first).release());
   }
-  if (config.features[Feature::TreeBuilderTypeChecking]) {
-    compInv->getPreprocessorOpts().addRemappedFile(
-        "/synthetic/headers/oi/types/dy.h",
-        MemoryBuffer::getMemBuffer(headers::oi_types_dy_h).release());
-    headerSearchOptions.AddPath(
-        "/synthetic/headers", clang::frontend::IncludeDirGroup::IndexHeaderMap,
-        false, false);
+  for (const auto& [k, _] : syntheticHeaders) {
+    if (config.features[k]) {
+      headerSearchOptions.AddPath(
+          "/synthetic/headers",
+          clang::frontend::IncludeDirGroup::IndexHeaderMap, false, false);
+      break;
+    }
   }
 
   compInv->getFrontendOpts().OutputFile = objectPath;

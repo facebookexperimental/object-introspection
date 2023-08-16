@@ -33,6 +33,13 @@ namespace cpp2 {
         {"typeName":"storage_type", "name":"value_", "staticSize":4},
         {"typeName":"underlying_type_t<cpp2::StaticUnion::Type>", "name":"type_", "staticSize":4}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":8,
+      "exclusiveSize":0,
+      "members":[
+        {"typeNames":["storage_type"], "name":"value_", "staticSize":4, "exclusiveSize":4},
+        {"typeNames":["underlying_type_t<cpp2::StaticUnion::Type>", "type", "int32_t"], "name":"type_", "staticSize":4, "exclusiveSize":4}
+      ]}]'''
   [cases.dynamic_int]
     param_types = ["const cpp2::DynamicUnion&"]
     setup = '''
@@ -47,6 +54,13 @@ namespace cpp2 {
         {"typeName":"storage_type", "name":"value_", "staticSize":24},
         {"typeName":"underlying_type_t<cpp2::DynamicUnion::Type>", "name":"type_", "staticSize":4}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":32,
+      "exclusiveSize":4,
+      "members":[
+        {"typeNames":["storage_type"], "name":"value_", "staticSize":24, "exclusiveSize":24},
+        {"typeNames":["underlying_type_t<cpp2::DynamicUnion::Type>", "type", "int32_t"], "name":"type_", "staticSize":4, "exclusiveSize":4}
+      ]}]'''
   [cases.dynamic_vec]
     param_types = ["const cpp2::DynamicUnion&"]
     setup = '''
@@ -60,4 +74,11 @@ namespace cpp2 {
       "members":[
         {"typeName":"storage_type", "name":"value_", "staticSize":24},
         {"typeName":"underlying_type_t<cpp2::DynamicUnion::Type>", "name":"type_", "staticSize":4}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":32,
+      "exclusiveSize":4,
+      "members":[
+        {"typeNames":["storage_type"], "name":"value_", "staticSize":24, "exclusiveSize":24},
+        {"typeNames":["underlying_type_t<cpp2::DynamicUnion::Type>", "type", "int32_t"], "name":"type_", "staticSize":4, "exclusiveSize":4}
       ]}]'''

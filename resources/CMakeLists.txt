@@ -7,6 +7,9 @@ function(embed_headers output)
   file(APPEND ${output} "namespace oi::detail::headers {\n")
 
   set(HEADERS
+    ../include/oi/exporters/ParsedData.h
+    ../include/oi/exporters/inst.h
+    ../include/oi/result/Element.h
     ../include/oi/types/dy.h
     ../include/oi/types/st.h
     ../oi/OITraceCode.cpp

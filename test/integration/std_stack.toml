@@ -1,6 +1,7 @@
 includes = ["stack", "vector"]
 [cases]
   [cases.int_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/305
     param_types = ["const std::stack<int>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -13,6 +14,7 @@ includes = ["stack", "vector"]
         }
       ]}]'''
   [cases.int_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/305
     param_types = ["const std::stack<int>&"]
     setup = "return std::stack<int>({1,2,3});"
     expect_json = '''[{
@@ -25,6 +27,7 @@ includes = ["stack", "vector"]
         }
       ]}]'''
   [cases.stack_int_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/305
     param_types = ["const std::stack<std::stack<int>>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -35,6 +38,7 @@ includes = ["stack", "vector"]
         }
       ]}]'''
   [cases.stack_int_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/305
     param_types = ["const std::stack<std::stack<int>>&"]
     setup = '''
       return std::stack<std::stack<int>>({
@@ -83,6 +87,7 @@ includes = ["stack", "vector"]
         }
       ]}]'''
   [cases.adapter_vector_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/305
     param_types = ["const std::stack<int, std::vector<int>>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -95,6 +100,7 @@ includes = ["stack", "vector"]
         }
       ]}]'''
   [cases.adapter_vector_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/305
     param_types = ["const std::stack<int, std::vector<int>>&"]
     setup = "return std::stack<int, std::vector<int>>({1,2,3});"
     expect_json = '''[{

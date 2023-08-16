@@ -298,7 +298,7 @@ bool SymbolService::loadModules() {
   return true;
 }
 
-static std::optional<drgn_qualified_type> findTypeOfSymbol(
+std::optional<drgn_qualified_type> SymbolService::findTypeOfSymbol(
     drgn_program* prog, const std::string& symbolName) {
   drgn_symbol* sym;
   if (auto* err =
@@ -313,6 +313,16 @@ static std::optional<drgn_qualified_type> findTypeOfSymbol(
   uint64_t addr = drgn_symbol_address(sym);
   drgn_symbol_destroy(sym);
 
+  if (auto t = findTypeOfAddr(prog, addr)) {
+    return t;
+  } else {
+    LOG(ERROR) << "Failed to lookup symbol '" << symbolName;
+    return std::nullopt;
+  }
+}
+
+std::optional<drgn_qualified_type> SymbolService::findTypeOfAddr(
+    drgn_program* prog, uintptr_t addr) {
   drgn_object obj;
   drgn_object_init(&obj, prog);
 
@@ -320,7 +330,7 @@ static std::optional<drgn_qualified_type> findTypeOfSymbol(
   if (auto* err =
           drgn_program_find_function_by_address(prog, addr, &name, &obj);
       err != nullptr) {
-    LOG(ERROR) << "Failed to lookup function '" << symbolName
+    LOG(ERROR) << "Failed to lookup function '" << reinterpret_cast<void*>(addr)
                << "': " << err->code << " " << err->message;
     drgn_error_destroy(err);
     return std::nullopt;
@@ -598,7 +608,7 @@ static std::optional<std::shared_ptr<FuncDesc>> createFuncDesc(
     struct drgn_program* prog, const irequest& request) {
   VLOG(1) << "Creating function description for: " << request.func;
 
-  auto ft = findTypeOfSymbol(prog, request.func);
+  auto ft = SymbolService::findTypeOfSymbol(prog, request.func);
   if (!ft) {
     return std::nullopt;
   }

@@ -13,208 +13,241 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "oi/OILibraryImpl.h"
+#include "OILibraryImpl.h"
 
-#include <fcntl.h>
 #include <glog/logging.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/mman.h>
-#include <unistd.h>
 
+#include <boost/core/demangle.hpp>
 #include <boost/format.hpp>
+#include <cerrno>
+#include <cstring>
 #include <fstream>
+#include <stdexcept>
 
+#include "oi/DrgnUtils.h"
 #include "oi/Headers.h"
-#include "oi/OIParser.h"
 #include "oi/OIUtils.h"
 
-extern "C" {
-#include <libelf.h>
+namespace oi::detail {
+namespace {
+// Map between the high level feature requests in the OIL API and the underlying
+// codegen features.
+std::map<Feature, bool> convertFeatures(std::unordered_set<oi::Feature> fs);
+
+// Extract the root type from an atomic function pointer
+drgn_qualified_type getTypeFromAtomicHole(drgn_program* prog, void* hole);
+}  // namespace
+
+OILibraryImpl::LocalTextSegment::LocalTextSegment(size_t size) {
+  void* base = mmap(NULL, size, PROT_EXEC | PROT_READ | PROT_WRITE,
+                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (base == MAP_FAILED)
+    throw std::runtime_error(std::string("segment map failed: ") +
+                             std::strerror(errno));
+
+  data_ = {static_cast<uint8_t*>(base), size};
 }
 
-namespace ObjectIntrospection {
+OILibraryImpl::LocalTextSegment::~LocalTextSegment() {
+  if (data_.empty())
+    return;
 
-using namespace oi::detail;
-
-OILibraryImpl::OILibraryImpl(OILibrary* self, void* TemplateFunc)
-    : _self(self), _TemplateFunc(TemplateFunc) {
-  if (_self->opts.debugLevel != 0) {
-    google::LogToStderr();
-    google::SetStderrLogging(0);
-    google::SetVLOGLevel("*", _self->opts.debugLevel);
-    // Upstream glog defines `GLOG_INFO` as 0 https://fburl.com/ydjajhz0,
-    // but internally it's defined as 1 https://fburl.com/code/9fwams75
-    //
-    // We don't want to link gflags in OIL, so setting it via the flags rather
-    // than with gflags::SetCommandLineOption
-    FLAGS_minloglevel = 0;
-  }
+  PLOG_IF(ERROR, munmap(data_.data(), data_.size()) != 0)
+      << "segment unmap failed";
 }
 
-OILibraryImpl::~OILibraryImpl() {
-  unmapSegment();
+OILibraryImpl::MemoryFile::MemoryFile(const char* name) {
+  fd_ = memfd_create(name, 0);
+  if (fd_ == -1)
+    throw std::runtime_error(std::string("memfd creation failed: ") +
+                             std::strerror(errno));
 }
 
-bool OILibraryImpl::mapSegment() {
-  void* textSeg =
-      mmap(NULL, segConfig.textSegSize, PROT_EXEC | PROT_READ | PROT_WRITE,
-           MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  if (textSeg == MAP_FAILED) {
-    PLOG(ERROR) << "error mapping text segment";
-    return false;
-  }
-  segConfig.textSegBase = textSeg;
+OILibraryImpl::MemoryFile::~MemoryFile() {
+  if (fd_ == -1)
+    return;
 
-  return true;
+  PLOG_IF(ERROR, close(fd_) == -1) << "memfd close failed";
 }
 
-bool OILibraryImpl::unmapSegment() {
-  if (segConfig.textSegBase != nullptr &&
-      munmap(segConfig.textSegBase, segConfig.textSegSize) != 0) {
-    PLOG(ERROR) << "error unmapping text segment";
-    return false;
-  }
-
-  return true;
+std::filesystem::path OILibraryImpl::MemoryFile::path() {
+  return {(boost::format("/dev/fd/%1%") % fd_).str()};
 }
 
-void OILibraryImpl::initCompiler() {
-  symbols = std::make_shared<SymbolService>(getpid());
-
-  generatorConfig.useDataSegment = false;
+OILibraryImpl::OILibraryImpl(void* atomicHole,
+                             std::unordered_set<oi::Feature> fs,
+                             GeneratorOptions opts)
+    : atomicHole_(atomicHole),
+      requestedFeatures_(convertFeatures(std::move(fs))),
+      opts_(std::move(opts)) {
 }
 
-bool OILibraryImpl::processConfigFile() {
-  auto features = utils::processConfigFile(
-      _self->opts.configFilePath,
-      {
-          {Feature::ChaseRawPointers, _self->opts.chaseRawPointers},
-          {Feature::PackStructs, true},
-          {Feature::PruneTypeGraph, true},
-          {Feature::GenJitDebug, _self->opts.generateJitDebugInfo},
-      },
-      compilerConfig, generatorConfig);
-  if (!features) {
-    return false;
-  }
-  generatorConfig.features = *features;
-  compilerConfig.features = *features;
-  return true;
+std::pair<void*, const exporters::inst::Inst&> OILibraryImpl::init() {
+  processConfigFile();
+
+  constexpr size_t TextSegSize = 1u << 22;
+  textSeg = {TextSegSize};
+
+  return compileCode();
 }
 
-template <class T, class F>
-class Cleanup {
-  T resource;
-  F cleanupFunc;
+void OILibraryImpl::processConfigFile() {
+  auto features =
+      utils::processConfigFile(opts_.configFilePath, requestedFeatures_,
+                               compilerConfig_, generatorConfig_);
+  if (!features)
+    throw std::runtime_error("failed to process configuration");
 
- public:
-  Cleanup(T _resource, F _cleanupFunc)
-      : resource{_resource}, cleanupFunc{_cleanupFunc} {};
-  ~Cleanup() {
-    cleanupFunc(resource);
-  }
-};
-
-void close_file(std::FILE* fp) {
-  std::fclose(fp);
+  generatorConfig_.features = *features;
+  compilerConfig_.features = *features;
 }
 
-int OILibraryImpl::compileCode() {
-  OICompiler compiler{symbols, compilerConfig};
+std::pair<void*, const exporters::inst::Inst&> OILibraryImpl::compileCode() {
+  auto symbols = std::make_shared<SymbolService>(getpid());
 
-  int objectMemfd = memfd_create("oil_object_code", 0);
-  if (!objectMemfd) {
-    PLOG(ERROR) << "failed to create memfd for object code";
-    return Response::OIL_COMPILATION_FAILURE;
-  }
+  auto* prog = symbols->getDrgnProgram();
+  CHECK(prog != nullptr) << "does this check need to exist?";
 
-  using unique_file_t = std::unique_ptr<std::FILE, decltype(&close_file)>;
-  unique_file_t objectStream(fdopen(objectMemfd, "w+"), &close_file);
-  if (!objectStream) {
-    PLOG(ERROR) << "failed to convert memfd to stream";
-    // This only needs to be cleaned up in the error case, as the fclose
-    // on the unique_file_t will clean up the underlying fd if it was
-    // created successfully.
-    close(objectMemfd);
-    return Response::OIL_COMPILATION_FAILURE;
-  }
-  auto objectPath =
-      fs::path((boost::format("/dev/fd/%1%") % objectMemfd).str());
+  auto rootType = getTypeFromAtomicHole(symbols->getDrgnProgram(), atomicHole_);
 
-  struct drgn_program* prog = symbols->getDrgnProgram();
-  if (!prog) {
-    return Response::OIL_COMPILATION_FAILURE;
-  }
-  struct drgn_symbol* sym;
-  if (auto err = drgn_program_find_symbol_by_address(
-          prog, (uintptr_t)_TemplateFunc, &sym)) {
-    LOG(ERROR) << "Error when finding symbol by address " << err->code << " "
-               << err->message;
-    drgn_error_destroy(err);
-    return Response::OIL_COMPILATION_FAILURE;
-  }
-  const char* name = drgn_symbol_name(sym);
-  drgn_symbol_destroy(sym);
+  CodeGen codegen{generatorConfig_, *symbols};
 
-  // TODO: change this to the new drgn interface from symbol -> type
-  auto rootType = symbols->getRootType(irequest{"entry", name, "arg0"});
-  if (!rootType.has_value()) {
-    LOG(ERROR) << "Failed to get type of probe argument";
-    return Response::OIL_COMPILATION_FAILURE;
-  }
+  std::string code;
+  if (!codegen.codegenFromDrgn(rootType.type, code))
+    throw std::runtime_error("oil jit codegen failed!");
 
-  std::string code(headers::oi_OITraceCode_cpp);
-
-  auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
-  if (!codegen) {
-    return OIL_COMPILATION_FAILURE;
-  }
-
-  codegen->setRootType(rootType->type);
-  if (!codegen->generate(code)) {
-    return Response::OIL_COMPILATION_FAILURE;
-  }
-
-  std::string sourcePath = _self->opts.sourceFileDumpPath;
-  if (_self->opts.sourceFileDumpPath.empty()) {
-    // This is the path Clang acts as if it has compiled from e.g. for debug
-    // information. It does not need to exist.
-    sourcePath = "oil_jit.cpp";
+  std::string sourcePath = opts_.sourceFileDumpPath;
+  if (sourcePath.empty()) {
+    sourcePath = "oil_jit.cpp";  // fake path for JIT debug info
   } else {
     std::ofstream outputFile(sourcePath);
     outputFile << code;
   }
 
-  if (!compiler.compile(code, sourcePath, objectPath)) {
-    return Response::OIL_COMPILATION_FAILURE;
-  }
+  auto object = MemoryFile("oil_object_code");
+  OICompiler compiler{symbols, compilerConfig_};
+  if (!compiler.compile(code, sourcePath, object.path()))
+    throw std::runtime_error("oil jit compilation failed!");
 
   auto relocRes = compiler.applyRelocs(
-      reinterpret_cast<uint64_t>(segConfig.textSegBase), {objectPath}, {});
-  if (!relocRes.has_value()) {
-    return Response::OIL_RELOCATION_FAILURE;
-  }
+      reinterpret_cast<uint64_t>(textSeg.data().data()), {object.path()}, {});
+  if (!relocRes)
+    throw std::runtime_error("oil jit relocation failed!");
 
-  const auto& [_, segments, jitSymbols] = relocRes.value();
+  const auto& [_, segments, jitSymbols] = *relocRes;
 
-  // Locate the probe's entry point
-  _self->fp = nullptr;
+  std::string nameHash =
+      (boost::format("%1$016x") %
+       std::hash<std::string>{}(SymbolService::getTypeName(rootType.type)))
+          .str();
+  std::string functionSymbolPrefix = "_Z27introspect_" + nameHash;
+  std::string typeSymbolName = "treeBuilderInstructions" + nameHash;
+  void* fp = nullptr;
+  const exporters::inst::Inst* ty = nullptr;
   for (const auto& [symName, symAddr] : jitSymbols) {
-    if (symName.starts_with("_Z7getSize")) {
-      _self->fp = (size_t(*)(const void*))symAddr;
-      break;
+    if (fp == nullptr && symName.starts_with(functionSymbolPrefix)) {
+      fp = reinterpret_cast<void*>(symAddr);
+      if (ty != nullptr)
+        break;
+    } else if (ty == nullptr && symName == typeSymbolName) {
+      ty = reinterpret_cast<const exporters::inst::Inst*>(symAddr);
+      if (fp != nullptr)
+        break;
     }
   }
-  if (!_self->fp) {
-    return Response::OIL_RELOCATION_FAILURE;
-  }
 
-  // Copy relocated segments in their final destination
-  for (const auto& [BaseAddr, RelocAddr, Size] : segments)
-    memcpy((void*)RelocAddr, (void*)BaseAddr, Size);
+  CHECK(fp != nullptr && ty != nullptr)
+      << "failed to find always present symbols!";
 
-  return Response::OIL_SUCCESS;
+  for (const auto& [baseAddr, relocAddr, size] : segments)
+    std::memcpy(reinterpret_cast<void*>(relocAddr),
+                reinterpret_cast<void*>(baseAddr), size);
+
+  textSeg.release();  // don't munmap() the region containing the code
+  return {fp, *ty};
 }
 
-}  // namespace ObjectIntrospection
+namespace {
+std::map<Feature, bool> convertFeatures(std::unordered_set<oi::Feature> fs) {
+  std::map<Feature, bool> out{
+      {Feature::TypeGraph, true},
+      {Feature::TypedDataSegment, true},
+      {Feature::TreeBuilderTypeChecking, true},
+      {Feature::TreeBuilderV2, true},
+      {Feature::Library, true},
+      {Feature::PackStructs, true},
+      {Feature::PruneTypeGraph, true},
+  };
+
+  for (const auto f : fs) {
+    switch (f) {
+      case oi::Feature::ChaseRawPointers:
+        out[Feature::ChaseRawPointers] = true;
+        break;
+      case oi::Feature::CaptureThriftIsset:
+        out[Feature::CaptureThriftIsset] = true;
+        break;
+      case oi::Feature::GenJitDebug:
+        out[Feature::GenJitDebug] = true;
+        break;
+    }
+  }
+
+  return out;
+}
+
+drgn_qualified_type getTypeFromAtomicHole(drgn_program* prog, void* hole) {
+  // get the getter type:
+  // std::atomic<std::vector<uint8_t> (*)(const T&)>& getIntrospectionFunc();
+  auto atomicGetterType =
+      SymbolService::findTypeOfAddr(prog, reinterpret_cast<uintptr_t>(hole));
+  if (!atomicGetterType)
+    throw std::runtime_error("failed to lookup function");
+
+  // get the return type:
+  // std::atomic<std::vector<uint8_t> (*)(const T&)>&
+  CHECK(drgn_type_has_type(atomicGetterType->type))
+      << "functions have a return type";
+  auto retType = drgn_type_type(atomicGetterType->type);
+
+  // get the atomic type:
+  // std::atomic<std::vector<uint8_t> (*)(const T&)>
+  CHECK(drgn_type_has_type(retType.type)) << "pointers have a value type";
+  auto atomicType = drgn_type_type(retType.type);
+
+  // get the function pointer type:
+  // std::vector<uint8_t> (*)(const T&)
+  CHECK(drgn_type_has_template_parameters(atomicType.type))
+      << "atomic should have template parameters";
+  CHECK(drgn_type_num_template_parameters(atomicType.type) == 1)
+      << "atomic should have 1 template parameter";
+  auto* templateParam = drgn_type_template_parameters(atomicType.type);
+  struct drgn_qualified_type funcPointerType;
+  if (auto err = drgn_template_parameter_type(templateParam, &funcPointerType))
+    throw drgnplusplus::error(err);
+
+  // get the function type:
+  // std::vector<uint8_t>(const T&)
+  CHECK(drgn_type_has_type(funcPointerType.type))
+      << "function pointers have a value type";
+  auto funcType = drgn_type_type(funcPointerType.type);
+
+  // get the argument type:
+  // const T&
+  CHECK(drgn_type_has_parameters(funcType.type)) << "functions have parameters";
+  CHECK(drgn_type_num_parameters(funcType.type) == 2)
+      << "function should have 2 parameters";
+  drgn_qualified_type argType;
+  if (auto err =
+          drgn_parameter_type(drgn_type_parameters(funcType.type), &argType))
+    throw drgnplusplus::error(err);
+
+  // get the type
+  CHECK(drgn_type_has_type(argType.type))
+      << "reference types have a value type";
+  return drgn_type_type(argType.type);
+}
+
+}  // namespace
+}  // namespace oi::detail

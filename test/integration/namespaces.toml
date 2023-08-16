@@ -16,6 +16,7 @@ definitions = '''
 '''
 [cases]
   [cases.queue]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/308
     param_types = ["const std::queue<std::pair<nsA::Foo, nsB::Foo>>&"]
     setup = "return std::queue<std::pair<ns_namespaces::nsA::Foo, ns_namespaces::nsB::Foo>>({{ns_namespaces::nsA::Foo(), ns_namespaces::nsB::Foo()}});"
     expect_json = '''[{
@@ -23,6 +24,7 @@ definitions = '''
       "staticSize": 80, "dynamicSize": 12, "length": 1, "capacity": 1, "elementStaticSize": 12
     }]'''
   [cases.stack]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/305
     param_types = ["const std::stack<std::pair<nsA::Foo, nsB::Foo>>&"]
     setup = "return std::stack<std::pair<ns_namespaces::nsA::Foo, ns_namespaces::nsB::Foo>>({{ns_namespaces::nsA::Foo(), ns_namespaces::nsB::Foo()}});"
     expect_json = '''[{

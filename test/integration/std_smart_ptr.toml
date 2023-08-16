@@ -7,6 +7,7 @@ definitions = '''
 '''
 [cases]
   [cases.unique_ptr_uint64_empty]
+    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::uint64_t>&"]
     setup = "return {nullptr};"
     expect_json = '''
@@ -22,6 +23,7 @@ definitions = '''
     ]
     '''
   [cases.unique_ptr_uint64_present]
+    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::uint64_t>&"]
     setup = "return {std::make_unique<std::uint64_t>(64)};"
     expect_json = '''
@@ -36,6 +38,7 @@ definitions = '''
     ]
     '''
   [cases.unique_ptr_vector_empty]
+    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::vector<std::uint64_t>>&"]
     setup = "return {nullptr};"
     expect_json = '''
@@ -50,6 +53,7 @@ definitions = '''
     ]
     '''
   [cases.unique_ptr_vector_present]
+    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::vector<std::uint64_t>>&"]
     setup = "return {std::make_unique<std::vector<std::uint64_t>>(std::initializer_list<std::uint64_t>({1,2,3,4,5}))};"
     expect_json = '''
@@ -72,6 +76,7 @@ definitions = '''
     ]
     '''
   [cases.unique_ptr_void_empty]
+    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<void, decltype(&void_int_deleter)>&"]
     setup = "return {std::unique_ptr<void, decltype(&void_int_deleter)>(nullptr, &void_int_deleter)};"
     expect_json = '''
@@ -83,6 +88,7 @@ definitions = '''
     ]
     '''
   [cases.unique_ptr_void_present]
+    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<void, decltype(&void_int_deleter)>&"]
     setup = "return {std::unique_ptr<void, decltype(&void_int_deleter)>(new int, &void_int_deleter)};"
     expect_json = '''
@@ -94,6 +100,7 @@ definitions = '''
     ]
     '''
   [cases.shared_ptr_uint64_empty]
+    oil_skip = "std::shared_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/300
     param_types = ["std::shared_ptr<std::uint64_t>&"]
     setup = "return {nullptr};"
     expect_json = '''
@@ -108,6 +115,7 @@ definitions = '''
     ]
     '''
   [cases.shared_ptr_uint64_present]
+    oil_skip = "std::shared_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/300
     param_types = ["std::shared_ptr<std::uint64_t>&"]
     setup = "return std::make_shared<std::uint64_t>(64);"
     expect_json = '''
@@ -122,6 +130,7 @@ definitions = '''
     ]
     '''
   [cases.shared_ptr_vector_empty]
+    oil_skip = "std::shared_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/300
     param_types = ["std::shared_ptr<std::vector<std::uint64_t>>&"]
     setup = "return {nullptr};"
     expect_json = '''
@@ -136,6 +145,7 @@ definitions = '''
     ]
     '''
   [cases.shared_ptr_vector_present]
+    oil_skip = "std::shared_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/300
     param_types = ["std::shared_ptr<std::vector<std::uint64_t>>&"]
     setup = "return std::make_shared<std::vector<std::uint64_t>>(std::initializer_list<std::uint64_t>({1,2,3,4,5}));"
     expect_json = '''
@@ -156,6 +166,7 @@ definitions = '''
     ]
     '''
   [cases.shared_ptr_void_empty]
+    oil_skip = "std::shared_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/300
     param_types = ["std::shared_ptr<void>&"]
     setup = "return {nullptr};"
     expect_json = '''
@@ -168,6 +179,7 @@ definitions = '''
     ]
     '''
   [cases.shared_ptr_void_present]
+    oil_skip = "std::shared_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/300
     param_types = ["std::shared_ptr<void>&"]
     setup = "return {std::shared_ptr<void>(new int)};"
     expect_json = '''
@@ -192,6 +204,7 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
   [cases.weak_ptr_int64_void_empty]
     param_types = ["std::weak_ptr<void>&"]
     setup = "return std::weak_ptr<void>();"
@@ -205,6 +218,7 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
   [cases.weak_ptr_int64_present]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     setup = '''
@@ -222,6 +236,7 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
   [cases.weak_ptr_int64_expired]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     setup = '''
@@ -239,6 +254,7 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
   [cases.weak_ptr_int64_present_chase]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     cli_options = ["-fchase-raw-pointers"]
@@ -257,6 +273,7 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
   [cases.weak_ptr_int64_expired_chase]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     cli_options = ["-fchase-raw-pointers"]
@@ -273,3 +290,4 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''

@@ -1,6 +1,7 @@
 includes = ["vector", "utility", "cstdint"]
 [cases]
   [cases.uint64_uint64]
+    oil_skip = 'tests need updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/310
     param_types = ["std::pair<std::uint64_t, std::uint64_t>&"]
     setup = "return {{0, 1}};"
     expect_json = '''
@@ -14,6 +15,7 @@ includes = ["vector", "utility", "cstdint"]
     ]
     '''
   [cases.uint64_uint32]
+    oil_skip = 'tests need updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/310
     param_types = ["std::pair<std::uint64_t, std::uint32_t>&"]
     setup = "return {{0, 1}};"
     # Should still have static size of 16 due to padding
@@ -28,6 +30,7 @@ includes = ["vector", "utility", "cstdint"]
     ]
     '''
   [cases.vector_vector]
+    oil_skip = 'tests need updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/310
     param_types = ["std::pair<std::vector<std::uint64_t>, std::vector<std::uint64_t>>&"]
     setup = "return {{std::initializer_list<std::uint64_t>({0,1,2}), std::initializer_list<std::uint64_t>({3,4,5,6})}};"
     expect_json = '''

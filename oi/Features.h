@@ -31,6 +31,7 @@
   X(PruneTypeGraph, "prune-type-graph")                    \
   X(TypedDataSegment, "typed-data-segment")                \
   X(TreeBuilderTypeChecking, "tree-builder-type-checking") \
+  X(Library, "library")                                    \
   X(TreeBuilderV2, "tree-builder-v2")                      \
   X(GenJitDebug, "gen-jit-debug")                          \
   X(JitLogging, "jit-logging")                             \

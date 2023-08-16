@@ -49,16 +49,6 @@ class IntegrationBase : public ::testing::Test {
 
   std::string stdout_;
   std::string stderr_;
-};
-
-class OidIntegration : public IntegrationBase {
- protected:
-  std::string TmpDirStr() override;
-
-  OidProc runOidOnProcess(OidOpts opts,
-                          std::vector<std::string> extra_args,
-                          std::string configPrefix,
-                          std::string configSuffix);
 
   /*
    * compare_json
@@ -70,6 +60,16 @@ class OidIntegration : public IntegrationBase {
                     const boost::property_tree::ptree& actual_json,
                     const std::string& full_key = "root",
                     bool expect_eq = true);
+};
+
+class OidIntegration : public IntegrationBase {
+ protected:
+  std::string TmpDirStr() override;
+
+  OidProc runOidOnProcess(OidOpts opts,
+                          std::vector<std::string> extra_args,
+                          std::string configPrefix,
+                          std::string configSuffix);
 };
 
 class OilIntegration : public IntegrationBase {

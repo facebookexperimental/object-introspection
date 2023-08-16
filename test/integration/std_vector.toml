@@ -4,10 +4,16 @@ includes = ["vector"]
     param_types = ["const std::vector<int>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":24, "dynamicSize":0, "length":0, "capacity":0, "elementStaticSize":4}]'
+    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "length":0, "capacity":0, "members":[]}]'
   [cases.int_some]
     param_types = ["const std::vector<int>&"]
     setup = "return {{1,2,3}};"
     expect_json = '[{"staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}]'
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "length":3, "capacity":3, "members":[
+      {"staticSize":4, "exclusiveSize":4},
+      {"staticSize":4, "exclusiveSize":4},
+      {"staticSize":4, "exclusiveSize":4}
+    ]}]'''
   [cases.bool_empty]
     skip = true # https://github.com/facebookexperimental/object-introspection/issues/14
     param_types = ["const std::vector<bool>&"]
@@ -22,6 +28,7 @@ includes = ["vector"]
     param_types = ["const std::vector<std::vector<int>>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":24, "dynamicSize":0, "length":0, "capacity":0, "elementStaticSize":24}]'
+    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "length":0, "capacity":0, "members":[]}]'
   [cases.vector_int_some]
     param_types = ["const std::vector<std::vector<int>>&"]
     setup = "return {{{1,2,3},{4},{5,6}}};"
@@ -37,6 +44,11 @@ includes = ["vector"]
         {"staticSize":24, "dynamicSize":4, "exclusiveSize":28, "length":1, "capacity":1, "elementStaticSize":4},
         {"staticSize":24, "dynamicSize":8, "exclusiveSize":32, "length":2, "capacity":2, "elementStaticSize":4}
       ]}]'''
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "length":3, "capacity": 3, "members":[
+      {"staticSize":24, "exclusiveSize":24, "length":3, "capacity": 3, "members":[]},
+      {"staticSize":24, "exclusiveSize":24, "length":1, "capacity": 1, "members":[]},
+      {"staticSize":24, "exclusiveSize":24, "length":2, "capacity": 2, "members":[]}
+    ]}]'''
   [cases.reserve]
     param_types = ["const std::vector<int>&"]
     setup = '''
@@ -45,3 +57,8 @@ includes = ["vector"]
       return ret;
     '''
     expect_json = '[{"staticSize":24, "dynamicSize":40, "exclusiveSize":64, "length":3, "capacity":10, "elementStaticSize":4}]'
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":52, "length":3, "capacity":10, "members":[
+      {"staticSize":4, "exclusiveSize":4},
+      {"staticSize":4, "exclusiveSize":4},
+      {"staticSize":4, "exclusiveSize":4}
+    ]}]'''

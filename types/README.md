@@ -8,10 +8,6 @@ This document describes the format of the container definition files contained i
   The fully-qualified name of the container type. This is used to match against
   the names of types contained in an executable's debug information.
 
-- `ctype`
-
-  A reference to the enum `ContainerTypeEnum` in OI's source code.
-
 - `header`
 
   The name of the C++ header file in which this container is defined.
@@ -35,42 +31,32 @@ This document describes the format of the container definition files contained i
 
   C++ code for the definition of a `getSizeType` function for this container.
 
-- `handler`
+- `processor.type`
 
-  C++ code for the definition of a `TypeHandler` class for this container. See
-  further down for a description.
+  The static type that will be filled in by this particular processor. Multiple
+  processors are allowed and recommended.
+
+- `processor.func`
+
+  C++ code for the function body of a function with this signature:
+  `void(result::Element& el, std::stack<Inst>& ins, ParsedData d)` which is
+  supplied with the data of the paired static type.
+
+- `traversal_func`
+
+  C++ code for the function body of a function with this signature:
+  `static types::st::Unit<DB> getSizeType(const T& container, ST returnArg)`
+  where `ST` defines the combined static type of each supplied processor.
 
 
 ## Changes introduced with Typed Data Segment
 - `decl` and `func` fields are ignored when using `-ftyped-data-segment` and the
   `handler` field is used instead.
 
-### TypeHandler Classes
-A `TypeHandler` class describes both what a type will write into the data segment
-and how to write it. It consists of two major parts:
-- `using type = ...;` - describe what it will write into the data segment.
-- `static types::st::Unit<DB> getSizeType(...)` - a function which takes a
-  const reference to a container and a `::type` by value and fills in the type.
-
-Example:
-```cpp
-template <typename DB, typename T0>
-struct TypeHandler<DB, std::string<T0>> {
-  using type =
-      types::st::Pair<DB, types::st::VarInt<DB>, types::st::VarInt<DB>>;
-
-  static types::st::Unit<DB> getSizeType(
-      const std::string<T0> & container,
-      typename TypeHandler<DB, std::string<T0>>::type returnArg) {
-    bool sso = ((uintptr_t)container.data() <
-                (uintptr_t)(&container + sizeof(std::string<T0>))) &&
-               ((uintptr_t)container.data() >= (uintptr_t)&container);
-
-    return returnArg.write(container.capacity()).write(container.size());
-  }
-};
-```
-
+## Changes introduced with TreeBuilder V2
+- `decl`, `func`, and `handler` fields are ignored when using `-ftree-builder-v2`.
+   The `TypeHandler` is instead constructed from `traversal_func` and `processor`
+   entries.
 
 ## Changes introduced with TypeGraph
 - `typeName` and `matcher` fields have been merged into the single field `type_name`.
@@ -81,6 +67,16 @@ struct TypeHandler<DB, std::string<T0>> {
   - There is one option to specify template parameters which should not be measured: `stub_template_params`. The type graph code will automatically determine what type of stubbing to apply to each parameter in this list.
 
 ### Deprecated Options
+- `ctype`
+
+  A reference to the enum `ContainerTypeEnum` in OI's source code. This is no
+  longer required with Tree Builder v2.
+
+- `handler`
+
+  C++ code for the definition of a `TypeHandler` class for this container. Now
+  generated from `traversal_func` and `processor` entries.
+
 - `numTemplateParams`
 
   The first `numTemplateParams` template parameters for this container represent

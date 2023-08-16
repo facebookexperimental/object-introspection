@@ -27,10 +27,17 @@ ContainerTypeEnum containerTypeEnumFromStr(std::string& str);
 const char* containerTypeEnumToStr(ContainerTypeEnum ty);
 
 struct ContainerInfo {
+  struct Processor {
+    std::string type;
+    std::string func;
+  };
+
   struct Codegen {
     std::string decl;
     std::string func;
     std::string handler = "";
+    std::string traversalFunc = "";
+    std::vector<Processor> processors{};
   };
 
   explicit ContainerInfo(const std::filesystem::path& path);  // Throws

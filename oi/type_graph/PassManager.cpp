@@ -40,7 +40,6 @@ namespace {
 void print(const TypeGraph& typeGraph) {
   if (!VLOG_IS_ON(1))
     return;
-
   std::stringstream out;
   Printer printer{out, typeGraph.resetTracker(), typeGraph.size()};
   for (const auto& type : typeGraph.rootTypes()) {

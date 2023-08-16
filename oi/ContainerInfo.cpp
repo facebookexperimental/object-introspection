@@ -265,6 +265,38 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
           codegenToml["handler"].value<std::string>()) {
     codegen.handler = std::move(*str);
   }
+  if (std::optional<std::string> str =
+          codegenToml["traversal_func"].value<std::string>()) {
+    codegen.traversalFunc = std::move(*str);
+  }
+
+  if (toml::array* arr = codegenToml["processor"].as_array()) {
+    codegen.processors.reserve(arr->size());
+    arr->for_each([&](auto&& el) {
+      if (toml::table* proc = el.as_table()) {
+        std::string type, func;
+        if (std::optional<std::string> str =
+                (*proc)["type"].value<std::string>()) {
+          type = std::move(*str);
+        } else {
+          throw ContainerInfoError(
+              path, "codegen.processor.type is a required field");
+        }
+        if (std::optional<std::string> str =
+                (*proc)["func"].value<std::string>()) {
+          func = std::move(*str);
+        } else {
+          throw ContainerInfoError(
+              path, "codegen.processor.func is a required field");
+        }
+        codegen.processors.emplace_back(
+            Processor{std::move(type), std::move(func)});
+      } else {
+        throw ContainerInfoError(
+            path, "codegen.processor should only contain tables");
+      }
+    });
+  }
 }
 
 ContainerInfo::ContainerInfo(std::string typeName_,
@@ -275,5 +307,5 @@ ContainerInfo::ContainerInfo(std::string typeName_,
       ctype(ctype_),
       header(std::move(header_)),
       codegen(Codegen{"// DummyDecl %1%\n", "// DummyFunc %1%\n",
-                      "// DummyHandler %1%\n"}) {
+                      "// DummyHandler %1%\n", "// DummyFunc\n"}) {
 }

@@ -49,3 +49,34 @@ struct TypeHandler<DB, %1%<T0, N>> {
   }
 };
 """
+
+traversal_func = """
+    auto tail = returnArg.write(container.size());
+
+    for (auto & it: container) {
+        tail = tail.delegate([&it](auto ret) {
+            return TypeHandler<DB, T0>::getSizeType(it, ret);
+        });
+    }
+
+    return tail.finish();
+"""
+
+[[codegen.processor]]
+type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+func = """
+static constexpr std::array<std::string_view, 1> names{"TODO"};
+static constexpr inst::Field childField{
+  sizeof(T0),
+  "[]",
+  names,
+  TypeHandler<DB, T0>::fields,
+  TypeHandler<DB, T0>::processors,
+};
+
+size_t size = std::get<ParsedData::List>(d.val).length;
+el.exclusive_size = N0 == 0 ? 1 : 0;
+el.container_stats.emplace(result::Element::ContainerStats{ .capacity = size, .length = size });
+for (size_t i = 0; i < size; i++)
+  ins.emplace(childField);
+"""

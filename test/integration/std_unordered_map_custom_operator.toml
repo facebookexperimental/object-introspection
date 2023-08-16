@@ -33,6 +33,7 @@ includes = ["unordered_map"]
 
 [cases]
   [cases.a]
+    oil_skip = "std::unordered_map is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/303
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;

@@ -14,8 +14,7 @@ definitions = '''
 
 [cases]
   [cases.int]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
-    oil_disable = "oil can't chase raw pointers safely"
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["int*"]
     setup = "return new int(1);"
     cli_options = ["-fchase-raw-pointers"]
@@ -33,7 +32,7 @@ definitions = '''
       ]
     }]'''
   [cases.int_no_follow]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["int*"]
     setup = "return new int(1);"
     expect_json = '''[{
@@ -44,7 +43,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.int_null]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["int*"]
     setup = "return nullptr;"
     expect_json = '''[{
@@ -57,8 +56,7 @@ definitions = '''
 
 
   [cases.void]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
-    oil_disable = "oil can't chase raw pointers safely"
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["void*"]
     setup = "return new int(1);"
     cli_options = ["-fchase-raw-pointers"]
@@ -70,7 +68,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.void_no_follow]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["void*"]
     setup = "return new int(1);"
     expect_json = '''[{
@@ -81,7 +79,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.void_null]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["void*"]
     setup = "return nullptr;"
     expect_json = '''[{
@@ -94,8 +92,7 @@ definitions = '''
 
 
   [cases.vector]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
-    oil_disable = "oil can't chase raw pointers safely"
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["std::vector<int>*"]
     setup = "return new std::vector<int>{1,2,3};"
     cli_options = ["-fchase-raw-pointers"]
@@ -113,7 +110,7 @@ definitions = '''
       ]
     }]'''
   [cases.vector_no_follow]
-    oid_skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
+    skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["std::vector<int>*"]
     setup = "return new std::vector<int>{1,2,3};"
     expect_json = '''[{
@@ -124,7 +121,7 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.vector_null]
-    oid_skip = "BAD DATA SEGMENT!!! top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
+    skip = "BAD DATA SEGMENT!!! top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["std::vector<int>*"]
     setup = "return nullptr;"
     expect_json = '''[{
@@ -224,7 +221,7 @@ definitions = '''
         {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}}
       ]}]'''
   [cases.vector_of_pointers_no_follow]
-    oid_skip = "pointer field is missing from results" # https://github.com/facebookexperimental/object-introspection/issues/21
+    skip = "pointer field is missing from results" # https://github.com/facebookexperimental/object-introspection/issues/21
     param_types = ["const std::vector<int*>&"]
     setup = "return {{new int(1), nullptr, new int(3)}};"
     expect_json = '''[{

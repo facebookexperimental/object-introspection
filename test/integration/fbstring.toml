@@ -1,6 +1,7 @@
 includes = ["folly/FBString.h"]
 [cases]
   [cases.empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
     param_types = ["folly::fbstring&"]
     setup = "return {};"
     expect_json = '''
@@ -26,6 +27,7 @@ includes = ["folly/FBString.h"]
     '''
 
   [cases.inline]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
     param_types = ["folly::fbstring&"]
     setup = 'return {"012345"};'
     expect_json = '''
@@ -51,6 +53,7 @@ includes = ["folly/FBString.h"]
     '''
 
   [cases.heap_allocated]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
     param_types = ["folly::fbstring&"]
     setup = 'return {"abcdefghijklmnopqrstuvwxzy"};'
     expect_json = '''
@@ -76,6 +79,7 @@ includes = ["folly/FBString.h"]
     '''
 
   [cases.string_pooled]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
     param_types = ["folly::fbstring&"]
     setup = "return folly::fbstring(1024, 'c');"
     expect_json = '''
