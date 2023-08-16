@@ -29,6 +29,11 @@ struct ContainerInfo;
 
 namespace oi::detail::type_graph {
 
+struct DrgnParserOptions {
+  bool chaseRawPointers = true;
+  bool readEnumValues = true;
+};
+
 /*
  * DrgnParser
  *
@@ -49,10 +54,8 @@ class DrgnParser {
  public:
   DrgnParser(TypeGraph& typeGraph,
              const std::vector<ContainerInfo>& containers,
-             bool chaseRawPointers)
-      : typeGraph_(typeGraph),
-        containers_(containers),
-        chaseRawPointers_(chaseRawPointers) {
+             DrgnParserOptions options)
+      : typeGraph_(typeGraph), containers_(containers), options_(options) {
   }
   Type& parse(struct drgn_type* root);
 
@@ -96,7 +99,7 @@ class DrgnParser {
   TypeGraph& typeGraph_;
   const std::vector<ContainerInfo>& containers_;
   int depth_;
-  bool chaseRawPointers_;
+  DrgnParserOptions options_;
 };
 
 class DrgnParserError : public std::runtime_error {

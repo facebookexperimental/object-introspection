@@ -30,6 +30,7 @@
  */
 
 #include <cstddef>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -330,8 +331,12 @@ class Container : public Type {
 
 class Enum : public Type {
  public:
-  explicit Enum(std::string name, size_t size)
-      : name_(std::move(name)), size_(size) {
+  explicit Enum(std::string name,
+                size_t size,
+                std::map<int64_t, std::string> enumerators = {})
+      : name_(std::move(name)),
+        size_(size),
+        enumerators_(std::move(enumerators)) {
   }
 
   static inline constexpr bool has_node_id = false;
@@ -358,9 +363,14 @@ class Enum : public Type {
     return -1;
   }
 
+  std::map<int64_t, std::string> enumerators() const {
+    return enumerators_;
+  }
+
  private:
   std::string name_;
   size_t size_;
+  std::map<int64_t, std::string> enumerators_;
 };
 
 class Array : public Type {

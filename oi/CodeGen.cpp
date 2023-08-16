@@ -48,6 +48,7 @@ using type_graph::AlignmentCalc;
 using type_graph::Class;
 using type_graph::Container;
 using type_graph::DrgnParser;
+using type_graph::DrgnParserOptions;
 using type_graph::EnforceCompatibility;
 using type_graph::Enum;
 using type_graph::Flattener;
@@ -823,8 +824,10 @@ void CodeGen::registerContainer(const fs::path& path) {
 }
 
 void CodeGen::addDrgnRoot(struct drgn_type* drgnType, TypeGraph& typeGraph) {
-  DrgnParser drgnParser{typeGraph, containerInfos_,
-                        config_.features[Feature::ChaseRawPointers]};
+  DrgnParserOptions options{
+      .chaseRawPointers = config_.features[Feature::ChaseRawPointers],
+  };
+  DrgnParser drgnParser{typeGraph, containerInfos_, options};
   Type& parsedRoot = drgnParser.parse(drgnType);
   typeGraph.addRoot(parsedRoot);
 }
@@ -841,8 +844,10 @@ void CodeGen::transform(TypeGraph& typeGraph) {
 
   if (config_.features[Feature::PolymorphicInheritance]) {
     // Parse new children nodes
-    DrgnParser drgnParser{typeGraph, containerInfos_,
-                          config_.features[Feature::ChaseRawPointers]};
+    DrgnParserOptions options{
+        .chaseRawPointers = config_.features[Feature::ChaseRawPointers],
+    };
+    DrgnParser drgnParser{typeGraph, containerInfos_, options};
     pm.addPass(AddChildren::createPass(drgnParser, symbols_));
 
     // Re-run passes over newly added children

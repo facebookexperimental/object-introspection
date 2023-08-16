@@ -24,25 +24,26 @@ class DrgnParserTest : public ::testing::Test {
     delete symbols_;
   }
 
-  static type_graph::DrgnParser getDrgnParser(type_graph::TypeGraph& typeGraph,
-                                              bool chaseRawPointers);
+  static type_graph::DrgnParser getDrgnParser(
+      type_graph::TypeGraph& typeGraph, type_graph::DrgnParserOptions options);
   drgn_type* getDrgnRoot(std::string_view function);
 
-  virtual std::string run(std::string_view function, bool chaseRawPointers);
+  virtual std::string run(std::string_view function,
+                          type_graph::DrgnParserOptions options);
   void test(std::string_view function,
             std::string_view expected,
-            bool chaseRawPointers = true);
+            type_graph::DrgnParserOptions options = {});
   void testContains(std::string_view function,
                     std::string_view expected,
-                    bool chaseRawPointers = true);
+                    type_graph::DrgnParserOptions options = {});
   void testMultiCompiler(std::string_view function,
                          std::string_view expectedClang,
                          std::string_view expectedGcc,
-                         bool chaseRawPointers = true);
+                         type_graph::DrgnParserOptions options = {});
   void testMultiCompilerContains(std::string_view function,
                                  std::string_view expectedClang,
                                  std::string_view expectedGcc,
-                                 bool chaseRawPointers = true);
+                                 type_graph::DrgnParserOptions options = {});
 
   static SymbolService* symbols_;
 };

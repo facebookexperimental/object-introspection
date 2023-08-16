@@ -97,6 +97,9 @@ void Printer::visit(const Primitive& p) {
 void Printer::visit(const Enum& e) {
   prefix();
   out_ << "Enum: " << e.name() << " (size: " << e.size() << ")" << std::endl;
+  for (const auto& [val, name] : e.enumerators()) {
+    print_enumerator(val, name);
+  }
 }
 
 void Printer::visit(const Array& a) {
@@ -227,6 +230,13 @@ void Printer::print_qualifiers(const QualifierSet& qualifiers) {
     out_ << " const";
   }
   out_ << std::endl;
+  depth_--;
+}
+
+void Printer::print_enumerator(int64_t val, const std::string& name) {
+  depth_++;
+  prefix();
+  out_ << "Enumerator: " << val << ":" << name << std::endl;
   depth_--;
 }
 

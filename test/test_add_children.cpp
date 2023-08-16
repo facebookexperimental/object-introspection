@@ -10,13 +10,14 @@ using namespace type_graph;
 
 class AddChildrenTest : public DrgnParserTest {
  protected:
-  std::string run(std::string_view function, bool chaseRawPointers) override;
+  std::string run(std::string_view function,
+                  DrgnParserOptions options) override;
 };
 
 std::string AddChildrenTest::run(std::string_view function,
-                                 bool chaseRawPointers) {
+                                 DrgnParserOptions options) {
   TypeGraph typeGraph;
-  auto drgnParser = getDrgnParser(typeGraph, chaseRawPointers);
+  auto drgnParser = getDrgnParser(typeGraph, options);
   auto* drgnRoot = getDrgnRoot(function);
 
   Type& type = drgnParser.parse(drgnRoot);

@@ -6,16 +6,16 @@ definitions = '''
   };
 
   enum class ScopedEnumInt8 : int8_t {
-    CaseA,
-    CaseB,
-    CaseC,
+    CaseA = 2,
+    CaseB = 3,
+    CaseC = 4,
   };
 
 
   enum UNSCOPED_ENUM {
-    CASE_A,
-    CASE_B,
-    CASE_C,
+    CASE_A = 5,
+    CASE_B = -2,
+    CASE_C = 20,
   };
 
   struct Holder {

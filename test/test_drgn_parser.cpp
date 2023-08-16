@@ -35,8 +35,8 @@ const std::vector<ContainerInfo>& getContainerInfos() {
 }  // namespace
 
 DrgnParser DrgnParserTest::getDrgnParser(TypeGraph& typeGraph,
-                                         bool chaseRawPointers) {
-  DrgnParser drgnParser{typeGraph, getContainerInfos(), chaseRawPointers};
+                                         DrgnParserOptions options) {
+  DrgnParser drgnParser{typeGraph, getContainerInfos(), options};
   return drgnParser;
 }
 
@@ -47,9 +47,9 @@ drgn_type* DrgnParserTest::getDrgnRoot(std::string_view function) {
 }
 
 std::string DrgnParserTest::run(std::string_view function,
-                                bool chaseRawPointers) {
+                                DrgnParserOptions options) {
   TypeGraph typeGraph;
-  auto drgnParser = getDrgnParser(typeGraph, chaseRawPointers);
+  auto drgnParser = getDrgnParser(typeGraph, options);
   auto* drgnRoot = getDrgnRoot(function);
 
   Type& type = drgnParser.parse(drgnRoot);
@@ -63,8 +63,8 @@ std::string DrgnParserTest::run(std::string_view function,
 
 void DrgnParserTest::test(std::string_view function,
                           std::string_view expected,
-                          bool chaseRawPointers) {
-  auto actual = run(function, chaseRawPointers);
+                          DrgnParserOptions options) {
+  auto actual = run(function, options);
 
   expected.remove_prefix(1);  // Remove initial '\n'
   EXPECT_EQ(expected, actual);
@@ -72,8 +72,8 @@ void DrgnParserTest::test(std::string_view function,
 
 void DrgnParserTest::testContains(std::string_view function,
                                   std::string_view expected,
-                                  bool chaseRawPointers) {
-  auto actual = run(function, chaseRawPointers);
+                                  DrgnParserOptions options) {
+  auto actual = run(function, options);
 
   expected.remove_prefix(1);  // Remove initial '\n'
   EXPECT_THAT(actual, HasSubstr(expected));
@@ -83,11 +83,11 @@ void DrgnParserTest::testMultiCompiler(
     std::string_view function,
     [[maybe_unused]] std::string_view expectedClang,
     [[maybe_unused]] std::string_view expectedGcc,
-    bool chaseRawPointers) {
+    DrgnParserOptions options) {
 #if defined(__clang__)
-  test(function, expectedClang, chaseRawPointers);
+  test(function, expectedClang, options);
 #else
-  test(function, expectedGcc, chaseRawPointers);
+  test(function, expectedGcc, options);
 #endif
 }
 
@@ -95,11 +95,11 @@ void DrgnParserTest::testMultiCompilerContains(
     std::string_view function,
     [[maybe_unused]] std::string_view expectedClang,
     [[maybe_unused]] std::string_view expectedGcc,
-    bool chaseRawPointers) {
+    DrgnParserOptions options) {
 #if defined(__clang__)
-  testContains(function, expectedClang, chaseRawPointers);
+  testContains(function, expectedClang, options);
 #else
-  testContains(function, expectedGcc, chaseRawPointers);
+  testContains(function, expectedGcc, options);
 #endif
 }
 
@@ -240,19 +240,38 @@ TEST_F(DrgnParserTest, Container) {
 TEST_F(DrgnParserTest, Enum) {
   test("oid_test_case_enums_scoped", R"(
     Enum: ScopedEnum (size: 4)
+      Enumerator: 0:CaseA
+      Enumerator: 1:CaseB
+      Enumerator: 2:CaseC
 )");
 }
 
 TEST_F(DrgnParserTest, EnumInt8) {
   test("oid_test_case_enums_scoped_int8", R"(
     Enum: ScopedEnumInt8 (size: 1)
+      Enumerator: 2:CaseA
+      Enumerator: 3:CaseB
+      Enumerator: 4:CaseC
 )");
 }
 
 TEST_F(DrgnParserTest, UnscopedEnum) {
   test("oid_test_case_enums_unscoped", R"(
     Enum: UNSCOPED_ENUM (size: 4)
+      Enumerator: -2:CASE_B
+      Enumerator: 5:CASE_A
+      Enumerator: 20:CASE_C
 )");
+}
+
+TEST_F(DrgnParserTest, EnumNoValues) {
+  DrgnParserOptions options{
+      .readEnumValues = false,
+  };
+  test("oid_test_case_enums_scoped", R"(
+    Enum: ScopedEnum (size: 4)
+)",
+       options);
 }
 
 TEST_F(DrgnParserTest, Typedef) {
@@ -314,6 +333,9 @@ TEST_F(DrgnParserTest, Pointer) {
 }
 
 TEST_F(DrgnParserTest, PointerNoFollow) {
+  DrgnParserOptions options{
+      .chaseRawPointers = false,
+  };
   test("oid_test_case_pointers_struct_primitive_ptrs", R"(
 [1] Pointer
 [0]   Struct: PrimitivePtrs (size: 24)
@@ -324,7 +346,7 @@ TEST_F(DrgnParserTest, PointerNoFollow) {
         Member: c (offset: 16)
           Primitive: uintptr_t
 )",
-       false);
+       options);
 }
 
 TEST_F(DrgnParserTest, PointerIncomplete) {
@@ -652,8 +674,14 @@ TEST_F(DrgnParserTest, BitfieldsEnum) {
 [0]   Struct: Enum (size: 4)
         Member: e (offset: 0, bitsize: 2)
           Enum: MyEnum (size: 4)
+            Enumerator: 0:One
+            Enumerator: 1:Two
+            Enumerator: 2:Three
         Member: f (offset: 0.25, bitsize: 4)
           Enum: MyEnum (size: 4)
+            Enumerator: 0:One
+            Enumerator: 1:Two
+            Enumerator: 2:Three
 )");
 }
 
