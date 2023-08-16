@@ -427,7 +427,20 @@ Enum& DrgnParser::enumerateEnum(struct drgn_type* type) {
   const char* typeTag = drgn_type_tag(type);
   std::string name = typeTag ? typeTag : "";
   uint64_t size = get_drgn_type_size(type);
-  return makeType<Enum>(type, name, size);
+
+  std::map<int64_t, std::string> enumeratorMap;
+  if (options_.readEnumValues) {
+    drgn_type_enumerator* enumerators = drgn_type_enumerators(type);
+    size_t numEnumerators = drgn_type_num_enumerators(type);
+    for (size_t i = 0; i < numEnumerators; i++) {
+      // Treat all enum values as signed, under the assumption that -1 is more
+      // likely to appear in practice than UINT_MAX
+      int64_t val = enumerators[i].svalue;
+      enumeratorMap[val] = enumerators[i].name;
+    }
+  }
+
+  return makeType<Enum>(type, name, size, std::move(enumeratorMap));
 }
 
 Typedef& DrgnParser::enumerateTypedef(struct drgn_type* type) {
@@ -497,7 +510,7 @@ bool DrgnParser::chasePointer() const {
   // Always chase top-level pointers
   if (depth_ == 1)
     return true;
-  return chaseRawPointers_;
+  return options_.chaseRawPointers;
 }
 
 DrgnParserError::DrgnParserError(const std::string& msg, struct drgn_error* err)

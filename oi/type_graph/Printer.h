@@ -51,6 +51,7 @@ class Printer : public ConstVisitor {
   void print_child(const Type& child);
   void print_value(const std::string& value);
   void print_qualifiers(const QualifierSet& qualifiers);
+  void print_enumerator(int64_t val, const std::string& name);
   static std::string align_str(uint64_t align);
 
   std::ostream& out_;
