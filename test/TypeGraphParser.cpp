@@ -314,22 +314,19 @@ void TypeGraphParser::parseParams(T& c,
     if (!tryRemovePrefix(line, "Param"))
       break;
 
-    if (auto value = tryParseStringValue(input, "Value: ", rootIndent + 2);
-        value) {
-      c.templateParams.emplace_back(std::string{*value});
-    } else {
-      Type& type = parseType(input, rootIndent + 2);
-      TemplateParam param{type};
-
-      if (auto qualStr =
-              tryParseStringValue(input, "Qualifiers: ", rootIndent + 2);
-          qualStr) {
-        Qualifier qual = getQualifier(*qualStr);
-        param.qualifiers[qual] = true;
-      }
-
-      c.templateParams.push_back(param);
+    auto value = tryParseStringValue(input, "Value: ", rootIndent + 2);
+    Type& type = parseType(input, rootIndent + 2);
+    TemplateParam param{type};
+    if (value)
+      param.value = value;
+    if (auto qualStr =
+            tryParseStringValue(input, "Qualifiers: ", rootIndent + 2);
+        qualStr) {
+      Qualifier qual = getQualifier(*qualStr);
+      param.qualifiers[qual] = true;
     }
+
+    c.templateParams.push_back(param);
   }
   // No more params for us - put back the line we just read
   input = origInput;

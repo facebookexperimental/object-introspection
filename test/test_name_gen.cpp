@@ -205,14 +205,15 @@ TEST(NameGenTest, ContainerParamsValue) {
   auto myenum = Enum{"MyEnum", 4};
 
   auto mycontainer = getVector();
-  mycontainer.templateParams.push_back(TemplateParam{"123"});
-  mycontainer.templateParams.push_back(TemplateParam{"MyEnum::OptionC"});
+  mycontainer.templateParams.push_back(TemplateParam{myint, "123"});
+  mycontainer.templateParams.push_back(
+      TemplateParam{myenum, "MyEnum::OptionC"});
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer});
 
   EXPECT_EQ(myint.name(), "int32_t");
-  EXPECT_EQ(myenum.name(), "MyEnum");
+  EXPECT_EQ(myenum.name(), "MyEnum_0");
   EXPECT_EQ(mycontainer.name(), "std::vector<123, MyEnum::OptionC>");
 }
 

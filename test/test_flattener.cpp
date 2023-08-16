@@ -914,6 +914,7 @@ TEST(FlattenerTest, AllocatorUnfixableParentParamIsValue) {
 [2]         Struct: MyAllocBase (size: 1)
               Param
                 Value: 123
+                Primitive: int32_t
               Function: allocate
               Function: deallocate
           Function: allocate

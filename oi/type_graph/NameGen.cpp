@@ -113,7 +113,7 @@ void NameGen::visit(Container& c) {
     if (param.value) {
       name += *param.value;
     } else {
-      name += param.type()->name();
+      name += param.type().name();
       // The "const" keyword must come after the type name so that pointers are
       // handled correctly.
       //
