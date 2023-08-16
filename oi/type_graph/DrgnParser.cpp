@@ -282,8 +282,27 @@ void DrgnParser::enumerateTemplateParam(struct drgn_type* type,
                                         drgn_type_template_parameter* tparams,
                                         size_t i,
                                         std::vector<TemplateParam>& params) {
+  drgn_qualified_type tparamQualType;
+  struct drgn_error* err =
+      drgn_template_parameter_type(&tparams[i], &tparamQualType);
+  if (err) {
+    warnForDrgnError(
+        type,
+        "Error looking up template parameter type (" + std::to_string(i) + ")",
+        err);
+    return;
+  }
+
+  struct drgn_type* tparamType = tparamQualType.type;
+
+  QualifierSet qualifiers;
+  qualifiers[Qualifier::Const] =
+      (tparamQualType.qualifiers & DRGN_QUALIFIER_CONST);
+
+  auto& ttype = enumerateType(tparamType);
+
   const drgn_object* obj = nullptr;
-  if (auto* err = drgn_template_parameter_object(&tparams[i], &obj)) {
+  if (err = drgn_template_parameter_object(&tparams[i], &obj); err != nullptr) {
     warnForDrgnError(type,
                      "Error looking up template parameter object (" +
                          std::to_string(i) + ")",
@@ -291,26 +310,7 @@ void DrgnParser::enumerateTemplateParam(struct drgn_type* type,
     return;
   }
 
-  struct drgn_qualified_type tparamQualType;
   if (obj == nullptr) {
-    // This template parameter is a typename
-    struct drgn_error* err =
-        drgn_template_parameter_type(&tparams[i], &tparamQualType);
-    if (err) {
-      warnForDrgnError(type,
-                       "Error looking up template parameter type (" +
-                           std::to_string(i) + ")",
-                       err);
-      return;
-    }
-
-    struct drgn_type* tparamType = tparamQualType.type;
-
-    QualifierSet qualifiers;
-    qualifiers[Qualifier::Const] =
-        (tparamQualType.qualifiers & DRGN_QUALIFIER_CONST);
-
-    auto& ttype = enumerateType(tparamType);
     params.emplace_back(ttype, qualifiers);
   } else {
     // This template parameter is a value
@@ -319,7 +319,7 @@ void DrgnParser::enumerateTemplateParam(struct drgn_type* type,
     if (drgn_type_kind(obj->type) == DRGN_TYPE_ENUM) {
       char* nameStr = nullptr;
       size_t length = 0;
-      auto* err = drgn_type_fully_qualified_name(obj->type, &nameStr, &length);
+      err = drgn_type_fully_qualified_name(obj->type, &nameStr, &length);
       if (err != nullptr || nameStr == nullptr) {
         throw DrgnParserError{"Failed to get enum's fully qualified name", err};
       }
@@ -383,7 +383,7 @@ void DrgnParser::enumerateTemplateParam(struct drgn_type* type,
       }
     }
 
-    params.emplace_back(std::move(value));
+    params.emplace_back(ttype, std::move(value));
   }
 }
 

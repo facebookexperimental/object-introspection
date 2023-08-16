@@ -162,9 +162,8 @@ void Printer::print_param(const TemplateParam& param) {
   out_ << "Param" << std::endl;
   if (param.value) {
     print_value(*param.value);
-  } else {
-    print(*param.type());
   }
+  print(param.type());
   print_qualifiers(param.qualifiers);
   depth_--;
 }

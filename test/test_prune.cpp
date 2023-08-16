@@ -12,6 +12,7 @@ TEST(PruneTest, PruneClass) {
         Primitive: int32_t
       Param
         Value: "123"
+        Primitive: int32_t
       Parent (offset: 0)
 [1]     Class: MyParent (size: 4)
           Member: a (offset: 0)

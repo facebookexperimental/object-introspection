@@ -143,23 +143,23 @@ struct Parent {
   uint64_t bitOffset;
 };
 
-class TemplateParam {
- public:
+struct TemplateParam {
   // TODO make ctors explicit
-  TemplateParam(Type& type) : type_(&type) {
+  TemplateParam(Type& type) : type_(type) {
   }
   TemplateParam(Type& type, QualifierSet qualifiers)
-      : type_(&type), qualifiers(qualifiers) {
+      : type_(type), qualifiers(qualifiers) {
   }
-  TemplateParam(std::string value) : value(std::move(value)) {
+  TemplateParam(Type& type, std::string value)
+      : type_(type), value(std::move(value)) {
   }
 
-  Type* type() const {
+  Type& type() const {
     return type_;
   }
 
  private:
-  Type* type_ = nullptr;  // Note: type is not set when this param holds a value
+  std::reference_wrapper<Type> type_;
 
  public:
   QualifierSet qualifiers;

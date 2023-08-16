@@ -450,6 +450,7 @@ TEST_F(DrgnParserTest, ClassTemplateValue) {
 [0]   Struct: TemplatedClassVal<3> (size: 12)
         Param
           Value: 3
+          Primitive: int32_t
         Member: arr (offset: 0)
 [1]       Array: (length: 3)
             Primitive: int32_t
@@ -463,12 +464,14 @@ TEST_F(DrgnParserTest, TemplateEnumValue) {
 [0]   Class: MyClass<ns_enums_params::MyNS::ScopedEnum::One> (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
+          Enum: ScopedEnum (size: 4)
 )",
                             R"(
 [1] Pointer
 [0]   Class: MyClass<(ns_enums_params::MyNS::ScopedEnum)1> (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
+          Enum: ScopedEnum (size: 4)
 )");
 }
 
@@ -479,12 +482,14 @@ TEST_F(DrgnParserTest, TemplateEnumValueGaps) {
 [0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
+          Enum: EnumWithGaps (size: 4)
 )",
                             R"(
 [1] Pointer
 [0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)20> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
+          Enum: EnumWithGaps (size: 4)
 )");
 }
 
@@ -495,12 +500,14 @@ TEST_F(DrgnParserTest, TemplateEnumValueNegative) {
 [0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
+          Enum: EnumWithGaps (size: 4)
 )",
       R"(
 [1] Pointer
 [0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
+          Enum: EnumWithGaps (size: 4)
 )");
 }
 

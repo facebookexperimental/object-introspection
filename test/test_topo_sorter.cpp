@@ -94,7 +94,8 @@ MyClass
 
 TEST(TopoSorterTest, TemplateParamValue) {
   auto myclass = Class{1, Class::Kind::Class, "MyClass", 69};
-  myclass.templateParams.push_back(TemplateParam{"123"});
+  auto myint = Primitive{Primitive::Kind::Int32};
+  myclass.templateParams.push_back(TemplateParam{myint, "123"});
 
   test({myclass}, R"(
 MyClass
