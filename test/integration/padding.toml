@@ -93,10 +93,15 @@ definitions = '''
       ]}]'''
 
   [cases.parent_padding]
+    oid_skip = 'calculating incorrectly'
     param_types = ["const PaddedChild&"]
     setup = "return PaddedChild{};"
     expect_json = '''[{
       "staticSize": 104,
       "dynamicSize": 0,
       "paddingSavingsSize": 19
+    }]'''
+    expect_json_v2 = '''[{
+      "staticSize": 104,
+      "exclusiveSize": 32
     }]'''

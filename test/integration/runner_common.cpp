@@ -302,10 +302,10 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
   };
 }
 
-void OidIntegration::compare_json(const bpt::ptree& expected_json,
-                                  const bpt::ptree& actual_json,
-                                  const std::string& full_key,
-                                  bool expect_eq) {
+void IntegrationBase::compare_json(const bpt::ptree& expected_json,
+                                   const bpt::ptree& actual_json,
+                                   const std::string& full_key,
+                                   bool expect_eq) {
   if (expected_json.empty()) {
     if (expect_eq) {
       ASSERT_EQ(expected_json.data(), actual_json.data())
@@ -357,6 +357,21 @@ void OidIntegration::compare_json(const bpt::ptree& expected_json,
     auto actual_it = actual_json.find(key);
     auto curr_key = full_key + "." + key;
     if (actual_it == actual_json.not_found()) {
+      // TODO: Remove these with the switch to treebuilderv2. This is a hack to
+      // make some old JSON output compatible with new JSON output.
+      if (key == "typeName") {
+        auto type_names = actual_json.find("typeNames");
+        if (type_names != actual_json.not_found()) {
+          if (auto name = type_names->second.rbegin();
+              name != type_names->second.rend()) {
+            compare_json(val, name->second, curr_key, expect_eq);
+            continue;
+          }
+        }
+      } else if (key == "dynamicSize" && val.get_value<size_t>() == 0) {
+        continue;
+      }
+
       ADD_FAILURE() << "Expected key not found in output: " << curr_key;
       continue;
     }

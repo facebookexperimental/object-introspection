@@ -1,6 +1,7 @@
 includes = ["queue"]
 [cases]
   [cases.int_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/308
     param_types = ["const std::queue<int>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -13,6 +14,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.int_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/308
     param_types = ["const std::queue<int>&"]
     setup = "return std::queue<int>({1,2,3});"
     expect_json = '''[{
@@ -25,6 +27,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.queue_int_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/308
     param_types = ["const std::queue<std::queue<int>>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -35,6 +38,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.queue_int_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/308
     param_types = ["const std::queue<std::queue<int>>&"]
     setup = '''
       return std::queue<std::queue<int>>({
@@ -83,6 +87,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.adapter_vector_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/308
     param_types = ["const std::queue<int, std::vector<int>>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -95,6 +100,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.adapter_vector_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/308
     param_types = ["const std::queue<int, std::vector<int>>&"]
     setup = "return std::queue<int, std::vector<int>>({1,2,3});"
     expect_json = '''[{

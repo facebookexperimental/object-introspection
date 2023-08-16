@@ -14,38 +14,76 @@
  * limitations under the License.
  */
 #pragma once
+#include <oi/oi.h>
 
-#include "ObjectIntrospection.h"
-#include "oi/OICodeGen.h"
+#include <filesystem>
+#include <map>
+#include <span>
+#include <unordered_set>
+#include <utility>
+
+#include "oi/CodeGen.h"
+#include "oi/Features.h"
 #include "oi/OICompiler.h"
-#include "oi/SymbolService.h"
 
-namespace ObjectIntrospection {
+namespace oi::detail {
 
 class OILibraryImpl {
- public:
-  OILibraryImpl(OILibrary*, void*);
-  ~OILibraryImpl();
+ private:
+  class LocalTextSegment {
+   public:
+    LocalTextSegment() = default;
+    LocalTextSegment(size_t size);
+    ~LocalTextSegment();
+    LocalTextSegment(const LocalTextSegment&) = delete;
+    LocalTextSegment& operator=(const LocalTextSegment&) = delete;
+    LocalTextSegment(LocalTextSegment&& that) {
+      std::swap(this->data_, that.data_);
+    }
+    LocalTextSegment& operator=(LocalTextSegment&& that) {
+      std::swap(this->data_, that.data_);
+      return *this;
+    }
 
-  bool mapSegment();
-  bool unmapSegment();
-  void initCompiler();
-  int compileCode();
-  bool processConfigFile();
-  void enableLayoutAnalysis();
+    std::span<uint8_t> data() {
+      return data_;
+    }
+    void release() {
+      data_ = {};
+    }
+
+   private:
+    std::span<uint8_t> data_;
+  };
+  class MemoryFile {
+   public:
+    MemoryFile(const char* name);
+    ~MemoryFile();
+
+    std::filesystem::path path();
+
+   private:
+    int fd_ = -1;
+  };
+
+ public:
+  OILibraryImpl(void* atomicHole,
+                std::unordered_set<oi::Feature> fs,
+                GeneratorOptions opts);
+  std::pair<void*, const exporters::inst::Inst&> init();
 
  private:
-  class OILibrary* _self;
+  void* atomicHole_;
+  std::map<Feature, bool> requestedFeatures_;
+  GeneratorOptions opts_;
 
-  void* _TemplateFunc;
+  oi::detail::OICompiler::Config compilerConfig_{};
+  oi::detail::OICodeGen::Config generatorConfig_{};
 
-  oi::detail::OICompiler::Config compilerConfig{};
-  oi::detail::OICodeGen::Config generatorConfig{};
-  std::shared_ptr<oi::detail::SymbolService> symbols{};
+  LocalTextSegment textSeg;
 
-  struct c {
-    void* textSegBase = nullptr;
-    size_t textSegSize = 1u << 22;
-  } segConfig;
+  void processConfigFile();
+  std::pair<void*, const exporters::inst::Inst&> compileCode();
 };
-}  // namespace ObjectIntrospection
+
+}  // namespace oi::detail

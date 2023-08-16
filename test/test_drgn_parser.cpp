@@ -144,14 +144,16 @@ TEST_F(DrgnParserTest, SimpleUnion) {
 
 TEST_F(DrgnParserTest, Inheritance) {
   test("oid_test_case_inheritance_access_public", R"(
-[2] Pointer
+[4] Pointer
 [0]   Class: Public (size: 8)
         Parent (offset: 0)
 [1]       Class: Base (size: 4)
             Member: base_int (offset: 0)
-              Primitive: int32_t
+[3]           Typedef: int32_t
+[2]             Typedef: __int32_t
+                  Primitive: int32_t
         Member: public_int (offset: 4)
-          Primitive: int32_t
+          [3]
 )");
 }
 

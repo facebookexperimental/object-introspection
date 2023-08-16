@@ -19,3 +19,7 @@ func = """
 handler = """
 // DummyHandler %1%
 """
+
+traversal_func = """
+return returnArg;
+"""

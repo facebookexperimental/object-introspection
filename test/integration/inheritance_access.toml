@@ -1,18 +1,18 @@
 definitions = '''
   class Base {
-    int base_int;
+    int32_t base_int;
   };
 
   class Public : public Base {
-    int public_int;
+    int32_t public_int;
   };
 
   class Protected : protected Base {
-    int protected_int;
+    int32_t protected_int;
   };
 
   class Private : private Base {
-    int private_int;
+    int32_t private_int;
   };
 '''
 [cases]
@@ -21,30 +21,27 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[{
       "staticSize":8,
-      "dynamicSize":0,
       "members":[
-        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"public_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+        {"name":"base_int", "staticSize":4, "typeName": "int32_t"},
+        {"name":"public_int", "staticSize":4, "typeName": "int32_t"}
       ]}]'''
   [cases.protected]
     param_types = ["const Protected&"]
     setup = "return {};"
     expect_json = '''[{
       "staticSize":8,
-      "dynamicSize":0,
       "members":[
-        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"protected_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+        {"name":"base_int", "staticSize":4, "typeName": "int32_t"},
+        {"name":"protected_int", "staticSize":4, "typeName": "int32_t"}
       ]}]'''
   [cases.private]
     param_types = ["const Private&"]
     setup = "return {};"
     expect_json = '''[{
       "staticSize":8,
-      "dynamicSize":0,
       "members":[
-        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"private_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+        {"name":"base_int", "staticSize":4, "typeName": "int32_t"},
+        {"name":"private_int", "staticSize":4, "typeName": "int32_t"}
       ]}]'''
   [cases.public_as_base]
     param_types = ["const Base&"]
@@ -52,7 +49,6 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[{
       "staticSize":4,
-      "dynamicSize":0,
       "members":[
-        {"name":"base_int", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+        {"name":"base_int", "staticSize":4, "typeName": "int32_t"}
       ]}]'''

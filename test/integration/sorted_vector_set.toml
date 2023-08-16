@@ -5,6 +5,7 @@ definitions = '''
 
 [cases]
   [cases.no_ints]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/320
     param_types = ["const sorted_vector_set<int>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -22,6 +23,7 @@ definitions = '''
     }]}]'''
 
   [cases.some_ints]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/320
     param_types = ["const sorted_vector_set<int>&"]
     setup = '''
       sorted_vector_set<int> is;

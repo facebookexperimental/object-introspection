@@ -17,6 +17,7 @@
 #include <filesystem>
 #include <map>
 #include <set>
+#include <span>
 #include <string>
 
 #include "oi/ContainerInfo.h"
@@ -28,6 +29,8 @@ namespace oi::detail {
 
 class FuncGen {
  public:
+  static void DeclareExterns(std::string& code);
+
   static void DeclareStoreData(std::string& testCode);
   static void DefineStoreData(std::string& testCode);
 
@@ -56,6 +59,8 @@ class FuncGen {
   static void DefineTopLevelGetObjectSize(std::string& testCode,
                                           const std::string& type,
                                           const std::string& linkageName);
+  static void DefineTopLevelIntrospect(std::string& code,
+                                       const std::string& type);
 
   static void DefineTopLevelGetSizeRef(std::string& testCode,
                                        const std::string& rawType,
@@ -65,6 +70,11 @@ class FuncGen {
                                             FeatureSet features);
   static void DefineOutputType(std::string& testCode,
                                const std::string& rawType);
+  static void DefineTreeBuilderInstructions(
+      std::string& testCode,
+      const std::string& rawType,
+      size_t exclusiveSize,
+      std::span<const std::string_view> typeNames);
 
   static void DefineTopLevelGetSizeRefRet(std::string& testCode,
                                           const std::string& type);
@@ -77,7 +87,10 @@ class FuncGen {
                                           const std::string& ctype);
 
   static void DefineDataSegmentDataBuffer(std::string& testCode);
-  static void DefineBasicTypeHandlers(std::string& testCode);
+  static void DefineBackInserterDataBuffer(std::string& code);
+  static void DefineBasicTypeHandlers(std::string& code, FeatureSet features);
+
+  static ContainerInfo GetOiArrayContainerInfo();
 };
 
 }  // namespace oi::detail

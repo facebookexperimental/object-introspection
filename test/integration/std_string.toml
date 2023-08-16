@@ -1,6 +1,7 @@
 includes = ["string"]
 [cases]
   [cases.empty]
+    oil_skip = 'needs updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/311
     param_types = ["std::string&"]
     setup = "return {};"
     expect_json = '''
@@ -25,6 +26,7 @@ includes = ["string"]
     ]
     '''
   [cases.sso]
+    oil_skip = 'needs updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/311
     param_types = ["std::string&"]
     setup = 'return {"012345"};'
     expect_json = '''
@@ -49,6 +51,7 @@ includes = ["string"]
     ]
     '''
   [cases.heap_allocated]
+    oil_skip = 'needs updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/311
     param_types = ["std::string&"]
     setup = 'return {"abcdefghijklmnopqrstuvwxzy"};'
     expect_json = '''

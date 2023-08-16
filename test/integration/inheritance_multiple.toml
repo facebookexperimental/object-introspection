@@ -34,3 +34,14 @@ definitions = '''
         {"name":"e", "staticSize":4, "dynamicSize":0, "typeName": "int"},
         {"name":"f", "staticSize":4, "dynamicSize":0, "typeName": "int"}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":24,
+      "exclusiveSize":0,
+      "members":[
+        {"name":"a", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
+        {"name":"b", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
+        {"name":"c", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
+        {"name":"d", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
+        {"name":"e", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
+        {"name":"f", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]}
+      ]}]'''

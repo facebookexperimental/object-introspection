@@ -14,6 +14,7 @@ includes = ["map"]
 
 [cases]
   [cases.a]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/313
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;

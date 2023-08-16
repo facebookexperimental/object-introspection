@@ -56,6 +56,11 @@ class SymbolService {
   static std::string getTypeName(struct drgn_type*);
   std::optional<RootInfo> getRootType(const irequest&);
 
+  static std::optional<drgn_qualified_type> findTypeOfSymbol(
+      drgn_program*, const std::string& symbolName);
+  static std::optional<drgn_qualified_type> findTypeOfAddr(drgn_program*,
+                                                           uintptr_t addr);
+
   std::unordered_map<std::string, std::shared_ptr<FuncDesc>> funcDescs;
   std::unordered_map<std::string, std::shared_ptr<GlobalDesc>> globalDescs;
 

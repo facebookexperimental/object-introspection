@@ -56,6 +56,12 @@ definitions = '''
         {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
+    expect_json_v2 = '''[
+      {"staticSize": 32, "exclusiveSize": 15, "members": [
+        {"typeNames": ["int8_t", "__int8_t", "int8_t"], "staticSize": 1, "exclusiveSize": 1},
+        {"typeNames": ["Align16"], "staticSize": 16, "exclusiveSize": 15, "members": [
+          {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
   [cases.container_struct]
     skip = "container alignment is broken (#143)"
     param_types = ["const std::optional<Align16>&"]
@@ -77,6 +83,16 @@ definitions = '''
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
           {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
             {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]}
+    ]}]}]'''
+    expect_json_v2 = '''[
+      {"staticSize": 64, "exclusiveSize": 15, "members": [
+        {"typeNames": ["int8_t", "__int8_t", "int8_t"], "staticSize": 1, "exclusiveSize": 1},
+        {"typeNames": ["TwoStruct"], "staticSize": 48, "exclusiveSize": 15, "members": [
+          {"typeNames": ["Align16"], "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1}]},
+          {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1},
+          {"typeNames": ["Align16"], "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1}]}
     ]}]}]'''
   [cases.container_two_members]
     skip = "container alignment is broken (#143)"
@@ -101,6 +117,13 @@ definitions = '''
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
+    expect_json_v2 = '''[
+      {"staticSize": 96, "exclusiveSize": 31, "members": [
+        {"typeNames": ["int8_t", "__int8_t", "int8_t"], "staticSize": 1, "exclusiveSize": 1},
+        {"typeNames": ["MemberAlignment"], "staticSize": 64, "exclusiveSize": 62, "members": [
+          {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1},
+          {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
   [cases.container_member_alignment]
     skip = "container alignment is broken (#143)"
     param_types = ["const std::optional<MemberAlignment>&"]
@@ -118,6 +141,11 @@ definitions = '''
       {"staticSize": 64, "exclusiveSize": 31, "members": [
         {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
         {"typeName": "UnionMember", "staticSize": 32, "exclusiveSize": 32, "NOT":"members"}
+    ]}]'''
+    expect_json_v2 = '''[
+      {"staticSize": 64, "exclusiveSize": 31, "members": [
+        {"typeNames": ["int8_t", "__int8_t", "int8_t"], "staticSize": 1, "exclusiveSize": 1},
+        {"typeNames": ["UnionMember"], "staticSize": 32, "exclusiveSize": 32, "members":[]}
     ]}]'''
   [cases.container_union_member]
     skip = "container alignment is broken (#143)"
@@ -137,6 +165,14 @@ definitions = '''
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
           {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
             {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]}]'''
+    expect_json_v2 = '''[
+      {"staticSize": 96, "exclusiveSize": 31, "members": [
+        {"typeNames": ["int8_t", "__int8_t", "int8_t"], "staticSize": 1, "exclusiveSize": 1},
+        {"typeNames": ["MemberAlignmentOverriden"], "staticSize": 64, "exclusiveSize": 47, "members": [
+          {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1},
+          {"typeNames": ["Align16"], "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1}
     ]}]}]}]'''
   [cases.container_member_override]
     skip = "container alignment is broken (#143)"
@@ -158,6 +194,13 @@ definitions = '''
         {"typeName": "AlignedStructMemberAlignLower", "staticSize": 128, "exclusiveSize": 126, "members": [
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+    ]}]}]'''
+    expect_json_v2 = '''[
+      {"staticSize": 256, "exclusiveSize": 127, "members": [
+        {"typeNames": ["int8_t", "__int8_t", "int8_t"], "staticSize": 1, "exclusiveSize": 1},
+        {"typeNames": ["AlignedStructMemberAlignLower"], "staticSize": 128, "exclusiveSize": 126, "members": [
+          {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1},
+          {"typeNames": ["int8_t"], "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
   [cases.container_member_lower]
     skip = "container alignment is broken (#143)"

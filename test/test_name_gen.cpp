@@ -446,7 +446,7 @@ TEST(NameGenTest, AnonymousTypes) {
   EXPECT_EQ(myenum.name(), "__oi_anon_1");
   EXPECT_EQ(mytypedef.name(), "__oi_anon_2");
 
-  EXPECT_EQ(myclass.inputName(), "");
-  EXPECT_EQ(myenum.inputName(), "");
+  EXPECT_EQ(myclass.inputName(), "__oi_anon_0");
+  EXPECT_EQ(myenum.inputName(), "__oi_anon_1");
   EXPECT_EQ(mytypedef.inputName(), "");
 }

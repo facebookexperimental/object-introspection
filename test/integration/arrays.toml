@@ -30,7 +30,17 @@ definitions = '''
         "capacity":10,
         "elementStaticSize":4
       }]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":40,
+      "exclusiveSize":0,
+      "members":[{
+        "staticSize":40,
+        "exclusiveSize":0,
+        "length":10,
+        "capacity":10
+      }]}]'''
   [cases.member_int0]
+    oil_skip = 'zero length arrays fail codegen v2' # https://github.com/facebookexperimental/object-introspection/issues/295
     # WARNING: zero-length arrays are handled differently to non-empty arrays.
     # They end up not being treated as containers. This should probably change
     # in the future.
@@ -43,8 +53,16 @@ definitions = '''
         "staticSize":0,
         "dynamicSize":0
       }]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":1,
+      "exclusiveSize":1,
+      "members":[{
+        "staticSize":0,
+        "exclusiveSize":0
+      }]}]'''
   [cases.multidim_legacy] # Test for legacy behaviour. Remove with OICodeGen
-    cli_options = ["-Ftype-graph", "-Ftyped-data-segment", "-Ftree-builder-type-checking"]
+    oil_disable = 'oil only runs on codegen v2'
+    cli_options = ["-Ftype-graph", "-Ftyped-data-segment", "-Ftree-builder-type-checking", "-Ftree-builder-v2"]
     param_types = ["const MultiDim&"]
     setup = "return {};"
     expect_json = '''[{
@@ -66,6 +84,12 @@ definitions = '''
         {"staticSize":24, "dynamicSize":0, "exclusiveSize":0, "length":2, "capacity":2, "elementStaticSize":12, "members":[
           {"staticSize":12, "dynamicSize":0, "exclusiveSize":12, "length":3, "capacity":3, "elementStaticSize":4},
           {"staticSize":12, "dynamicSize":0, "exclusiveSize":12, "length":3, "capacity":3, "elementStaticSize":4}]
+      }]}]'''
+    expect_json_v2 = '''[
+      {"staticSize":24, "exclusiveSize":0, "members":[
+        {"staticSize":24, "exclusiveSize":0, "length":2, "capacity":2, "members":[
+          {"staticSize":12, "exclusiveSize":0, "length":3, "capacity":3},
+          {"staticSize":12, "exclusiveSize":0, "length":3, "capacity":3}]
       }]}]'''
   [cases.direct_int10]
     skip = "Direct array arguments don't work"

@@ -71,6 +71,8 @@ void NameGen::visit(Class& c) {
   std::string name = c.name();
   removeTemplateParams(name);
   deduplicate(name);
+  if (c.name().empty())
+    c.setInputName(name);
   c.setName(name);
 
   // Deduplicate member names. Duplicates may be present after flattening.
@@ -151,6 +153,8 @@ void NameGen::visit(Container& c) {
 void NameGen::visit(Enum& e) {
   std::string name = e.name();
   deduplicate(name);
+  if (e.name().empty())
+    e.setInputName(name);
   e.setName(name);
 }
 

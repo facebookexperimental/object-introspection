@@ -45,3 +45,36 @@ struct TypeHandler<DB, %1%<T0, T1>> {
   }
 };
 """
+
+traversal_func = """
+    return OIInternal::getSizeType<DB>(
+        container.second,
+        returnArg.delegate([&container](auto ret) {
+            return OIInternal::getSizeType<DB>(container.first, ret);
+        })
+    );
+"""
+
+[[codegen.processor]]
+type = "types::st::Pair<DB, typename TypeHandler<DB, T0>::type, typename TypeHandler<DB, T1>::type>"
+func = """
+static constexpr std::array<std::string_view, 1> names{"TODO"};
+static constexpr auto firstField = inst::Field{
+  sizeof(T0),
+  "first",
+  names,
+  TypeHandler<DB, T0>::fields,
+  TypeHandler<DB, T0>::processors,
+};
+static constexpr auto secondField = inst::Field{
+  sizeof(T1),
+  "second",
+  names,
+  TypeHandler<DB, T1>::fields,
+  TypeHandler<DB, T1>::processors,
+};
+
+el.exclusive_size = sizeof(std::pair<T0, T1>) - sizeof(T0) - sizeof(T1);
+ins.emplace(secondField);
+ins.emplace(firstField);
+"""

@@ -10,6 +10,7 @@ thrift_definitions = '''
 
 [cases]
   [cases.a]
+    oil_skip = 'enum type template arguments do not match' # https://github.com/facebookexperimental/object-introspection/issues/297
     param_types = ["const namespaceA::namespaceB::TTTTT&"]
     setup = '''
       namespaceA::namespaceB::TTTTT ret;

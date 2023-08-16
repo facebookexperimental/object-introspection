@@ -9,6 +9,7 @@ struct Bar {
 '''
 [cases]
   [cases.uint64_uint64]
+    oil_skip = "std::tuple is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/304
     param_types = ["Bar&"]
     setup = '''
       Foo f;

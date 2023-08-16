@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OI_TYPES_ST_H
-#define OI_TYPES_ST_H 1
+#ifndef INCLUDED_OI_TYPES_ST_H
+#define INCLUDED_OI_TYPES_ST_H 1
 
 /*
  * Static Types
@@ -123,7 +123,7 @@ class VarInt {
   }
 
   Unit<DataBuffer> write(uint64_t val) {
-    while (val >= 128) {
+    while (val >= 0x80) {
       _buf.write_byte(0x80 | (val & 0x7f));
       val >>= 7;
     }

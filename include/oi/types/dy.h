@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef OI_TYPES_DY_H
-#define OI_TYPES_DY_H 1
+#ifndef INCLUDED_OI_TYPES_DY_H
+#define INCLUDED_OI_TYPES_DY_H 1
 
 /*
  * Dynamic Types
@@ -45,11 +45,11 @@
 
 namespace oi::types::dy {
 
-class Unit;
-class VarInt;
-class Pair;
-class Sum;
-class List;
+struct Unit;
+struct VarInt;
+struct Pair;
+struct Sum;
+struct List;
 
 /*
  * Dynamic
@@ -63,11 +63,10 @@ using Dynamic = std::variant<std::reference_wrapper<const Unit>,
                              std::reference_wrapper<const Sum>,
                              std::reference_wrapper<const List> >;
 
-class Unit {};
-class VarInt {};
+struct Unit {};
+struct VarInt {};
 
-class Pair {
- public:
+struct Pair {
   constexpr Pair(Dynamic first_, Dynamic second_)
       : first(first_), second(second_) {
   }
@@ -76,8 +75,7 @@ class Pair {
   Dynamic second;
 };
 
-class Sum {
- public:
+struct Sum {
   template <size_t N>
   constexpr Sum(const std::array<Dynamic, N>& variants_) : variants(variants_) {
   }
@@ -85,8 +83,7 @@ class Sum {
   std::span<const Dynamic> variants;
 };
 
-class List {
- public:
+struct List {
   constexpr List(Dynamic element_) : element(element_) {
   }
 

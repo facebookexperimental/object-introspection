@@ -9,6 +9,7 @@ definitions = '''
 
 [cases]
   [cases.char_int64_1]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<char, int64_t>&"]
     setup = "return 'a';"
     expect_json = '''[{
@@ -22,6 +23,7 @@ definitions = '''
         {"typeName":"char", "staticSize":1, "exclusiveSize":1, "dynamicSize":0}
       ]}]'''
   [cases.char_int64_2]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<char, int64_t>&"]
     setup = "return 1234;"
     expect_json = '''[{
@@ -36,6 +38,7 @@ definitions = '''
       ]}]'''
 
   [cases.vector_int_1]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<std::vector<int>, int>&"]
     setup = "return std::vector<int>{1,2,3};"
     expect_json = '''[{
@@ -57,6 +60,7 @@ definitions = '''
         }
       ]}]'''
   [cases.vector_int_2]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<std::vector<int>, int>&"]
     setup = "return 123;"
     expect_json = '''[{
@@ -74,6 +78,7 @@ definitions = '''
       ]}]'''
 
   [cases.optional]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     # This test case ensures that the alignment of std::variant is set
     # correctly, as otherwise the size of the std::optional would be wrong
     param_types = ["const std::optional<std::variant<char, int64_t>>&"]
@@ -100,6 +105,7 @@ definitions = '''
       ]}]'''
 
   [cases.empty]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     # https://en.cppreference.com/w/cpp/utility/variant/valueless_by_exception
     param_types = ["const std::variant<int, Thrower>&"]
     setup = '''
@@ -127,6 +133,7 @@ definitions = '''
   # 0xff can be a valid index if there are at least 256 parameters, and that
   # the invalid index value is raised to 0xffff.
   [cases.256_params_256]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char>&"]
     setup = "return 'a';"
     expect_json = '''[{
@@ -140,6 +147,7 @@ definitions = '''
         {"typeName":"char", "staticSize":1, "exclusiveSize":1, "dynamicSize":0}
       ]}]'''
   [cases.256_params_empty]
+    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char>&"]
     setup = '''
       std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char> var{'a'};

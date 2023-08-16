@@ -36,3 +36,6 @@ struct TypeHandler<DB, %1%<T0>> {
   }
 };
 """
+
+traversal_func = "return returnArg;"
+

@@ -14,49 +14,21 @@
  * limitations under the License.
  */
 #include "oi/OILibraryImpl.h"
+#include "oi/oi-jit.h"
 
-bool debug = false;
+namespace oi {
 
-namespace ObjectIntrospection {
-
-bool operator==(const options& lhs, const options& rhs) {
-  return lhs.configFilePath == rhs.configFilePath &&
-         lhs.debugFilePath == rhs.debugFilePath &&
-         lhs.debugLevel == rhs.debugLevel &&
-         lhs.chaseRawPointers == rhs.chaseRawPointers;
+OILibrary::OILibrary(void* atomicHole,
+                     std::unordered_set<Feature> fs,
+                     GeneratorOptions opts)
+    : pimpl_{std::make_unique<detail::OILibraryImpl>(
+          atomicHole, std::move(fs), std::move(opts))} {
 }
-
-bool operator!=(const options& lhs, const options& rhs) {
-  return !(lhs == rhs);
-}
-
-OILibrary::OILibrary(void* TemplateFunc, options opt) : opts(opt) {
-  this->pimpl_ = new OILibraryImpl(this, TemplateFunc);
-}
-
 OILibrary::~OILibrary() {
-  delete pimpl_;
 }
 
-int OILibrary::init() {
-  if (!pimpl_->processConfigFile()) {
-    return Response::OIL_BAD_CONFIG_FILE;
-  }
-
-  if (!pimpl_->mapSegment()) {
-    return Response::OIL_SEGMENT_INIT_FAIL;
-  }
-
-  pimpl_->initCompiler();
-  return pimpl_->compileCode();
+std::pair<void*, const exporters::inst::Inst&> OILibrary::init() {
+  return pimpl_->init();
 }
 
-int OILibrary::getObjectSize(void* ObjectAddr, size_t& size) {
-  if (fp == nullptr) {
-    return Response::OIL_UNINITIALISED;
-  }
-
-  size = (*fp)(ObjectAddr);
-  return Response::OIL_SUCCESS;
-}
-}  // namespace ObjectIntrospection
+}  // namespace oi

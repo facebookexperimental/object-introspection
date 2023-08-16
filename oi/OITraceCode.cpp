@@ -34,12 +34,6 @@
 
 #define C10_USING_CUSTOM_GENERATED_MACROS
 
-// These globals are set by oid, see end of OIDebugger::compileCode()
-extern uint8_t* dataBase;
-extern size_t dataSize;
-extern uintptr_t cookieValue;
-extern int logFile;
-
 constexpr int oidMagicId = 0x01DE8;
 
 #include <array>
@@ -88,21 +82,6 @@ class {
     }
   }
 } static pointers;
-
-void __jlogptr(uintptr_t ptr) {
-  static constexpr char hexdigits[] = "0123456789abcdef";
-  static constexpr size_t ptrlen = 2 * sizeof(ptr);
-
-  static char hexstr[ptrlen + 1] = {};
-
-  size_t i = ptrlen;
-  while (i--) {
-    hexstr[i] = hexdigits[ptr & 0xf];
-    ptr = ptr >> 4;
-  }
-  hexstr[ptrlen] = '\n';
-  write(logFile, hexstr, sizeof(hexstr));
-}
 
 }  // namespace
 

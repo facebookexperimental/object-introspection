@@ -19,6 +19,7 @@
 
 #include <boost/format.hpp>
 #include <iostream>
+#include <numeric>
 #include <set>
 #include <string_view>
 
@@ -54,9 +55,11 @@ using type_graph::Enum;
 using type_graph::Flattener;
 using type_graph::Member;
 using type_graph::NameGen;
+using type_graph::Primitive;
 using type_graph::Prune;
 using type_graph::RemoveMembers;
 using type_graph::RemoveTopLevelPointer;
+using type_graph::TemplateParam;
 using type_graph::TopoSorter;
 using type_graph::Type;
 using type_graph::Typedef;
@@ -67,6 +70,18 @@ template <typename T>
 using ref = std::reference_wrapper<T>;
 
 namespace {
+
+std::vector<std::string_view> enumerateTypeNames(Type& type) {
+  std::vector<std::string_view> names;
+  Type* t = &type;
+  while (const Typedef* td = dynamic_cast<Typedef*>(t)) {
+    names.emplace_back(t->inputName());
+    t = &td->underlyingType();
+  }
+  names.emplace_back(t->inputName());
+  return names;
+}
+
 void defineMacros(std::string& code) {
   if (true /* TODO: config.useDataSegment*/) {
     code += R"(
@@ -93,6 +108,23 @@ struct OIArray {
 void defineJitLog(FeatureSet features, std::string& code) {
   if (features[Feature::JitLogging]) {
     code += R"(
+extern int logFile;
+
+void __jlogptr(uintptr_t ptr) {
+  static constexpr char hexdigits[] = "0123456789abcdef";
+  static constexpr size_t ptrlen = 2 * sizeof(ptr);
+
+  static char hexstr[ptrlen + 1] = {};
+
+  size_t i = ptrlen;
+  while (i--) {
+    hexstr[i] = hexdigits[ptr & 0xf];
+    ptr = ptr >> 4;
+  }
+  hexstr[ptrlen] = '\n';
+  write(logFile, hexstr, sizeof(hexstr));
+}
+
 #define JLOG(str)                           \
   do {                                      \
     if (__builtin_expect(logFile, 0)) {     \
@@ -128,6 +160,10 @@ void addIncludes(const TypeGraph& typeGraph,
 
     code += "#define DEFINE_DESCRIBE 1\n";  // added before all includes
   }
+  if (features[Feature::TreeBuilderV2])
+    includes.emplace("oi/exporters/inst.h");
+  if (features[Feature::Library])
+    includes.emplace("vector");
   if (features[Feature::JitTiming]) {
     includes.emplace("chrono");
   }
@@ -569,38 +605,6 @@ void CodeGen::addGetSizeFuncDefs(const TypeGraph& typeGraph,
 
 namespace {
 
-void addStandardTypeHandlers(std::string& code) {
-  // Provide a wrapper function, getSizeType, to infer T instead of having to
-  // explicitly specify it with TypeHandler<DB, T>::getSizeType every time.
-  code += R"(
-    template <typename DB, typename T>
-    types::st::Unit<DB>
-    getSizeType(const T &t, typename TypeHandler<DB, T>::type returnArg) {
-      JLOG("obj @");
-      JLOGPTR(&t);
-      return TypeHandler<DB, T>::getSizeType(t, returnArg);
-    }
-)";
-
-  code += R"(
-    template<typename DB, typename T0, long unsigned int N>
-    struct TypeHandler<DB, OIArray<T0, N>> {
-      using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
-      static types::st::Unit<DB> getSizeType(
-          const OIArray<T0, N> &container,
-          typename TypeHandler<DB, OIArray<T0,N>>::type returnArg) {
-        auto tail = returnArg.write(N);
-        for (size_t i=0; i<N; i++) {
-          tail = tail.delegate([&container, i](auto ret) {
-              return TypeHandler<DB, T0>::getSizeType(container.vals[i], ret);
-          });
-        }
-        return tail.finish();
-      }
-    };
-)";
-}
-
 // Find the last member that isn't padding's index. Return -1 if no such member.
 size_t getLastNonPaddingMemberIndex(const std::vector<Member>& members) {
   for (size_t i = members.size() - 1; i != (size_t)-1; --i) {
@@ -724,6 +728,70 @@ void CodeGen::genClassStaticType(const Class& c, std::string& code) {
   }
 }
 
+namespace {
+
+size_t calculateExclusiveSize(const Type& t) {
+  if (const auto* c = dynamic_cast<const Class*>(&t)) {
+    return std::accumulate(c->members.cbegin(), c->members.cend(), 0,
+                           [](size_t a, const auto& m) {
+                             if (m.name.starts_with(AddPadding::MemberPrefix))
+                               return a + m.type().size();
+                             return a;
+                           });
+  }
+  return t.size();
+}
+
+}  // namespace
+
+void CodeGen::genClassTreeBuilderInstructions(const Class& c,
+                                              std::string& code) {
+  code += " private:\n";
+  size_t index = 0;
+  for (const auto& m : c.members) {
+    ++index;
+    if (m.name.starts_with(AddPadding::MemberPrefix))
+      continue;
+
+    auto names = enumerateTypeNames(m.type());
+    code += "  static constexpr std::array<std::string_view, " +
+            std::to_string(names.size()) + "> member_" + std::to_string(index) +
+            "_type_names = {";
+    for (const auto& name : names) {
+      code += "\"";
+      code += name;
+      code += "\",";
+    }
+    code += "};\n";
+  }
+
+  code += " public:\n";
+  size_t numFields =
+      std::count_if(c.members.cbegin(), c.members.cend(), [](const auto& m) {
+        return !m.name.starts_with(AddPadding::MemberPrefix);
+      });
+  code += "  static constexpr std::array<inst::Field, ";
+  code += std::to_string(numFields);
+  code += "> fields{\n";
+  index = 0;
+  for (const auto& m : c.members) {
+    ++index;
+    if (m.name.starts_with(AddPadding::MemberPrefix))
+      continue;
+    std::string fullName = c.name() + "::" + m.name;
+    code += "      inst::Field{sizeof(" + fullName + "), " +
+            std::to_string(calculateExclusiveSize(m.type())) + ",\"" +
+            m.inputName + "\", member_" + std::to_string(index) +
+            "_type_names, TypeHandler<DB, decltype(" + fullName +
+            ")>::fields, TypeHandler<DB, decltype(" + fullName +
+            ")>::processors},\n";
+  }
+  code += "  };\n";
+  code +=
+      "static constexpr std::array<exporters::inst::ProcessorInst, 0> "
+      "processors{};\n";
+}
+
 void CodeGen::genClassTypeHandler(const Class& c, std::string& code) {
   std::string helpers;
 
@@ -756,30 +824,159 @@ void CodeGen::genClassTypeHandler(const Class& c, std::string& code) {
   code += "  using type = ";
   genClassStaticType(c, code);
   code += ";\n";
+  if (config_.features[Feature::TreeBuilderV2])
+    genClassTreeBuilderInstructions(c, code);
   genClassTraversalFunction(c, code);
   code += "};\n";
 }
 
 namespace {
 
-void getContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
-                             const Container& c,
+void genContainerTypeHandler(FeatureSet features,
+                             std::unordered_set<const ContainerInfo*>& used,
+                             const ContainerInfo& c,
+                             std::span<const TemplateParam> templateParams,
                              std::string& code) {
-  if (!used.insert(&c.containerInfo_).second) {
+  if (!used.insert(&c).second)
+    return;
+
+  if (!features[Feature::TreeBuilderV2]) {
+    const auto& handler = c.codegen.handler;
+    if (handler.empty()) {
+      LOG(ERROR) << "`codegen.handler` must be specified for all containers "
+                    "under \"-ftyped-data-segment\", not specified for \"" +
+                        c.typeName + "\"";
+      throw std::runtime_error("missing `codegen.handler`");
+    }
+    auto fmt = boost::format(c.codegen.handler) % c.typeName;
+    code += fmt.str();
     return;
   }
 
-  const auto& handler = c.containerInfo_.codegen.handler;
   // TODO: Move this check into the ContainerInfo parsing once always enabled.
-  if (handler.empty()) {
-    LOG(ERROR) << "`codegen.handler` must be specified for all containers "
-                  "under \"-ftyped-data-segment\", not specified for \"" +
-                      c.containerInfo_.typeName + "\"";
-    throw std::runtime_error("missing `codegen.handler`");
+  const auto& func = c.codegen.traversalFunc;
+  const auto& processors = c.codegen.processors;
+
+  if (func.empty()) {
+    LOG(ERROR)
+        << "`codegen.traversal_func` must be specified for all containers "
+           "under \"-ftree-builder-v2\", not specified for \"" +
+               c.typeName + "\"";
+    throw std::runtime_error("missing `codegen.traversal_func`");
   }
-  auto fmt = boost::format(c.containerInfo_.codegen.handler) %
-             c.containerInfo_.typeName;
-  code += fmt.str();
+
+  std::string containerWithTypes = c.typeName;
+  if (!templateParams.empty())
+    containerWithTypes += '<';
+  size_t types = 0, values = 0;
+  for (const auto& p : templateParams) {
+    if (types > 0 || values > 0)
+      containerWithTypes += ", ";
+    if (p.value) {
+      containerWithTypes += "N" + std::to_string(values++);
+    } else {
+      containerWithTypes += "T" + std::to_string(types++);
+    }
+  }
+  if (!templateParams.empty())
+    containerWithTypes += '>';
+
+  code += "template <typename DB";
+  types = 0, values = 0;
+  for (const auto& p : templateParams) {
+    if (p.value) {
+      code += ", ";
+      code += p.type().name();
+      code += " N" + std::to_string(values++);
+    } else {
+      code += ", typename T" + std::to_string(types++);
+    }
+  }
+  code += ">\n";
+  code += "struct TypeHandler<DB, ";
+  code += containerWithTypes;
+  code += "> {\n";
+
+  code += "  using type = ";
+  if (processors.empty()) {
+    code += "types::st::Unit<DB>";
+  } else {
+    for (auto it = processors.cbegin(); it != processors.cend(); ++it) {
+      if (it != processors.cend() - 1)
+        code += "types::st::Pair<DB, ";
+      code += it->type;
+      if (it != processors.cend() - 1)
+        code += ", ";
+    }
+    code += std::string(processors.size() - 1, '>');
+  }
+  code += ";\n";
+
+  code += "  static types::st::Unit<DB> getSizeType(\n";
+  code += "      const ";
+  code += containerWithTypes;
+  code += "& container,\n";
+  code += "      typename TypeHandler<DB, ";
+  code += containerWithTypes;
+  code += ">::type returnArg) {\n";
+  code += func;  // has rubbish indentation
+  code += "  }\n";
+
+  code += " private:\n";
+  size_t count = 0;
+  for (const auto& pr : processors) {
+    code += "  static void processor_";
+    code += std::to_string(count++);
+    code +=
+        "(result::Element& el, std::stack<inst::Inst>& ins, ParsedData d) {\n";
+    code += pr.func;  // bad indentation
+    code += "  }\n";
+  }
+
+  code += " public:\n";
+  code +=
+      "  static constexpr std::array<exporters::inst::Field, 0> fields{};\n";
+  code += "  static constexpr std::array<exporters::inst::ProcessorInst, ";
+  code += std::to_string(processors.size());
+  code += "> processors{\n";
+  count = 0;
+  for (const auto& pr : processors) {
+    code += "    exporters::inst::ProcessorInst{";
+    code += pr.type;
+    code += "::describe, &processor_";
+    code += std::to_string(count++);
+    code += "},\n";
+  }
+  code += "  };\n";
+
+  code += "};\n\n";
+}
+
+void addStandardTypeHandlers(TypeGraph& typeGraph,
+                             FeatureSet features,
+                             std::string& code) {
+  // Provide a wrapper function, getSizeType, to infer T instead of having to
+  // explicitly specify it with TypeHandler<DB, T>::getSizeType every time.
+  code += R"(
+    template <typename DB, typename T>
+    types::st::Unit<DB>
+    getSizeType(const T &t, typename TypeHandler<DB, T>::type returnArg) {
+      JLOG("obj @");
+      JLOGPTR(&t);
+      return TypeHandler<DB, T>::getSizeType(t, returnArg);
+    }
+)";
+
+  // TODO: bit of a hack - making ContainerInfo a node in the type graph and
+  // traversing for it would remove the need for this set altogether.
+  std::unordered_set<const ContainerInfo*> used{};
+  std::vector<TemplateParam> arrayParams{
+      TemplateParam{typeGraph.makeType<Primitive>(Primitive::Kind::UInt64)},
+      TemplateParam{typeGraph.makeType<Primitive>(Primitive::Kind::UInt64),
+                    "0"},
+  };
+  genContainerTypeHandler(features, used, FuncGen::GetOiArrayContainerInfo(),
+                          arrayParams, code);
 }
 
 }  // namespace
@@ -789,7 +986,8 @@ void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
       genClassTypeHandler(*c, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
-      getContainerTypeHandler(definedContainers_, *con, code);
+      genContainerTypeHandler(config_.features, definedContainers_,
+                              con->containerInfo_, con->templateParams, code);
     }
   }
 }
@@ -886,6 +1084,9 @@ void CodeGen::generate(
     struct drgn_type* drgnType /* TODO: this argument should not be required */
 ) {
   code = headers::oi_OITraceCode_cpp;
+  if (!config_.features[Feature::Library]) {
+    FuncGen::DeclareExterns(code);
+  }
   if (!config_.features[Feature::TypedDataSegment]) {
     defineMacros(code);
   }
@@ -894,12 +1095,19 @@ void CodeGen::generate(
   defineJitLog(config_.features, code);
 
   if (config_.features[Feature::TypedDataSegment]) {
-    FuncGen::DefineDataSegmentDataBuffer(code);
+    if (config_.features[Feature::Library]) {
+      FuncGen::DefineBackInserterDataBuffer(code);
+    } else {
+      FuncGen::DefineDataSegmentDataBuffer(code);
+    }
     code += "using namespace oi;\n";
     code += "using namespace oi::detail;\n";
-
+    if (config_.features[Feature::TreeBuilderV2]) {
+      code += "using oi::exporters::ParsedData;\n";
+      code += "using namespace oi::exporters;\n";
+    }
     code += "namespace OIInternal {\nnamespace {\n";
-    FuncGen::DefineBasicTypeHandlers(code);
+    FuncGen::DefineBasicTypeHandlers(code, config_.features);
     code += "} // namespace\n} // namespace OIInternal\n";
   }
 
@@ -930,7 +1138,7 @@ void CodeGen::generate(
   genStaticAsserts(typeGraph, code);
 
   if (config_.features[Feature::TypedDataSegment]) {
-    addStandardTypeHandlers(code);
+    addStandardTypeHandlers(typeGraph, config_.features, code);
     addTypeHandlers(typeGraph, code);
   } else {
     addStandardGetSizeFuncDecls(code);
@@ -946,13 +1154,19 @@ void CodeGen::generate(
   code += "} // namespace\n} // namespace OIInternal\n";
 
   const auto typeName = SymbolService::getTypeName(drgnType);
-  if (config_.features[Feature::TypedDataSegment]) {
+  if (config_.features[Feature::Library]) {
+    FuncGen::DefineTopLevelIntrospect(code, typeName);
+  } else if (config_.features[Feature::TypedDataSegment]) {
     FuncGen::DefineTopLevelGetSizeRefTyped(code, typeName, config_.features);
   } else {
     FuncGen::DefineTopLevelGetSizeRef(code, typeName, config_.features);
   }
 
-  if (config_.features[Feature::TreeBuilderTypeChecking]) {
+  if (config_.features[Feature::TreeBuilderV2]) {
+    FuncGen::DefineTreeBuilderInstructions(code, typeName,
+                                           calculateExclusiveSize(rootType),
+                                           enumerateTypeNames(rootType));
+  } else if (config_.features[Feature::TreeBuilderTypeChecking]) {
     FuncGen::DefineOutputType(code, typeName);
   }
 

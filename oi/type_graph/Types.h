@@ -231,6 +231,10 @@ class Class : public Type {
     name_ = std::move(name);
   }
 
+  void setInputName(std::string name) {
+    inputName_ = std::move(name);
+  }
+
   virtual size_t size() const override {
     return size_;
   }
@@ -374,6 +378,10 @@ class Enum : public Type {
 
   virtual std::string_view inputName() const override {
     return inputName_;
+  }
+
+  void setInputName(std::string name) {
+    inputName_ = std::move(name);
   }
 
   void setName(std::string name) {

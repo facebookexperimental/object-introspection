@@ -4,9 +4,15 @@ definitions = '''
   using UsingUInt64 = uint64_t;
   using IntVector = std::vector<int>;
   using Anonymous = struct { int n; };
+
+  template <typename T>
+  struct Proxy {
+    T t;
+  };
 '''
 [cases]
   [cases.c_style]
+    oil_disable = "oil can't pick up top level typedefs"
     param_types = ["TdUInt64"]
     setup = "return {};"
     expect_json = '''[{
@@ -24,6 +30,7 @@ definitions = '''
         }
       ]}]'''
   [cases.using]
+    oil_disable = "oil can't pick up top level typedefs"
     param_types = ["UsingUInt64"]
     setup = "return {};"
     expect_json = '''[{
@@ -41,6 +48,7 @@ definitions = '''
         }
       ]}]'''
   [cases.container]
+    oil_disable = "oil can't pick up top level typedefs"
     param_types = ["const IntVector&"]
     setup = "return {};"
     expect_json = '''[{
@@ -61,7 +69,7 @@ definitions = '''
         }
       ]}]'''
   [cases.anonymous]
-    oil_skip = "TreeBuilder crashes" # https://github.com/facebookexperimental/object-introspection/issues/232
+    oil_disable = "oil can't pick up top level typedefs"
     param_types = ["const Anonymous&"]
     setup = "return {};"
     expect_json = '''[{
@@ -86,3 +94,4 @@ definitions = '''
             }
         ]}
       ]}]'''
+

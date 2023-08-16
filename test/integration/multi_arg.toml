@@ -12,6 +12,7 @@ definitions = '''
 
 [cases]
   [cases.a]
+    oil_disable = 'multi-argument probing has no meaning for oil'
     param_types = ["int", "double"]
     args = "arg0,arg1"
     setup = "return {1,2.0};"

@@ -38,7 +38,8 @@ def add_headers(f, custom_headers, thrift_headers):
 #include <thread>
 #include <tuple>
 
-#include <ObjectIntrospection.h>
+#include <oi/oi.h>
+#include <oi/exporters/Json.h>
 
 """
     )
@@ -83,11 +84,11 @@ def add_test_setup(f, config):
     def define_traceable_func(name, params, body):
         return (
             f"\n"
-            f'  extern "C" {{\n'
-            f"  void __attribute__((noinline)) {name}({params}) {{\n"
+            # f'  extern "C" {{\n'
+            f'  extern "C" void __attribute__((noinline)) {name}({params}) {{\n'
             f"{body}"
             f"  }}\n"
-            f"  }}\n"
+            # f"  }}\n"
         )
 
     cases = config["cases"]
@@ -134,22 +135,18 @@ def add_test_setup(f, config):
         )
 
         oil_func_body = (
-            f"\n"
-            f"ObjectIntrospection::options opts{{\n"
-            f"  .configFilePath = configFile,\n"
-            f"  .debugLevel = 3,\n"
-            f'  .sourceFileDumpPath = "oil_jit_code.cpp",\n'
-            f"}};"
+            f"    oi::GeneratorOptions opts{{\n"
+            f"      .configFilePath = configFile,\n"
+            f'      .sourceFileDumpPath = "oil_jit_code.cpp",\n'
+            f"      .debugLevel = 3,\n"
+            f"    }};\n\n"
         )
 
-        oil_func_body += '    std::cout << "{\\"results\\": [" << std::endl;\n'
-        oil_func_body += '    std::cout << "," << std::endl;\n'.join(
-            f"    size_t size{i} = 0;\n"
-            f"    auto ret{i} = ObjectIntrospection::getObjectSize(a{i}, size{i}, opts);\n"
-            f'    std::cout << "{{\\"ret\\": " << ret{i} << ", \\"size\\": " << size{i} << "}}" << std::endl;\n'
-            for i in range(len(case["param_types"]))
-        )
-        oil_func_body += '    std::cout << "]}" << std::endl;\n'
+        oil_func_body += "    auto pr = oi::exporters::Json(std::cout);\n"
+        oil_func_body += "    pr.setPretty(true);\n"
+        for i in range(len(case["param_types"])):
+            oil_func_body += f"    auto ret{i} = oi::setupAndIntrospect(a{i}, opts);\n"
+            oil_func_body += f"    pr.print(*ret{i});\n"
 
         f.write(
             define_traceable_func(
@@ -367,23 +364,14 @@ def add_oil_integration_test(f, config, case_name, case):
         f'    .targetArgs = "oil {case_str}",\n'
         f"  }}, std::move(configPrefix), std::move(configSuffix));\n\n"
         f"  ASSERT_EQ(exit_code(target), {exit_code});\n"
-        f"\n"
-        f"  bpt::ptree result_json;\n"
-        f"  auto json_ss = std::stringstream(stdout_);\n"
-        f"  bpt::read_json(json_ss, result_json);\n"
-        f"  std::vector<size_t> sizes;\n"
-        f'  for (const auto& each : result_json.get_child("results")) {{\n'
-        f"    const auto& result = each.second;\n"
-        f'    int oilResult = result.get<int>("ret");\n'
-        f'    size_t oilSize = result.get<size_t>("size");\n'
-        f"    ASSERT_EQ(oilResult, 0);\n"
-        f"    sizes.push_back(oilSize);\n"
-        f"  }}"
     )
 
-    if "expect_json" in case:
+    key = "expect_json"
+    if "expect_json_v2" in case:
+        key = "expect_json_v2"
+    if key in case:
         try:
-            json.loads(case["expect_json"])
+            json.loads(case[key])
         except json.decoder.JSONDecodeError as error:
             print(
                 f"\x1b[31m`expect_json` value for test case {config['suite']}.{case_name} was invalid JSON: {error}\x1b[0m",
@@ -394,17 +382,12 @@ def add_oil_integration_test(f, config, case_name, case):
         f.write(
             f"\n"
             f"  std::stringstream expected_json_ss;\n"
-            f'  expected_json_ss << R"--({case["expect_json"]})--";\n'
-            f"  bpt::ptree expected_json;\n"
+            f'  expected_json_ss << R"--({case[key]})--";\n'
+            f"  auto result_json_ss = std::stringstream(stdout_);\n"
+            f"  bpt::ptree expected_json, actual_json;\n"
             f"  bpt::read_json(expected_json_ss, expected_json);\n"
-            f"  auto sizes_it = sizes.begin();\n"
-            f"  for (auto it = expected_json.begin(); it != expected_json.end(); ++it, ++sizes_it) {{\n"
-            f"    auto node = it->second;\n"
-            f'    size_t expected_size = node.get<size_t>("staticSize");\n'
-            f'    if (node.find("dynamicSize") != node.not_found())\n'  # Assume dynamicSize is 0 if not set
-            f'      expected_size += node.get<size_t>("dynamicSize");\n'
-            f"    EXPECT_EQ(*sizes_it, expected_size);\n"
-            f"  }}\n"
+            f"  bpt::read_json(result_json_ss, actual_json);\n"
+            f"  compare_json(expected_json, actual_json);\n"
         )
 
     f.write(f"}}\n")

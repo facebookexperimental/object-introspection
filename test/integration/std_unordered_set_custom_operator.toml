@@ -33,6 +33,7 @@ includes = ["unordered_set"]
 
 [cases]
   [cases.a]
+    oil_skip = "std::unordered_set is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/302
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;

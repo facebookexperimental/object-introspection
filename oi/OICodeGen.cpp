@@ -2983,6 +2983,7 @@ void OICodeGen::declareThriftStruct(std::string& code, std::string_view name) {
 }
 
 bool OICodeGen::generateJitCode(std::string& code) {
+  FuncGen::DeclareExterns(code);
   // Include relevant headers
   code.append("// relevant header includes -----\n");
 

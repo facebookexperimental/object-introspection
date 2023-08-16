@@ -58,6 +58,7 @@ raw_definitions = '''
 '''
 [cases]
   [cases.present]
+    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const FakeThriftWithData&"]
     setup = '''
       FakeThriftWithData ret;
@@ -78,6 +79,7 @@ raw_definitions = '''
         {"name":"__isset", "staticSize":3}
       ]}]'''
   [cases.missing]
+    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const FakeThriftWithoutData&"]
     setup = '''
       FakeThriftWithoutData ret;
@@ -98,6 +100,7 @@ raw_definitions = '''
         {"name":"__isset", "staticSize":3}
       ]}]'''
   [cases.mixed]
+    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const Mixed&"]
     setup = '''
       Mixed ret;

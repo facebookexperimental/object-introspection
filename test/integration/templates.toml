@@ -24,6 +24,7 @@ definitions = '''
 
 [cases]
   [cases.int]
+    oil_skip = "primitives are named differently in treebuilderv2" # https://github.com/facebookexperimental/object-introspection/issues/286
     param_types = ["const TemplatedClass1<int>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -48,7 +49,19 @@ definitions = '''
         "capacity":0,
         "elementStaticSize":4
     }]}]'''
+    expect_json_v2 = '''[{
+      "typeName":"TemplatedClass1<std::vector<int, std::allocator<int> > >",
+      "staticSize":24,
+      "exclusiveSize":0,
+      "members":[{
+        "typeName":"std::vector<int32_t, std::allocator<int32_t>>",
+        "staticSize":24,
+        "exclusiveSize":24,
+        "length":0,
+        "capacity":0
+    }]}]'''
   [cases.two]
+    oil_skip = "OIL returns better primitive names"
     param_types = ["const TemplatedClass2<Foo, int>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -72,4 +85,14 @@ definitions = '''
         "length":3,
         "capacity":3,
         "elementStaticSize":4
+    }]}]'''
+    expect_json_v2 = '''[{
+      "typeName":"TemplatedClassVal<3>",
+      "staticSize":12,
+      "exclusiveSize":0,
+      "members":[{
+        "staticSize":12,
+        "exclusiveSize":0,
+        "length":3,
+        "capacity":3
     }]}]'''

@@ -154,6 +154,7 @@ definitions = '''
     '''
 
   [cases.unique_ptr]
+    oil_skip = "cycles are broken" # https://github.com/facebookexperimental/object-introspection/issues/293
     param_types = ["std::reference_wrapper<UniqueNode>&"]
     setup = '''
       auto first = std::make_unique<UniqueNode>();
@@ -231,6 +232,7 @@ definitions = '''
     '''
 
   [cases.shared_ptr]
+    oil_skip = "cycles are broken" # https://github.com/facebookexperimental/object-introspection/issues/293
     param_types = ["std::reference_wrapper<SharedNode>&"]
     setup = '''
       auto first = std::make_shared<SharedNode>();

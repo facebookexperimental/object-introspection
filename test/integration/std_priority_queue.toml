@@ -1,6 +1,7 @@
 includes = ["queue"]
 [cases]
   [cases.int_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/309
     param_types = ["const std::priority_queue<int>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -13,6 +14,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.int_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/309
     param_types = ["const std::priority_queue<int>&"]
     setup = "return std::priority_queue<int>({}, {3,2,1});"
     expect_json = '''[{
@@ -25,6 +27,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.adapter_deque_empty]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/309
     param_types = ["const std::priority_queue<int, std::deque<int>>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -37,6 +40,7 @@ includes = ["queue"]
         }
       ]}]'''
   [cases.adapter_deque_some]
+    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/309
     param_types = ["const std::priority_queue<int, std::deque<int>>&"]
     setup = "return std::priority_queue<int, std::deque<int>>({}, {3,2,1});"
     expect_json = '''[{

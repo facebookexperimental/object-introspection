@@ -147,6 +147,16 @@ void FuncGen::DeclareTopLevelGetSize(std::string& testCode,
   boost::format fmt = boost::format("void getSizeType(const %1% &t);\n") % type;
   testCode.append(fmt.str());
 }
+
+void FuncGen::DeclareExterns(std::string& code) {
+  constexpr std::string_view vars = R"(
+extern uint8_t* dataBase;
+extern size_t dataSize;
+extern uintptr_t cookieValue;
+  )";
+  code.append(vars);
+}
+
 void FuncGen::DeclareStoreData(std::string& testCode) {
   testCode.append("void StoreData(uintptr_t data, size_t& dataSegOffset);\n");
 }
@@ -233,6 +243,35 @@ void FuncGen::DefineTopLevelGetObjectSize(std::string& testCode,
 
   boost::format fmt = boost::format(func) % rawType % linkageName;
   testCode.append(fmt.str());
+}
+
+void FuncGen::DefineTopLevelIntrospect(std::string& code,
+                                       const std::string& type) {
+  std::string func = R"(
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-attributes"
+/* RawType: %1% */
+void __attribute__((used, retain)) introspect_%2$016x(
+    const OIInternal::__ROOT_TYPE__& t,
+    std::vector<uint8_t>& v)
+#pragma GCC diagnostic pop
+{
+  pointers.initialize();
+  pointers.add((uintptr_t)&t);
+
+  v.clear();
+  v.reserve(4096);
+
+  using DataBufferType = DataBuffer::BackInserter<std::vector<uint8_t>>;
+  using ContentType = OIInternal::TypeHandler<DataBufferType, OIInternal::__ROOT_TYPE__>::type;
+
+  ContentType ret{DataBufferType{v}};
+  OIInternal::getSizeType<DataBufferType>(t, ret);
+}
+)";
+
+  code.append(
+      (boost::format(func) % type % std::hash<std::string>{}(type)).str());
 }
 
 void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
@@ -373,13 +412,56 @@ void FuncGen::DefineOutputType(std::string& code, const std::string& rawType) {
     #pragma GCC diagnostic ignored "-Wunknown-attributes"
     /* RawType: %1% */
     extern const types::dy::Dynamic __attribute__((used, retain)) outputType%2$016x =
-      OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type::describe;
+          OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type::describe;
     #pragma GCC diagnostic pop
-  )";
+)";
 
   boost::format fmt =
       boost::format(func) % rawType % std::hash<std::string>{}(rawType);
   code.append(fmt.str());
+}
+
+void FuncGen::DefineTreeBuilderInstructions(
+    std::string& code,
+    const std::string& rawType,
+    size_t exclusiveSize,
+    std::span<const std::string_view> typeNames) {
+  std::string typeHash =
+      (boost::format("%1$016x") % std::hash<std::string>{}(rawType)).str();
+
+  code += R"(
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunknown-attributes"
+namespace {
+const std::array<std::string_view, )";
+  code += std::to_string(typeNames.size());
+  code += "> typeNames";
+  code += typeHash;
+  code += '{';
+  for (const auto& name : typeNames) {
+    code += '"';
+    code += name;
+    code += "\",";
+  }
+  code += "};\n";
+  code += "const exporters::inst::Field rootInstructions";
+  code += typeHash;
+  code += "{sizeof(OIInternal::__ROOT_TYPE__), ";
+  code += std::to_string(exclusiveSize);
+  code += ", \"a0\", typeNames";
+  code += typeHash;
+  code +=
+      ", OIInternal::TypeHandler<int, OIInternal::__ROOT_TYPE__>::fields, "
+      "OIInternal::TypeHandler<int, OIInternal::__ROOT_TYPE__>::processors};\n";
+  code += "} // namespace\n";
+  code +=
+      "extern const exporters::inst::Inst __attribute__((used, retain)) "
+      "treeBuilderInstructions";
+  code += typeHash;
+  code += " = rootInstructions";
+  code += typeHash;
+  code += ";\n";
+  code += "#pragma GCC diagnostic pop\n";
 }
 
 void FuncGen::DefineTopLevelGetSizeRefRet(std::string& testCode,
@@ -565,6 +647,34 @@ void FuncGen::DefineDataSegmentDataBuffer(std::string& testCode) {
 }
 
 /*
+ * DefineBackInserterDataBuffer
+ *
+ * Provides a DataBuffer implementation that takes anything convertible with
+ * std::back_inserter.
+ */
+void FuncGen::DefineBackInserterDataBuffer(std::string& code) {
+  constexpr std::string_view buf = R"(
+namespace oi::detail::DataBuffer {
+
+template <class Container>
+class BackInserter {
+ public:
+  BackInserter(Container& v) : buf(v) {}
+
+  void write_byte(uint8_t byte) {
+    *buf = byte;
+  }
+ private:
+  std::back_insert_iterator<Container> buf;
+};
+
+} // namespace oi::detail::DataBuffer
+  )";
+
+  code.append(buf);
+}
+
+/*
  * DefineBasicTypeHandlers
  *
  * Provides TypeHandler implementations for types T, T*, and void. T is of type
@@ -573,8 +683,8 @@ void FuncGen::DefineDataSegmentDataBuffer(std::string& testCode) {
  * pointer's value always, then the value of the pointer if it is unique. void
  * is of type Unit and always stores nothing.
  */
-void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
-  constexpr std::string_view tHandler = R"(
+void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
+  code += R"(
     template <typename DB, typename T>
     struct TypeHandler {
       private:
@@ -582,10 +692,8 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
             if constexpr(std::is_pointer_v<T>) {
                 return std::type_identity<types::st::Pair<DB,
                   types::st::VarInt<DB>,
-                  types::st::Sum<DB,
-                    types::st::Unit<DB>,
-                    typename TypeHandler<DB, std::remove_pointer_t<T>>::type
-                >>>();
+                  types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<DB, std::remove_pointer_t<T>>::type>
+                >>();
             } else {
                 return std::type_identity<types::st::Unit<DB>>();
             }
@@ -593,7 +701,56 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
 
       public:
         using type = typename decltype(choose_type())::type;
+)";
+  if (features[Feature::TreeBuilderV2]) {
+    code += R"(private:
+        static void process_pointer(result::Element& el, std::stack<inst::Inst>& ins, ParsedData d) {
+          el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+        }
+        static void process_pointer_content(result::Element& el, std::stack<inst::Inst>& ins, ParsedData d) {
+          static constexpr std::array<std::string_view, 1> names{"TODO"};
+          static constexpr auto childField = inst::Field{
+            sizeof(T),
+            "*",
+            names,
+            TypeHandler<DB, T>::fields,
+            TypeHandler<DB, T>::processors,
+          };
 
+          const ParsedData::Sum& sum = std::get<ParsedData::Sum>(d.val);
+
+          el.container_stats.emplace(result::Element::ContainerStats{ .capacity = 1 });
+
+          if (sum.index == 0)
+            return;
+
+          el.container_stats->length = 1;
+          ins.emplace(childField);
+        }
+
+        static constexpr auto choose_fields() {
+          if constexpr(std::is_pointer_v<T>) {
+            return std::array<exporters::inst::Field, 0>{};
+          } else {
+            return std::array<exporters::inst::Field, 0>{};
+          }
+        }
+        static constexpr auto choose_processors() {
+          if constexpr(std::is_pointer_v<T>) {
+            return std::array<inst::ProcessorInst, 2>{
+              {types::st::VarInt<DB>::describe, &process_pointer},
+              {types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<DB, std::remove_pointer_t<T>>::type>::describe, &process_pointer_content},
+            };
+          } else {
+            return std::array<inst::ProcessorInst, 0>{};
+          }
+        }
+      public:
+        static constexpr auto fields = choose_fields();
+        static constexpr auto processors = choose_processors();
+)";
+  }
+  code += R"(
         static types::st::Unit<DB> getSizeType(
           const T& t,
           typename TypeHandler<DB, T>::type returnArg) {
@@ -619,16 +776,75 @@ void FuncGen::DefineBasicTypeHandlers(std::string& testCode) {
     };
   )";
 
-  constexpr std::string_view voidHandler = R"(
+  code += R"(
     template <typename DB>
     class TypeHandler<DB, void> {
       public:
         using type = types::st::Unit<DB>;
-    };
-  )";
+)";
+  if (features[Feature::TreeBuilderV2]) {
+    code +=
+        "static constexpr std::array<exporters::inst::Field, 0> fields{};\n";
+    code +=
+        "static constexpr std::array<exporters::inst::ProcessorInst, 0> "
+        "processors{};\n";
+  }
+  code += "};\n";
+}
 
-  testCode.append(tHandler);
-  testCode.append(voidHandler);
+ContainerInfo FuncGen::GetOiArrayContainerInfo() {
+  ContainerInfo oiArray{"OIArray", UNKNOWN_TYPE,
+                        "cstdint"};  // TODO: remove the need for a dummy header
+
+  oiArray.codegen.handler = R"(
+template<typename DB, typename T0, long unsigned int N>
+struct TypeHandler<DB, %1%<T0, N>> {
+  using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
+  static types::st::Unit<DB> getSizeType(
+      const %1%<T0, N> &container,
+      typename TypeHandler<DB, %1%<T0,N>>::type returnArg) {
+    auto tail = returnArg.write(N);
+    for (size_t i=0; i<N; i++) {
+      tail = tail.delegate([&container, i](auto ret) {
+          return TypeHandler<DB, T0>::getSizeType(container.vals[i], ret);
+      });
+    }
+    return tail.finish();
+  }
+};
+)";
+  oiArray.codegen.traversalFunc = R"(
+auto tail = returnArg.write(N0);
+for (size_t i=0; i<N0; i++) {
+  tail = tail.delegate([&container, i](auto ret) {
+      return TypeHandler<DB, T0>::getSizeType(container.vals[i], ret);
+  });
+}
+return tail.finish();
+)";
+  oiArray.codegen.processors.emplace_back(ContainerInfo::Processor{
+      .type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>",
+      .func = R"(
+static constexpr std::array<std::string_view, 1> names{"TODO"};
+static constexpr auto childField = inst::Field{
+  sizeof(T0),
+  "[]",
+  names,
+  TypeHandler<DB, T0>::fields,
+  TypeHandler<DB, T0>::processors,
+};
+
+el.exclusive_size = 0;
+el.container_stats.emplace(result::Element::ContainerStats{ .capacity = N0, .length = N0 });
+
+auto list = std::get<ParsedData::List>(d.val);
+// assert(list.length == N0);
+for (size_t i = 0; i < N0; i++)
+  ins.emplace(childField);
+)",
+  });
+
+  return oiArray;
 }
 
 }  // namespace oi::detail

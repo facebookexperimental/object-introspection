@@ -45,6 +45,8 @@ std::optional<std::string_view> featureHelp(Feature f) {
     case Feature::TreeBuilderTypeChecking:
       return "Use Typed Data Segment to perform runtime Type Checking in "
              "TreeBuilder.";
+    case Feature::Library:
+      return std::nullopt;  // Hide in OID help
     case Feature::TreeBuilderV2:
       return "Use Tree Builder v2 for reading the data segment";
     case Feature::GenJitDebug:
@@ -72,6 +74,20 @@ std::span<const Feature> requirements(Feature f) {
     case Feature::TreeBuilderV2:
       static constexpr std::array tb2 = {Feature::TreeBuilderTypeChecking};
       return tb2;
+    case Feature::Library:
+      static constexpr std::array lib = {Feature::TreeBuilderV2};
+      return lib;
+    default:
+      return {};
+  }
+}
+
+std::span<const Feature> conflicts(Feature f) {
+  switch (f) {
+    case Feature::Library:
+      static constexpr std::array lib = {Feature::JitLogging,
+                                         Feature::JitTiming};
+      return lib;
     default:
       return {};
   }
@@ -143,6 +159,19 @@ std::optional<FeatureSet> handleFeatureConflicts(FeatureSet enabled,
         toCheck[r] = true;
         LOG(WARNING) << featureToStr(f) << " feature requires "
                      << featureToStr(r) << ", enabling it now.";
+      }
+    }
+  }
+
+  for (const auto f : allFeatures) {
+    if (!enabled[f])
+      continue;
+
+    for (const auto c : conflicts(f)) {
+      if (enabled[c]) {
+        LOG(ERROR) << featureToStr(f) << " feature conflicts with "
+                   << featureToStr(c) << " but both are enabled!";
+        return std::nullopt;
       }
     }
   }
