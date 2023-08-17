@@ -27,4 +27,7 @@ void getSizeType(const %1%<T> &container, size_t& returnArg)
         SAVE_DATA(0);
     }
 }
+
+/* Workaround for issue https://github.com/facebookexperimental/object-introspection/issues/289 */
+extern "C" void _ZNSt11logic_errorC2EOS_(void) {}
 """
