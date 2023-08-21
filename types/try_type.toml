@@ -20,6 +20,7 @@ template<typename T>
 void getSizeType(const %1%<T> &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<T>));
+    SAVE_DATA((uintptr_t)&container);
     if (container.hasValue()) {
         SAVE_DATA((uintptr_t)(&(container.value())));
         getSizeType(container.value(), returnArg);
