@@ -31,7 +31,6 @@ includes = ["set", "functional"]
 
 [cases]
   [cases.a]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/306
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;
@@ -62,4 +61,13 @@ includes = ["set", "functional"]
         {"name":"m2", "staticSize":48, "dynamicSize":60, "length":5, "capacity":5, "elementStaticSize":12},
         {"name":"m3", "staticSize":48, "dynamicSize":84, "length":7, "capacity":7, "elementStaticSize":12},
         {"name":"m4", "staticSize":8040, "dynamicSize":108, "length":9, "capacity":9, "elementStaticSize":12}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":8184,
+      "exclusiveSize": 0,
+      "members":[
+        {"name":"m1", "staticSize":48, "exclusiveSize": 156, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":48, "exclusiveSize": 228, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":48, "exclusiveSize": 300, "length": 7, "capacity": 7},
+        {"name":"m4", "staticSize":8040, "exclusiveSize": 8364, "length": 9, "capacity": 9}
       ]}]'''
