@@ -104,6 +104,8 @@ void OILibraryImpl::processConfigFile() {
 }
 
 std::pair<void*, const exporters::inst::Inst&> OILibraryImpl::compileCode() {
+  google::SetVLOGLevel("*", opts_.debugLevel);
+
   auto symbols = std::make_shared<SymbolService>(getpid());
 
   auto* prog = symbols->getDrgnProgram();
