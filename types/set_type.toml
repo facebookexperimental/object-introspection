@@ -88,17 +88,6 @@ el.pointer = std::get<ParsedData::VarInt>(d.val).value;
 [[codegen.processor]]
 type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
 func = """
-static constexpr std::array<std::string_view, 1> names{"TODO"};
-static constexpr auto childField = inst::Field{
-  sizeof(T0),
-  "[]",
-  names,
-  TypeHandler<DB, T0>::fields,
-  TypeHandler<DB, T0>::processors,
-};
-
-size_t element_size = 0; // Defined bellow, depending on the implementation
-
 #ifdef __GLIBCXX__
 /* We don't have access to the _Rb_tree_node struct, so we manually re-create it
  * to get the effective size of a set entry. Is there a better way to do this?
@@ -117,7 +106,7 @@ struct OI_Rb_tree_node {
   T0                  _M_value;
 };
 
-element_size = sizeof(OI_Rb_tree_node);
+static constexpr size_t element_size = sizeof(OI_Rb_tree_node);
 #elif _LIBCPP_VERSION
 static_assert(false && "libc++ is currently not supported");
 
@@ -138,15 +127,24 @@ struct OI__tree_node {
   T0                __value_;
 };
 
-element_size = sizeof(OI__tree_node);
+static constexpr size_t element_size = sizeof(OI__tree_node);
 #else
 static_assert(false && "No known element_size for sets. See types/set_type.toml");
 #endif
 
+static constexpr std::array<std::string_view, 1> names{"TODO"};
+static constexpr auto childField = inst::Field{
+  sizeof(T0),
+  "[]",
+  names,
+  TypeHandler<DB, T0>::fields,
+  TypeHandler<DB, T0>::processors,
+};
+
 auto list = std::get<ParsedData::List>(d.val);
 el.container_stats.emplace(result::Element::ContainerStats {
-  .length = list.length,
   .capacity = list.length,
+  .length = list.length,
 });
 el.exclusive_size += el.container_stats->length * (element_size - sizeof(T0));
 
