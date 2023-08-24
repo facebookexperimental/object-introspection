@@ -1,7 +1,6 @@
 includes = ["optional", "cstdint", "vector"]
 [cases]
   [cases.uint64_empty]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/312
     param_types = ["std::optional<std::uint64_t>&"]
     setup = "return std::nullopt;"
     expect_json = '''
@@ -17,7 +16,6 @@ includes = ["optional", "cstdint", "vector"]
     ]
     '''
   [cases.uint64_present]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/312
     param_types = ["std::optional<std::uint64_t>&"]
     setup = "return 64;"
     expect_json = '''
@@ -33,7 +31,6 @@ includes = ["optional", "cstdint", "vector"]
     ]
     '''
   [cases.vector_empty]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/312
     param_types = ["std::optional<std::vector<std::uint64_t>>&"]
     setup = "return std::nullopt;"
     expect_json = '''
@@ -49,7 +46,6 @@ includes = ["optional", "cstdint", "vector"]
     ]
     '''
   [cases.vector_present]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/312
     param_types = ["std::optional<std::vector<std::uint64_t>>&"]
     setup = "return {{{1,2,3,4,5}}};"
     expect_json = '''
