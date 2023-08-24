@@ -6,7 +6,7 @@ definitions = '''
   };
 
   struct Foo {
-    std::multimap<int, int> m1;
+    std::multimap<int, double> m1;
     std::multimap<int, int, CustomComparator> m2;
   };
 '''
@@ -14,7 +14,6 @@ includes = ["map"]
 
 [cases]
   [cases.a]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/313
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;
@@ -31,8 +30,24 @@ includes = ["map"]
     '''
     expect_json = '''[{
       "staticSize":96,
-      "dynamicSize":64,
+      "dynamicSize":76,
       "members":[
-        {"name":"m1", "staticSize":48, "dynamicSize":24, "length":3, "capacity":3, "elementStaticSize":8},
+        {"name":"m1", "staticSize":48, "dynamicSize":36, "length":3, "capacity":3, "elementStaticSize":12},
         {"name":"m2", "staticSize":48, "dynamicSize":40, "length":5, "capacity":5, "elementStaticSize":8}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":96,
+      "exclusiveSize":0,
+      "members":[
+        {"name":"m1",
+         "staticSize":48,
+         "exclusiveSize":48,
+         "length":3,
+         "capacity":3,
+         "members": [
+          {"name":"[]", "staticSize":48, "exclusiveSize":36},
+          {},
+          {}
+         ]},
+        {"name":"m2", "staticSize":48, "exclusiveSize":48, "length":5, "capacity":5}
       ]}]'''

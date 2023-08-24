@@ -60,3 +60,114 @@ struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
   }
 };
 """
+
+traversal_func = """
+auto tail = returnArg
+  .write((uintptr_t)&container)
+  .write(container.size());
+
+for (const auto &entry: container) {
+  tail = tail.delegate([&key = entry.first, &value = entry.second](auto ret) {
+    auto next = ret.delegate([&key](typename TypeHandler<DB, T0>::type ret) {
+      return OIInternal::getSizeType<DB>(key, ret);
+    });
+    return OIInternal::getSizeType<DB>(value, next);
+  });
+}
+
+return tail.finish();
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = "el.pointer = std::get<ParsedData::VarInt>(d.val).value;"
+
+[[codegen.processor]]
+type = """
+types::st::List<DB, types::st::Pair<DB,
+  typename TypeHandler<DB, T0>::type,
+  typename TypeHandler<DB, T1>::type>>
+"""
+func = """
+#ifdef __GLIBCXX__
+/* We don't have access to the _Rb_tree_node struct, so we manually re-create it
+ * to get the effective size of a multimap entry. Is there a better way to do this?
+ *
+ * https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/a00716_source.html#l00216
+ * From the source of <bits/stl_tree.h>, an _Rb_tree_node has the following members:
+ */
+struct OI_Rb_tree_node {
+  using _Rb_tree_color = int;       // enum
+  using _Base_ptr = std::nullptr_t; // pointer
+  using _value_type = std::pair<const T0, T1>; // from https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/a00695_source.html#l00104
+
+  _Rb_tree_color _M_color;  // from parent _Rb_tree_node_base
+  _Base_ptr      _M_parent; // from parent _Rb_tree_node_base
+  _Base_ptr      _M_left;   // from parent _Rb_tree_node_base
+  _Base_ptr      _M_right;  // from parent _Rb_tree_node_base
+  _value_type    _M_value;
+};
+
+static constexpr size_t element_size = sizeof(OI_Rb_tree_node);
+#elif _LIBCPP_VERSION
+static_assert(false && "libc++ is currently not supported");
+
+/* We don't have access to the __tree_node struct, so we manually re-create it
+ * to get the effective size of a multimap entry. Is there a better way to do this?
+ *
+ * https://github.com/llvm/llvm-project/blob/1b10920164695a487669405223f8bbe93799430c/libcxx/include/__tree#L729-L781
+ * From the source of <__tree>, a __tree_node has the following members:
+ */
+struct OI__tree_node {
+  using pointer = std::nullptr_t;          // pointer
+  using __parent_pointer = std::nullptr_t; // pointer
+  using _value_pair = std::pair<const T0, T1>; // from https://github.com/llvm/llvm-project/blob/main/libcxx/include/map#L1864
+
+  pointer          __left_;     // from parent __tree_end_node
+  pointer          __right_;    // from parent __tree_node_base
+  __parent_pointer __parent_;   // from parent __tree_node_base
+  bool             __is_black_; // from parent __tree_node_base
+  _value_type      __value_;
+};
+
+static constexpr size_t element_size = sizeof(OI__tree_node);
+#else
+static_assert(false && "No known element_size for sets. See types/multi_map_type.toml");
+#endif
+
+static constexpr std::array<std::string_view, 1> names{"TODO"};
+
+static constexpr std::array<inst::Field, 2> element_fields{
+  inst::Field {
+    sizeof(T0),
+    "key",
+    names,
+    TypeHandler<DB, T0>::fields,
+    TypeHandler<DB, T0>::processors,
+  },
+  inst::Field {
+    sizeof(T1),
+    "value",
+    names,
+    TypeHandler<DB, T1>::fields,
+    TypeHandler<DB, T1>::processors,
+  },
+};
+static constexpr auto element = inst::Field {
+  element_size,
+  element_size - sizeof(T0) - sizeof(T1),
+  "[]",
+  names,
+  element_fields,
+  std::array<inst::ProcessorInst, 0>{},
+};
+
+auto list = std::get<ParsedData::List>(d.val);
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = list.length,
+  .length = list.length,
+});
+
+for (size_t i = 0; i < list.length; i++)
+  ins.emplace(element);
+"""
