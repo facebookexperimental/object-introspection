@@ -22,7 +22,7 @@ definitions = '''
   };
 
   struct Foo {
-    std::map<int, int> m1;
+    std::map<int, double> m1;
     std::map<int, int, CustomComparator> m2;
     std::map<int, int, SmallSizedCustomComparator> m3;
     std::map<int, int, BigSizedCustomComparator> m4;
@@ -36,7 +36,6 @@ includes = ["map", "functional"]
 
 [cases]
   [cases.a]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/314
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;
@@ -61,10 +60,28 @@ includes = ["map", "functional"]
     '''
     expect_json = '''[{
       "staticSize":8184,
-      "dynamicSize":768,
+      "dynamicSize":780,
       "members":[
-        {"name":"m1", "staticSize":48, "dynamicSize":96, "length":3, "capacity":3, "elementStaticSize":32},
+        {"name":"m1", "staticSize":48, "dynamicSize":108, "length":3, "capacity":3, "elementStaticSize":36},
         {"name":"m2", "staticSize":48, "dynamicSize":160, "length":5, "capacity":5, "elementStaticSize":32},
         {"name":"m3", "staticSize":48, "dynamicSize":224, "length":7, "capacity":7, "elementStaticSize":32},
         {"name":"m4", "staticSize":8040, "dynamicSize":288, "length":9, "capacity":9, "elementStaticSize":32}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":8184,
+      "exclusiveSize":0,
+      "members":[
+        {"name":"m1",
+         "staticSize":48,
+         "exclusiveSize":48,
+         "length":3,
+         "capacity":3,
+         "members": [
+          {"name":"[]", "staticSize":48, "exclusiveSize":36},
+          {},
+          {}
+         ]},
+        {"name":"m2", "staticSize":48, "exclusiveSize":48, "length":5, "capacity":5},
+        {"name":"m3", "staticSize":48, "exclusiveSize":48, "length":7, "capacity":7},
+        {"name":"m4", "staticSize":8040, "exclusiveSize":8040, "length":9, "capacity":9}
       ]}]'''
