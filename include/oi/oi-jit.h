@@ -24,8 +24,8 @@
 #include <utility>
 #include <vector>
 
-#include "exporters/inst.h"
-#include "oi.h"
+#include "oi/exporters/inst.h"
+#include "oi/oi.h"
 
 namespace oi::detail {
 class OILibraryImpl;

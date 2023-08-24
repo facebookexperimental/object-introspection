@@ -36,7 +36,7 @@ IntrospectionResult __attribute__((noinline)) introspect(const T& objectAddr);
 }  // namespace oi
 
 #ifndef OIL_AOT_COMPILATION
-#include "oi-jit.h"
+#include "oi/oi-jit.h"
 #else
 
 template <typename T, Feature... Fs>
