@@ -629,15 +629,16 @@ class Pointer : public Type {
  */
 class Dummy : public Type {
  public:
-  explicit Dummy(size_t size, uint64_t align, std::string inputName)
+  explicit Dummy(NodeId id, size_t size, uint64_t align, std::string inputName)
       : size_(size),
         align_(align),
+        id_(id),
         name_(std::string{"DummySizedOperator<"} + std::to_string(size) + ", " +
-              std::to_string(align) + ">"),
+              std::to_string(align) + ", " + std::to_string(id_) + ">"),
         inputName_(std::move(inputName)) {
   }
 
-  static inline constexpr bool has_node_id = false;
+  static inline constexpr bool has_node_id = true;
 
   DECLARE_ACCEPT
 
@@ -658,12 +659,13 @@ class Dummy : public Type {
   }
 
   virtual NodeId id() const override {
-    return -1;
+    return id_;
   }
 
  private:
   size_t size_;
   uint64_t align_;
+  NodeId id_ = -1;
 
   std::string name_;
   std::string inputName_;
@@ -677,18 +679,17 @@ class Dummy : public Type {
  */
 class DummyAllocator : public Type {
  public:
-  explicit DummyAllocator(Type& type,
-                          size_t size,
-                          uint64_t align,
-                          std::string inputName)
+  explicit DummyAllocator(
+      NodeId id, Type& type, size_t size, uint64_t align, std::string inputName)
       : type_(type),
         size_(size),
         align_(align),
+        id_(id),
         inputName_(std::move(inputName)) {
     regenerateName();
   }
 
-  static inline constexpr bool has_node_id = false;
+  static inline constexpr bool has_node_id = true;
 
   DECLARE_ACCEPT
 
@@ -698,7 +699,8 @@ class DummyAllocator : public Type {
 
   void regenerateName() {
     name_ = std::string{"DummyAllocator<"} + type_.name() + ", " +
-            std::to_string(size_) + ", " + std::to_string(align_) + ">";
+            std::to_string(size_) + ", " + std::to_string(align_) + ", " +
+            std::to_string(id_) + ">";
   }
 
   virtual std::string_view inputName() const override {
@@ -714,7 +716,7 @@ class DummyAllocator : public Type {
   }
 
   virtual NodeId id() const override {
-    return -1;
+    return id_;
   }
 
   Type& allocType() const {
@@ -725,6 +727,7 @@ class DummyAllocator : public Type {
   Type& type_;
   size_t size_;
   uint64_t align_;
+  NodeId id_ = -1;
 
   std::string name_;
   std::string inputName_;

@@ -98,6 +98,7 @@ TEST(TopoSorterTest, TemplateParamValue) {
   myclass.templateParams.push_back(TemplateParam{myint, "123"});
 
   test({myclass}, R"(
+int32_t
 MyClass
 )");
 }

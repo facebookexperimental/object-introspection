@@ -132,11 +132,10 @@ static constexpr size_t element_size = sizeof(OI__tree_node);
 static_assert(false && "No known element_size for sets. See types/set_type.toml");
 #endif
 
-static constexpr std::array<std::string_view, 1> names{"TODO"};
 static constexpr auto childField = inst::Field{
   sizeof(T0),
   "[]",
-  names,
+  NameProvider<T0>::names,
   TypeHandler<DB, T0>::fields,
   TypeHandler<DB, T0>::processors,
 };

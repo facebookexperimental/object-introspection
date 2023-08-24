@@ -23,7 +23,7 @@ TEST(TypeIdentifierTest, StubbedParam) {
       Param
         Primitive: int32_t
       Param
-        Dummy [MyParam] (size: 4)
+[2]     Dummy [MyParam] (size: 4)
       Param
         Primitive: int32_t
 )");
@@ -48,7 +48,7 @@ TEST(TypeIdentifierTest, Allocator) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator [MyAlloc] (size: 8)
+[2]     DummyAllocator [MyAlloc] (size: 8)
           Primitive: int32_t
       Param
         Primitive: int32_t
@@ -74,7 +74,7 @@ TEST(TypeIdentifierTest, AllocatorSize1) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator [MyAlloc] (size: 0)
+[2]     DummyAllocator [MyAlloc] (size: 0)
           Primitive: int32_t
       Param
         Primitive: int32_t
@@ -107,6 +107,36 @@ TEST(TypeIdentifierTest, PassThroughTypes) {
 )");
 }
 
+TEST(TypeIdentifierTest, PassThroughSameType) {
+  std::vector<ContainerInfo> passThroughTypes;
+  passThroughTypes.emplace_back("std::allocator", DUMMY_TYPE, "memory");
+
+  test(TypeIdentifier::createPass(passThroughTypes), R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[1]     Class: std::allocator (size: 1)
+          Param
+            Primitive: int32_t
+          Function: allocate
+          Function: deallocate
+      Param
+        [1]
+)",
+       R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+[2]     Container: std::allocator (size: 1)
+          Param
+            Primitive: int32_t
+      Param
+        [2]
+)");
+}
+
 TEST(TypeIdentifierTest, ContainerNotReplaced) {
   test(TypeIdentifier::createPass({}), R"(
 [0] Container: std::vector (size: 24)
@@ -134,7 +164,7 @@ TEST(TypeIdentifierTest, DummyNotReplaced) {
       Param
         Primitive: int32_t
       Param
-        Dummy [InputName] (size: 22)
+[1]     Dummy [InputName] (size: 22)
 )");
 }
 
@@ -144,7 +174,7 @@ TEST(TypeIdentifierTest, DummyAllocatorNotReplaced) {
       Param
         Primitive: int32_t
       Param
-        DummyAllocator [InputName] (size: 22)
+[1]     DummyAllocator [InputName] (size: 22)
           Primitive: int32_t
 )");
 }

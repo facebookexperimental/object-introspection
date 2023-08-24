@@ -218,6 +218,24 @@ void genDecls(const TypeGraph& typeGraph, std::string& code) {
   }
 }
 
+void genNames(const TypeGraph& typeGraph, std::string& code) {
+  code += R"(
+template <typename T>
+struct NameProvider {};
+)";
+
+  for (const Type& t : typeGraph.finalTypes) {
+    if (dynamic_cast<const Typedef*>(&t))
+      continue;
+
+    code += "template <> struct NameProvider<";
+    code += t.name();
+    code += "> { static constexpr std::array<std::string_view, 1> names = {\"";
+    code += t.inputName();
+    code += "\"}; };\n";
+  }
+}
+
 /*
  * Generates a declaration for a given fully-qualified type.
  *
@@ -1136,6 +1154,8 @@ void CodeGen::generate(
   genDecls(typeGraph, code);
   genDefs(typeGraph, code);
   genStaticAsserts(typeGraph, code);
+  if (config_.features[Feature::TreeBuilderV2])
+    genNames(typeGraph, code);
 
   if (config_.features[Feature::TypedDataSegment]) {
     addStandardTypeHandlers(typeGraph, config_.features, code);
