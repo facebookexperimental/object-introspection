@@ -1172,8 +1172,8 @@ void CodeGen::generate(
 
   if (VLOG_IS_ON(3)) {
     VLOG(3) << "Generated trace code:\n";
-    // VLOG truncates output, so use std::cout
-    std::cout << code;
+    // VLOG truncates output, so use std::cerr
+    std::cerr << code;
   }
 }
 
