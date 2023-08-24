@@ -15,6 +15,8 @@
  */
 #pragma once
 
+#include <functional>
+#include <unordered_map>
 #include <vector>
 
 #include "NodeTracker.h"
@@ -54,6 +56,9 @@ class TypeIdentifier : public RecursiveVisitor {
   NodeTracker& tracker_;
   TypeGraph& typeGraph_;
   const std::vector<ContainerInfo>& passThroughTypes_;
+
+  std::unordered_map<NodeId, std::reference_wrapper<Container>>
+      passThroughTypeDummys_;
 };
 
 }  // namespace oi::detail::type_graph

@@ -365,12 +365,12 @@ TEST(NameGenTest, Pointer) {
 }
 
 TEST(NameGenTest, Dummy) {
-  auto dummy = Dummy{12, 34, "InputName"};
+  auto dummy = Dummy{0, 12, 34, "InputName"};
 
   NameGen nameGen;
   nameGen.generateNames({dummy});
 
-  EXPECT_EQ(dummy.name(), "DummySizedOperator<12, 34>");
+  EXPECT_EQ(dummy.name(), "DummySizedOperator<12, 34, 0>");
   EXPECT_EQ(dummy.inputName(), "InputName");
 }
 
@@ -382,7 +382,7 @@ TEST(NameGenTest, DummyAllocator) {
   mycontainer.templateParams.push_back(myparam1);
   mycontainer.templateParams.push_back(myparam2);
 
-  auto myalloc = DummyAllocator{mycontainer, 12, 34, "BigAllocator"};
+  auto myalloc = DummyAllocator{2, mycontainer, 12, 34, "BigAllocator"};
 
   NameGen nameGen;
   nameGen.generateNames({myalloc});
@@ -391,7 +391,7 @@ TEST(NameGenTest, DummyAllocator) {
   EXPECT_EQ(myparam2.name(), "MyParam_1");
   EXPECT_EQ(mycontainer.name(), "std::vector<MyParam_0, MyParam_1>");
   EXPECT_EQ(myalloc.name(),
-            "DummyAllocator<std::vector<MyParam_0, MyParam_1>, 12, 34>");
+            "DummyAllocator<std::vector<MyParam_0, MyParam_1>, 12, 34, 2>");
 
   EXPECT_EQ(myparam1.inputName(), "MyParam");
   EXPECT_EQ(myparam2.inputName(), "MyParam");

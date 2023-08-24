@@ -65,11 +65,10 @@ traversal_func = """
 [[codegen.processor]]
 type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
 func = """
-static constexpr std::array<std::string_view, 1> names{"TODO"};
 static constexpr inst::Field childField{
   sizeof(T0),
   "[]",
-  names,
+  NameProvider<T0>::names,
   TypeHandler<DB, T0>::fields,
   TypeHandler<DB, T0>::processors,
 };

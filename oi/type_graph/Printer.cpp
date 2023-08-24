@@ -140,14 +140,14 @@ void Printer::visit(const Pointer& p) {
 }
 
 void Printer::visit(const Dummy& d) {
-  prefix();
+  prefix(&d);
   out_ << "Dummy ";
   out_ << "[" << d.inputName() << "] ";
   out_ << "(size: " << d.size() << align_str(d.align()) << ")" << std::endl;
 }
 
 void Printer::visit(const DummyAllocator& d) {
-  prefix();
+  prefix(&d);
   out_ << "DummyAllocator ";
   out_ << "[" << d.inputName() << "] ";
   out_ << "(size: " << d.size() << align_str(d.align()) << ")" << std::endl;

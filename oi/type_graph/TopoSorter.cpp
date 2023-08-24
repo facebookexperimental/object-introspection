@@ -73,6 +73,10 @@ void TopoSorter::visit(Class& c) {
   }
 }
 
+void TopoSorter::visit(Primitive& p) {
+  sortedTypes_.push_back(p);
+}
+
 namespace {
 /*
  * C++17 allows the std::vector, std::list and std::forward_list containers to

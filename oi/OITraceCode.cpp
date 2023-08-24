@@ -86,7 +86,7 @@ class {
 }  // namespace
 
 // alignas(0) is ignored according to docs so can be default
-template <unsigned int N, unsigned int align = 0>
+template <unsigned int N, unsigned int align = 0, int32_t Id = 0>
 struct alignas(align) DummySizedOperator {
   char c[N];
 };
@@ -96,15 +96,14 @@ struct alignas(align) DummySizedOperator {
 // even though an empty class and a class with a single character have size one,
 // there is some empty class optimization that changes the static size of the
 // container if an empty class is passed.
+template <int32_t Id>
+struct DummySizedOperator<0, 0, Id> {};
 
-// DummySizedOperator<0,0> also collapses to this
-template <>
-struct DummySizedOperator<0> {};
-
-template <template <typename, size_t, size_t> typename DerivedT,
+template <template <typename, size_t, size_t, int32_t> typename DerivedT,
           typename T,
           size_t N,
-          size_t Align>
+          size_t Align,
+          int32_t Id>
 struct DummyAllocatorBase {
   using value_type = T;
   T* allocate(std::size_t n) {
@@ -115,18 +114,19 @@ struct DummyAllocatorBase {
 
   template <typename U>
   struct rebind {
-    using other = DerivedT<U, N, Align>;
+    using other = DerivedT<U, N, Align, Id>;
   };
 };
 
-template <typename T, size_t N, size_t Align = 0>
+template <typename T, size_t N, size_t Align = 0, int32_t Id = 0>
 struct alignas(Align) DummyAllocator
-    : DummyAllocatorBase<DummyAllocator, T, N, Align> {
+    : DummyAllocatorBase<DummyAllocator, T, N, Align, Id> {
   char c[N];
 };
 
-template <typename T>
-struct DummyAllocator<T, 0> : DummyAllocatorBase<DummyAllocator, T, 0, 0> {};
+template <typename T, int32_t Id>
+struct DummyAllocator<T, 0, 0, Id>
+    : DummyAllocatorBase<DummyAllocator, T, 0, 0, Id> {};
 
 template <typename Type, size_t ExpectedSize, size_t ActualSize = 0>
 struct validate_size {

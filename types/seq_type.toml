@@ -95,11 +95,10 @@ el.container_stats.emplace(result::Element::ContainerStats{ .capacity = std::get
 [[codegen.processor]]
 type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
 func = """
-static constexpr std::array<std::string_view, 1> names{"TODO"};
 static constexpr auto childField = inst::Field{
   sizeof(T0),
   "[]",
-  names,
+  NameProvider<T0>::names,
   TypeHandler<DB, T0>::fields,
   TypeHandler<DB, T0>::processors,
 };

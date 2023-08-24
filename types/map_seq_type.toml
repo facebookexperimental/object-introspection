@@ -102,29 +102,28 @@ type = '''types::st::List<DB, types::st::Pair<DB,
 func = '''
 using element_type = std::pair<T0, T1>;
 
-static constexpr std::array<std::string_view, 1> names{"TODO"};
-
 static constexpr std::array<inst::Field, 2> entryFields{
   inst::Field{
     sizeof(T0),
     "key",
-    names,
+    NameProvider<T0>::names,
     TypeHandler<DB, T0>::fields,
     TypeHandler<DB, T0>::processors,
   },
   inst::Field{
     sizeof(T1),
     "value",
-    names,
+    NameProvider<T1>::names,
     TypeHandler<DB, T1>::fields,
     TypeHandler<DB, T1>::processors,
   },
 };
+
 static constexpr auto entryField = inst::Field {
   sizeof(element_type),
   sizeof(element_type) - sizeof(T0) - sizeof(T1),
   "[]",
-  names,
+  std::array<std::string_view, 0>{},
   entryFields,
   std::array<inst::ProcessorInst, 0>{},
 };

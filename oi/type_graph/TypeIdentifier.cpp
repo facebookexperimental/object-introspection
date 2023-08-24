@@ -72,11 +72,19 @@ void TypeIdentifier::visit(Container& c) {
       bool replaced = false;
       for (const auto& info : passThroughTypes_) {
         if (std::regex_search(paramClass->fqName(), info.matcher)) {
-          // Create dummy containers
-          auto& dummy =
-              typeGraph_.makeType<Container>(info, param.type().size());
-          dummy.templateParams = paramClass->templateParams;
-          c.templateParams[i] = dummy;
+          // Create dummy containers. Use a map so previously deduplicated nodes
+          // remain deduplicated.
+          Container* dummy;
+          if (auto it = passThroughTypeDummys_.find(paramClass->id());
+              it != passThroughTypeDummys_.end()) {
+            dummy = &it->second.get();
+          } else {
+            dummy = &typeGraph_.makeType<Container>(info, param.type().size());
+            dummy->templateParams = paramClass->templateParams;
+            passThroughTypeDummys_.insert(it,
+                                          {paramClass->id(), std::ref(*dummy)});
+          }
+          c.templateParams[i] = *dummy;
           replaced = true;
         }
       }

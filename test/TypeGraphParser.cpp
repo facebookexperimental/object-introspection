@@ -295,14 +295,14 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
     // Format: "Dummy (size: 4)"
     auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
     std::string inputName{*tryParseInputName(line)};
-    type = &typeGraph_.makeType<Dummy>(size, 0, inputName);
+    type = &typeGraph_.makeType<Dummy>(id, size, 0, inputName);
   } else if (nodeTypeName == "DummyAllocator") {
     // Format: "DummyAllocator (size: 8)"
     auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
     std::string inputName{*tryParseInputName(line)};
     auto& typeToAlloc = parseType(input, indent + 2);
-    type =
-        &typeGraph_.makeType<DummyAllocator>(typeToAlloc, size, 0, inputName);
+    type = &typeGraph_.makeType<DummyAllocator>(id, typeToAlloc, size, 0,
+                                                inputName);
   } else {
     throw TypeGraphParserError{"Unsupported node type: " +
                                std::string{nodeTypeName}};
