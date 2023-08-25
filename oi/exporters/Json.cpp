@@ -15,6 +15,7 @@
  */
 #include <oi/exporters/Json.h>
 
+#include <algorithm>
 #include <stdexcept>
 
 template <class>
@@ -34,8 +35,9 @@ void printStringList(std::ostream& out, It it, It end, bool pretty) {
   out << ']';
 }
 
-std::string makeIndent(std::vector<std::string_view>& tp) {
-  return std::string((tp.size() - 1) * 4, ' ');
+std::string makeIndent(size_t depth) {
+  depth = std::max(depth, 1UL);
+  return std::string((depth - 1) * 4, ' ');
 }
 
 }  // namespace
@@ -52,13 +54,14 @@ void Json::print(IntrospectionResult::const_iterator& it,
                  IntrospectionResult::const_iterator end) {
   std::vector<std::string_view> firstTypePath = it->type_path;
 
-  const auto indent = pretty_ ? makeIndent(firstTypePath) : "";
+  const auto indent = pretty_ ? makeIndent(firstTypePath.size()) : "";
+  const auto lastIndent =
+      pretty_ ? makeIndent(std::max(firstTypePath.size(), 1UL) - 1) : "";
   const auto* tab = pretty_ ? "  " : "";
   const auto* space = pretty_ ? " " : "";
   const auto* endl = pretty_ ? "\n" : "";
 
-  out_ << '[';
-  out_ << endl << indent;
+  out_ << '[' << endl << indent;
 
   bool first = true;
   while (it != end) {
@@ -114,12 +117,16 @@ void Json::print(IntrospectionResult::const_iterator& it,
     if ((++it)->type_path.size() > firstTypePath.size()) {
       print(it, end);
     } else {
-      out_ << "[]" << endl << indent;
+      out_ << "[]" << endl;
     }
 
-    out_ << "}";
+    out_ << indent << "}";
   }
-  out_ << endl << indent << ']' << endl;
+  if (firstTypePath.size() == 1) {
+    out_ << endl << ']' << endl;
+  } else {
+    out_ << endl << lastIndent << tab << ']' << endl;
+  }
 }
 
 }  // namespace oi::exporters
