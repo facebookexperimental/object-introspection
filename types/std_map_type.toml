@@ -144,22 +144,10 @@ static_assert(false && "No known element_size for sets. See types/std_map_type.t
 #endif
 
 static constexpr std::array<inst::Field, 2> element_fields{
-  inst::Field {
-    sizeof(T0),
-    "key",
-    NameProvider<T0>::names,
-    TypeHandler<DB, T0>::fields,
-    TypeHandler<DB, T0>::processors,
-  },
-  inst::Field {
-    sizeof(T1),
-    "value",
-    NameProvider<T1>::names,
-    TypeHandler<DB, T1>::fields,
-    TypeHandler<DB, T1>::processors,
-  },
+  make_field<DB, T0>("key"),
+  make_field<DB, T1>("value"),
 };
-static constexpr auto element = inst::Field {
+static constexpr inst::Field element{
   element_size,
   element_size - sizeof(T0) - sizeof(T1),
   "[]",

@@ -65,13 +65,7 @@ traversal_func = """
 [[codegen.processor]]
 type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
 func = """
-static constexpr inst::Field childField{
-  sizeof(T0),
-  "[]",
-  NameProvider<T0>::names,
-  TypeHandler<DB, T0>::fields,
-  TypeHandler<DB, T0>::processors,
-};
+static constexpr auto childField = make_field<DB, T0>("[]");
 
 size_t size = std::get<ParsedData::List>(d.val).length;
 el.exclusive_size = N0 == 0 ? 1 : 0;

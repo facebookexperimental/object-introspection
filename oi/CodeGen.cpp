@@ -985,6 +985,22 @@ void addStandardTypeHandlers(TypeGraph& typeGraph,
     }
 )";
 
+  if (features[Feature::TreeBuilderV2]) {
+    code += R"(
+template <typename DB, typename T>
+constexpr inst::Field make_field(std::string_view name) {
+  return inst::Field{
+    sizeof(T),
+    sizeof(T), // TODO: this is incorrect for excl size
+    name,
+    NameProvider<T>::names,
+    TypeHandler<DB, T>::fields,
+    TypeHandler<DB, T>::processors,
+  };
+}
+)";
+  }
+
   // TODO: bit of a hack - making ContainerInfo a node in the type graph and
   // traversing for it would remove the need for this set altogether.
   std::unordered_set<const ContainerInfo*> used{};
