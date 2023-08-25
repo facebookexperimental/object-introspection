@@ -843,6 +843,7 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
       containerStats.length = next();
       break;
     case RADIX_TREE_TYPE:
+    case MULTI_SET_TYPE:
     case MULTI_MAP_TYPE:
     case BY_MULTI_QRT_TYPE:
       containerStats.length = containerStats.capacity = next();

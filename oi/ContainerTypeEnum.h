@@ -20,6 +20,7 @@
   X(ARRAY_TYPE)                  \
   X(SMALL_VEC_TYPE)              \
   X(SET_TYPE)                    \
+  X(MULTI_SET_TYPE)              \
   X(UNORDERED_SET_TYPE)          \
   X(SEQ_TYPE)                    \
   X(LIST_TYPE)                   \
