@@ -67,3 +67,71 @@ struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
   }
 };
 """
+
+traversal_func = """
+auto tail = returnArg
+  .write((uintptr_t)&container)
+  .write(container.bucket_count())
+  .write(container.size());
+
+for (const auto &it : container) {
+  tail = tail.delegate([&it](auto ret) {
+    return OIInternal::getSizeType<DB>(it, ret);
+  });
+}
+
+return tail.finish();
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+// Using the container's capacity to temporarily store the number of buckets
+// TODO: Is there another way to pass a value across processors?
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = std::get<ParsedData::VarInt>(d.val).value,
+});
+"""
+
+[[codegen.processor]]
+type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+func = """
+#ifdef __GLIBCXX__
+/* Use libstdc++ implementation __details to compute the size of Nodes and Buckets.
+ *
+ * See the source of <bits/hashtable_policy.h>:
+ * https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/a00536_source.html
+ */
+using OI_Hash_node =
+  std::__detail::_Hash_node<T0, std::__cache_default<T0, T1>::value>;
+
+using OI_bucket = std::__detail::_Hash_node_base;
+
+static constexpr size_t element_size = sizeof(OI_Hash_node);
+static constexpr size_t bucket_size = sizeof(OI_bucket);
+#else
+static_assert(false && "No known element_size for sets. See types/set_type.toml");
+#endif
+
+auto list = std::get<ParsedData::List>(d.val);
+// Reading the bucket count that was stored in `capacity` by the processor above.
+size_t bucket_count = el.container_stats->capacity;
+el.exclusive_size += bucket_count * bucket_size;
+el.exclusive_size += list.length * (element_size - sizeof(T0));
+
+// Overwrite the bucket count stored in `capacity` with the actual container's values.
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = list.length,
+  .length = list.length,
+});
+
+static constexpr auto childField = make_field<DB, T0>("[]");
+for (size_t i = 0; i < list.length; i++)
+  ins.emplace(childField);
+"""
