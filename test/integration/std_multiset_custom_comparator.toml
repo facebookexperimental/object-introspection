@@ -1,0 +1,73 @@
+definitions = '''
+  struct CustomComparator {
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct SmallSizedCustomComparator {
+    double a;
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct BigSizedCustomComparator {
+    double d[1000];
+    bool operator()(const int& left, const int& right) const {
+      return left < right;
+    }
+  };
+
+  struct Foo {
+    std::multiset<int> m1;
+    std::multiset<int, CustomComparator> m2;
+    std::multiset<int, SmallSizedCustomComparator> m3;
+    std::multiset<int, BigSizedCustomComparator> m4;
+  };
+
+'''
+includes = ["set", "functional"]
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+
+      for (int i = 0; i < 3; i++) {
+        foo.m1.insert(i);
+      }
+
+      for (int i = 0; i < 5; i++) {
+        foo.m2.insert(i);
+      }
+
+      for (int i = 0; i < 7; i++) {
+        foo.m3.insert(i);
+      }
+
+      for (int i = 0; i < 9; i++) {
+        foo.m4.insert(i);
+      }
+
+      return {foo};
+    '''
+    expect_json = '''[{
+      "staticSize":8184,
+      "dynamicSize":96,
+      "members":[
+        {"name":"m1", "staticSize":48, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4},
+        {"name":"m2", "staticSize":48, "dynamicSize":20, "length":5, "capacity":5, "elementStaticSize":4},
+        {"name":"m3", "staticSize":48, "dynamicSize":28, "length":7, "capacity":7, "elementStaticSize":4},
+        {"name":"m4", "staticSize":8040, "dynamicSize":36, "length":9, "capacity":9, "elementStaticSize":4}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":8184,
+      "exclusiveSize": 0,
+      "members":[
+        {"name":"m1", "staticSize":48, "exclusiveSize": 156, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":48, "exclusiveSize": 228, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":48, "exclusiveSize": 300, "length": 7, "capacity": 7},
+        {"name":"m4", "staticSize":8040, "exclusiveSize": 8364, "length": 9, "capacity": 9}
+      ]}]'''

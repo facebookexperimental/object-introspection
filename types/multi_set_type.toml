@@ -1,0 +1,149 @@
+[info]
+type_name = "std::multiset"
+stub_template_params = [1,2]
+ctype = "MULTI_SET_TYPE"
+header = "set"
+
+# Old:
+typeName = "std::multiset<"
+ns = ["namespace std"]
+numTemplateParams = 1
+replaceTemplateParamIndex = [1]
+allocatorIndex = 2
+
+[codegen]
+decl = """
+template<typename Key, typename Compare, typename Alloc>
+void getSizeType(const %1%<Key, Compare, Alloc> &container, size_t& returnArg);
+"""
+
+func = """
+template<typename Key, typename Compare, typename Alloc>
+void getSizeType(const %1%<Key, Compare, Alloc> &container, size_t& returnArg)
+{
+    constexpr size_t nodeSize = sizeof(typename %1%<Key, Compare, Alloc>::node_type);
+    size_t numElems = container.size();
+
+    SAVE_SIZE(sizeof(%1%<Key, Compare, Alloc>) + (nodeSize * numElems));
+
+    SAVE_DATA((uintptr_t)numElems);
+
+    // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
+    for (auto&& it: container) {
+    getSizeType(it, returnArg);
+    }
+}
+"""
+
+handler = """
+template <typename DB, typename T0, typename T1, typename T2>
+struct TypeHandler<DB, %1% <T0, T1, T2>> {
+  using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
+
+  static types::st::Unit<DB> getSizeType(
+      const %1%<T0, T1, T2>& container,
+      typename TypeHandler<DB, %1%<T0, T1, T2>>::type returnArg) {
+    constexpr size_t nodeSize = sizeof(typename %1%<T0, T1, T2>::node_type);
+
+    auto tail = returnArg.write(container.size());
+
+    // The double ampersand is needed otherwise this loop doesn't work with
+    // vector<bool>
+    for (auto&& it : container) {
+      tail = tail.delegate([&it](auto ret) {
+        return OIInternal::getSizeType<DB>(it, ret);
+      });
+    }
+
+    return tail.finish();
+  }
+};
+"""
+
+traversal_func = """
+auto tail = returnArg.write((uintptr_t)&container)
+                .write(container.size());
+
+// The double ampersand is needed otherwise this loop doesn't work with
+// vector<bool>
+for (auto&& it : container) {
+  tail = tail.delegate([&it](auto ret) {
+    return OIInternal::getSizeType<DB>(it, ret);
+  });
+}
+
+return tail.finish();
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+func = """
+#ifdef __GLIBCXX__
+/* We don't have access to the _Rb_tree_node struct, so we manually re-create it
+ * to get the effective size of a multiset entry. Is there a better way to do this?
+ *
+ * https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/a00716_source.html#l00216
+ * From the source of <bits/stl_tree.h>, an _Rb_tree_node has the following members:
+ */
+struct OI_Rb_tree_node {
+  using _Rb_tree_color = int;       // enum
+  using _Base_ptr = std::nullptr_t; // pointer
+
+  _Rb_tree_color      _M_color;  // from parent _Rb_tree_node_base
+  _Base_ptr           _M_parent; // from parent _Rb_tree_node_base
+  _Base_ptr           _M_left;   // from parent _Rb_tree_node_base
+  _Base_ptr           _M_right;  // from parent _Rb_tree_node_base
+  T0                  _M_value;
+};
+
+static constexpr size_t element_size = sizeof(OI_Rb_tree_node);
+#elif _LIBCPP_VERSION
+static_assert(false && "libc++ is currently not supported");
+
+/* We don't have access to the __tree_node struct, so we manually re-create it
+ * to get the effective size of a multiset entry. Is there a better way to do this?
+ *
+ * https://github.com/llvm/llvm-project/blob/1b10920164695a487669405223f8bbe93799430c/libcxx/include/__tree#L729-L781
+ * From the source of <__tree>, a __tree_node has the following members:
+ */
+struct OI__tree_node {
+  using pointer = std::nullptr_t;          // pointer
+  using __parent_pointer = std::nullptr_t; // pointer
+
+  pointer           __left_;     // from parent __tree_end_node
+  pointer           __right_;    // from parent __tree_node_base
+  __parent_pointer  __parent_;   // from parent __tree_node_base
+  bool              __is_black_; // from parent __tree_node_base
+  T0                __value_;
+};
+
+static constexpr size_t element_size = sizeof(OI__tree_node);
+#else
+static_assert(false && "No known element_size for multisets. See types/multi_set_type.toml");
+#endif
+
+static constexpr std::array<std::string_view, 1> names{"TODO"};
+static constexpr auto childField = inst::Field{
+  sizeof(T0),
+  "[]",
+  names,
+  TypeHandler<DB, T0>::fields,
+  TypeHandler<DB, T0>::processors,
+};
+
+auto list = std::get<ParsedData::List>(d.val);
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = list.length,
+  .length = list.length,
+});
+el.exclusive_size += el.container_stats->length * (element_size - sizeof(T0));
+
+for (size_t i = 0; i < list.length; i++)
+  ins.emplace(childField);
+"""

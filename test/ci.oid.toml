@@ -6,6 +6,7 @@ containers = [
     "../types/folly_iobuf_type.toml",
     "../types/folly_iobuf_queue_type.toml",
     "../types/set_type.toml",
+    "../types/multi_set_type.toml",
     "../types/unordered_set_type.toml",
     "../types/seq_type.toml",
     "../types/list_type.toml",

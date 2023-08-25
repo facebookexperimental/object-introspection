@@ -10,6 +10,7 @@ containers = [
     "PWD/types/folly_iobuf_type.toml",
     "PWD/types/folly_iobuf_queue_type.toml",
     "PWD/types/set_type.toml",
+    "PWD/types/multi_set_type.toml",
     "PWD/types/unordered_set_type.toml",
     "PWD/types/seq_type.toml",
     "PWD/types/list_type.toml",
