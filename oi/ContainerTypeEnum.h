@@ -22,6 +22,7 @@
   X(SET_TYPE)                    \
   X(MULTI_SET_TYPE)              \
   X(UNORDERED_SET_TYPE)          \
+  X(UNORDERED_MULTISET_TYPE)     \
   X(SEQ_TYPE)                    \
   X(LIST_TYPE)                   \
   X(STD_MAP_TYPE)                \
