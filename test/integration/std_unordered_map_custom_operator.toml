@@ -33,7 +33,6 @@ includes = ["unordered_map"]
 
 [cases]
   [cases.a]
-    oil_skip = "std::unordered_map is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/303
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;
@@ -64,4 +63,12 @@ includes = ["unordered_map"]
         {"name":"m2", "staticSize":120, "dynamicSize":264, "length":5, "capacity":5, "elementStaticSize":32},
         {"name":"m3", "staticSize":120, "dynamicSize":328, "length":7, "capacity":7, "elementStaticSize":32},
         {"name":"m4", "staticSize":184, "dynamicSize":392, "length":9, "capacity":9, "elementStaticSize":32}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":480,
+      "members":[
+        {"name":"m1", "staticSize":56, "exclusiveSize":220, "length":3, "capacity":3},
+        {"name":"m2", "staticSize":120, "exclusiveSize":324, "length":5, "capacity":5},
+        {"name":"m3", "staticSize":120, "exclusiveSize":364, "length":7, "capacity":7},
+        {"name":"m4", "staticSize":184, "exclusiveSize":468, "length":9, "capacity":9}
       ]}]'''
