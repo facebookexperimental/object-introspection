@@ -8,6 +8,7 @@ containers = [
     "../types/set_type.toml",
     "../types/multi_set_type.toml",
     "../types/unordered_set_type.toml",
+    "../types/unordered_multiset_type.toml",
     "../types/seq_type.toml",
     "../types/list_type.toml",
     "../types/cxx11_list_type.toml",

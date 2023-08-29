@@ -822,6 +822,7 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
       containerStats.length = containerStats.capacity = next();
       break;
     case UNORDERED_SET_TYPE:
+    case UNORDERED_MULTISET_TYPE:
     case STD_UNORDERED_MULTIMAP_TYPE:
     case STD_UNORDERED_MAP_TYPE: {
       // Account for node overhead
