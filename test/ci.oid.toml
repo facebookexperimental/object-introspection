@@ -16,6 +16,7 @@ containers = [
     "../types/uniq_ptr_type.toml",
     "../types/std_map_type.toml",
     "../types/std_unordered_map_type.toml",
+    "../types/std_unordered_multimap_type.toml",
     "../types/pair_type.toml",
     "../types/stack_container_adapter_type.toml",
     "../types/queue_container_adapter_type.toml",
