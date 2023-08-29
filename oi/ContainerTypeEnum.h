@@ -26,6 +26,7 @@
   X(LIST_TYPE)                   \
   X(STD_MAP_TYPE)                \
   X(STD_UNORDERED_MAP_TYPE)      \
+  X(STD_UNORDERED_MULTIMAP_TYPE) \
   X(MAP_SEQ_TYPE)                \
   X(BY_MULTI_QRT_TYPE)           \
   X(F14_MAP)                     \
