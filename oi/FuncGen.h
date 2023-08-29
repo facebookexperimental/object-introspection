@@ -61,6 +61,9 @@ class FuncGen {
                                           const std::string& linkageName);
   static void DefineTopLevelIntrospect(std::string& code,
                                        const std::string& type);
+  static void DefineTopLevelIntrospectNamed(std::string& code,
+                                            const std::string& type,
+                                            const std::string& linkageName);
 
   static void DefineTopLevelGetSizeRef(std::string& testCode,
                                        const std::string& rawType,

@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <variant>
 
+#include "oi/CodeGen.h"
 #include "oi/DrgnUtils.h"
 #include "oi/Headers.h"
 #include "oi/OIUtils.h"
@@ -33,9 +34,9 @@ namespace oi::detail {
 std::unordered_map<std::string, std::string>
 OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
   static constexpr std::string_view strongSymbolPrefix =
-      "int ObjectIntrospection::getObjectSize<";
+      "oi::IntrospectionResult oi::introspect<";
   static constexpr std::string_view weakSymbolPrefix =
-      "int ObjectIntrospection::getObjectSizeImpl<";
+      "oi::IntrospectionResult oi::introspectImpl<";
 
   std::unordered_map<std::string, std::pair<std::string, std::string>>
       templateArgsToSymbolsMap;
@@ -50,14 +51,14 @@ OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
           strongSymbolPrefix.length())];
       if (!matchedSyms.first.empty()) {
         LOG(WARNING) << "non-unique symbols found: `" << matchedSyms.first
-                     << "` and `" << symName << "`";
+                     << "` and `" << symName << '`';
       }
       matchedSyms.first = symName;
     } else if (demangled.starts_with(weakSymbolPrefix)) {
       auto& matchedSyms =
           templateArgsToSymbolsMap[demangled.substr(weakSymbolPrefix.length())];
       if (!matchedSyms.second.empty()) {
-        LOG(WARNING) << "non-unique symbols found: `" << matchedSyms.first
+        LOG(WARNING) << "non-unique symbols found: `" << matchedSyms.second
                      << "` and `" << symName << "`";
       }
       matchedSyms.second = symName;
@@ -75,15 +76,13 @@ OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
   return strongToWeakSymbols;
 }
 
-std::vector<std::tuple<drgn_qualified_type, std::string>>
+std::unordered_map<std::string, drgn_qualified_type>
 OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
   auto strongToWeakSymbols = oilStrongToWeakSymbolsMap(prog);
 
-  std::vector<std::tuple<drgn_qualified_type, std::string>> out;
+  std::unordered_map<std::string, drgn_qualified_type> out;
 
-  // TODO: Clean up this loop when switching to
-  // drgn_program_find_function_by_address.
-  for (auto& func : drgnplusplus::func_iterator(prog)) {
+  for (drgn_qualified_type& func : drgnplusplus::func_iterator(prog)) {
     std::string strongLinkageName;
     {
       const char* linkageNameCstr;
@@ -103,22 +102,24 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
       continue;  // not an oil strong symbol
     }
 
-    auto templateParameters = drgn_type_template_parameters(func.type);
-    drgn_type_template_parameter param = templateParameters[0];
+    // IntrospectionResult (*)(const T&)
+    CHECK(drgn_type_has_parameters(func.type)) << "functions have parameters";
+    CHECK(drgn_type_num_parameters(func.type) == 1)
+        << "introspection func has one parameter";
 
-    drgn_qualified_type paramType;
-    if (auto err = drgnplusplus::error(
-            drgn_template_parameter_type(&param, &paramType))) {
-      LOG(ERROR) << "error getting drgn template parameter type: " << err;
+    auto* params = drgn_type_parameters(func.type);
+    drgn_qualified_type tType;
+    if (auto err =
+            drgnplusplus::error(drgn_parameter_type(&params[0], &tType))) {
       throw err;
     }
 
-    if (drgn_type_has_name(paramType.type)) {
-      LOG(INFO) << "found OIL type: " << drgn_type_name(paramType.type);
+    if (drgn_type_has_name(tType.type)) {
+      LOG(INFO) << "found OIL type: " << drgn_type_name(tType.type);
     } else {
       LOG(INFO) << "found OIL type: (no name)";
     }
-    out.push_back({paramType, std::move(weakLinkageName)});
+    out.emplace(std::move(weakLinkageName), tType);
   }
 
   return out;
@@ -129,19 +130,11 @@ fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
                                       const drgn_qualified_type& type,
                                       const std::string& linkageName,
                                       SymbolService& symbols) {
-  auto codegen = OICodeGen::buildFromConfig(generatorConfig, symbols);
-  if (!codegen) {
-    LOG(ERROR) << "failed to initialise codegen";
-    return {};
-  }
+  CodeGen codegen{generatorConfig, symbols};
 
-  std::string code(headers::oi_OITraceCode_cpp);
-
-  codegen->setRootType(type);
-  codegen->setLinkageName(linkageName);
-
-  if (!codegen->generate(code)) {
-    LOG(ERROR) << "failed to generate code";
+  std::string code;
+  if (!codegen.codegenFromDrgn(type.type, linkageName, code)) {
+    LOG(ERROR) << "codegen failed!";
     return {};
   }
 
@@ -180,10 +173,14 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
     }
   }
 
-  std::vector<std::tuple<drgn_qualified_type, std::string>> oilTypes =
-      findOilTypesAndNames(prog);
+  auto oilTypes = findOilTypesAndNames(prog);
 
   std::map<Feature, bool> featuresMap = {
+      {Feature::TypeGraph, true},
+      {Feature::TypedDataSegment, true},
+      {Feature::TreeBuilderTypeChecking, true},
+      {Feature::TreeBuilderV2, true},
+      {Feature::Library, true},
       {Feature::PackStructs, true},
       {Feature::PruneTypeGraph, true},
   };
@@ -198,10 +195,10 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
     return -1;
   }
   generatorConfig.features = *features;
-  generatorConfig.useDataSegment = false;
+  compilerConfig.features = *features;
 
   size_t failures = 0;
-  for (const auto& [type, linkageName] : oilTypes) {
+  for (const auto& [linkageName, type] : oilTypes) {
     if (auto obj = generateForType(generatorConfig, compilerConfig, type,
                                    linkageName, symbols);
         !obj.empty()) {

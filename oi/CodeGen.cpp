@@ -162,8 +162,10 @@ void addIncludes(const TypeGraph& typeGraph,
   }
   if (features[Feature::TreeBuilderV2])
     includes.emplace("oi/exporters/inst.h");
-  if (features[Feature::Library])
+  if (features[Feature::Library]) {
     includes.emplace("vector");
+    includes.emplace("oi/IntrospectionResult.h");
+  }
   if (features[Feature::JitTiming]) {
     includes.emplace("chrono");
   }
@@ -1010,6 +1012,13 @@ void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
   }
 }
 
+bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType,
+                              std::string linkageName,
+                              std::string& code) {
+  linkageName_ = std::move(linkageName);
+  return codegenFromDrgn(drgnType, code);
+}
+
 bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
   try {
     containerInfos_.reserve(config_.containerConfigPaths.size());
@@ -1189,6 +1198,9 @@ void CodeGen::generate(
   } else if (config_.features[Feature::TreeBuilderTypeChecking]) {
     FuncGen::DefineOutputType(code, typeName);
   }
+
+  if (!linkageName_.empty())
+    FuncGen::DefineTopLevelIntrospectNamed(code, typeName, linkageName_);
 
   if (VLOG_IS_ON(3)) {
     VLOG(3) << "Generated trace code:\n";

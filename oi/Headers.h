@@ -18,6 +18,8 @@
 namespace oi::detail::headers {
 
 // These externs are provided by our build system. See resources/CMakeLists.txt
+extern const std::string_view oi_IntrospectionResult_h;
+extern const std::string_view oi_IntrospectionResult_inl_h;
 extern const std::string_view oi_OITraceCode_cpp;
 extern const std::string_view oi_exporters_ParsedData_h;
 extern const std::string_view oi_exporters_inst_h;

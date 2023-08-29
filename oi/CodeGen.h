@@ -48,6 +48,9 @@ class CodeGen {
    * single drgn_type.
    */
   bool codegenFromDrgn(struct drgn_type* drgnType, std::string& code);
+  bool codegenFromDrgn(struct drgn_type* drgnType,
+                       std::string linkageName,
+                       std::string& code);
 
   void registerContainer(const std::filesystem::path& path);
   void addDrgnRoot(struct drgn_type* drgnType,
@@ -66,6 +69,7 @@ class CodeGen {
   std::unordered_set<const ContainerInfo*> definedContainers_;
   std::unordered_map<const type_graph::Class*, const type_graph::Member*>
       thriftIssetMembers_;
+  std::string linkageName_;
 
   void genDefsThrift(const type_graph::TypeGraph& typeGraph, std::string& code);
   void addGetSizeFuncDefs(const type_graph::TypeGraph& typeGraph,
