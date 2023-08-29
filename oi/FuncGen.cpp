@@ -274,6 +274,28 @@ void __attribute__((used, retain)) introspect_%2$016x(
       (boost::format(func) % type % std::hash<std::string>{}(type)).str());
 }
 
+void FuncGen::DefineTopLevelIntrospectNamed(std::string& code,
+                                            const std::string& type,
+                                            const std::string& linkageName) {
+  std::string typeHash =
+      (boost::format("%1$016x") % std::hash<std::string>{}(type)).str();
+
+  code += "/* RawType: ";
+  code += type;
+  code += " */\n";
+  code += "extern \"C\" IntrospectionResult ";
+  code += linkageName;
+  code += "(const OIInternal::__ROOT_TYPE__& t) {\n";
+  code += "  std::vector<uint8_t> v{};\n";
+  code += "  introspect_";
+  code += typeHash;
+  code += "(t, v);\n";
+  code += "  return IntrospectionResult{std::move(v), treeBuilderInstructions";
+  code += typeHash;
+  code += "};\n";
+  code += "}\n";
+}
+
 void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
                                        const std::string& rawType,
                                        FeatureSet features) {

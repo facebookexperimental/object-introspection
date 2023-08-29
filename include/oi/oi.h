@@ -20,6 +20,7 @@
 #include <oi/types/dy.h>
 
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 namespace oi {
@@ -33,15 +34,26 @@ enum class Feature {
 template <typename T, Feature... Fs>
 IntrospectionResult __attribute__((noinline)) introspect(const T& objectAddr);
 
+#ifdef OIL_AOT_COMPILATION
+
+template <class T, Feature... Fs>
+IntrospectionResult __attribute__((weak)) introspectImpl(const T& objectAddr);
+
+template <typename T, Feature... Fs>
+IntrospectionResult introspect(const T& objectAddr) {
+  if (!introspectImpl<T, Fs...>)
+    throw std::logic_error(
+        "OIL is expecting AoT compilation but it doesn't appear to have run.");
+
+  return introspectImpl<T, Fs...>(objectAddr);
+}
+
+#endif
+
 }  // namespace oi
 
 #ifndef OIL_AOT_COMPILATION
 #include "oi/oi-jit.h"
-#else
-
-template <typename T, Feature... Fs>
-IntrospectionResult __attribute__((noinline)) introspect(const T& objectAddr);
-{ static_assert(false, "OIL v2 does not yet support AoT compilation."); }
-
 #endif
+
 #endif

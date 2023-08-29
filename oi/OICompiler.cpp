@@ -518,7 +518,7 @@ bool OICompiler::compile(const std::string& code,
   }
 
   static const auto syntheticHeaders = std::array<
-      std::pair<Feature, std::pair<std::string_view, std::string>>, 5>{{
+      std::pair<Feature, std::pair<std::string_view, std::string>>, 7>{{
       {Feature::TypedDataSegment, {headers::oi_types_st_h, "oi/types/st.h"}},
       {Feature::TreeBuilderTypeChecking,
        {headers::oi_types_dy_h, "oi/types/dy.h"}},
@@ -528,6 +528,10 @@ bool OICompiler::compile(const std::string& code,
        {headers::oi_exporters_ParsedData_h, "oi/exporters/ParsedData.h"}},
       {Feature::TreeBuilderV2,
        {headers::oi_result_Element_h, "oi/result/Element.h"}},
+      {Feature::Library,
+       {headers::oi_IntrospectionResult_h, "oi/IntrospectionResult.h"}},
+      {Feature::Library,
+       {headers::oi_IntrospectionResult_inl_h, "oi/IntrospectionResult-inl.h"}},
   }};
   for (const auto& [k, v] : syntheticHeaders) {
     if (!config.features[k])

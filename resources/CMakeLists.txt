@@ -7,6 +7,8 @@ function(embed_headers output)
   file(APPEND ${output} "namespace oi::detail::headers {\n")
 
   set(HEADERS
+    ../include/oi/IntrospectionResult-inl.h
+    ../include/oi/IntrospectionResult.h
     ../include/oi/exporters/ParsedData.h
     ../include/oi/exporters/inst.h
     ../include/oi/result/Element.h
