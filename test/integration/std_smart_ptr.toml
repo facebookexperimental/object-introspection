@@ -7,7 +7,6 @@ definitions = '''
 '''
 [cases]
   [cases.unique_ptr_uint64_empty]
-    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::uint64_t>&"]
     setup = "return {nullptr};"
     expect_json = '''
@@ -22,8 +21,17 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 8,
+        "exclusiveSize": 8,
+        "length": 0,
+        "capacity": 1
+      }
+    ]
+    '''
   [cases.unique_ptr_uint64_present]
-    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::uint64_t>&"]
     setup = "return {std::make_unique<std::uint64_t>(64)};"
     expect_json = '''
@@ -37,8 +45,17 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 8,
+        "exclusiveSize": 8,
+        "length": 1,
+        "capacity": 1
+      }
+    ]
+    '''
   [cases.unique_ptr_vector_empty]
-    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::vector<std::uint64_t>>&"]
     setup = "return {nullptr};"
     expect_json = '''
@@ -52,8 +69,17 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 8,
+        "exclusiveSize": 8,
+        "length": 0,
+        "capacity": 1
+      }
+    ]
+    '''
   [cases.unique_ptr_vector_present]
-    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<std::vector<std::uint64_t>>&"]
     setup = "return {std::make_unique<std::vector<std::uint64_t>>(std::initializer_list<std::uint64_t>({1,2,3,4,5}))};"
     expect_json = '''
@@ -75,8 +101,25 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 8,
+        "exclusiveSize": 8,
+        "length": 1,
+        "capacity": 1,
+        "members": [
+          {
+            "staticSize": 24,
+            "exclusiveSize": 24,
+            "length": 5,
+            "capacity": 5
+          }
+        ]
+      }
+    ]
+    '''
   [cases.unique_ptr_void_empty]
-    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<void, decltype(&void_int_deleter)>&"]
     setup = "return {std::unique_ptr<void, decltype(&void_int_deleter)>(nullptr, &void_int_deleter)};"
     expect_json = '''
@@ -87,8 +130,15 @@ definitions = '''
       }
     ]
     '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 16,
+        "exclusiveSize": 16
+      }
+    ]
+    '''
   [cases.unique_ptr_void_present]
-    oil_skip = "std::unique_ptr is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/299
     param_types = ["std::unique_ptr<void, decltype(&void_int_deleter)>&"]
     setup = "return {std::unique_ptr<void, decltype(&void_int_deleter)>(new int, &void_int_deleter)};"
     expect_json = '''
@@ -96,6 +146,14 @@ definitions = '''
       {
         "staticSize": 16,
         "dynamicSize": 0
+      }
+    ]
+    '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 16,
+        "exclusiveSize": 16
       }
     ]
     '''
