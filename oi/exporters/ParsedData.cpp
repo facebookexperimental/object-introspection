@@ -51,7 +51,7 @@ ParsedData ParsedData::parse(std::vector<uint8_t>::const_iterator& it,
           auto index = parseVarint(it);
           assert(index < ty.variants.size());
           return ParsedData::Sum{
-              .index = parseVarint(it),
+              .index = index,
               .value = {it, ty.variants[index]},
           };
         } else {
