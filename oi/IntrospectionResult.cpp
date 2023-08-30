@@ -20,7 +20,6 @@
 #include <cassert>
 #include <iterator>
 #include <stdexcept>
-#include <iostream> // TODO: remove
 
 template <typename T>
 inline constexpr bool always_false_v = false;
@@ -49,7 +48,6 @@ IntrospectionResult::const_iterator::operator++() {
           using T = std::decay_t<decltype(ty)>;
 
           if constexpr (std::is_same_v<T, exporters::inst::Field>) {
-            std::cerr << "ty.name = " << ty.name << std::endl;
             type_path_.emplace_back(ty.name);
             stack_.emplace(exporters::inst::PopTypePath{});
             next_ = result::Element{
