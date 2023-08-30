@@ -15,6 +15,17 @@ includes = ["optional", "cstdint", "vector"]
       }
     ]
     '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 16,
+        "exclusiveSize": 16,
+        "length": 0,
+        "capacity": 1,
+        "members": []
+      }
+    ]
+    '''
   [cases.uint64_present]
     param_types = ["std::optional<std::uint64_t>&"]
     setup = "return 64;"
@@ -30,6 +41,22 @@ includes = ["optional", "cstdint", "vector"]
       }
     ]
     '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 16,
+        "exclusiveSize": 8,
+        "length": 1,
+        "capacity": 1,
+        "members": [
+          {
+            "staticSize": 8,
+            "exclusiveSize": 8
+          }
+        ]
+      }
+    ]
+    '''
   [cases.vector_empty]
     param_types = ["std::optional<std::vector<std::uint64_t>>&"]
     setup = "return std::nullopt;"
@@ -42,6 +69,17 @@ includes = ["optional", "cstdint", "vector"]
         "length": 0,
         "capacity": 1,
         "elementStaticSize": 24
+      }
+    ]
+    '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 32,
+        "exclusiveSize": 32,
+        "length": 0,
+        "capacity": 1,
+        "members": []
       }
     ]
     '''
@@ -63,6 +101,24 @@ includes = ["optional", "cstdint", "vector"]
             "dynamicSize": 40,
             "exclusiveSize": 64,
             "length": 5
+          }
+        ]
+      }
+    ]
+    '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 32,
+        "exclusiveSize": 8,
+        "length": 1,
+        "capacity": 1,
+        "members": [
+          {
+            "staticSize": 24,
+            "exclusiveSize": 24,
+            "length": 5,
+            "capacity": 5
           }
         ]
       }
