@@ -65,3 +65,62 @@ struct TypeHandler<DB, %1%<T0>> {
     }
 };
 """
+
+traversal_func = """
+auto tail = returnArg.write((uintptr_t)container.get());
+
+if constexpr (std::is_void<T0>::value) {
+  return tail.template delegate<0>(std::identity());
+} else {
+  bool do_visit = container && pointers.add((uintptr_t)container.get());
+  if (!do_visit)
+    return tail.template delegate<0>(std::identity());
+
+  return tail.template delegate<1>([&container](auto ret) {
+    return OIInternal::getSizeType<DB>(*container, ret);
+  });
+}
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = """
+types::st::Sum<DB,
+  types::st::Unit<DB>,
+  typename TypeHandler<DB, T0>::type>
+"""
+func = """
+#ifdef __GLIBCXX__
+// TODO: Accurately report the control block overhead
+//       accounting for both in-place and non-in-place
+
+// _Sp_counted_base (_Atomic_word, _Atomic_word)
+// _Sp_counted_ptr : _Sp_counted_base (_Ptr)
+// _Sp_counted_ptr_inplace : _Sp_counted_base (_Tp)
+// _Sp_counted_deleter : _Sp_counted_base (_Ptr)
+// _Sp_counted_array : _Sp_counted_base (_Ptr)
+#elif _LIBCPP_VERSION
+static_assert(false && "libc++ is currently not supported");
+#else
+static_assert(false && "No known element_size for sets. See types/set_type.toml");
+#endif
+
+auto sum = std::get<ParsedData::Sum>(d.val);
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = 1,
+  .length = sum.index, // 0 for empty containers/void, 1 otherwise
+});
+
+// Must be in a `if constexpr` or the compiler will complain about make_field<DB, void>
+if constexpr (!std::is_void<T0>::value) {
+  if (sum.index == 1) {
+    static constexpr auto element = make_field<DB, T0>("ptr_val");
+    ins.emplace(element);
+  }
+}
+"""
