@@ -1,4 +1,13 @@
 includes = ["vector"]
+definitions = """
+/* The Foo struct has a size of 5 bytes, but requires
+ * 3 bytes of padding to keep the `int x;` aligned.
+ */
+struct Foo {
+  int x;
+  char y;
+};
+"""
 [cases]
   [cases.int_empty]
     param_types = ["const std::vector<int>&"]
@@ -62,3 +71,29 @@ includes = ["vector"]
       {"staticSize":4, "exclusiveSize":4},
       {"staticSize":4, "exclusiveSize":4}
     ]}]'''
+  [cases.item_align]
+    oil_skip = true # https://github.com/facebookexperimental/object-introspection/issues/301
+    param_types = ["const std::vector<Foo>&"]
+    setup = """
+      return std::vector<Foo>{
+        {.x = 1,.y = 2},
+        {.x = 3,.y = 4},
+        {.x = 5,.y = 6},
+      };
+    """
+    expect_json = """
+      [{
+        "staticSize":24,
+        "exclusiveSize":24,
+        "length":3,
+        "capacity":3,
+        "members":[
+          {"staticSize":8, "exclusiveSize":3, "members":[
+            {"name":"x", "staticSize":4, "exclusiveSize":4},
+            {"name":"y", "staticSize":1, "exclusiveSize":1}
+          ]},
+          {"staticSize":8, "exclusiveSize":3},
+          {"staticSize":8, "exclusiveSize":3}
+        ]
+      }]
+    """
