@@ -48,8 +48,8 @@ const config = {
   headTags: [
     // Favicons declarations
     { tagName: 'link', attributes: { rel: 'apple-touch-icon', sizes: '180x180', href: '/img/apple-touch-icon.png' } },
-    { tagName: 'link', attributes: { rel: 'icon', sizes: '32x32', href: '/img/favicon-32x32.png' } },
-    { tagName: 'link', attributes: { rel: 'icon', sizes: '16x16', href: '/img/favicon-16x16.png' } },
+    { tagName: 'link', attributes: { rel: 'icon', sizes: '32x32', href: 'img/favicon-32x32.png' } },
+    { tagName: 'link', attributes: { rel: 'icon', sizes: '16x16', href: 'img/favicon-16x16.png' } },
     { tagName: 'link', attributes: { rel: 'manifest', href: '/site.webmanifest' } },
     { tagName: 'link', attributes: { rel: 'mask-icon', href: '/safari-pinned-tab.svg', color: '#5bbad5' } },
     { tagName: 'meta', attributes: { name: 'apple-mobile-web-app-title', content: 'Object Introspection' } },
