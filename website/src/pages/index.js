@@ -65,8 +65,8 @@ export default function Home() {
   const {siteConfig = {}} = context;
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={`${siteConfig.title}`}
+      description="Object Introspection provides byte accurate memory occupancy information for arbitrarily complex C++ object hierarchies including all static and  dynamic memory allocations in an object.">
       <header className={clsx('hero hero--primary', styles.heroBanner)}>
         <div className="container">
           <h1 className="hero__title">{siteConfig.title}</h1>
