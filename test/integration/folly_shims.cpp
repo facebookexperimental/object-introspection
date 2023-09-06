@@ -1,4 +1,5 @@
 #include <folly/ScopeGuard.h>
+#include <folly/container/detail/F14Table.h>
 #include <folly/lang/SafeAssert.h>
 
 namespace folly {
@@ -24,4 +25,29 @@ void ScopeGuardImplBase::terminate() noexcept {
 }
 
 }  // namespace detail
+
+namespace f14 {
+namespace detail {
+
+void F14LinkCheck<getF14IntrinsicsMode()>::check() noexcept {
+}
+
+#if FOLLY_F14_VECTOR_INTRINSICS_AVAILABLE
+EmptyTagVectorType kEmptyTagVector = {};
+#endif
+
+bool tlsPendingSafeInserts(std::ptrdiff_t /*delta*/) {
+  /* Disable extra debugging re-hash by classifying all inserts as safe (return
+   * true) */
+  return true;
+}
+
+std::size_t tlsMinstdRand(std::size_t /*n*/) {
+  /* Disable insert order perturbation by always returning 0 */
+  return 0;
+}
+
+}  // namespace detail
+}  // namespace f14
+
 }  // namespace folly

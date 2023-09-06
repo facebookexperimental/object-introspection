@@ -2,13 +2,14 @@
 type_name = "folly::F14VectorMap"
 stub_template_params = [2,3,4]
 ctype = "F14_MAP"
-header = "folly/container/detail/F14MapFallback.h"
+header = "folly/container/F14Map.h"
 
 # Old:
 typeName = "folly::F14VectorMap<"
 ns = ["folly::F14VectorMap"]
 numTemplateParams = 2
-replaceTemplateParamIndex = []
+replaceTemplateParamIndex = [2, 3]
+allocatorIndex = 4
 
 [codegen]
 decl = """
@@ -33,4 +34,88 @@ void getSizeType(const %1%<Key, Mapped, Hasher, KeyEqual, Alloc> &container, siz
         getSizeType(it.second, returnArg);
     }
 }
+"""
+
+handler = """
+template <typename DB, typename T0, typename T1, typename T2, typename T3, typename T4>
+struct TypeHandler<DB, %1%<T0, T1, T2, T3, T4>> {
+  using type = types::st::Pair<DB,
+    types::st::VarInt<DB>,
+    types::st::Pair<DB,
+      types::st::VarInt<DB>,
+      types::st::List<DB, types::st::Pair<DB,
+        typename TypeHandler<DB, T0>::type,
+        typename TypeHandler<DB, T1>::type>>>>;
+
+  static types::st::Unit<DB> getSizeType(
+      const %1%<T0, T1, T2, T3, T4>& container,
+      typename TypeHandler<DB, %1%<T0, T1, T2, T3, T4>>::type returnArg) {
+    size_t memorySize = container.getAllocatedMemorySize();
+    auto tail = returnArg
+      .write(memorySize)
+      .write(container.bucket_count())
+      .write(container.size());
+
+    for (auto &&entry: container) {
+      tail = tail.delegate([&key = entry.first, &value = entry.second](auto ret) {
+        auto next = ret.delegate([&key](typename TypeHandler<DB, T0>::type ret) {
+          return OIInternal::getSizeType<DB>(key, ret);
+        });
+        return OIInternal::getSizeType<DB>(value, next);
+      });
+    }
+
+    return tail.finish();
+  }
+};
+"""
+
+traversal_func = """
+auto tail = returnArg
+  .write((uintptr_t)&container)
+  .write(container.size());
+
+for (auto &&entry: container) {
+  tail = tail.delegate([&key = entry.first, &value = entry.second](auto ret) {
+    auto next = ret.delegate([&key](typename TypeHandler<DB, T0>::type ret) {
+      return OIInternal::getSizeType<DB>(key, ret);
+    });
+    return OIInternal::getSizeType<DB>(value, next);
+  });
+}
+
+return tail.finish();
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = "el.pointer = std::get<ParsedData::VarInt>(d.val).value;"
+
+[[codegen.processor]]
+type = """
+types::st::List<DB, types::st::Pair<DB,
+  typename TypeHandler<DB, T0>::type,
+  typename TypeHandler<DB, T1>::type>>
+"""
+func = """
+auto list = std::get<ParsedData::List>(d.val);
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = list.length,
+  .length = list.length,
+});
+
+static constexpr std::array<inst::Field, 2> element_fields{
+  make_field<DB, T0>("key"),
+  make_field<DB, T1>("value"),
+};
+
+static constexpr inst::Field element{
+  0, 0, "[]",
+  std::array<std::string_view, 0>{},
+  element_fields,
+  std::array<inst::ProcessorInst, 0>{},
+};
+
+for (size_t i = 0; i < list.length; i++)
+  ins.emplace(element);
 """
