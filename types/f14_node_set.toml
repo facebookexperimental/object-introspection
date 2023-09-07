@@ -2,7 +2,7 @@
 type_name = "folly::F14NodeSet"
 stub_template_params = [1,2,3]
 ctype = "F14_SET"
-header = "folly/container/detail/F14SetFallback.h"
+header = "folly/container/F14Set.h"
 
 # Old:
 typeName = "folly::F14NodeSet<"
@@ -33,4 +33,71 @@ void getSizeType(const %1%<Key, Hasher, KeyEqual, Alloc> &container, size_t& ret
         getSizeType(it, returnArg);
     }
 }
+"""
+
+handler = """
+template <typename DB, typename T0, typename T1, typename T2, typename T3>
+struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
+  using type = types::st::Pair<DB,
+    types::st::VarInt<DB>,
+    types::st::Pair<DB,
+      types::st::VarInt<DB>,
+      types::st::List<DB,
+        typename TypeHandler<DB, T0>::type>>>;
+
+  static types::st::Unit<DB> getSizeType(
+      const %1%<T0, T1, T2, T3>& container,
+      typename TypeHandler<DB, %1%<T0, T1, T2, T3>>::type returnArg) {
+    size_t memorySize = container.getAllocatedMemorySize();
+    auto tail = returnArg
+      .write(memorySize)
+      .write(container.bucket_count())
+      .write(container.size());
+
+    for (auto &&entry: container) {
+      tail = tail.delegate([&entry](auto ret) {
+        return OIInternal::getSizeType<DB>(entry, ret);
+      });
+    }
+
+    return tail.finish();
+  }
+};
+"""
+
+traversal_func = """
+// TODO: This implementation enables the traversal of the container,
+//       but doesn't report the memory footprint accurately.
+//       Revisit this implementation and fix memory footprint reporting.
+auto tail = returnArg
+  .write((uintptr_t)&container)
+  .write(container.size());
+
+for (auto &&entry: container) {
+  tail = tail.delegate([&entry](auto ret) {
+    return OIInternal::getSizeType<DB>(entry, ret);
+  });
+}
+
+return tail.finish();
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = "el.pointer = std::get<ParsedData::VarInt>(d.val).value;"
+
+[[codegen.processor]]
+type = """
+types::st::List<DB, typename TypeHandler<DB, T0>::type>
+"""
+func = """
+auto list = std::get<ParsedData::List>(d.val);
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = list.length,
+  .length = list.length,
+});
+
+static constexpr auto childField = make_field<DB, T0>("[]");
+for (size_t i = 0; i < list.length; i++)
+  ins.emplace(childField);
 """
