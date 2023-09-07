@@ -71,6 +71,9 @@ struct TypeHandler<DB, %1%<T0, T1, T2, T3, T4>> {
 """
 
 traversal_func = """
+// TODO: This implementation enables the traversal of the container,
+//       but doesn't report the memory footprint accurately.
+//       Revisit this implementation and fix memory footprint reporting.
 auto tail = returnArg
   .write((uintptr_t)&container)
   .write(container.size());
