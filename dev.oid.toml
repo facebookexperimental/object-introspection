@@ -36,6 +36,7 @@ containers = [
     "PWD/types/small_vec_type.toml",
     "PWD/types/f14_fast_map.toml",
     "PWD/types/f14_node_map.toml",
+    "PWD/types/f14_value_map.toml",
     "PWD/types/f14_vector_map.toml",
     "PWD/types/f14_fast_set.toml",
     "PWD/types/f14_node_set.toml",

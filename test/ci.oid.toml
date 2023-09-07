@@ -32,6 +32,7 @@ containers = [
     "../types/small_vec_type.toml",
     "../types/f14_fast_map.toml",
     "../types/f14_node_map.toml",
+    "../types/f14_value_map.toml",
     "../types/f14_vector_map.toml",
     "../types/f14_fast_set.toml",
     "../types/f14_node_set.toml",
