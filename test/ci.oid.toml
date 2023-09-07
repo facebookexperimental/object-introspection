@@ -35,6 +35,7 @@ containers = [
     "../types/f14_vector_map.toml",
     "../types/f14_fast_set.toml",
     "../types/f14_node_set.toml",
+    "../types/f14_value_set.toml",
     "../types/f14_vector_set.toml",
     "../types/sorted_vec_set_type.toml",
     "../types/map_seq_type.toml",
