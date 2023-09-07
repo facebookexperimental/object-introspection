@@ -1,0 +1,78 @@
+includes = ["folly/container/F14Map.h"]
+definitions = '''
+  struct Bar {
+    float a, b;
+  };
+
+  struct Foo {
+    folly::F14ValueMap<int, int> m1;
+    folly::F14ValueMap<int, Bar> m2;
+    folly::F14ValueMap<int, int> m3;
+    folly::F14ValueMap<int, int> m4;
+  };
+'''
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+
+      foo.m1.reserve(3);
+      for (int i = 0; i < 3; i++) {
+        foo.m1.emplace(i, i);
+      }
+
+      foo.m2.reserve(5);
+      for (int i = 0; i < 5; i++) {
+        foo.m2.emplace(i, Bar{0.0f, 0.0f});
+      }
+
+      foo.m3.reserve(7);
+      for (int i = 0; i < 7; i++) {
+        foo.m3.emplace(i, i);
+      }
+
+      foo.m4.reserve(9);
+      for (int i = 0; i < 9; i++) {
+        foo.m4.emplace(i, i);
+      }
+
+      return {foo};
+    '''
+    expect_json = '''[{
+      "staticSize":96,
+      "dynamicSize":304,
+      "members":[
+        {"name":"m1", "staticSize":24, "dynamicSize":48, "length":3, "capacity":3, "elementStaticSize":8},
+        {
+          "name":"m2",
+          "staticSize":24,
+          "dynamicSize":80,
+          "length":5,
+          "capacity":5,
+          "elementStaticSize":12,
+          "members":[
+            {"staticSize": 4},
+            {"staticSize":8, "members":[{"name":"a"}, {"name": "b"}]},
+            {"staticSize": 4},
+            {"staticSize":8, "members":[{"name":"a"}, {"name": "b"}]},
+            {"staticSize": 4},
+            {"staticSize":8, "members":[{"name":"a"}, {"name": "b"}]},
+            {"staticSize": 4},
+            {"staticSize":8, "members":[{"name":"a"}, {"name": "b"}]},
+            {"staticSize": 4},
+            {"staticSize":8, "members":[{"name":"a"}, {"name": "b"}]}
+        ]},
+        {"name":"m3", "staticSize":24, "dynamicSize":80, "length":7, "capacity":7, "elementStaticSize":8},
+        {"name":"m4", "staticSize":24, "dynamicSize":96, "length":9, "capacity":9, "elementStaticSize":8}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":96,
+      "exclusiveSize": 0,
+      "members":[
+        {"name":"m1", "staticSize":24, "exclusiveSize": 24, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":24, "exclusiveSize": 24, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":24, "exclusiveSize": 24, "length": 7, "capacity": 7},
+        {"name":"m4", "staticSize":24, "exclusiveSize": 24, "length": 9, "capacity": 9}
+      ]}]'''
