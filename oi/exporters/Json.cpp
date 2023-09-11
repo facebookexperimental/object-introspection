@@ -114,7 +114,7 @@ void Json::print(IntrospectionResult::const_iterator& it,
     }
 
     out_ << tab << "\"members\":" << space;
-    if ((++it)->type_path.size() > firstTypePath.size()) {
+    if (++it != end && it->type_path.size() > firstTypePath.size()) {
       print(it, end);
     } else {
       out_ << "[]" << endl;
