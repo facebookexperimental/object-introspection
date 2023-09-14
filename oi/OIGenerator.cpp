@@ -187,6 +187,7 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
 
   OICodeGen::Config generatorConfig{};
   OICompiler::Config compilerConfig{};
+  compilerConfig.usePIC = pic;
 
   auto features = utils::processConfigFile(configFilePath, featuresMap,
                                            compilerConfig, generatorConfig);

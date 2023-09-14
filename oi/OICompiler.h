@@ -48,6 +48,8 @@ class OICompiler {
 
     std::vector<fs::path> userHeaderPaths{};
     std::vector<fs::path> sysHeaderPaths{};
+
+    bool usePIC = false;
   };
 
   /**

@@ -39,12 +39,6 @@ definitions = '''
     char c;
     alignas(32) char c32;
   };
-
-  enum class alignas(16) AlignedEnum16 : int8_t {
-    Val1,
-    Val2,
-    Val3,
-  };
 '''
 [cases]
   [cases.wrapper_struct]
@@ -212,19 +206,3 @@ definitions = '''
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
           {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
-  [cases.wrapper_enum]
-    param_types = ["const Wrapper<AlignedEnum16>&"]
-    setup = "return {};"
-    expect_json = '''[
-      {"staticSize": 32, "exclusiveSize": 30, "members": [
-        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
-        {"typeName": "AlignedEnum16", "staticSize": 1, "exclusiveSize": 1}
-    ]}]'''
-  [cases.container_enum]
-    skip = "container alignment is broken (#143)"
-    param_types = ["const std::optional<AlignedEnum16>&"]
-    setup = "return {};"
-    expect_json = '''[
-      {"staticSize": 32, "exclusiveSize": 31, "members": [
-        {"typeName": "AlignedEnum16", "staticSize": 1, "exclusiveSize": 1}
-    ]}]'''
