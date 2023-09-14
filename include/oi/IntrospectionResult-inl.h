@@ -41,8 +41,14 @@ inline IntrospectionResult::const_iterator::const_iterator(
     std::vector<uint8_t>::const_iterator data)
     : data_(data) {
 }
+inline IntrospectionResult::const_iterator IntrospectionResult::begin() const {
+  return cbegin();
+}
 inline IntrospectionResult::const_iterator IntrospectionResult::cbegin() const {
   return ++const_iterator{buf_.cbegin(), inst_};
+}
+inline IntrospectionResult::const_iterator IntrospectionResult::end() const {
+  return cend();
 }
 inline IntrospectionResult::const_iterator IntrospectionResult::cend() const {
   return {buf_.cend()};
