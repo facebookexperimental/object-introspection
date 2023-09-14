@@ -40,12 +40,16 @@ class OIGenerator {
   void setFailIfNothingGenerated(bool fail) {
     failIfNothingGenerated = fail;
   }
+  void setUsePIC(bool pic_) {
+    pic = pic_;
+  }
 
  private:
   std::filesystem::path outputPath;
   std::filesystem::path configFilePath;
   std::filesystem::path sourceFileDumpPath;
-  bool failIfNothingGenerated;
+  bool failIfNothingGenerated = false;
+  bool pic = false;
 
   std::unordered_map<std::string, std::string> oilStrongToWeakSymbolsMap(
       drgnplusplus::program& prog);

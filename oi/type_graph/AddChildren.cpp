@@ -171,10 +171,7 @@ void AddChildren::enumerateChildClasses(SymbolService& symbols) {
     abort();
   }
 
-  int i = 0;
-  int j = 0;
   while (true) {
-    i++;
     drgn_qualified_type* t;
     err = drgn_type_iterator_next(typesIterator, &t);
     if (err) {
@@ -189,7 +186,6 @@ void AddChildren::enumerateChildClasses(SymbolService& symbols) {
     if (!t) {
       break;
     }
-    j++;
 
     auto kind = drgn_type_kind(t->type);
     if (kind != DRGN_TYPE_CLASS && kind != DRGN_TYPE_STRUCT) {

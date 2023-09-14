@@ -28,12 +28,13 @@
 #include <glog/logging.h>
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/Triple.h>
+#include <llvm/ADT/Twine.h>
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/RTDyldMemoryManager.h>
+#include <llvm/MC/TargetRegistry.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/Memory.h>
-#include <llvm/Support/TargetRegistry.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_os_ostream.h>
 
@@ -158,7 +159,7 @@ class OIMemoryManager : public RTDyldMemoryManager {
        * failure upwards so we can shutdown cleanly.
        */
       if (errorCode) {
-        report_fatal_error("Can't allocate enough memory: " +
+        report_fatal_error(llvm::Twine("Can't allocate enough memory: ") +
                            errorCode.message());
       }
 
@@ -490,9 +491,9 @@ bool OICompiler::compile(const std::string& code,
   compInv->getLangOpts()->Char8 = true;
   compInv->getLangOpts()->CXXOperatorNames = true;
   compInv->getLangOpts()->DoubleSquareBracketAttributes = true;
-  compInv->getLangOpts()->ImplicitInt = false;
   compInv->getLangOpts()->Exceptions = true;
   compInv->getLangOpts()->CXXExceptions = true;
+  compInv->getLangOpts()->Coroutines = true;
 
   compInv->getPreprocessorOpts();
   compInv->getPreprocessorOpts().addRemappedFile(
@@ -540,7 +541,8 @@ bool OICompiler::compile(const std::string& code,
         std::string{"/synthetic/headers/"} + v.second,
         MemoryBuffer::getMemBuffer(v.first).release());
   }
-  for (const auto& [k, _] : syntheticHeaders) {
+  for (const auto& kv : syntheticHeaders) {
+    const auto& k = kv.first;
     if (config.features[k]) {
       headerSearchOptions.AddPath(
           "/synthetic/headers",
@@ -552,7 +554,11 @@ bool OICompiler::compile(const std::string& code,
   compInv->getFrontendOpts().OutputFile = objectPath;
   compInv->getTargetOpts().Triple =
       llvm::Triple::normalize(llvm::sys::getProcessTriple());
-  compInv->getCodeGenOpts().RelocationModel = llvm::Reloc::Static;
+  if (config.usePIC) {
+    compInv->getCodeGenOpts().RelocationModel = llvm::Reloc::PIC_;
+  } else {
+    compInv->getCodeGenOpts().RelocationModel = llvm::Reloc::Static;
+  }
   compInv->getCodeGenOpts().CodeModel = "large";
   compInv->getCodeGenOpts().OptimizationLevel = 3;
   compInv->getCodeGenOpts().NoUseJumpTables = 1;

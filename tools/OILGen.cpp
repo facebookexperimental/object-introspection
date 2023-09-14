@@ -37,6 +37,8 @@ constexpr static OIOpts opts{
           "Write generated code to a file (for debugging)."},
     OIOpt{'e', "exit-code", no_argument, nullptr,
           "Return a bad exit code if nothing is generated."},
+    OIOpt{'p', "pic", no_argument, nullptr,
+          "Generate position independent code."},
 };
 
 void usage() {
@@ -59,6 +61,7 @@ int main(int argc, char* argv[]) {
   fs::path configFilePath = "/usr/local/share/oi/base.oid.toml";
   fs::path sourceFileDumpPath = "";
   bool exitCode = false;
+  bool pic = false;
 
   int c;
   while ((c = getopt_long(argc, argv, opts.shortOpts(), opts.longOpts(),
@@ -78,6 +81,9 @@ int main(int argc, char* argv[]) {
         break;
       case 'e':
         exitCode = true;
+        break;
+      case 'p':
+        pic = true;
         break;
     }
   }
@@ -100,6 +106,7 @@ int main(int argc, char* argv[]) {
   oigen.setConfigFilePath(std::move(configFilePath));
   oigen.setSourceFileDumpPath(sourceFileDumpPath);
   oigen.setFailIfNothingGenerated(exitCode);
+  oigen.setUsePIC(pic);
 
   SymbolService symbols(primaryObject);
 
