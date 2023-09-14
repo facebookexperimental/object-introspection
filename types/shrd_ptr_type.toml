@@ -120,7 +120,7 @@ el.container_stats.emplace(result::Element::ContainerStats {
 if constexpr (!std::is_void<T0>::value) {
   if (sum.index == 1) {
     static constexpr auto element = make_field<DB, T0>("ptr_val");
-    ins.emplace(element);
+    stack_ins(element);
   }
 }
 """

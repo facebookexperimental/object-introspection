@@ -62,6 +62,6 @@ static constexpr auto firstField = make_field<DB, T0>("first");
 static constexpr auto secondField = make_field<DB, T1>("second");
 
 el.exclusive_size = sizeof(std::pair<T0, T1>) - sizeof(T0) - sizeof(T1);
-ins.emplace(secondField);
-ins.emplace(firstField);
+stack_ins(secondField);
+stack_ins(firstField);
 """

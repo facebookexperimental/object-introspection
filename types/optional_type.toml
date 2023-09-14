@@ -81,6 +81,6 @@ el.container_stats = result::Element::ContainerStats {
 
 if (sum.index == 1) {
   el.exclusive_size -= sizeof(T0);
-  ins.emplace(elementField);
+  stack_ins(elementField);
 }
 """

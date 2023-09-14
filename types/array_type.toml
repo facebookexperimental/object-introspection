@@ -71,5 +71,5 @@ size_t size = std::get<ParsedData::List>(d.val).length;
 el.exclusive_size = N0 == 0 ? 1 : 0;
 el.container_stats.emplace(result::Element::ContainerStats{ .capacity = size, .length = size });
 for (size_t i = 0; i < size; i++)
-  ins.emplace(childField);
+  stack_ins(childField);
 """
