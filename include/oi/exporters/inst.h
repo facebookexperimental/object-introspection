@@ -23,8 +23,8 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <initializer_list>
-#include <stack>
 #include <utility>
 #include <variant>
 
@@ -34,7 +34,9 @@ struct PopTypePath;
 struct Field;
 
 using Inst = std::variant<PopTypePath, std::reference_wrapper<const Field>>;
-using Processor = void (*)(result::Element&, std::stack<Inst>&, ParsedData);
+using Processor = void (*)(result::Element&,
+                           std::function<void(Inst)>,
+                           ParsedData);
 using ProcessorInst = std::pair<types::dy::Dynamic, Processor>;
 
 struct PopTypePath {};

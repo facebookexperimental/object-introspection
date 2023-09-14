@@ -142,5 +142,5 @@ el.container_stats.emplace(result::Element::ContainerStats {
 el.exclusive_size += el.container_stats->length * (element_size - sizeof(T0));
 
 for (size_t i = 0; i < list.length; i++)
-  ins.emplace(childField);
+  stack_ins(childField);
 """

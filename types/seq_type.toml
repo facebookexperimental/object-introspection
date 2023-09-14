@@ -102,5 +102,5 @@ el.container_stats->length = list.length;
 el.exclusive_size += (el.container_stats->capacity - el.container_stats->length) * sizeof(T0);
 
 for (size_t i = 0; i < list.length; i++)
-  ins.emplace(childField);
+  stack_ins(childField);
 """

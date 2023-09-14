@@ -726,10 +726,10 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
 )";
   if (features[Feature::TreeBuilderV2]) {
     code += R"(private:
-        static void process_pointer(result::Element& el, std::stack<inst::Inst>& ins, ParsedData d) {
+        static void process_pointer(result::Element& el, std::function<void(inst::Inst)> stack_ins, ParsedData d) {
           el.pointer = std::get<ParsedData::VarInt>(d.val).value;
         }
-        static void process_pointer_content(result::Element& el, std::stack<inst::Inst>& ins, ParsedData d) {
+        static void process_pointer_content(result::Element& el, std::function<void(inst::Inst)> stack_ins, ParsedData d) {
           static constexpr std::array<std::string_view, 1> names{"TODO"};
           static constexpr auto childField = inst::Field{
             sizeof(T),
@@ -747,7 +747,7 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
             return;
 
           el.container_stats->length = 1;
-          ins.emplace(childField);
+          stack_ins(childField);
         }
 
         static constexpr auto choose_fields() {
@@ -862,7 +862,7 @@ el.container_stats.emplace(result::Element::ContainerStats{ .capacity = N0, .len
 auto list = std::get<ParsedData::List>(d.val);
 // assert(list.length == N0);
 for (size_t i = 0; i < N0; i++)
-  ins.emplace(childField);
+  stack_ins(childField);
 )",
   });
 

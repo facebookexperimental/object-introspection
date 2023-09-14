@@ -155,5 +155,5 @@ el.container_stats.emplace(result::Element::ContainerStats {
 });
 
 for (size_t i = 0; i < list.length; i++)
-  ins.emplace(element);
+  stack_ins(element);
 """

@@ -62,7 +62,8 @@ IntrospectionResult::const_iterator::operator++() {
 
             for (const auto& [dy, handler] : ty.processors) {
               auto parsed = exporters::ParsedData::parse(data_, dy);
-              handler(*next_, stack_, parsed);
+              handler(
+                  *next_, [this](auto i) { stack_.emplace(i); }, parsed);
             }
             for (auto it = ty.fields.rbegin(); it != ty.fields.rend(); ++it) {
               stack_.emplace(*it);

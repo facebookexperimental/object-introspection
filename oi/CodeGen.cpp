@@ -948,7 +948,8 @@ void genContainerTypeHandler(FeatureSet features,
     code += "  static void processor_";
     code += std::to_string(count++);
     code +=
-        "(result::Element& el, std::stack<inst::Inst>& ins, ParsedData d) {\n";
+        "(result::Element& el, std::function<void(inst::Inst)> stack_ins, "
+        "ParsedData d) {\n";
     code += pr.func;  // bad indentation
     code += "  }\n";
   }
