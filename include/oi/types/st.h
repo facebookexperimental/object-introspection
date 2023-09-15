@@ -80,7 +80,7 @@ class Unit {
   }
 
   template <typename F>
-  Unit<DataBuffer> delegate(F const& cb) {
+  Unit<DataBuffer> consume(F const& cb) {
     return cb(*this);
   }
 
@@ -131,6 +131,11 @@ class VarInt {
     return Unit<DataBuffer>(_buf);
   }
 
+  template <typename F>
+  Unit<DataBuffer> consume(F const& cb) {
+    return cb(*this);
+  }
+
 #ifdef DEFINE_DESCRIBE
   static constexpr types::dy::VarInt describe{};
 #endif
@@ -163,6 +168,11 @@ class Pair {
     T1 first = T1(_buf);
     Unit<DataBuffer> second = cb(first);
     return second.template cast<T2>();
+  }
+
+  template <typename F>
+  Unit<DataBuffer> consume(F const& cb) {
+    return cb(*this);
   }
 
 #ifdef DEFINE_DESCRIBE
@@ -215,6 +225,11 @@ class Sum {
   Unit<DataBuffer> delegate(F const& cb) {
     auto tail = write<I>();
     return cb(tail);
+  }
+
+  template <typename F>
+  Unit<DataBuffer> consume(F const& cb) {
+    return cb(*this);
   }
 
 #ifdef DEFINE_DESCRIBE
@@ -272,6 +287,11 @@ class List
  public:
   List(DataBuffer db)
       : Pair<DataBuffer, VarInt<DataBuffer>, ListContents<DataBuffer, T>>(db) {
+  }
+
+  template <typename F>
+  Unit<DataBuffer> consume(F const& cb) {
+    return cb(*this);
   }
 
 #ifdef DEFINE_DESCRIBE
