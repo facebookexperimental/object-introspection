@@ -152,7 +152,8 @@ fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
 
   // TODO: Revert to outputPath and remove printing when typegraph is done.
   fs::path tmpObject = outputPath;
-  tmpObject.replace_extension("." + linkageName + ".o");
+  tmpObject.replace_extension(
+      "." + std::to_string(std::hash<std::string>{}(linkageName)) + ".o");
 
   if (!compiler.compile(code, sourcePath, tmpObject)) {
     return {};
