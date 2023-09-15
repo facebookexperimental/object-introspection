@@ -639,8 +639,8 @@ size_t getLastNonPaddingMemberIndex(const std::vector<Member>& members) {
 
 // Generate the function body that walks the type. Uses the monadic
 // `delegate()` form to handle each field except for the last. The last field
-// is handled explicitly by passing it to `getSizeType`, as we must consume
-// the entire type instead of delegating the next part.
+// instead uses `consume()` as we must not accidentally handle the first half
+// of a pair as the last field.
 void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
   std::string funcName = "getSizeType";
 
@@ -667,30 +667,28 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
     }
 
     if (code.size() == emptySize) {
-      code += "    auto ret = returnArg";
+      code += "    return returnArg";
     }
 
     if (thriftIssetMember != nullptr && thriftIssetMember != &member) {
       code += "\n  .write(getThriftIsset(t, " + std::to_string(i) + "))";
     }
 
-    if (i != lastNonPaddingElement) {
-      code +=
-          "\n      .delegate([&t](auto ret) { return "
-          "OIInternal::getSizeType<DB>(t.";
-      code += member.name;
-      code += ", ret); })";
+    code += "\n      .";
+    if (i == lastNonPaddingElement) {
+      code += "consume";
     } else {
-      code += ";";
-      code += "\n    return OIInternal::getSizeType<DB>(t." + member.name +
-              ", ret);\n";
+      code += "delegate";
     }
+    code += "([&t](auto ret) { return OIInternal::getSizeType<DB>(t.";
+    code += member.name;
+    code += ", ret); })";
   }
 
   if (code.size() == emptySize) {
     code += "    return returnArg;";
   }
-  code += "  }\n";
+  code += ";\n  }\n";
 }
 
 // Generate the static type for the class's representation in the data buffer.
