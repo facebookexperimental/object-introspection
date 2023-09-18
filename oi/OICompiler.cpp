@@ -41,6 +41,7 @@
 #include <array>
 #include <boost/range/combine.hpp>
 #include <boost/scope_exit.hpp>
+#include <fstream>
 
 #include "oi/Headers.h"
 #include "oi/Metrics.h"
@@ -125,6 +126,10 @@ OICompiler::Disassembler::operator()() {
 
   return inst;
 }
+
+static StringRef CurrentObjectName;
+static std::unordered_map<uintptr_t, std::pair<std::string, std::string>>
+    AddrToSection;
 
 /*
  * Manage memory for the object files and handle symbol resolution.
@@ -313,7 +318,13 @@ uint8_t* OIMemoryManager::allocateCodeSection(
           << ", Alignment = " << alignment
           << ", SectionName = " << sectionName.data() << ")";
 
-  return currentSlab().allocate(size, alignment, true /* isCode */);
+  auto* allocatedSection =
+      currentSlab().allocate(size, alignment, true /* isCode */);
+
+  AddrToSection.emplace((uintptr_t)allocatedSection,
+                        std::make_pair(CurrentObjectName, sectionName));
+
+  return allocatedSection;
 }
 
 uint8_t* OIMemoryManager::allocateDataSection(
@@ -326,7 +337,13 @@ uint8_t* OIMemoryManager::allocateDataSection(
           << ", Alignment = " << alignment
           << ", SectionName = " << sectionName.data() << ")";
 
-  return currentSlab().allocate(size, alignment, false /* isCode */);
+  auto* allocatedSection =
+      currentSlab().allocate(size, alignment, false /* isCode */);
+
+  AddrToSection.emplace((uintptr_t)allocatedSection,
+                        std::make_pair(CurrentObjectName, sectionName));
+
+  return allocatedSection;
 }
 
 /*
@@ -616,6 +633,12 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
   memMgr = std::make_unique<OIMemoryManager>(symbols, syntheticSymbols);
   RuntimeDyld dyld(*memMgr, *memMgr);
 
+  std::ofstream lldbImageInfoCmd;
+  if (config.features[Feature::GenJitDebug]) {
+    auto lldbImageInfoPath = "/tmp/oi-" + std::to_string(getpid()) + ".lldb";
+    lldbImageInfoCmd.open(lldbImageInfoPath);
+  }
+
   /* Load all the object files into the MemoryManager */
   for (const auto& objPath : objectFiles) {
     VLOG(1) << "Loading object file " << objPath;
@@ -626,7 +649,12 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
       return std::nullopt;
     }
 
+    CurrentObjectName = objPath.c_str();
     dyld.loadObject(*objFile->getBinary());
+    CurrentObjectName = StringRef();  // clear CurrentObjectName
+
+    lldbImageInfoCmd << "image add " << objPath << "\n";
+
     if (dyld.hasError()) {
       LOG(ERROR) << "load object failed: " << dyld.getErrorString().data();
       return std::nullopt;
@@ -644,6 +672,16 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
           (uintptr_t)funcSection.base() - (uintptr_t)slab.memBlock.base();
       dyld.mapSectionAddress(funcSection.base(), currentRelocAddress + offset);
 
+      if (auto it = AddrToSection.find((uintptr_t)funcSection.base());
+          it != AddrToSection.end()) {
+        lldbImageInfoCmd << "image load --address " << it->second.first << " "
+                         << it->second.second
+                         << (void*)(currentRelocAddress + offset) << "\n";
+      } else {
+        LOG(WARNING) << "No mapping for function section "
+                     << funcSection.base();
+      }
+
       VLOG(1) << std::hex << "Relocated code " << funcSection.base() << " to "
               << currentRelocAddress + offset;
     }
@@ -652,6 +690,16 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
       auto offset =
           (uintptr_t)dataSection.base() - (uintptr_t)slab.memBlock.base();
       dyld.mapSectionAddress(dataSection.base(), currentRelocAddress + offset);
+
+      if (auto it = AddrToSection.find((uintptr_t)dataSection.base());
+          it != AddrToSection.end()) {
+        lldbImageInfoCmd << "image load --address " << it->second.first << " "
+                         << it->second.second
+                         << (void*)(currentRelocAddress + offset) << "\n";
+      } else {
+        LOG(WARNING) << "No mapping for function section "
+                     << dataSection.base();
+      }
 
       VLOG(1) << std::hex << "Relocated data " << dataSection.base() << " to "
               << currentRelocAddress + offset;
