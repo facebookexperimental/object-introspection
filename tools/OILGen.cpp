@@ -33,7 +33,9 @@ constexpr static OIOpts opts{
           "Write output(s) to file(s) with this prefix."},
     OIOpt{'c', "config-file", required_argument, "<oid.toml>",
           "Path to OI configuration file."},
-    OIOpt{'d', "dump-jit", optional_argument, "<jit.cpp>",
+    OIOpt{'d', "debug-level", required_argument, "<level>",
+          "Verbose level for logging"},
+    OIOpt{'j', "dump-jit", optional_argument, "<jit.cpp>",
           "Write generated code to a file (for debugging)."},
     OIOpt{'e', "exit-code", no_argument, nullptr,
           "Return a bad exit code if nothing is generated."},
@@ -77,6 +79,14 @@ int main(int argc, char* argv[]) {
         configFilePath = optarg;
         break;
       case 'd':
+        google::LogToStderr();
+        google::SetStderrLogging(google::INFO);
+        google::SetVLOGLevel("*", atoi(optarg));
+        // Upstream glog defines `GLOG_INFO` as 0 https://fburl.com/ydjajhz0,
+        // but internally it's defined as 1 https://fburl.com/code/9fwams75
+        gflags::SetCommandLineOption("minloglevel", "0");
+        break;
+      case 'j':
         sourceFileDumpPath = optarg != nullptr ? optarg : "jit.cpp";
         break;
       case 'e':
