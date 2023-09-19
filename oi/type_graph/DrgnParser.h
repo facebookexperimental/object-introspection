@@ -30,8 +30,8 @@ struct ContainerInfo;
 namespace oi::detail::type_graph {
 
 struct DrgnParserOptions {
-  bool chaseRawPointers = true;
-  bool readEnumValues = true;
+  bool chaseRawPointers = false;
+  bool readEnumValues = false;
 };
 
 /*

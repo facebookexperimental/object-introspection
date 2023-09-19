@@ -32,7 +32,8 @@ class DrgnParserTest : public ::testing::Test {
                           type_graph::DrgnParserOptions options);
   void test(std::string_view function,
             std::string_view expected,
-            type_graph::DrgnParserOptions options = {});
+            type_graph::DrgnParserOptions options);
+  void test(std::string_view function, std::string_view expected);
   void testContains(std::string_view function,
                     std::string_view expected,
                     type_graph::DrgnParserOptions options = {});

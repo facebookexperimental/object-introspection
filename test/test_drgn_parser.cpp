@@ -72,6 +72,16 @@ void DrgnParserTest::test(std::string_view function,
   EXPECT_EQ(expected, actual);
 }
 
+void DrgnParserTest::test(std::string_view function,
+                          std::string_view expected) {
+  // Enable options in unit tests so we get more coverage
+  DrgnParserOptions options = {
+      .chaseRawPointers = true,
+      .readEnumValues = true,
+  };
+  test(function, expected, options);
+}
+
 void DrgnParserTest::testContains(std::string_view function,
                                   std::string_view expected,
                                   DrgnParserOptions options) {
