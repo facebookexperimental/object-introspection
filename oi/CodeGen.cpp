@@ -190,7 +190,9 @@ void genDeclsClass(const Class& c, std::string& code) {
 }
 
 void genDeclsEnum(const Enum& e, std::string& code) {
-  code += "using " + e.name() + " = ";
+  code += "enum class ";
+  code += e.name();
+  code += " : ";
   switch (e.size()) {
     case 8:
       code += "uint64_t";
@@ -207,7 +209,7 @@ void genDeclsEnum(const Enum& e, std::string& code) {
     default:
       abort();  // TODO
   }
-  code += ";\n";
+  code += " {};\n";
 }
 
 void genDecls(const TypeGraph& typeGraph, std::string& code) {
