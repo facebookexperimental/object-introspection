@@ -21,6 +21,7 @@
 #include <boost/core/demangle.hpp>
 #include <fstream>
 #include <iostream>
+#include <string_view>
 #include <unordered_map>
 #include <variant>
 
@@ -44,6 +45,8 @@ OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
   auto symbols = prog.find_all_symbols();
   for (drgn_symbol* sym : *symbols) {
     auto symName = drgnplusplus::symbol::name(sym);
+    if (symName == nullptr || *symName == '\0')
+      continue;
     auto demangled = boost::core::demangle(symName);
 
     if (demangled.starts_with(strongSymbolPrefix)) {
