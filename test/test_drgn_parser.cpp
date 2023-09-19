@@ -260,9 +260,9 @@ TEST_F(DrgnParserTest, Enum) {
 )");
 }
 
-TEST_F(DrgnParserTest, EnumInt8) {
-  test("oid_test_case_enums_scoped_int8", R"(
-    Enum: ScopedEnumInt8 (size: 1)
+TEST_F(DrgnParserTest, EnumUint8) {
+  test("oid_test_case_enums_scoped_uint8", R"(
+    Enum: ScopedEnumUint8 (size: 1)
       Enumerator: 2:CaseA
       Enumerator: 3:CaseB
       Enumerator: 4:CaseC
