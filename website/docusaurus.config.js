@@ -13,8 +13,8 @@
 const config = {
   title: 'Object Introspection',
   tagline: 'Dynamic C++ Object Profiling',
-  url: 'https://facebookexperimental.github.io',
-  baseUrl: '/object-introspection',
+  url: 'https://objectintrospection.org',
+  baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: '/img/favicon.ico',
@@ -24,7 +24,7 @@ const config = {
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'facebookexperimental', // Usually your GitHub org/user name.
   projectName: 'object-introspection', // Usually your repo name.
-	deploymentBranch: 'web',
+	deploymentBranch: 'gh-pages',
 
   presets: [
     [
