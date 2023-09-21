@@ -43,7 +43,8 @@ class Printer : public ConstVisitor {
   void visit(const DummyAllocator& d) override;
 
  private:
-  bool prefix(const Type* type = nullptr);
+  void prefix();
+  [[nodiscard]] bool prefix(const Type& type);
   void print_param(const TemplateParam& param);
   void print_parent(const Parent& parent);
   void print_member(const Member& member);
