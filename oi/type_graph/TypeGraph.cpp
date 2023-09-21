@@ -59,9 +59,9 @@ Primitive& TypeGraph::makeType<Primitive>(Primitive::Kind kind) {
     case Primitive::Kind::Bool:
       static Primitive pBool{kind};
       return pBool;
-    case Primitive::Kind::UIntPtr:
-      static Primitive pUIntPtr{kind};
-      return pUIntPtr;
+    case Primitive::Kind::StubbedPointer:
+      static Primitive pStubbedPointer{kind};
+      return pStubbedPointer;
     case Primitive::Kind::Void:
       static Primitive pVoid{kind};
       return pVoid;

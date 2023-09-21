@@ -356,9 +356,9 @@ TEST_F(DrgnParserTest, PointerNoFollow) {
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 8)
-          Primitive: uintptr_t
+          Primitive: StubbedPointer
         Member: c (offset: 16)
-          Primitive: uintptr_t
+          Primitive: StubbedPointer
 )",
        options);
 }
@@ -586,7 +586,7 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
 [1] Pointer
 [0]   Class: A (size: 16)
         Member: _vptr$A (offset: 0)
-          Primitive: uintptr_t
+          Primitive: StubbedPointer
         Member: int_a (offset: 8)
           Primitive: int32_t
         Function: ~A (virtual)
@@ -598,7 +598,7 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
 [1] Pointer
 [0]   Class: A (size: 16)
         Member: _vptr.A (offset: 0)
-          Primitive: uintptr_t
+          Primitive: StubbedPointer
         Member: int_a (offset: 8)
           Primitive: int32_t
         Function: operator=

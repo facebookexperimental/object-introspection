@@ -45,8 +45,8 @@ Primitive::Kind getKind(std::string_view kindStr) {
     return Primitive::Kind::Float128;
   if (kindStr == "bool")
     return Primitive::Kind::Bool;
-  if (kindStr == "uintptr_t")
-    return Primitive::Kind::UIntPtr;
+  if (kindStr == "StubbedPointer")
+    return Primitive::Kind::StubbedPointer;
   if (kindStr == "void")
     return Primitive::Kind::Void;
   if (kindStr == "void (incomplete)")

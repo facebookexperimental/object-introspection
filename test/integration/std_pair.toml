@@ -1,7 +1,6 @@
 includes = ["vector", "utility", "cstdint"]
 [cases]
   [cases.uint64_uint64]
-    oil_skip = 'tests need updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/310
     param_types = ["std::pair<std::uint64_t, std::uint64_t>&"]
     setup = "return {{0, 1}};"
     expect_json = '''
@@ -14,8 +13,13 @@ includes = ["vector", "utility", "cstdint"]
       }
     ]
     '''
+    expect_json_v2 = '''[
+      {"staticSize": 16, "exclusiveSize": 0, "members": [
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8},
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8}
+      ]}
+    ]'''
   [cases.uint64_uint32]
-    oil_skip = 'tests need updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/310
     param_types = ["std::pair<std::uint64_t, std::uint32_t>&"]
     setup = "return {{0, 1}};"
     # Should still have static size of 16 due to padding
@@ -29,8 +33,28 @@ includes = ["vector", "utility", "cstdint"]
       }
     ]
     '''
+    expect_json_v2 = '''[
+      {"staticSize": 16, "exclusiveSize": 4, "members": [
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8},
+        {"typeNames": ["uint32_t"], "staticSize": 4, "exclusiveSize": 4}
+      ]}
+    ]'''
+
+  [cases.uint64_uint64_ptr]
+    # Stubbed pointers were previously generated as a uintptr_t. Now they're
+    # generated as a special StubbedPointer type. This previously caused
+    # codegen problems as uintptr_t is a typedef of uint64_t and they'd both
+    # be specialised on a template.
+    param_types = ["std::pair<uint64_t, uint64_t*>&"]
+    setup = "return {{0, nullptr}};"
+    expect_json_v2 = '''[
+      {"staticSize": 16, "exclusiveSize": 0, "members": [
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8},
+        {"typeNames": ["uintptr_t (stubbed)"], "staticSize": 8, "exclusiveSize": 8}
+      ]}
+    ]'''
+
   [cases.vector_vector]
-    oil_skip = 'tests need updating for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/310
     param_types = ["std::pair<std::vector<std::uint64_t>, std::vector<std::uint64_t>>&"]
     setup = "return {{std::initializer_list<std::uint64_t>({0,1,2}), std::initializer_list<std::uint64_t>({3,4,5,6})}};"
     expect_json = '''
@@ -57,3 +81,9 @@ includes = ["vector", "utility", "cstdint"]
       }
     ]
     '''
+    expect_json_v2 = '''[
+      {"staticSize": 48, "exclusiveSize": 0, "members": [
+        {"typeNames": ["std::vector<uint64_t, std::allocator<uint64_t>>"], "staticSize": 24, "exclusiveSize": 24},
+        {"typeNames": ["std::vector<uint64_t, std::allocator<uint64_t>>"], "staticSize": 24, "exclusiveSize": 24}
+      ]}
+    ]'''
