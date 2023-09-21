@@ -143,3 +143,5 @@ struct validate_offset {
   static constexpr bool value = true;
   static_assert(ExpectedOffset == ActualOffset);
 };
+
+enum class StubbedPointer : uintptr_t {};

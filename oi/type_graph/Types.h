@@ -485,8 +485,7 @@ class Primitive : public Type {
     Float128,  // TODO can we generate this?
     Bool,
 
-    UIntPtr,  // Really an alias, but useful to have as its own primitive
-
+    StubbedPointer,
     Void,
     Incomplete,  // Behaves the same as Void, but alerts us that the type was
                  // stubbed out due to incomplete DWARF
@@ -502,9 +501,7 @@ class Primitive : public Type {
   virtual const std::string& name() const override {
     return name_;
   }
-  virtual std::string_view inputName() const override {
-    return name_;
-  }
+  virtual std::string_view inputName() const override;
   virtual size_t size() const override;
   virtual uint64_t align() const override {
     return size();

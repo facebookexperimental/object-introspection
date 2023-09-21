@@ -70,7 +70,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
 [1]  Pointer
 [0]    Class: A (size: 16)
          Member: _vptr$A (offset: 0)
-           Primitive: uintptr_t
+           Primitive: StubbedPointer
          Member: int_a (offset: 8)
            Primitive: int32_t
          Function: ~A (virtual)
@@ -124,7 +124,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
 [1]  Pointer
 [0]    Class: A (size: 16)
          Member: _vptr.A (offset: 0)
-           Primitive: uintptr_t
+           Primitive: StubbedPointer
          Member: int_a (offset: 8)
            Primitive: int32_t
          Function: operator=

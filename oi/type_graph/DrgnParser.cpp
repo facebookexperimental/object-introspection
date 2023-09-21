@@ -464,13 +464,13 @@ static drgn_type* getPtrUnderlyingType(drgn_type* type) {
 
 Type& DrgnParser::enumeratePointer(struct drgn_type* type) {
   if (!chasePointer()) {
-    return makeType<Primitive>(type, Primitive::Kind::UIntPtr);
+    return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
   }
 
   struct drgn_type* pointeeType = drgn_type_type(type).type;
 
   if (drgn_type_kind(getPtrUnderlyingType(type)) == DRGN_TYPE_FUNCTION) {
-    return makeType<Primitive>(type, Primitive::Kind::UIntPtr);
+    return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
   }
 
   Type& t = enumerateType(pointeeType);

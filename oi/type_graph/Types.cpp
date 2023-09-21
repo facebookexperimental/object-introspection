@@ -57,12 +57,19 @@ std::string Primitive::getName(Kind kind) {
       return "long double";
     case Kind::Bool:
       return "bool";
-    case Kind::UIntPtr:
-      return "uintptr_t";
+    case Kind::StubbedPointer:
+      return "StubbedPointer";
     case Kind::Void:
     case Kind::Incomplete:
       return "void";
   }
+}
+
+std::string_view Primitive::inputName() const {
+  static const std::string kStubbedPointer = "uintptr_t (stubbed)";
+  if (kind_ == Kind::StubbedPointer)
+    return kStubbedPointer;
+  return name_;
 }
 
 std::size_t Primitive::size() const {
@@ -93,7 +100,7 @@ std::size_t Primitive::size() const {
       return 16;
     case Kind::Bool:
       return 1;
-    case Kind::UIntPtr:
+    case Kind::StubbedPointer:
       return sizeof(uintptr_t);
     case Kind::Void:
     case Kind::Incomplete:
