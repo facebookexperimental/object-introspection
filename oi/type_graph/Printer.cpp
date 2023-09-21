@@ -37,7 +37,7 @@ void Printer::print(const Type& type) {
 }
 
 void Printer::visit(const Class& c) {
-  if (prefix(&c))
+  if (prefix(c))
     return;
 
   std::string kind;
@@ -79,7 +79,7 @@ void Printer::visit(const Class& c) {
 }
 
 void Printer::visit(const Container& c) {
-  if (prefix(&c))
+  if (prefix(c))
     return;
 
   out_ << "Container: " << c.name() << " (size: " << c.size() << ")"
@@ -106,7 +106,7 @@ void Printer::visit(const Enum& e) {
 }
 
 void Printer::visit(const Array& a) {
-  if (prefix(&a))
+  if (prefix(a))
     return;
 
   out_ << "Array: ";
@@ -117,7 +117,7 @@ void Printer::visit(const Array& a) {
 }
 
 void Printer::visit(const Typedef& td) {
-  if (prefix(&td))
+  if (prefix(td))
     return;
 
   auto name = td.name();
@@ -129,7 +129,7 @@ void Printer::visit(const Typedef& td) {
 }
 
 void Printer::visit(const Pointer& p) {
-  if (prefix(&p))
+  if (prefix(p))
     return;
 
   out_ << "Pointer";
@@ -140,35 +140,40 @@ void Printer::visit(const Pointer& p) {
 }
 
 void Printer::visit(const Dummy& d) {
-  prefix(&d);
+  if (prefix(d))
+    return;
   out_ << "Dummy ";
   out_ << "[" << d.inputName() << "] ";
   out_ << "(size: " << d.size() << align_str(d.align()) << ")" << std::endl;
 }
 
 void Printer::visit(const DummyAllocator& d) {
-  prefix(&d);
+  if (prefix(d))
+    return;
   out_ << "DummyAllocator ";
   out_ << "[" << d.inputName() << "] ";
   out_ << "(size: " << d.size() << align_str(d.align()) << ")" << std::endl;
   print(d.allocType());
 }
 
-bool Printer::prefix(const Type* type) {
+void Printer::prefix() {
+  int indent = baseIndent_ + depth_ * 2;
+  out_ << std::string(indent, ' ');
+}
+
+bool Printer::prefix(const Type& type) {
   int indent = baseIndent_ + depth_ * 2;
 
-  if (type) {
-    if (tracker_.visit(*type)) {
-      // Node has already been printed - print a reference to it this time
-      out_ << std::string(indent, ' ');
-      out_ << "[" << type->id() << "]" << std::endl;
-      return true;
-    }
-
-    std::string nodeId = "[" + std::to_string(type->id()) + "]";
-    out_ << nodeId;
-    indent -= nodeId.size();
+  if (tracker_.visit(type)) {
+    // Node has already been printed - print a reference to it this time
+    out_ << std::string(indent, ' ');
+    out_ << "[" << type.id() << "]" << std::endl;
+    return true;
   }
+
+  std::string nodeId = "[" + std::to_string(type.id()) + "]";
+  out_ << nodeId;
+  indent -= nodeId.size();
 
   out_ << std::string(indent, ' ');
   return false;
