@@ -34,19 +34,19 @@ find_package(gflags REQUIRED)
 
 ### tomlplusplus (for configuration files)
 FetchContent_Declare(
-    tomlplusplus
-    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
-    GIT_TAG        4b166b69f28e70a416a1a04a98f365d2aeb90de8 # v3.2.0
-    GIT_PROGRESS   TRUE
+  tomlplusplus
+  GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+  GIT_TAG        4b166b69f28e70a416a1a04a98f365d2aeb90de8 # v3.2.0
+  GIT_PROGRESS   TRUE
 )
 FetchContent_MakeAvailable(tomlplusplus)
 
 ### glog
 FetchContent_Declare(
-    glog
-    GIT_REPOSITORY https://github.com/google/glog.git
-    GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a
-    GIT_PROGRESS   TRUE
+  glog
+  GIT_REPOSITORY https://github.com/google/glog.git
+  GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a
+  GIT_PROGRESS   TRUE
 )
 FetchContent_MakeAvailable(glog)
 
@@ -71,10 +71,10 @@ FetchContent_MakeAvailable(googletest)
 
 ### rocksdb
 FetchContent_Declare(
-    rocksdb
-    GIT_REPOSITORY https://github.com/facebook/rocksdb.git
-    GIT_TAG        f32521662acf3352397d438b732144c7813bbbec # v8.5.3
-    GIT_PROGRESS   TRUE
+  rocksdb
+  GIT_REPOSITORY https://github.com/facebook/rocksdb.git
+  GIT_TAG        f32521662acf3352397d438b732144c7813bbbec # v8.5.3
+  GIT_PROGRESS   TRUE
 )
 FetchContent_Populate(rocksdb)
 add_custom_target(librocksdb ALL
@@ -90,10 +90,10 @@ include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
 ### folly
 ### use folly as a header only library. some features won't be supported.
 FetchContent_Declare(
-    folly
-    GIT_REPOSITORY https://github.com/JakeHillion/folly.git
-    GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
-    GIT_PROGRESS   TRUE
+  folly
+  GIT_REPOSITORY https://github.com/JakeHillion/folly.git
+  GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
+  GIT_PROGRESS   TRUE
 )
 FetchContent_Populate(folly)
 
