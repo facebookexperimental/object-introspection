@@ -33,8 +33,8 @@ void getSizeType(const %1%<K, T, H, KE, A> &container, size_t& returnArg)
 
     for (auto const& it : container)
     {
-    getSizeType(it.first, returnArg);
-    getSizeType(it.second, returnArg);
+      getSizeType(it.first, returnArg);
+      getSizeType(it.second, returnArg);
     }
 }
 """
@@ -81,9 +81,13 @@ auto tail = returnArg
   .write(container.bucket_count())
   .write(container.size());
 
-for (const auto &it : container) {
-  tail = tail.delegate([&it](auto ret) {
-    return OIInternal::getSizeType<DB>(it, ret);
+for (const auto& kv : container) {
+  tail = tail.delegate([&kv](auto ret) {
+    auto start = maybeCaptureKey<captureKeys, DB, T0>(kv.first, ret);
+    auto next = start.delegate([&kv](typename TypeHandler<DB, T0>::type ret) {
+      return OIInternal::getSizeType<DB>(kv.first, ret);
+    });
+    return OIInternal::getSizeType<DB>(kv.second, next);
   });
 }
 
@@ -108,9 +112,17 @@ el.container_stats.emplace(result::Element::ContainerStats {
 
 [[codegen.processor]]
 type = """
-types::st::List<DB, types::st::Pair<DB,
-  typename TypeHandler<DB, T0>::type,
-  typename TypeHandler<DB, T1>::type>>
+std::conditional_t<captureKeys,
+ types::st::List<DB,
+   types::st::Pair<DB,
+     typename CaptureKeyHandler<DB, T0>::type,
+     types::st::Pair<DB,
+       typename TypeHandler<DB, T0>::type,
+       typename TypeHandler<DB, T1>::type>>>,
+ types::st::List<DB, types::st::Pair<DB,
+   typename TypeHandler<DB, T0>::type,
+   typename TypeHandler<DB, T1>::type>>
+>
 """
 func = """
 #ifdef __GLIBCXX__
@@ -150,13 +162,15 @@ static constexpr std::array<inst::Field, 2> element_fields{
   make_field<DB, T1>("value"),
 };
 
+static constexpr auto processors = maybeCaptureKeysProcessor<captureKeys, DB, T0>();
+
 static constexpr auto element = inst::Field{
   element_size,
   element_size - sizeof(T0) - sizeof(T1),
   "[]",
   std::array<std::string_view, 0>{},
   element_fields,
-  std::array<inst::ProcessorInst, 0>{},
+  processors,
 };
 
 for (size_t i = 0; i < list.length; i++)
