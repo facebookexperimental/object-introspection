@@ -54,6 +54,23 @@ struct TypeHandler<DB, %1% <T0>> {
 };
 """
 
+extra = """
+template <typename DB, typename CharT, typename Traits, typename Allocator>
+class CaptureKeyHandler<DB, std::__cxx11::basic_string<CharT, Traits, Allocator>> {
+ public:
+  // List of characters
+  using type = types::st::List<DB, types::st::VarInt<DB>>;
+
+  static auto captureKey(const std::__cxx11::basic_string<CharT, Traits, Allocator>& key, auto returnArg) {
+    auto tail = returnArg.write(key.size());
+    for (auto c : key) {
+      tail = returnArg.write((uintptr_t)c);
+    }
+    return tail.finish();
+  }
+};
+"""
+
 traversal_func = """
     bool sso = ((uintptr_t)container.data() <
                 (uintptr_t)(&container + sizeof(std::__cxx11::basic_string<T0>))) &&
