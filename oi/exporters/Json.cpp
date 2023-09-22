@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <stdexcept>
+#include <variant>
 
 template <class>
 inline constexpr bool always_false_v = false;
@@ -99,6 +100,18 @@ void Json::print(IntrospectionResult::const_iterator& it,
       out_ << tab << "\"pointer\":" << space << *(it->pointer) << ',' << endl
            << indent;
     }
+
+    if (auto* s = std::get_if<result::Element::Scalar>(&it->data)) {
+      out_ << tab << "\"data\":" << space << s->n << ',' << endl << indent;
+    } else if (auto* p = std::get_if<result::Element::Pointer>(&it->data)) {
+      out_ << tab << "\"data\":" << space << "\"0x" << std::hex << p->p
+           << std::dec << "\"," << endl
+           << indent;
+    } else if (auto* str = std::get_if<std::string>(&it->data)) {
+      out_ << tab << "\"data\":" << space << "\"" << *str << "\"," << endl
+           << indent;
+    }
+
     if (it->container_stats.has_value()) {
       out_ << tab << "\"length\":" << space << it->container_stats->length
            << ',' << endl
