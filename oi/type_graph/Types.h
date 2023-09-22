@@ -109,6 +109,14 @@ class Member {
         bitsize(bitsize) {
   }
 
+  Member(Type& type, const Member& other)
+      : type_(type),
+        name(other.name),
+        inputName(other.inputName),
+        bitOffset(other.bitOffset),
+        bitsize(other.bitsize) {
+  }
+
   Type& type() const {
     return type_;
   }
@@ -296,6 +304,17 @@ class Container : public Type {
         name_(containerInfo.typeName),
         inputName_(containerInfo.typeName),
         size_(size),
+        id_(id) {
+  }
+
+  Container(NodeId id,
+            const Container& other,
+            const ContainerInfo& containerInfo)
+      : templateParams(other.templateParams),
+        containerInfo_(containerInfo),
+        name_(other.name_),
+        inputName_(other.inputName_),
+        size_(other.size_),
         id_(id) {
   }
 
