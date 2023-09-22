@@ -71,11 +71,14 @@ struct ContainerInfo {
         codegen(std::move(codegen_)) {
   }
 
-  ContainerInfo(const ContainerInfo&) = delete;
-  ContainerInfo& operator=(const ContainerInfo& other) = delete;
-
   ContainerInfo(ContainerInfo&&) = default;
   ContainerInfo& operator=(ContainerInfo&&) = default;
+
+  // Explicit interface for copying
+  ContainerInfo clone() const {
+    ContainerInfo copy{*this};
+    return copy;
+  }
 
   std::string typeName;
   std::regex matcher;
@@ -89,6 +92,7 @@ struct ContainerInfo {
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
   std::vector<size_t> stubTemplateParams{};
+  bool captureKeys = false;
 
   Codegen codegen;
 
@@ -98,6 +102,10 @@ struct ContainerInfo {
   bool operator<(const ContainerInfo& rhs) const {
     return (typeName < rhs.typeName);
   }
+
+ private:
+  ContainerInfo(const ContainerInfo&) = default;
+  ContainerInfo& operator=(const ContainerInfo& other) = default;
 };
 
 class ContainerInfoError : public std::runtime_error {
