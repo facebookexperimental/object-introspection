@@ -399,6 +399,31 @@ TEST(NameGenTest, DummyAllocator) {
   EXPECT_EQ(myalloc.inputName(), "BigAllocator");
 }
 
+TEST(NameGenTest, CaptureKeys) {
+  auto myparam1 = Class{0, Class::Kind::Struct, "MyParam", 13};
+  auto myparam2 = Class{1, Class::Kind::Struct, "MyParam", 13};
+
+  auto mycontainer = getVector();
+  mycontainer.templateParams.push_back(myparam1);
+  mycontainer.templateParams.push_back(myparam2);
+
+  auto captureKeys = CaptureKeys{mycontainer, mycontainer.containerInfo_};
+
+  NameGen nameGen;
+  nameGen.generateNames({captureKeys});
+
+  EXPECT_EQ(myparam1.name(), "MyParam_0");
+  EXPECT_EQ(myparam2.name(), "MyParam_1");
+  EXPECT_EQ(mycontainer.name(), "std::vector<MyParam_0, MyParam_1>");
+  EXPECT_EQ(captureKeys.name(),
+            "OICaptureKeys<std::vector<MyParam_0, MyParam_1>>");
+
+  EXPECT_EQ(myparam1.inputName(), "MyParam");
+  EXPECT_EQ(myparam2.inputName(), "MyParam");
+  EXPECT_EQ(mycontainer.inputName(), "std::vector<MyParam, MyParam>");
+  EXPECT_EQ(captureKeys.inputName(), "std::vector<MyParam, MyParam>");
+}
+
 TEST(NameGenTest, Cycle) {
   auto classA = Class{0, Class::Kind::Class, "ClassA", 69};
   auto classB = Class{1, Class::Kind::Class, "ClassB", 69};

@@ -48,7 +48,8 @@
   X(Typedef)         \
   X(Pointer)         \
   X(Dummy)           \
-  X(DummyAllocator)
+  X(DummyAllocator)  \
+  X(CaptureKeys)
 
 struct ContainerInfo;
 
@@ -728,6 +729,60 @@ class DummyAllocator : public Type {
 
   std::string name_;
   std::string inputName_;
+};
+
+/*
+ * CaptureKeys
+ *
+ * The held Container will have its keys captured.
+ */
+class CaptureKeys : public Type {
+ public:
+  explicit CaptureKeys(Container& c, const ContainerInfo& info)
+      : container_(c), containerInfo_(info) {
+    regenerateName();
+  }
+
+  static inline constexpr bool has_node_id = false;
+
+  DECLARE_ACCEPT
+
+  virtual const std::string& name() const override {
+    return name_;
+  }
+
+  virtual std::string_view inputName() const override {
+    return container_.inputName();
+  }
+
+  void regenerateName() {
+    name_ = "OICaptureKeys<" + container_.name() + ">";
+  }
+
+  virtual size_t size() const override {
+    return container_.size();
+  }
+
+  virtual uint64_t align() const override {
+    return container_.align();
+  }
+
+  virtual NodeId id() const override {
+    return -1;
+  }
+
+  const ContainerInfo& containerInfo() const {
+    return containerInfo_;
+  }
+
+  Container& container() const {
+    return container_;
+  }
+
+ private:
+  Container& container_;
+  const ContainerInfo& containerInfo_;
+  std::string name_;
 };
 
 Type& stripTypedefs(Type& type);

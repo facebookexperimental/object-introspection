@@ -199,4 +199,9 @@ void NameGen::visit(DummyAllocator& d) {
   d.regenerateName();
 }
 
+void NameGen::visit(CaptureKeys& c) {
+  RecursiveVisitor::visit(c);
+  c.regenerateName();
+}
+
 }  // namespace oi::detail::type_graph
