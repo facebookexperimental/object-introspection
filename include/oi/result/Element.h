@@ -18,7 +18,9 @@
 
 #include <optional>
 #include <span>
+#include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 namespace oi::result {
@@ -31,6 +33,12 @@ struct Element {
   struct IsSetStats {
     bool is_set;
   };
+  struct Pointer {
+    uintptr_t p;
+  };
+  struct Scalar {
+    uint64_t n;
+  };
 
   std::string_view name;
   std::vector<std::string_view>
@@ -40,6 +48,8 @@ struct Element {
   size_t exclusive_size;
 
   std::optional<uintptr_t> pointer;
+  std::variant<std::nullopt_t, Pointer, Scalar, std::string> data = {
+      std::nullopt};
   std::optional<ContainerStats> container_stats;
   std::optional<IsSetStats> is_set_stats;
 };
