@@ -1,0 +1,264 @@
+# This file contains tests for core key-capture features at the top, followed
+# by basic tests for each container type which supports key capture.
+
+includes = ["map"]
+definitions = '''
+struct MapHolder {
+  std::map<int, int> captureMyKeys;
+  std::map<int, int> dontCaptureKeysHere;
+};
+
+enum class MyEnum {
+  One = 1,
+  Two = 2,
+  Three = 3,
+};
+'''
+[cases]
+  [cases.int]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const std::map<int, int>&"]
+    setup = "return {{{1,2},{3,4}}};"
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      top_level = true
+    '''
+    expect_json_v2 = '''[{
+      "name": "a0",
+      "typePath": ["a0"],
+      "members": [
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": 1,
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        },
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": 3,
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        }
+      ]
+    }]'''
+
+  [cases.string]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const std::map<std::string, int>&"]
+    setup = '''return
+      {{
+        {"abc", 1},
+        {"hohoho", 2}
+      }};'''
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      top_level = true
+    '''
+    expect_json_v2 = '''[{
+      "name": "a0",
+      "typePath": ["a0"],
+      "members": [
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": "abc",
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        },
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": "hohoho",
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        }
+      ]
+    }]'''
+
+  [cases.enum]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const std::map<MyEnum, int>&"]
+    setup = "return {{{MyEnum::One,2},{MyEnum::Three,4}}};"
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      top_level = true
+    '''
+    expect_json_v2 = '''[{
+      "name": "a0",
+      "typePath": ["a0"],
+      "members": [
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": 1,
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        },
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": 3,
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        }
+      ]
+    }]'''
+
+  [cases.multi_level]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const std::map<int, std::map<std::string, std::vector<int>>>&"]
+    setup = '''return
+      {{
+        {123, {
+          {"haha", {1,2}}
+        }},
+        {456, {
+          {"uh oh", {3}},
+          {"spaghettio", {4,5,6}}
+        }}
+      }};'''
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      top_level = true
+    '''
+    expect_json_v2 = '''[{
+      "name": "a0",
+      "typePath": ["a0"],
+      "members": [
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": 123,
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {
+              "name": "value",
+              "typePath": ["a0","[]","value"],
+              "members": [
+                {
+                  "name": "[]",
+                  "typePath": ["a0","[]","value","[]"],
+                  "NOT":"data",
+                  "members": [
+                    {"name": "key", "typePath": ["a0","[]","value","[]","key"]},
+                    {"name": "value", "typePath": ["a0","[]","value","[]","value"]}
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": 456,
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {
+              "name": "value",
+              "typePath": ["a0","[]","value"],
+              "members": [
+                {
+                  "name": "[]",
+                  "typePath": ["a0","[]","value","[]"],
+                  "NOT":"data",
+                  "members": [
+                    {"name": "key", "typePath": ["a0","[]","value","[]","key"]},
+                    {"name": "value", "typePath": ["a0","[]","value","[]","value"]}
+                  ]
+                },
+                {
+                  "name": "[]",
+                  "typePath": ["a0","[]","value","[]"],
+                  "NOT":"data",
+                  "members": [
+                    {"name": "key", "typePath": ["a0","[]","value","[]","key"]},
+                    {"name": "value", "typePath": ["a0","[]","value","[]","value"]}
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }]'''
+
+  [cases.config]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const MapHolder&"]
+    setup = '''return {MapHolder{
+      .captureMyKeys{ {1,2},{3,4} },
+      .dontCaptureKeysHere{ {5,6} },
+    }};'''
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      type = "MapHolder"
+      members = ["captureMyKeys"]
+    '''
+    expect_json_v2 = '''[{
+      "members": [
+        {
+          "name": "captureMyKeys",
+          "typePath": ["a0","captureMyKeys"],
+          "members": [
+            {
+              "name": "[]",
+              "typePath": ["a0","captureMyKeys","[]"],
+              "data": 1,
+              "members": [
+                {"name": "key", "typePath": ["a0","captureMyKeys","[]","key"]},
+                {"name": "value", "typePath": ["a0","captureMyKeys","[]","value"]}
+              ]
+            },
+            {
+              "name": "[]",
+              "typePath": ["a0","captureMyKeys","[]"],
+              "data": 3,
+              "members": [
+                {"name": "key", "typePath": ["a0","captureMyKeys","[]","key"]},
+                {"name": "value", "typePath": ["a0","captureMyKeys","[]","value"]}
+              ]
+            }
+          ]
+        },
+        {
+          "name": "dontCaptureKeysHere",
+          "typePath": ["a0","dontCaptureKeysHere"],
+          "members": [
+            {
+              "name": "[]",
+              "typePath": ["a0","dontCaptureKeysHere","[]"],
+              "NOT":"data",
+              "members": [
+                {"name": "key", "typePath": ["a0","dontCaptureKeysHere","[]","key"]},
+                {"name": "value", "typePath": ["a0","dontCaptureKeysHere","[]","value"]}
+              ]
+            }
+          ]
+        }
+      ]
+    }]'''
+
+  [cases.std_unordered_map]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const std::unordered_map<int, int>&"]
+    setup = "return {{{1,2}}};"
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      top_level = true
+    '''
+    expect_json_v2 = '[{"members": [{"data": 1}]}]'

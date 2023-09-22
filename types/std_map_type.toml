@@ -76,7 +76,8 @@ auto tail = returnArg
 
 for (const auto &entry: container) {
   tail = tail.delegate([&key = entry.first, &value = entry.second](auto ret) {
-    auto next =  ret.delegate([&key](typename TypeHandler<DB, T0>::type ret) {
+    auto start = maybeCaptureKey<captureKeys, DB, T0>(key, ret);
+    auto next =  start.delegate([&key](typename TypeHandler<DB, T0>::type ret) {
       return OIInternal::getSizeType<DB>(key, ret);
     });
     return OIInternal::getSizeType<DB>(value, next);
@@ -92,9 +93,18 @@ func = "el.pointer = std::get<ParsedData::VarInt>(d.val).value;"
 
 [[codegen.processor]]
 type = """
-types::st::List<DB, types::st::Pair<DB,
-  typename TypeHandler<DB, T0>::type,
-  typename TypeHandler<DB, T1>::type>>
+std::conditional_t<captureKeys,
+  types::st::List<DB,
+    types::st::Pair<DB,
+      typename CaptureKeyHandler<DB, T0>::type,
+      types::st::Pair<DB,
+        typename TypeHandler<DB, T0>::type,
+        typename TypeHandler<DB, T1>::type>>>,
+  types::st::List<DB,
+    types::st::Pair<DB,
+      typename TypeHandler<DB, T0>::type,
+      typename TypeHandler<DB, T1>::type>>
+>
 """
 func = """
 #ifdef __GLIBCXX__
@@ -147,13 +157,16 @@ static constexpr std::array<inst::Field, 2> element_fields{
   make_field<DB, T0>("key"),
   make_field<DB, T1>("value"),
 };
+
+static constexpr auto processors = maybeCaptureKeysProcessor<captureKeys, DB, T0>();
+
 static constexpr inst::Field element{
   element_size,
   element_size - sizeof(T0) - sizeof(T1),
   "[]",
   std::array<std::string_view, 0>{},
   element_fields,
-  std::array<inst::ProcessorInst, 0>{},
+  processors,
 };
 
 auto list = std::get<ParsedData::List>(d.val);
