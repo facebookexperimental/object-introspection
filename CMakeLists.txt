@@ -68,7 +68,7 @@ FetchContent_MakeAvailable(googletest)
 FetchContent_Declare(
     rocksdb
     GIT_REPOSITORY https://github.com/facebook/rocksdb.git
-    GIT_TAG        444b3f4845dd01b0d127c4b420fdd3b50ad56682
+    GIT_TAG        f32521662acf3352397d438b732144c7813bbbec # v8.5.3
 )
 FetchContent_Populate(rocksdb)
 add_custom_target(librocksdb ALL
