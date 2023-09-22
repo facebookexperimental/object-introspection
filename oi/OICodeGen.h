@@ -59,6 +59,12 @@ class OICodeGen {
     Config(Config&& other) = delete;
     Config& operator=(Config&& other) = delete;
 
+    struct KeyToCapture {
+      std::optional<std::string> type;
+      std::optional<std::string> member;
+      bool topLevel = false;
+    };
+
     bool useDataSegment;
     FeatureSet features;
     std::set<std::filesystem::path> containerConfigPaths;
@@ -66,6 +72,7 @@ class OICodeGen {
     std::set<std::string> defaultNamespaces;
     std::vector<std::pair<std::string, std::string>> membersToStub;
     std::vector<ContainerInfo> passThroughTypes;
+    std::vector<KeyToCapture> keysToCapture;
 
     std::string toString() const;
     std::vector<std::string> toOptions() const;

@@ -170,6 +170,38 @@ std::optional<FeatureSet> processConfigFile(
         }
       }
     }
+    if (toml::array* arr = (*codegen)["capture_keys"].as_array()) {
+      for (auto&& el : *arr) {
+        if (toml::table* captureKeys = el.as_table()) {
+          auto* type = (*captureKeys)["type"].as_string();
+          auto* topLevel = (*captureKeys)["top_level"].as_boolean();
+          if (!((type == nullptr) ^ (topLevel == nullptr))) {
+            LOG(ERROR) << "Config entry 'capture_keys' must specify either a "
+                          "type or 'top_level'";
+            return {};
+          }
+
+          if (type) {
+            auto* members = (*captureKeys)["members"].as_array();
+            if (!members) {
+              generatorConfig.keysToCapture.push_back(
+                  OICodeGen::Config::KeyToCapture{type->value_or(""), "*",
+                                                  false});
+            } else {
+              for (auto&& member : *members) {
+                generatorConfig.keysToCapture.push_back(
+                    OICodeGen::Config::KeyToCapture{
+                        type->value_or(""), member.value_or(""), false});
+              }
+            }
+          } else if (topLevel) {
+            generatorConfig.keysToCapture.push_back(
+                OICodeGen::Config::KeyToCapture{std::nullopt, std::nullopt,
+                                                true});
+          }
+        }
+      }
+    }
   }
 
   FeatureSet enabledFeatures;
