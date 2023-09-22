@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -65,7 +66,7 @@ class CodeGen {
  private:
   const OICodeGen::Config& config_;
   SymbolService& symbols_;
-  std::vector<ContainerInfo> containerInfos_;
+  std::vector<std::unique_ptr<ContainerInfo>> containerInfos_;
   std::unordered_set<const ContainerInfo*> definedContainers_;
   std::unordered_map<const type_graph::Class*, const type_graph::Member*>
       thriftIssetMembers_;

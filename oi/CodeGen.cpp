@@ -1061,8 +1061,9 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
 }
 
 void CodeGen::registerContainer(const fs::path& path) {
-  const auto& info = containerInfos_.emplace_back(path);
-  VLOG(1) << "Registered container: " << info.typeName;
+  auto info = std::make_unique<ContainerInfo>(path);
+  VLOG(1) << "Registered container: " << info->typeName;
+  containerInfos_.emplace_back(std::move(info));
 }
 
 void CodeGen::addDrgnRoot(struct drgn_type* drgnType, TypeGraph& typeGraph) {

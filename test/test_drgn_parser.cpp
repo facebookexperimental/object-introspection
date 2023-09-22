@@ -21,13 +21,14 @@ using ::testing::HasSubstr;
 SymbolService* DrgnParserTest::symbols_ = nullptr;
 
 namespace {
-const std::vector<ContainerInfo>& getContainerInfos() {
+const std::vector<std::unique_ptr<ContainerInfo>>& getContainerInfos() {
   static auto res = []() {
     // TODO more container types, with various template parameter options
-    ContainerInfo std_vector{"std::vector", SEQ_TYPE, "vector"};
-    std_vector.stubTemplateParams = {1};
+    auto std_vector =
+        std::make_unique<ContainerInfo>("std::vector", SEQ_TYPE, "vector");
+    std_vector->stubTemplateParams = {1};
 
-    std::vector<ContainerInfo> containers;
+    std::vector<std::unique_ptr<ContainerInfo>> containers;
     containers.emplace_back(std::move(std_vector));
     return containers;
   }();

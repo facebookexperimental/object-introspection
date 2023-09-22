@@ -15,6 +15,7 @@
  */
 #pragma once
 
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -53,7 +54,7 @@ struct DrgnParserOptions {
 class DrgnParser {
  public:
   DrgnParser(TypeGraph& typeGraph,
-             const std::vector<ContainerInfo>& containers,
+             const std::vector<std::unique_ptr<ContainerInfo>>& containers,
              DrgnParserOptions options)
       : typeGraph_(typeGraph), containers_(containers), options_(options) {
   }
@@ -97,7 +98,7 @@ class DrgnParser {
       drgn_types_;
 
   TypeGraph& typeGraph_;
-  const std::vector<ContainerInfo>& containers_;
+  const std::vector<std::unique_ptr<ContainerInfo>>& containers_;
   int depth_;
   DrgnParserOptions options_;
 };
