@@ -156,6 +156,12 @@ void Printer::visit(const DummyAllocator& d) {
   print(d.allocType());
 }
 
+void Printer::visit(const CaptureKeys& d) {
+  prefix();
+  out_ << "CaptureKeys" << std::endl;
+  print(d.container());
+}
+
 void Printer::prefix() {
   int indent = baseIndent_ + depth_ * 2;
   out_ << std::string(indent, ' ');

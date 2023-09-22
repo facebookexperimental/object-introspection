@@ -299,3 +299,20 @@ MyStruct
 MyClass
 )");
 }
+
+TEST(TopoSorterTest, CaptureKeys) {
+  auto myparam1 = Class{1, Class::Kind::Struct, "MyParam1", 13};
+  auto myparam2 = Class{2, Class::Kind::Struct, "MyParam2", 13};
+  auto mycontainer = getMap();
+  mycontainer.templateParams.push_back((myparam1));
+  mycontainer.templateParams.push_back((myparam2));
+
+  auto captureKeys = CaptureKeys{mycontainer, mycontainer.containerInfo_};
+
+  test({captureKeys}, R"(
+MyParam1
+MyParam2
+std::map
+OICaptureKeys<std::map>
+)");
+}

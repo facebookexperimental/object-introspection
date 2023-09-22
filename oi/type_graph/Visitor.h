@@ -108,6 +108,9 @@ class RecursiveVisitor : public Visitor {
   virtual void visit(DummyAllocator& d) {
     accept(d.allocType());
   }
+  virtual void visit(CaptureKeys& c) {
+    accept(c.container());
+  }
 };
 
 /*
