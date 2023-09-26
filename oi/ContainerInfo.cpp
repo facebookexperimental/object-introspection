@@ -269,6 +269,10 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
           codegenToml["traversal_func"].value<std::string>()) {
     codegen.traversalFunc = std::move(*str);
   }
+  if (std::optional<std::string> str =
+          codegenToml["extra"].value<std::string>()) {
+    codegen.extra = std::move(*str);
+  }
 
   if (toml::array* arr = codegenToml["processor"].as_array()) {
     codegen.processors.reserve(arr->size());
