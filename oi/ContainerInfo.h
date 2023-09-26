@@ -37,6 +37,7 @@ struct ContainerInfo {
     std::string func;
     std::string handler = "";
     std::string traversalFunc = "";
+    std::string extra = "";
     std::vector<Processor> processors{};
   };
 

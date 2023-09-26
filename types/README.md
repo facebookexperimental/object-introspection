@@ -48,6 +48,12 @@ This document describes the format of the container definition files contained i
   `static types::st::Unit<DB> getSizeType(const T& container, ST returnArg)`
   where `ST` defines the combined static type of each supplied processor.
 
+- `extra`
+
+  Any extra C++ code to be included directly. This code is not automatically
+  wrapped in a namespace, so definitions from different container TOML files
+  will collide if they share the same name.
+
 
 ## Changes introduced with Typed Data Segment
 - `decl` and `func` fields are ignored when using `-ftyped-data-segment` and the
