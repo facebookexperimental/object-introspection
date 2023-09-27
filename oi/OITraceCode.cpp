@@ -81,6 +81,9 @@ class {
       index = (index + 1) % data.size();
     }
   }
+  bool add(const auto* p) {
+    return add((uintptr_t)p);
+  }
 } static pointers;
 
 }  // namespace
@@ -145,3 +148,8 @@ struct validate_offset {
 };
 
 enum class StubbedPointer : uintptr_t {};
+
+bool isStorageInline(const auto& c) {
+  return (uintptr_t)std::data(c) < (uintptr_t)(&c + sizeof(c)) &&
+         (uintptr_t)std::data(c) >= (uintptr_t)&c;
+}

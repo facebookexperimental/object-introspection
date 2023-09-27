@@ -69,3 +69,77 @@ struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
   }
 };
 """
+
+traversal_func = """
+// fbstring has inlining (SSO) and allocates large strings as
+// reference counted strings. Reference counted strings have an
+// overhead of a single std::atomic<size_t> at the beginning. To
+// correctly attribute the size in the processor we need the
+// following 4 categories as well as the usual metadata.
+
+enum class Category : uint8_t {
+  InlinedStorage,
+  OwnedHeapStorage,
+  ReferenceCountedStorage,
+  AlreadyAttributed,
+};
+
+constexpr static size_t minLargeSize = 255;
+size_t capacity = container.capacity();
+
+Category category;
+if (isStorageInline(container)) {
+  category = Category::InlinedStorage;
+} else if (capacity < minLargeSize) {
+  category = Category::OwnedHeapStorage;
+} else if (pointers.add(container.data())) {
+  category = Category::ReferenceCountedStorage;
+} else {
+  category = Category::AlreadyAttributed;
+}
+
+return returnArg.write((uintptr_t)container.data())
+  .write(capacity)
+  .write(container.size())
+  .write(static_cast<std::underlying_type_t<Category>>(category));
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+uint64_t capacity = std::get<ParsedData::VarInt>(d.val).value;
+el.container_stats.emplace(result::Element::ContainerStats { .capacity = capacity });
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.container_stats->length = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+using CharType = T0;
+
+enum class Category : uint8_t {
+  InlinedStorage,
+  OwnedHeapStorage,
+  ReferenceCountedStorage,
+  AlreadyAttributed,
+};
+
+auto category = static_cast<Category>(std::get<ParsedData::VarInt>(d.val).value);
+if (category == Category::InlinedStorage || category == Category::AlreadyAttributed)
+  return;
+
+el.exclusive_size += el.container_stats->capacity * sizeof(CharType);
+if (category == Category::ReferenceCountedStorage)
+  el.exclusive_size += 8; // 8 bytes for std::atomic<size_t>
+"""
