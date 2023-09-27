@@ -30,6 +30,7 @@ namespace oi::detail {
 class FuncGen {
  public:
   static void DeclareExterns(std::string& code);
+  static void DefineJitLog(std::string& code, FeatureSet features);
 
   static void DeclareStoreData(std::string& testCode);
   static void DefineStoreData(std::string& testCode);

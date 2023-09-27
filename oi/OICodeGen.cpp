@@ -3031,29 +3031,6 @@ bool OICodeGen::generateJitCode(std::string& code) {
       #define SAVE_SIZE(val)
       #define SAVE_DATA(val)    StoreData(val, returnArg)
     )");
-
-    if (config.features[Feature::JitLogging]) {
-      code.append(R"(
-        #define JLOG(str)                           \
-          do {                                      \
-            if (__builtin_expect(logFile, 0)) {     \
-              write(logFile, str, sizeof(str) - 1); \
-            }                                       \
-          } while (false)
-
-        #define JLOGPTR(ptr)                    \
-          do {                                  \
-            if (__builtin_expect(logFile, 0)) { \
-              __jlogptr((uintptr_t)ptr);        \
-            }                                   \
-          } while (false)
-      )");
-    } else {
-      code.append(R"(
-        #define JLOG(str)
-        #define JLOGPTR(ptr)
-      )");
-    }
   } else {
     code.append(R"(
       #define SAVE_SIZE(val)    AddData(val, returnArg)
@@ -3062,6 +3039,8 @@ bool OICodeGen::generateJitCode(std::string& code) {
       #define JLOGPTR(ptr)
     )");
   }
+
+  FuncGen::DefineJitLog(code, config.features);
 
   // The purpose of the anonymous namespace within `OIInternal` is that
   // anything defined within an anonymous namespace has internal-linkage,

@@ -105,48 +105,6 @@ struct OIArray {
 )";
 }
 
-void defineJitLog(FeatureSet features, std::string& code) {
-  if (features[Feature::JitLogging]) {
-    code += R"(
-extern int logFile;
-
-void __jlogptr(uintptr_t ptr) {
-  static constexpr char hexdigits[] = "0123456789abcdef";
-  static constexpr size_t ptrlen = 2 * sizeof(ptr);
-
-  static char hexstr[ptrlen + 1] = {};
-
-  size_t i = ptrlen;
-  while (i--) {
-    hexstr[i] = hexdigits[ptr & 0xf];
-    ptr = ptr >> 4;
-  }
-  hexstr[ptrlen] = '\n';
-  write(logFile, hexstr, sizeof(hexstr));
-}
-
-#define JLOG(str)                           \
-  do {                                      \
-    if (__builtin_expect(logFile, 0)) {     \
-      write(logFile, str, sizeof(str) - 1); \
-    }                                       \
-  } while (false)
-
-#define JLOGPTR(ptr)                    \
-  do {                                  \
-    if (__builtin_expect(logFile, 0)) { \
-      __jlogptr((uintptr_t)ptr);        \
-    }                                   \
-  } while (false)
-)";
-  } else {
-    code += R"(
-#define JLOG(str)
-#define JLOGPTR(ptr)
-)";
-  }
-}
-
 void addIncludes(const TypeGraph& typeGraph,
                  FeatureSet features,
                  std::string& code) {
@@ -1137,7 +1095,7 @@ void CodeGen::generate(
   }
   addIncludes(typeGraph, config_.features, code);
   defineArray(code);
-  defineJitLog(config_.features, code);
+  FuncGen::DefineJitLog(code, config_.features);
 
   if (config_.features[Feature::TypedDataSegment]) {
     if (config_.features[Feature::Library]) {

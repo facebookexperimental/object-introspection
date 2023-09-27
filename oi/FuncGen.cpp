@@ -157,6 +157,48 @@ extern uintptr_t cookieValue;
   code.append(vars);
 }
 
+void FuncGen::DefineJitLog(std::string& code, FeatureSet features) {
+  if (features[Feature::JitLogging]) {
+    code += R"(
+extern int logFile;
+
+void __jlogptr(uintptr_t ptr) {
+  static constexpr char hexdigits[] = "0123456789abcdef";
+  static constexpr size_t ptrlen = 2 * sizeof(ptr);
+
+  static char hexstr[ptrlen + 1] = {};
+
+  size_t i = ptrlen;
+  while (i--) {
+    hexstr[i] = hexdigits[ptr & 0xf];
+    ptr = ptr >> 4;
+  }
+  hexstr[ptrlen] = '\n';
+  write(logFile, hexstr, sizeof(hexstr));
+}
+
+#define JLOG(str)                           \
+  do {                                      \
+    if (__builtin_expect(logFile, 0)) {     \
+      write(logFile, str, sizeof(str) - 1); \
+    }                                       \
+  } while (false)
+
+#define JLOGPTR(ptr)                    \
+  do {                                  \
+    if (__builtin_expect(logFile, 0)) { \
+      __jlogptr((uintptr_t)ptr);        \
+    }                                   \
+  } while (false)
+)";
+  } else {
+    code += R"(
+#define JLOG(str)
+#define JLOGPTR(ptr)
+)";
+  }
+}
+
 void FuncGen::DeclareStoreData(std::string& testCode) {
   testCode.append("void StoreData(uintptr_t data, size_t& dataSegOffset);\n");
 }
