@@ -1,7 +1,6 @@
-includes = ["folly/FBString.h"]
+includes = ["folly/FBString.h", "utility"]
 [cases]
   [cases.empty]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
     param_types = ["folly::fbstring&"]
     setup = "return {};"
     expect_json = '''
@@ -18,16 +17,22 @@ includes = ["folly/FBString.h"]
             "dynamicSize": 0,
             "exclusiveSize": 24,
             "length": 0,
-            "capacity": 23,
+            "capacity":23,
             "elementStaticSize": 1
           }
         ]
       }
     ]
     '''
+    expect_json_v2 = '''[{
+      "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
+      "staticSize": 24,
+      "exclusiveSize": 24,
+      "length": 0,
+      "capacity": 23
+    }]'''
 
   [cases.inline]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
     param_types = ["folly::fbstring&"]
     setup = 'return {"012345"};'
     expect_json = '''
@@ -51,9 +56,15 @@ includes = ["folly/FBString.h"]
       }
     ]
     '''
+    expect_json_v2 = '''[{
+      "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
+      "staticSize": 24,
+      "exclusiveSize": 24,
+      "length": 6,
+      "capacity": 23
+    }]'''
 
   [cases.heap_allocated]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
     param_types = ["folly::fbstring&"]
     setup = 'return {"abcdefghijklmnopqrstuvwxzy"};'
     expect_json = '''
@@ -77,9 +88,15 @@ includes = ["folly/FBString.h"]
       }
     ]
     '''
+    expect_json_v2 = '''[{
+      "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
+      "staticSize": 24,
+      "exclusiveSize": 50,
+      "length": 26,
+      "capacity": 26
+    }]'''
 
-  [cases.string_pooled]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/322
+  [cases.string_pooled_unique]
     param_types = ["folly::fbstring&"]
     setup = "return folly::fbstring(1024, 'c');"
     expect_json = '''
@@ -103,3 +120,36 @@ includes = ["folly/FBString.h"]
       }
     ]
     '''
+    expect_json_v2 = '''[{
+      "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
+      "staticSize": 24,
+      "exclusiveSize": 1056,
+      "length": 1024,
+      "capacity": 1024
+    }]'''
+  
+  [cases.string_pooled_shared]
+    param_types = ["std::pair<folly::fbstring, folly::fbstring>&"]
+    setup = """
+      folly::fbstring s(1024, 'c');
+      return {{s, s}};
+    """
+    expect_json_v2 = '''[{
+      "staticSize": 48,
+      "exclusiveSize": 0,
+      "members": [
+        {
+          "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
+          "staticSize": 24,
+          "exclusiveSize": 1056,
+          "length": 1024,
+          "capacity": 1024
+        }, {
+          "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
+          "staticSize": 24,
+          "exclusiveSize": 24,
+          "length": 1024,
+          "capacity": 1024
+        }
+      ]
+    }]'''
