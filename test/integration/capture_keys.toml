@@ -329,3 +329,12 @@ class FixedAllocator {
       top_level = true
     '''
     expect_json_v2 = '[{"members": [{"data": 1}]}]'
+  [cases.folly_sorted_vector_map]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const folly::sorted_vector_map<int, int>&"]
+    setup = "return {{{1,2}}};"
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      top_level = true
+    '''
+    expect_json_v2 = '[{"members": [{"data": 1}]}]'
