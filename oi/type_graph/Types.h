@@ -40,6 +40,7 @@
 #include "oi/EnumBitset.h"
 
 #define OI_TYPE_LIST \
+  X(Incomplete)      \
   X(Class)           \
   X(Container)       \
   X(Primitive)       \
@@ -182,6 +183,49 @@ struct TemplateParam {
  public:
   QualifierSet qualifiers;
   std::optional<std::string> value;
+};
+
+/*
+ * Incomplete
+ *
+ * A wrapper around a type we couldn't determine the size of.
+ */
+class Incomplete : public Type {
+ public:
+  Incomplete(Type& underlyingType) : underlyingType_(underlyingType) {
+  }
+
+  static inline constexpr bool has_node_id = false;
+
+  DECLARE_ACCEPT
+
+  const std::string& name() const override {
+    return kName;
+  }
+
+  std::string_view inputName() const override {
+    return underlyingType_.inputName();
+  }
+
+  size_t size() const override {
+    return 0;
+  }
+
+  uint64_t align() const override {
+    return 0;
+  }
+
+  NodeId id() const override {
+    return -1;
+  }
+
+  Type& underlyingType() const {
+    return underlyingType_;
+  }
+
+ private:
+  Type& underlyingType_;
+  static const std::string kName;
 };
 
 /*

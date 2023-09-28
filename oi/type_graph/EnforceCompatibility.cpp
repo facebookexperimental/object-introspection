@@ -78,6 +78,12 @@ void EnforceCompatibility::visit(Class& c) {
       return true;
 
     if (auto* ptr = dynamic_cast<Pointer*>(&member.type())) {
+      if (auto* incomplete = dynamic_cast<Incomplete*>(&ptr->pointeeType())) {
+        // This is a pointer to an incomplete type. CodeGen v1 does not record
+        // the pointer's address in this case.
+        return true;
+      }
+
       if (auto* primitive = dynamic_cast<Primitive*>(&ptr->pointeeType())) {
         if (primitive->kind() == Primitive::Kind::Incomplete) {
           // This is a pointer to an incomplete type. CodeGen v1 does not record

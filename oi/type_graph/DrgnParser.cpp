@@ -87,42 +87,54 @@ Type& DrgnParser::enumerateType(struct drgn_type* type) {
   if (auto it = drgn_types_.find(type); it != drgn_types_.end())
     return it->second;
 
-  if (!drgn_utils::isSizeComplete(type) &&
-      drgn_type_kind(type) != DRGN_TYPE_VOID) {
-    return makeType<Primitive>(nullptr, Primitive::Kind::Incomplete);
-  }
+  bool isTypeIncomplete = !drgn_utils::isSizeComplete(type) &&
+                          drgn_type_kind(type) != DRGN_TYPE_VOID;
 
   enum drgn_type_kind kind = drgn_type_kind(type);
   Type* t = nullptr;
   depth_++;
-  switch (kind) {
-    case DRGN_TYPE_CLASS:
-    case DRGN_TYPE_STRUCT:
-    case DRGN_TYPE_UNION:
-      t = &enumerateClass(type);
-      break;
-    case DRGN_TYPE_ENUM:
-      t = &enumerateEnum(type);
-      break;
-    case DRGN_TYPE_TYPEDEF:
-      t = &enumerateTypedef(type);
-      break;
-    case DRGN_TYPE_POINTER:
-      t = &enumeratePointer(type);
-      break;
-    case DRGN_TYPE_ARRAY:
-      t = &enumerateArray(type);
-      break;
-    case DRGN_TYPE_INT:
-    case DRGN_TYPE_BOOL:
-    case DRGN_TYPE_FLOAT:
-    case DRGN_TYPE_VOID:
-      t = &enumeratePrimitive(type);
-      break;
-    default:
-      throw DrgnParserError{"Unknown drgn type kind: " + std::to_string(kind)};
+  try {
+    switch (kind) {
+      case DRGN_TYPE_CLASS:
+      case DRGN_TYPE_STRUCT:
+      case DRGN_TYPE_UNION:
+        t = &enumerateClass(type);
+        break;
+      case DRGN_TYPE_ENUM:
+        t = &enumerateEnum(type);
+        break;
+      case DRGN_TYPE_TYPEDEF:
+        t = &enumerateTypedef(type);
+        break;
+      case DRGN_TYPE_POINTER:
+        t = &enumeratePointer(type);
+        break;
+      case DRGN_TYPE_ARRAY:
+        t = &enumerateArray(type);
+        break;
+      case DRGN_TYPE_INT:
+      case DRGN_TYPE_BOOL:
+      case DRGN_TYPE_FLOAT:
+      case DRGN_TYPE_VOID:
+        t = &enumeratePrimitive(type);
+        break;
+      default:
+        throw DrgnParserError{"Unknown drgn type kind: " +
+                              std::to_string(kind)};
+    }
+  } catch (const DrgnParserError& e) {
+    if (isTypeIncomplete) {
+      t = &makeType<Primitive>(type, Primitive::Kind::Incomplete);
+    } else {
+      depth_--;
+      throw e;
+    }
   }
   depth_--;
+
+  if (isTypeIncomplete) {
+    return makeType<Incomplete>(nullptr, *t);
+  }
 
   return *t;
 }

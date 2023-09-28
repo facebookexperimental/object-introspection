@@ -32,6 +32,7 @@ class Printer : public ConstVisitor {
 
   void print(const Type& type);
 
+  void visit(const Incomplete& i) override;
   void visit(const Class& c) override;
   void visit(const Container& c) override;
   void visit(const Primitive& p) override;
