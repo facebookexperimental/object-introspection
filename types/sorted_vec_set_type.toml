@@ -47,3 +47,41 @@ struct TypeHandler<DB, %1%<T0, T1, T2, T3, T4>> {
   }
 };
 """
+
+traversal_func = '''
+auto tail = returnArg.write((uintptr_t)&container)
+                .write(container.capacity())
+                .write(container.size());
+
+for (const auto& el : container) {
+  tail = tail.delegate([&el](auto ret) {
+    return OIInternal::getSizeType<DB>(el, ret);
+  });
+}
+
+return tail.finish();
+'''
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = "el.pointer = std::get<ParsedData::VarInt>(d.val).value;"
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = '''
+el.container_stats.emplace(result::Element::ContainerStats{ .capacity = std::get<ParsedData::VarInt>(d.val).value });
+'''
+
+[[codegen.processor]]
+type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+func = """
+static constexpr auto childField = make_field<DB, T0>("[]");
+
+auto list = std::get<ParsedData::List>(d.val);
+el.container_stats->length = list.length;
+el.exclusive_size += (el.container_stats->capacity - el.container_stats->length) * sizeof(T0);
+
+for (size_t i = 0; i < list.length; i++)
+  stack_ins(childField);
+"""
+
