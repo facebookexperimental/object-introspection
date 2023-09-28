@@ -5,7 +5,6 @@ definitions = '''
 
 [cases]
   [cases.no_ints]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/320
     param_types = ["const sorted_vector_set<int>&"]
     setup = "return {};"
     expect_json = '''[{
@@ -21,9 +20,14 @@ definitions = '''
         "capacity": 0,
         "elementStaticSize": 4
     }]}]'''
+    expect_json_v2 = '''[{
+      "staticSize": 24,
+      "exclusiveSize": 24,
+      "length": 0,
+      "capacity": 0
+    }]'''
 
   [cases.some_ints]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/320
     param_types = ["const sorted_vector_set<int>&"]
     setup = '''
       sorted_vector_set<int> is;
@@ -49,3 +53,9 @@ definitions = '''
         "elementStaticSize": 4
     }]}]
     '''
+    expect_json_v2 = '''[{
+      "staticSize": 24,
+      "exclusiveSize": 28,
+      "length": 3,
+      "capacity": 4
+    }]'''
