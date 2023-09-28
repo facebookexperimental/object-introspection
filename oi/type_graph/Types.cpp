@@ -29,6 +29,8 @@ namespace oi::detail::type_graph {
 OI_TYPE_LIST
 #undef X
 
+const std::string Incomplete::kName = "void";
+
 std::string Primitive::getName(Kind kind) {
   switch (kind) {
     case Kind::Int8:

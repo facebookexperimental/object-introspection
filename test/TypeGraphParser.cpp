@@ -211,6 +211,9 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
                                  std::to_string(refId)};
 
     type = &it->second.get();
+  } else if (nodeTypeName == "Incomplete") {
+    auto& underlyingType = parseType(input, indent + 2);
+    type = &typeGraph_.makeType<Incomplete>(underlyingType);
   } else if (nodeTypeName == "Class" || nodeTypeName == "Struct" ||
              nodeTypeName == "Union") {
     // Format: "Class: MyClass (size: 12)"

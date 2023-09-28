@@ -36,6 +36,12 @@ void Printer::print(const Type& type) {
   depth_--;
 }
 
+void Printer::visit(const Incomplete& i) {
+  prefix();
+  out_ << "Incomplete:" << std::endl;
+  print(i.underlyingType());
+}
+
 void Printer::visit(const Class& c) {
   if (prefix(c))
     return;

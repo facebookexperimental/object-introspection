@@ -71,6 +71,8 @@ class RecursiveVisitor : public Visitor {
     if (type)
       accept(*type);
   }
+  virtual void visit(Incomplete&) {
+  }
   virtual void visit(Class& c) {
     for (const auto& param : c.templateParams) {
       accept(param.type());
