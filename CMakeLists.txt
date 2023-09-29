@@ -48,18 +48,22 @@ FetchContent_Declare(
   glog
   SYSTEM
   GIT_REPOSITORY https://github.com/google/glog.git
-  GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a
+  GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a # v0.4.0
   GIT_PROGRESS   TRUE
+  FIND_PACKAGE_ARGS 0.4.0 CONFIG
 )
 FetchContent_MakeAvailable(glog)
 
-# These glog executable targets still generate warnings - disable warnings for
-# them explicitly
-target_compile_options(demangle_unittest PRIVATE "-w")
-target_compile_options(logging_unittest PRIVATE "-w")
-target_compile_options(stl_logging_unittest PRIVATE "-w")
-target_compile_options(symbolize_unittest PRIVATE "-w")
-target_compile_options(utilities_unittest PRIVATE "-w")
+if (TARGET demangle_unittest)
+  # These glog executable targets still generate warnings - disable warnings for
+  # them explicitly
+  # NOTE: we only inherit these targets when FIND_PACKAGE_ARGS isn't used
+  target_compile_options(demangle_unittest PRIVATE "-w")
+  target_compile_options(logging_unittest PRIVATE "-w")
+  target_compile_options(stl_logging_unittest PRIVATE "-w")
+  target_compile_options(symbolize_unittest PRIVATE "-w")
+  target_compile_options(utilities_unittest PRIVATE "-w")
+endif()
 
 ### googletest
 # Do this in the main file so it can be fetched before setting project warnings.
