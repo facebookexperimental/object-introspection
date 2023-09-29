@@ -136,55 +136,15 @@ int IntegrationBase::exit_code(Proc& proc) {
   return proc.proc.exit_code();
 }
 
-fs::path IntegrationBase::createCustomConfig(const std::string& prefix,
-                                             const std::string& suffix) {
-  // If no extra config provided, return the config path unaltered.
-  if (prefix.empty() && suffix.empty()) {
-    return configFile;
-  }
+std::optional<std::filesystem::path> IntegrationBase::writeCustomConfig(
+    std::string_view filePrefix, std::string_view content) {
+  if (content.empty())
+    return std::nullopt;
 
-  auto customConfigFile = workingDir / "oid.config.toml";
-  auto config = toml::parse_file(configFile);
-
-  // As relative paths are allowed, we must canonicalise the paths before
-  // moving the file to the temporary directory.
-  fs::path configDirectory = fs::path(configFile).remove_filename();
-
-  if (toml::table* types = config["types"].as_table()) {
-    if (toml::array* arr = (*types)["containers"].as_array()) {
-      arr->for_each([&](auto&& el) {
-        if constexpr (toml::is_string<decltype(el)>) {
-          el = configDirectory / el.get();
-        }
-      });
-    }
-  }
-  if (toml::table* headers = config["headers"].as_table()) {
-    for (auto& path : {"user_paths", "system_paths"}) {
-      if (toml::array* arr = (*headers)[path].as_array()) {
-        arr->for_each([&](auto&& el) {
-          if constexpr (toml::is_string<decltype(el)>) {
-            el = configDirectory / el.get();
-          }
-        });
-      }
-    }
-  }
-
-  std::ofstream customConfig(customConfigFile, std::ios_base::app);
-  if (!prefix.empty()) {
-    customConfig << "\n\n# Test custom config start\n\n";
-    customConfig << prefix;
-    customConfig << "\n\n# Test custom config end\n\n";
-  }
-  customConfig << config;
-  if (!suffix.empty()) {
-    customConfig << "\n\n# Test custom config start\n\n";
-    customConfig << suffix;
-    customConfig << "\n\n# Test custom config end\n\n";
-  }
-
-  return customConfigFile;
+  auto path = workingDir / (std::string{filePrefix} + ".config.toml");
+  std::ofstream file{path, std::ios_base::app};
+  file << content;
+  return path;
 }
 
 std::string OidIntegration::TmpDirStr() {
@@ -219,8 +179,6 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
     std::ofstream touch(segconfigPath);
   }
 
-  fs::path thisConfig = createCustomConfig(configPrefix, configSuffix);
-
   // Keep PID as the last argument to make it easier for users to directly copy
   // and modify the command from the verbose mode output.
   // clang-format off
@@ -228,7 +186,6 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
       "--debug-level=3"s,
       "--timeout=20"s,
       "--dump-json"s,
-      "--config-file"s, thisConfig.string(),
       "--script-source"s, opts.scriptSource,
       "--mode=strict"s,
       "--pid"s, std::to_string(targetProcess.id()),
@@ -241,6 +198,19 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
                   global_oid_args.end());
   oid_args.insert(oid_args.end(), extra_args.begin(), extra_args.end());
   oid_args.insert(oid_args.end(), default_args.begin(), default_args.end());
+
+  if (auto prefix = writeCustomConfig("prefix", configPrefix)) {
+    oid_args.emplace_back("--config-file");
+    oid_args.emplace_back(*prefix);
+  }
+
+  oid_args.emplace_back("--config-file");
+  oid_args.emplace_back(configFile);
+
+  if (auto suffix = writeCustomConfig("suffix", configSuffix)) {
+    oid_args.emplace_back("--config-file");
+    oid_args.emplace_back(*suffix);
+  }
 
   if (verbose) {
     std::cerr << "Running: " << targetExe << "\n";
@@ -386,10 +356,17 @@ std::string OilIntegration::TmpDirStr() {
 Proc OilIntegration::runOilTarget(OilOpts opts,
                                   std::string configPrefix,
                                   std::string configSuffix) {
-  fs::path thisConfig = createCustomConfig(configPrefix, configSuffix);
-
-  std::string targetExe = std::string(TARGET_EXE_PATH) + " " + opts.targetArgs +
-                          " " + thisConfig.string();
+  std::string targetExe =
+      std::string(TARGET_EXE_PATH) + " " + opts.targetArgs + " ";
+  if (auto prefix = writeCustomConfig("prefix", configPrefix)) {
+    targetExe += *prefix;
+    targetExe += " ";
+  }
+  targetExe += configFile;
+  if (auto suffix = writeCustomConfig("suffix", configSuffix)) {
+    targetExe += " ";
+    targetExe += *suffix;
+  }
 
   if (verbose) {
     std::cerr << "Running: " << targetExe << std::endl;

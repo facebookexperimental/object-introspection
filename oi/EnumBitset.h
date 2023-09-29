@@ -47,6 +47,11 @@ class EnumBitset {
     return bitset.none();
   }
 
+  EnumBitset<T, N>& operator|=(const EnumBitset<T, N>& that) {
+    bitset |= that.bitset;
+    return *this;
+  }
+
  private:
   BitsetType bitset;
 };

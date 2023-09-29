@@ -23,17 +23,19 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <string>
+#include <vector>
 
 extern "C" {
 #include <getopt.h>
 #include <libgen.h>
 }
 
+#include "oi/Config.h"
 #include "oi/Features.h"
 #include "oi/Metrics.h"
 #include "oi/OIDebugger.h"
 #include "oi/OIOpts.h"
-#include "oi/OIUtils.h"
 #include "oi/PaddingHunter.h"
 #include "oi/TimeUtils.h"
 #include "oi/TreeBuilder.h"
@@ -249,7 +251,7 @@ namespace Oid {
 struct Config {
   pid_t pid;
   std::string debugInfoFile;
-  std::string configFile;
+  std::vector<fs::path> configFiles;
   fs::path cacheBasePath;
   fs::path customCodeFile;
   size_t dataSegSize;
@@ -563,10 +565,11 @@ int main(int argc, char* argv[]) {
         oidConfig.compAndExit = true;
         break;
       case 'c':
-        oidConfig.configFile = std::string(optarg);
+        oidConfig.configFiles.emplace_back(optarg);
 
-        if (!fs::exists(oidConfig.configFile)) {
-          LOG(ERROR) << "Non existent config file: " << oidConfig.configFile;
+        if (!fs::exists(oidConfig.configFiles.back())) {
+          LOG(ERROR) << "Non existent config file: "
+                     << oidConfig.configFiles.back();
           usage();
           return ExitStatus::FileNotFoundError;
         }
@@ -630,27 +633,13 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  if (oidConfig.configFile.empty()) {
-    oidConfig.configFile = "/usr/local/share/oi/base.oid.toml";
-
-    if (!fs::exists(oidConfig.configFile)) {
-      LOG(ERROR) << "Non existent default config file: "
-                 << oidConfig.configFile;
-      usage();
-      return ExitStatus::FileNotFoundError;
-    }
-
-    LOG(INFO) << "Using default config file " << oidConfig.configFile;
-  }
-
   if (oidConfig.pid != 0 && !oidConfig.debugInfoFile.empty()) {
     LOG(INFO) << "'-p' and '-b' are mutually exclusive";
     usage();
     return ExitStatus::UsageError;
   }
 
-  if ((oidConfig.pid == 0 && oidConfig.debugInfoFile.empty()) ||
-      oidConfig.configFile.empty()) {
+  if ((oidConfig.pid == 0 && oidConfig.debugInfoFile.empty())) {
     usage();
     return ExitStatus::UsageError;
   }
@@ -682,8 +671,8 @@ int main(int argc, char* argv[]) {
       .jsonPath = jsonPath,
   };
 
-  auto featureSet = utils::processConfigFile(oidConfig.configFile, features,
-                                             compilerConfig, codeGenConfig);
+  auto featureSet = config::processConfigFiles(oidConfig.configFiles, features,
+                                               compilerConfig, codeGenConfig);
   if (!featureSet) {
     return ExitStatus::UsageError;
   }

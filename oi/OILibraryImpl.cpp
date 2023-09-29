@@ -25,9 +25,9 @@
 #include <fstream>
 #include <stdexcept>
 
+#include "oi/Config.h"
 #include "oi/DrgnUtils.h"
 #include "oi/Headers.h"
-#include "oi/OIUtils.h"
 
 namespace oi::detail {
 namespace {
@@ -94,8 +94,8 @@ std::pair<void*, const exporters::inst::Inst&> OILibraryImpl::init() {
 
 void OILibraryImpl::processConfigFile() {
   auto features =
-      utils::processConfigFile(opts_.configFilePath, requestedFeatures_,
-                               compilerConfig_, generatorConfig_);
+      config::processConfigFiles(opts_.configFilePaths, requestedFeatures_,
+                                 compilerConfig_, generatorConfig_);
   if (!features)
     throw std::runtime_error("failed to process configuration");
 
