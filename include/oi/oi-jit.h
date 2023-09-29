@@ -34,7 +34,7 @@ class OILibraryImpl;
 namespace oi {
 
 struct GeneratorOptions {
-  std::filesystem::path configFilePath;
+  std::vector<std::filesystem::path> configFilePaths;
   std::filesystem::path sourceFileDumpPath;
   int debugLevel = 0;
 };

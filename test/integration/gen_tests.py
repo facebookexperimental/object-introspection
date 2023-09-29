@@ -136,7 +136,7 @@ def add_test_setup(f, config):
 
         oil_func_body = (
             f"    oi::GeneratorOptions opts{{\n"
-            f"      .configFilePath = configFile,\n"
+            f"      .configFilePaths = configFiles,\n"
             f'      .sourceFileDumpPath = "oil_jit_code.cpp",\n'
             f"      .debugLevel = 3,\n"
             f"    }};\n\n"
@@ -164,11 +164,11 @@ def add_common_code(f):
         """
 void usage(const std::string &argv0) {
   std::cerr << "usage: " << argv0 << " oid CASE ITERATIONS" << std::endl;
-  std::cerr << "       " << argv0 << " oil CASE CONFIG_FILE" << std::endl;
+  std::cerr << "       " << argv0 << " oil CASE CONFIG_FILE..." << std::endl;
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 4) {
+  if (argc < 4) {
     usage(argv[0]);
     return -1;
   }
@@ -179,6 +179,10 @@ int main(int argc, char *argv[]) {
   int iterations = 1;
 
   if (mode == "oid") {
+    if (argc != 4) {
+      usage(argv[0]);
+      return -1;
+    }
     std::istringstream iss(argv[3]);
     iss >> iterations;
     if (iss.fail()) {
@@ -187,7 +191,9 @@ int main(int argc, char *argv[]) {
     }
   }
   else if (mode == "oil") {
-    configFile = argv[3];
+    for (int i = 3; i < argc; i++) {
+      configFiles.emplace_back(argv[i]);
+    }
   }
   else {
     usage(argv[0]);
@@ -241,7 +247,7 @@ def gen_target(output_target_name, test_configs):
                     f"thrift/annotation/gen-cpp2/{config['suite']}_types.h"
                 ]
         add_headers(f, sorted(headers), thrift_headers)
-        f.write("std::string configFile;")
+        f.write("std::vector<std::filesystem::path> configFiles;")
 
         for config in test_configs:
             add_test_setup(f, config)
@@ -415,11 +421,13 @@ def gen_runner(output_runner_name, test_configs):
         f.write(
             "#include <boost/property_tree/json_parser.hpp>\n"
             "#include <boost/property_tree/ptree.hpp>\n"
+            "#include <filesystem>\n"
             "#include <fstream>\n"
             "#include <gmock/gmock.h>\n"
             "#include <gtest/gtest.h>\n"
-            "#include <string>\n"
             "#include <sstream>\n"
+            "#include <string>\n"
+            "#include <vector>\n"
             '#include "runner_common.h"\n'
             "\n"
             "namespace ba = boost::asio;\n"

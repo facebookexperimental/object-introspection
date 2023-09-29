@@ -9,6 +9,7 @@
 #include <future>
 #include <iostream>
 #include <string>
+#include <string_view>
 
 struct OidOpts {
   boost::asio::io_context& ctx;
@@ -42,8 +43,8 @@ class IntegrationBase : public ::testing::Test {
   void TearDown() override;
   void SetUp() override;
   int exit_code(Proc& proc);
-  std::filesystem::path createCustomConfig(const std::string& prefix,
-                                           const std::string& suffix);
+  std::optional<std::filesystem::path> writeCustomConfig(
+      std::string_view filePrefix, std::string_view content);
 
   std::filesystem::path workingDir;
 

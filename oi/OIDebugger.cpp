@@ -45,11 +45,11 @@ extern "C" {
 #include <glog/logging.h>
 
 #include "oi/CodeGen.h"
+#include "oi/Config.h"
 #include "oi/ContainerInfo.h"
 #include "oi/Headers.h"
 #include "oi/Metrics.h"
 #include "oi/OILexer.h"
-#include "oi/OIUtils.h"
 #include "oi/PaddingHunter.h"
 #include "oi/Syscall.h"
 #include "oi/type_graph/DrgnParser.h"

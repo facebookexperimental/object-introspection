@@ -278,11 +278,11 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 add_subdirectory(oi)
 add_subdirectory(resources)
 add_library(oicore
+  oi/Config.cpp
   oi/Descs.cpp
   oi/Metrics.cpp
   oi/OICache.cpp
   oi/OICompiler.cpp
-  oi/OIUtils.cpp
   oi/PaddingHunter.cpp
   oi/Serialize.cpp
 )

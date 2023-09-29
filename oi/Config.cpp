@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "oi/OIUtils.h"
+#include "oi/Config.h"
 
 #include <glog/logging.h>
 
@@ -27,16 +27,48 @@
 
 namespace fs = std::filesystem;
 
-namespace oi::detail::utils {
+namespace oi::detail::config {
 
 using namespace std::literals;
 
-std::optional<FeatureSet> processConfigFile(
-    const std::string& configFilePath,
+namespace {
+
+std::optional<FeatureSet> processConfigFile(const std::string& configFilePath,
+                                            OICompiler::Config& compilerConfig,
+                                            OICodeGen::Config& generatorConfig);
+
+}
+
+std::optional<FeatureSet> processConfigFiles(
+    std::span<const fs::path> configFilePaths,
     std::map<Feature, bool> featureMap,
     OICompiler::Config& compilerConfig,
     OICodeGen::Config& generatorConfig) {
-  fs::path configDirectory = fs::path(configFilePath).remove_filename();
+  FeatureSet enables;
+  FeatureSet disables;
+
+  for (fs::path p : configFilePaths) {
+    auto fs = processConfigFile(p, compilerConfig, generatorConfig);
+    if (!fs.has_value())
+      return std::nullopt;
+    enables |= *fs;
+  }
+
+  // Override anything from the config files with command line options
+  for (auto [k, v] : featureMap) {
+    enables[k] = v;
+    disables[k] = !v;
+  }
+  return handleFeatureConflicts(enables, disables);
+}
+
+namespace {
+
+std::optional<FeatureSet> processConfigFile(
+    const std::string& configFilePath,
+    OICompiler::Config& compilerConfig,
+    OICodeGen::Config& generatorConfig) {
+  fs::path configDirectory = fs::path{configFilePath}.remove_filename();
 
   toml::table config;
   try {
@@ -47,6 +79,7 @@ std::optional<FeatureSet> processConfigFile(
     return {};
   }
 
+  FeatureSet enabledFeatures;
   if (toml::array* features = config["features"].as_array()) {
     for (auto&& el : *features) {
       auto* featureStr = el.as_string();
@@ -57,10 +90,7 @@ std::optional<FeatureSet> processConfigFile(
 
       if (auto f = featureFromStr(featureStr->get());
           f != Feature::UnknownFeature) {
-        // Inserts element(s) into the container, if the container doesn't
-        // already contain an element with an equivalent key. Hence prefer
-        // command line enabling/disabling.
-        featureMap.insert({f, true});
+        enabledFeatures[f] = true;
       } else {
         LOG(ERROR) << "unrecognised feature: " << featureStr->get()
                    << " specified in config";
@@ -204,16 +234,8 @@ std::optional<FeatureSet> processConfigFile(
     }
   }
 
-  FeatureSet enabledFeatures;
-  FeatureSet disabledFeatures;
-  for (auto [k, v] : featureMap) {
-    if (v) {
-      enabledFeatures[k] = true;
-    } else {
-      disabledFeatures[k] = true;
-    }
-  }
-  return handleFeatureConflicts(enabledFeatures, disabledFeatures);
+  return enabledFeatures;
 }
 
-}  // namespace oi::detail::utils
+}  // namespace
+}  // namespace oi::detail::config

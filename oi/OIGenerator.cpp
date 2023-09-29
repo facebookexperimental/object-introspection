@@ -26,9 +26,9 @@
 #include <variant>
 
 #include "oi/CodeGen.h"
+#include "oi/Config.h"
 #include "oi/DrgnUtils.h"
 #include "oi/Headers.h"
-#include "oi/OIUtils.h"
 
 namespace oi::detail {
 
@@ -193,8 +193,9 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   OICompiler::Config compilerConfig{};
   compilerConfig.usePIC = pic;
 
-  auto features = utils::processConfigFile(configFilePath, featuresMap,
-                                           compilerConfig, generatorConfig);
+  auto features =
+      config::processConfigFiles(std::vector<fs::path>{configFilePath},
+                                 featuresMap, compilerConfig, generatorConfig);
   if (!features) {
     LOG(ERROR) << "failed to process config file";
     return -1;
