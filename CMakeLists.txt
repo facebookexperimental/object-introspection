@@ -39,6 +39,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
   GIT_TAG        4b166b69f28e70a416a1a04a98f365d2aeb90de8 # v3.2.0
   GIT_PROGRESS   TRUE
+  FIND_PACKAGE_ARGS 3.2.0 CONFIG
 )
 FetchContent_MakeAvailable(tomlplusplus)
 
