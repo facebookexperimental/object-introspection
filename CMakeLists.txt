@@ -78,23 +78,34 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 ### rocksdb
-FetchContent_Declare(
-  rocksdb
-  SYSTEM
-  GIT_REPOSITORY https://github.com/facebook/rocksdb.git
-  GIT_TAG        f32521662acf3352397d438b732144c7813bbbec # v8.5.3
-  GIT_PROGRESS   TRUE
-)
-FetchContent_Populate(rocksdb)
-add_custom_target(librocksdb ALL
-  WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
-  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On -DFAIL_ON_WARNINGS=Off
-  COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
-  BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
-  COMMENT "Building RocksDB"
-  USES_TERMINAL
-)
-include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
+find_package(RocksDB 8.5.3)
+if (NOT RocksDB_FOUND)
+  FetchContent_Declare(
+    rocksdb
+    SYSTEM
+    GIT_REPOSITORY https://github.com/facebook/rocksdb.git
+    GIT_TAG        f32521662acf3352397d438b732144c7813bbbec # v8.5.3
+    GIT_PROGRESS   TRUE
+  )
+  FetchContent_Populate(rocksdb)
+  add_custom_target(librocksdb_build ALL
+    WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
+    COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On -DFAIL_ON_WARNINGS=Off
+    COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
+    BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
+    COMMENT "Building RocksDB"
+    USES_TERMINAL
+  )
+  add_library(librocksdb INTERFACE)
+  add_dependencies(librocksdb librocksdb_build)
+  target_include_directories(librocksdb INTERFACE SYSTEM "${rocksdb_SOURCE_DIR}/include")
+  add_library(rocksdb::librocksdb ALIAS librocksdb)
+
+  ### zstd (for rocksdb)
+  find_package(zstd REQUIRED)
+
+  target_link_libraries(librocksdb INTERFACE zstd::zstd ${rocksdb_BINARY_DIR}/librocksdb.a)
+endif()
 
 ### folly
 ### use folly as a header only library. some features won't be supported.
@@ -129,7 +140,6 @@ if (CODE_COVERAGE)
   add_compile_options(--coverage)
   add_link_options(--coverage)
 endif()
-
 
 ## System checks
 ## These checks are potentially fatal so perform them first.
@@ -198,9 +208,6 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 find_package(Clang REQUIRED CONFIG)
 message(STATUS "Found Clang ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
-
-### zstd (for rocksdb)
-find_package(zstd REQUIRED)
 
 ### drgn
 # The setup.py script in drgn is really meant to build drgn (python
@@ -345,9 +352,8 @@ add_library(treebuilder
 )
 add_dependencies(treebuilder librocksdb)
 target_link_libraries(treebuilder
-  ${rocksdb_BINARY_DIR}/librocksdb.a
+  rocksdb::librocksdb
   oicore # overkill but it does need a lot of stuff
-  zstd::zstd
 )
 
 
@@ -383,10 +389,8 @@ target_link_libraries(oip oicore)
 
 ### Object Introspection RocksDB Printer (OIRP)
 add_executable(oirp tools/OIRP.cpp)
-add_dependencies(oirp librocksdb)
 target_link_libraries(oirp
-  ${rocksdb_BINARY_DIR}/librocksdb.a
-  zstd::zstd
+  rocksdb::librocksdb
   msgpackc
 )
 

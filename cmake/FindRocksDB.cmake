@@ -20,4 +20,8 @@ find_package_handle_standard_args(RocksDB DEFAULT_MSG RocksDB_INCLUDE_DIR RocksD
 if(ROCKSDB_FOUND)
   message(STATUS "Found RocksDB  (include: ${RocksDB_INCLUDE_DIR}, library: ${RocksDB_LIBRARIES})")
   mark_as_advanced(RocksDB_INCLUDE_DIR RocksDB_LIBRARIES)
+  add_library(librocksdb UNKNOWN IMPORTED)
+  set_target_properties(librocksdb PROPERTIES IMPORTED_LOCATION ${RocksDB_LIBRARIES})
+  target_include_directories(librocksdb INTERFACE ${RocksDB_INCLUDE_DIR})
+  add_library(rocksdb::librocksdb ALIAS librocksdb)
 endif()
