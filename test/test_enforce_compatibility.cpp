@@ -36,7 +36,8 @@ TEST(EnforceCompatibilityTest, VoidPointer) {
 [0] Class: MyClass (size: 8)
       Member: p (offset: 0)
 [1]     Pointer
-          Primitive: void (incomplete)
+          Incomplete
+            Primitive: void
 )",
        R"(
 [0] Class: MyClass (size: 8)

@@ -62,7 +62,6 @@ std::string Primitive::getName(Kind kind) {
     case Kind::StubbedPointer:
       return "StubbedPointer";
     case Kind::Void:
-    case Kind::Incomplete:
       return "void";
   }
 }
@@ -105,7 +104,6 @@ std::size_t Primitive::size() const {
     case Kind::StubbedPointer:
       return sizeof(uintptr_t);
     case Kind::Void:
-    case Kind::Incomplete:
       return 0;
   }
 }

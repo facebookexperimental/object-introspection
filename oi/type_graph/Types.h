@@ -34,6 +34,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "oi/ContainerInfo.h"
@@ -186,6 +187,10 @@ class Incomplete : public Type {
   Incomplete(Type& underlyingType) : underlyingType_(underlyingType) {
   }
 
+  Incomplete(std::string underlyingTypeName)
+      : underlyingType_(std::move(underlyingTypeName)) {
+  }
+
   static inline constexpr bool has_node_id = false;
 
   DECLARE_ACCEPT
@@ -195,7 +200,13 @@ class Incomplete : public Type {
   }
 
   std::string_view inputName() const override {
-    return underlyingType_.inputName();
+    if (std::holds_alternative<std::string>(underlyingType_)) {
+      return std::get<std::string>(underlyingType_);
+    }
+
+    return std::get<std::reference_wrapper<Type>>(underlyingType_)
+        .get()
+        .inputName();
   }
 
   size_t size() const override {
@@ -210,12 +221,16 @@ class Incomplete : public Type {
     return -1;
   }
 
-  Type& underlyingType() const {
-    return underlyingType_;
+  std::optional<std::reference_wrapper<Type>> underlyingType() const {
+    if (std::holds_alternative<std::string>(underlyingType_)) {
+      return std::nullopt;
+    }
+
+    return std::get<std::reference_wrapper<Type>>(underlyingType_);
   }
 
  private:
-  Type& underlyingType_;
+  std::variant<std::string, std::reference_wrapper<Type>> underlyingType_;
   static const std::string kName;
 };
 
@@ -531,8 +546,6 @@ class Primitive : public Type {
 
     StubbedPointer,
     Void,
-    Incomplete,  // Behaves the same as Void, but alerts us that the type was
-                 // stubbed out due to incomplete DWARF
   };
 
   explicit Primitive(Kind kind) : kind_(kind), name_(getName(kind)) {

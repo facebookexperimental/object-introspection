@@ -123,10 +123,17 @@ Type& DrgnParser::enumerateType(struct drgn_type* type) {
                               std::to_string(kind)};
     }
   } catch (const DrgnParserError& e) {
+    depth_--;
     if (isTypeIncomplete) {
-      t = &makeType<Primitive>(type, Primitive::Kind::Incomplete);
+      const char* typeName = "<incomplete>";
+      if (drgn_type_has_name(type)) {
+        typeName = drgn_type_name(type);
+      } else if (drgn_type_has_tag(type)) {
+        typeName = drgn_type_tag(type);
+      }
+
+      return makeType<Incomplete>(nullptr, typeName);
     } else {
-      depth_--;
       throw e;
     }
   }

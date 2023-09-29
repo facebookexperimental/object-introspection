@@ -38,8 +38,13 @@ void Printer::print(const Type& type) {
 
 void Printer::visit(const Incomplete& i) {
   prefix();
-  out_ << "Incomplete:" << std::endl;
-  print(i.underlyingType());
+  out_ << "Incomplete";
+  if (auto underlyingType = i.underlyingType()) {
+    out_ << std::endl;
+    print(underlyingType.value().get());
+  } else {
+    out_ << ": [" << i.inputName() << "]" << std::endl;
+  }
 }
 
 void Printer::visit(const Class& c) {
@@ -97,10 +102,7 @@ void Printer::visit(const Container& c) {
 
 void Printer::visit(const Primitive& p) {
   prefix();
-  out_ << "Primitive: " << p.name();
-  if (p.kind() == Primitive::Kind::Incomplete)
-    out_ << " (incomplete)";
-  out_ << std::endl;
+  out_ << "Primitive: " << p.name() << std::endl;
 }
 
 void Printer::visit(const Enum& e) {

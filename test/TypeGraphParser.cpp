@@ -49,8 +49,6 @@ Primitive::Kind getKind(std::string_view kindStr) {
     return Primitive::Kind::StubbedPointer;
   if (kindStr == "void")
     return Primitive::Kind::Void;
-  if (kindStr == "void (incomplete)")
-    return Primitive::Kind::Incomplete;
   throw TypeGraphParserError{"Invalid Primitive::Kind: " +
                              std::string{kindStr}};
 }
@@ -212,8 +210,16 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
 
     type = &it->second.get();
   } else if (nodeTypeName == "Incomplete") {
-    auto& underlyingType = parseType(input, indent + 2);
-    type = &typeGraph_.makeType<Incomplete>(underlyingType);
+    if (line[nodeEndPos] == ':') {
+      auto nameStartPos = line.find('[', nodeEndPos) + 1;
+      auto nameEndPos = line.find(']', nameStartPos);
+      auto underlyingTypeName =
+          line.substr(nameStartPos, nameEndPos - nameStartPos);
+      type = &typeGraph_.makeType<Incomplete>(std::string(underlyingTypeName));
+    } else {
+      auto& underlyingType = parseType(input, indent + 2);
+      type = &typeGraph_.makeType<Incomplete>(underlyingType);
+    }
   } else if (nodeTypeName == "Class" || nodeTypeName == "Struct" ||
              nodeTypeName == "Union") {
     // Format: "Class: MyClass (size: 12)"

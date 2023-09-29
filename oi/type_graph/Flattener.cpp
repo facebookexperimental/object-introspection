@@ -56,9 +56,7 @@ void flattenParent(const Parent& parent,
     // Create a new member to represent this parent container
     flattenedMembers.emplace_back(*parentContainer, Flattener::ParentPrefix,
                                   parent.bitOffset);
-  } else if (auto* parentPrimitive = dynamic_cast<Primitive*>(&parentType);
-             parentPrimitive &&
-             parentPrimitive->kind() == Primitive::Kind::Incomplete) {
+  } else if (auto* parentPrimitive = dynamic_cast<Incomplete*>(&parentType)) {
     // Bad DWARF can lead to us seeing incomplete parent types. Just ignore
     // these as there is nothing we can do to recover the missing info.
   } else {
