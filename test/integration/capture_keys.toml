@@ -1,7 +1,7 @@
 # This file contains tests for core key-capture features at the top, followed
 # by basic tests for each container type which supports key capture.
 
-includes = ["map"]
+includes = ["map","sys/mman.h"]
 definitions = '''
 struct MapHolder {
   std::map<int, int> captureMyKeys;
@@ -12,6 +12,33 @@ enum class MyEnum {
   One = 1,
   Two = 2,
   Three = 3,
+};
+
+struct KeyObj {
+  int n;
+  auto operator<=>(const KeyObj &) const = default;
+};
+template <typename T>
+class FixedAllocator {
+ public:
+  using value_type = T;
+  T* allocate(std::size_t n) {
+    uintptr_t loc = base_ + num_*0x1000;
+    num_++;
+    return (T*)mmap((void*)loc,
+                    n,
+                    PROT_READ|PROT_WRITE,
+                    MAP_PRIVATE|MAP_ANONYMOUS,
+                    -1,
+                    0);
+  }
+  void deallocate(T*, std::size_t) noexcept {
+    // cba
+  }
+
+ private:
+  uintptr_t base_ = 0x300000;
+  size_t num_ = 0;
 };
 '''
 [cases]
@@ -110,6 +137,46 @@ enum class MyEnum {
           "name": "[]",
           "typePath": ["a0","[]"],
           "data": 3,
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        }
+      ]
+    }]'''
+
+  [cases.object]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const std::map<KeyObj, int, std::less<KeyObj>, FixedAllocator<std::pair<const KeyObj, int>>>&"]
+    # We're going to record the addresses of these objects, so we use a custom
+    # allocator based on mmap to get them at a known location in memory
+    setup = '''
+      std::map<KeyObj, int, std::less<KeyObj>, FixedAllocator<std::pair<const KeyObj, int>>> m;
+      m.insert({KeyObj{1}, 1});
+      m.insert({KeyObj{2}, 2});
+      return m;
+    '''
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      top_level = true
+    '''
+    expect_json_v2 = '''[{
+      "name": "a0",
+      "typePath": ["a0"],
+      "members": [
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": "0x300020",
+          "members": [
+            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "value", "typePath": ["a0","[]","value"]}
+          ]
+        },
+        {
+          "name": "[]",
+          "typePath": ["a0","[]"],
+          "data": "0x301020",
           "members": [
             {"name": "key", "typePath": ["a0","[]","key"]},
             {"name": "value", "typePath": ["a0","[]","value"]}
