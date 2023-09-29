@@ -367,8 +367,7 @@ TEST_F(DrgnParserTest, PointerNoFollow) {
 TEST_F(DrgnParserTest, PointerIncomplete) {
   test("oid_test_case_pointers_incomplete_raw", R"(
 [0] Pointer
-      Incomplete:
-        Primitive: void (incomplete)
+      Incomplete: [IncompleteType]
 )");
 }
 

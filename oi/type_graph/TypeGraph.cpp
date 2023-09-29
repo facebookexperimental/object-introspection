@@ -65,9 +65,6 @@ Primitive& TypeGraph::makeType<Primitive>(Primitive::Kind kind) {
     case Primitive::Kind::Void:
       static Primitive pVoid{kind};
       return pVoid;
-    case Primitive::Kind::Incomplete:
-      static Primitive pIncomplete{kind};
-      return pIncomplete;
   }
 }
 
