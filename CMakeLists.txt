@@ -107,6 +107,17 @@ FetchContent_Declare(
 )
 FetchContent_Populate(folly)
 
+### msgpack
+FetchContent_Declare(
+  msgpackc-cxx
+  SYSTEM
+  GIT_REPOSITORY https://github.com/msgpack/msgpack-c.git
+  GIT_TAG        8824c626b4c05698ec94ed77ababd64457f5574e # v5.0.0
+  GIT_PROGRESS   TRUE
+  FIND_PACKAGE_ARGS 5.0.0 CONFIG
+)
+FetchContent_MakeAvailable(msgpackc-cxx)
+
 set_project_warnings()
 
 if (ASAN)
@@ -187,14 +198,6 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 find_package(Clang REQUIRED CONFIG)
 message(STATUS "Found Clang ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
-
-### msgpack
-# msgpack v3.0.0 doesn't define the msgpackc-cxx target, but since the library is header only,
-# we can locate the header dir and add it to our include directories.
-# Ideally, we would use a more modern version, like v3.3.0, and directly use the msgpackc-cxx target.
-find_package(msgpack REQUIRED CONFIG)
-get_target_property(MSGPACK_INCLUDE_DIRS msgpackc INTERFACE_INCLUDE_DIRECTORIES)
-include_directories(SYSTEM ${MSGPACK_INCLUDE_DIRS})
 
 ### zstd (for rocksdb)
 find_package(zstd REQUIRED)
