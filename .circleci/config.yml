@@ -1,6 +1,10 @@
 version: 2.1
 
 workflows:
+  object-introspection-builds:
+    jobs:
+      - build_rocky_linux_8
+
   object-introspection:
     jobs:
       - lint
@@ -292,3 +296,32 @@ jobs:
             rm -rf extern
 
             ./codecov -Z -f coverage.info -t $CODECOV_TOKEN
+
+  build_rocky_linux_8:
+    docker:
+      - image: rockylinux:8
+    resource_class: 2xlarge
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            - dnf install -y git wget autoconf automake gettext-devel
+            - pushd /tmp
+            - git clone --depth 1 --branch v3.5.94 https://github.com/akimd/bison.git
+            - cd bison
+            - ./bootstrap && configure && make
+            - popd
+            - dnf --enablerepo=devel install -y \
+                cmake \
+                clang \
+                gflags-devel \
+                glog-devel \
+                gtest-devel \
+                clang-devel \
+                llvm-devel
+      - checkout
+      - run:
+          name: Build
+          command: |
+            - cmake -B build/
+            - cmake --build build/
