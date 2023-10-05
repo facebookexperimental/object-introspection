@@ -76,8 +76,8 @@ definitions = '''
       "staticSize":96,
       "exclusiveSize": 0,
       "members":[
-        {"name":"m1", "staticSize":24, "exclusiveSize": 24, "length": 3, "capacity": 3},
-        {"name":"m2", "staticSize":24, "exclusiveSize": 24, "length": 5, "capacity": 5},
-        {"name":"m3", "staticSize":24, "exclusiveSize": 24, "length": 7, "capacity": 7},
-        {"name":"m4", "staticSize":24, "exclusiveSize": 24, "length": 9, "capacity": 9}
+        {"name":"m1", "staticSize":24, "exclusiveSize": 60, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":24, "exclusiveSize": 64, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":24, "exclusiveSize": 76, "length": 7, "capacity": 7},
+        {"name":"m4", "staticSize":24, "exclusiveSize": 84, "length": 9, "capacity": 9}
       ]}]'''
