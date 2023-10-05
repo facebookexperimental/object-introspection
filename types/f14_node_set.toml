@@ -66,11 +66,9 @@ struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
 """
 
 traversal_func = """
-// TODO: This implementation enables the traversal of the container,
-//       but doesn't report the memory footprint accurately.
-//       Revisit this implementation and fix memory footprint reporting.
 auto tail = returnArg
-  .write((uintptr_t)&container)
+  .write((uintptr_t)container.getAllocatedMemorySize())
+  .write((uintptr_t)container.bucket_count())
   .write(container.size());
 
 for (auto &&entry: container) {
@@ -87,15 +85,25 @@ type = "types::st::VarInt<DB>"
 func = "el.pointer = std::get<ParsedData::VarInt>(d.val).value;"
 
 [[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = std::get<ParsedData::VarInt>(d.val).value,
+});
+"""
+
+[[codegen.processor]]
 type = """
 types::st::List<DB, typename TypeHandler<DB, T0>::type>
 """
 func = """
+auto allocationSize = el.pointer.value();
+el.pointer.reset();
+
 auto list = std::get<ParsedData::List>(d.val);
-el.container_stats.emplace(result::Element::ContainerStats {
-  .capacity = list.length,
-  .length = list.length,
-});
+el.container_stats->length = list.length;
+
+el.exclusive_size += allocationSize - list.length * sizeof(T0);
 
 static constexpr auto childField = make_field<DB, T0>("[]");
 for (size_t i = 0; i < list.length; i++)
