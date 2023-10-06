@@ -894,6 +894,11 @@ void genContainerTypeHandler(FeatureSet features,
   } else {
     code += "  static constexpr bool captureKeys = false;\n";
   }
+
+  code += "  using container_type = ";
+  code += containerWithTypes;
+  code += ";\n";
+
   code += "  using type = ";
   if (processors.empty()) {
     code += "types::st::Unit<DB>";
