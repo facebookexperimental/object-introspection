@@ -8,7 +8,7 @@ definitions = '''
     folly::F14NodeMap<int, int> m1;
     folly::F14NodeMap<int, Bar> m2;
     folly::F14NodeMap<int, int> m3;
-    folly::F14NodeMap<int, int> m4;
+    folly::F14NodeMap<int, long> m4;
   };
 '''
 
@@ -42,7 +42,7 @@ definitions = '''
     '''
     expect_json = '''[{
       "staticSize":96,
-      "dynamicSize":500,
+      "dynamicSize":572,
       "members":[
         {"name":"m1", "staticSize":24, "dynamicSize":72, "length":3, "capacity":3, "elementStaticSize":8},
         {
@@ -65,14 +65,31 @@ definitions = '''
             {"staticSize":8, "members":[{"name":"a"}, {"name": "b"}]}
         ]},
         {"name":"m3", "staticSize":24, "dynamicSize":136, "length":7, "capacity":7, "elementStaticSize":8},
-        {"name":"m4", "staticSize":24, "dynamicSize":168, "length":9, "capacity":9, "elementStaticSize":8}
+        {"name":"m4", "staticSize":24, "dynamicSize":240, "length":9, "capacity":9, "elementStaticSize":12}
       ]}]'''
     expect_json_v2 = '''[{
       "staticSize":96,
       "exclusiveSize": 0,
       "members":[
-        {"name":"m1", "staticSize":24, "exclusiveSize": 24, "length": 3, "capacity": 3},
-        {"name":"m2", "staticSize":24, "exclusiveSize": 24, "length": 5, "capacity": 5},
-        {"name":"m3", "staticSize":24, "exclusiveSize": 24, "length": 7, "capacity": 7},
-        {"name":"m4", "staticSize":24, "exclusiveSize": 24, "length": 9, "capacity": 9}
-      ]}]'''
+        {"name":"m1", "staticSize":24, "exclusiveSize": 72, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":24, "exclusiveSize": 88, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":24, "exclusiveSize": 104, "length": 7, "capacity": 7},
+        {
+          "name":"m4",
+          "staticSize":24,
+          "exclusiveSize": 120,
+          "length": 9,
+          "capacity": 9,
+          "members":[
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4},
+            {"staticSize":16, "exclusiveSize": 4}
+          ]
+        }]
+      }]'''
