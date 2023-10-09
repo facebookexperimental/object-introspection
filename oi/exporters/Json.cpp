@@ -48,16 +48,17 @@ Json::Json(std::ostream& out) : out_(out) {
 
 void Json::print(const IntrospectionResult& r) {
   auto begin = r.cbegin();
-  return print(begin, r.cend());
+  auto end = r.cend();
+  return print(begin, end);
 }
 
 void Json::print(IntrospectionResult::const_iterator& it,
-                 IntrospectionResult::const_iterator end) {
-  std::vector<std::string_view> firstTypePath = it->type_path;
+                 IntrospectionResult::const_iterator& end) {
+  const auto firstTypePathSize = it->type_path.size();
 
-  const auto indent = pretty_ ? makeIndent(firstTypePath.size()) : "";
+  const auto indent = pretty_ ? makeIndent(firstTypePathSize) : "";
   const auto lastIndent =
-      pretty_ ? makeIndent(std::max(firstTypePath.size(), 1UL) - 1) : "";
+      pretty_ ? makeIndent(std::max(firstTypePathSize, 1UL) - 1) : "";
   const auto* tab = pretty_ ? "  " : "";
   const auto* space = pretty_ ? " " : "";
   const auto* endl = pretty_ ? "\n" : "";
@@ -66,7 +67,7 @@ void Json::print(IntrospectionResult::const_iterator& it,
 
   bool first = true;
   while (it != end) {
-    if (it->type_path.size() < firstTypePath.size()) {
+    if (it->type_path.size() < firstTypePathSize) {
       // no longer a sibling, must be a sibling of the type we're printing
       break;
     }
@@ -127,7 +128,7 @@ void Json::print(IntrospectionResult::const_iterator& it,
     }
 
     out_ << tab << "\"members\":" << space;
-    if (++it != end && it->type_path.size() > firstTypePath.size()) {
+    if (++it != end && it->type_path.size() > firstTypePathSize) {
       print(it, end);
     } else {
       out_ << "[]" << endl;
@@ -135,7 +136,7 @@ void Json::print(IntrospectionResult::const_iterator& it,
 
     out_ << indent << "}";
   }
-  if (firstTypePath.size() == 1) {
+  if (firstTypePathSize == 1) {
     out_ << endl << ']' << endl;
   } else {
     out_ << endl << lastIndent << tab << ']' << endl;

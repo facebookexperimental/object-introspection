@@ -21,6 +21,7 @@
 #include <oi/types/dy.h>
 
 #include <cstdint>
+#include <list>
 #include <optional>
 #include <span>
 #include <stack>
@@ -52,6 +53,13 @@ class IntrospectionResult {
     std::optional<result::Element> next_;
 
     std::vector<std::string_view> type_path_;
+    // This field could be more space efficient as these strings are primarily
+    // empty. They are used when the string isn't stored in the .rodata section,
+    // currently when performing key capture. It needs reference stability as we
+    // keep views in type_path_. A std::unique_ptr<std::string> would be an
+    // improvement but it isn't copyable. A string type with size fixed at
+    // construction would also be good.
+    std::list<std::string> dynamic_type_path_;
   };
 
   IntrospectionResult(std::vector<uint8_t> buf, exporters::inst::Inst inst);

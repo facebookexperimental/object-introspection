@@ -19,6 +19,7 @@
 
 #include <cassert>
 #include <iterator>
+#include <sstream>
 #include <stdexcept>
 
 template <typename T>
@@ -41,6 +42,7 @@ IntrospectionResult::const_iterator::operator++() {
         using U = std::decay_t<decltype(r)>;
         if constexpr (std::is_same_v<U, exporters::inst::PopTypePath>) {
           type_path_.pop_back();
+          dynamic_type_path_.pop_back();
           return operator++();
         } else {
           // reference wrapper
@@ -65,6 +67,40 @@ IntrospectionResult::const_iterator::operator++() {
               handler(
                   *next_, [this](auto i) { stack_.emplace(i); }, parsed);
             }
+
+            std::string& new_name = dynamic_type_path_.emplace_back(std::visit(
+                [](const auto& d) -> std::string {
+                  using V = std::decay_t<decltype(d)>;
+                  if constexpr (std::is_same_v<std::string, V>) {
+                    std::string out = "[";
+                    out.reserve(d.size() + 2);
+                    out += d;
+                    out += "]";
+                    return out;
+                  } else if constexpr (std::is_same_v<result::Element::Pointer,
+                                                      V>) {
+                    std::stringstream out;
+                    out << '[' << reinterpret_cast<void*>(d.p) << ']';
+                    return out.str();
+                  } else if constexpr (std::is_same_v<result::Element::Scalar,
+                                                      V>) {
+                    std::string out = "[";
+                    out += std::to_string(d.n);
+                    out += ']';
+                    return out;
+                  } else if constexpr (std::is_same_v<std::nullopt_t, V>) {
+                    return "";
+                  } else {
+                    static_assert(always_false_v<V>, "missing variant");
+                  }
+                },
+                next_->data));
+            if (!new_name.empty()) {
+              type_path_.back() = new_name;
+              next_->type_path.back() = new_name;
+              next_->name = new_name;
+            }
+
             for (auto it = ty.fields.rbegin(); it != ty.fields.rend(); ++it) {
               stack_.emplace(*it);
             }
