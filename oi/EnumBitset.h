@@ -47,11 +47,26 @@ class EnumBitset {
     return bitset.none();
   }
 
+  bool operator==(const EnumBitset<T, N>& that) const {
+    return bitset == that.bitset;
+  }
   EnumBitset<T, N>& operator|=(const EnumBitset<T, N>& that) {
     bitset |= that.bitset;
+    return *this;
+  }
+  EnumBitset<T, N>& operator&=(const EnumBitset<T, N>& that) {
+    bitset &= that.bitset;
     return *this;
   }
 
  private:
   BitsetType bitset;
 };
+
+template <typename T, size_t N>
+EnumBitset<T, N> operator&(const EnumBitset<T, N>& lhs,
+                           const EnumBitset<T, N>& rhs) {
+  auto out = lhs;
+  out &= rhs;
+  return out;
+}

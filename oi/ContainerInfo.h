@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "oi/ContainerTypeEnum.h"
+#include "oi/Features.h"
 
 ContainerTypeEnum containerTypeEnumFromStr(std::string& str);
 const char* containerTypeEnumToStr(ContainerTypeEnum ty);
@@ -94,6 +95,7 @@ struct ContainerInfo {
   std::optional<size_t> underlyingContainerIndex{};
   std::vector<size_t> stubTemplateParams{};
   bool captureKeys = false;
+  oi::detail::FeatureSet requiredFeatures;
 
   Codegen codegen;
 

@@ -213,7 +213,6 @@ namespace cpp2 {
       ]}]'''
 
   [cases.no_capture]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const cpp2::MyThriftStructBoxed&"]
     setup = '''
       cpp2::MyThriftStructBoxed ret;

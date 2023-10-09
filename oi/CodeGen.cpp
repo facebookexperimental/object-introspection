@@ -1119,6 +1119,10 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
 
 void CodeGen::registerContainer(const fs::path& path) {
   auto info = std::make_unique<ContainerInfo>(path);
+  if (info->requiredFeatures != (config_.features & info->requiredFeatures)) {
+    VLOG(1) << "Skipping container (feature conflict): " << info->typeName;
+    return;
+  }
   VLOG(1) << "Registered container: " << info->typeName;
   containerInfos_.emplace_back(std::move(info));
 }

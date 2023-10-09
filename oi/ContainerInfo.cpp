@@ -242,6 +242,19 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
 
   underlyingContainerIndex = info["underlying_container_index"].value<size_t>();
 
+  if (toml::array* arr = info["required_features"].as_array()) {
+    arr->for_each([&](auto&& el) {
+      if constexpr (toml::is_string<decltype(el)>) {
+        oi::detail::Feature f = oi::detail::featureFromStr(*el);
+        if (f == oi::detail::Feature::UnknownFeature) {
+          LOG(WARNING) << "unknown feature in container config: " << el;
+          return;
+        }
+        requiredFeatures[f] = true;
+      }
+    });
+  }
+
   if (!container["codegen"].is_table()) {
     throw ContainerInfoError(
         path, "a container info file requires a `codegen` table");
