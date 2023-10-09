@@ -55,21 +55,21 @@ class FixedAllocator {
       "typePath": ["a0"],
       "members": [
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[1]",
+          "typePath": ["a0","[1]"],
           "data": 1,
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[1]","key"]},
+            {"name": "value", "typePath": ["a0","[1]","value"]}
           ]
         },
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[3]",
+          "typePath": ["a0","[3]"],
           "data": 3,
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[3]","key"]},
+            {"name": "value", "typePath": ["a0","[3]","value"]}
           ]
         }
       ]
@@ -92,21 +92,21 @@ class FixedAllocator {
       "typePath": ["a0"],
       "members": [
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[abc]",
+          "typePath": ["a0","[abc]"],
           "data": "abc",
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[abc]","key"]},
+            {"name": "value", "typePath": ["a0","[abc]","value"]}
           ]
         },
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[hohoho]",
+          "typePath": ["a0","[hohoho]"],
           "data": "hohoho",
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[hohoho]","key"]},
+            {"name": "value", "typePath": ["a0","[hohoho]","value"]}
           ]
         }
       ]
@@ -125,21 +125,21 @@ class FixedAllocator {
       "typePath": ["a0"],
       "members": [
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[1]",
+          "typePath": ["a0","[1]"],
           "data": 1,
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[1]","key"]},
+            {"name": "value", "typePath": ["a0","[1]","value"]}
           ]
         },
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[3]",
+          "typePath": ["a0","[3]"],
           "data": 3,
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[3]","key"]},
+            {"name": "value", "typePath": ["a0","[3]","value"]}
           ]
         }
       ]
@@ -165,21 +165,21 @@ class FixedAllocator {
       "typePath": ["a0"],
       "members": [
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[0x300020]",
+          "typePath": ["a0","[0x300020]"],
           "data": "0x300020",
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[0x300020]","key"]},
+            {"name": "value", "typePath": ["a0","[0x300020]","value"]}
           ]
         },
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[0x301020]",
+          "typePath": ["a0","[0x301020]"],
           "data": "0x301020",
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
-            {"name": "value", "typePath": ["a0","[]","value"]}
+            {"name": "key", "typePath": ["a0","[0x301020]","key"]},
+            {"name": "value", "typePath": ["a0","[0x301020]","value"]}
           ]
         }
       ]
@@ -207,22 +207,22 @@ class FixedAllocator {
       "typePath": ["a0"],
       "members": [
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[123]",
+          "typePath": ["a0","[123]"],
           "data": 123,
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "key", "typePath": ["a0","[123]","key"]},
             {
               "name": "value",
-              "typePath": ["a0","[]","value"],
+              "typePath": ["a0","[123]","value"],
               "members": [
                 {
                   "name": "[]",
-                  "typePath": ["a0","[]","value","[]"],
+                  "typePath": ["a0","[123]","value","[]"],
                   "NOT":"data",
                   "members": [
-                    {"name": "key", "typePath": ["a0","[]","value","[]","key"]},
-                    {"name": "value", "typePath": ["a0","[]","value","[]","value"]}
+                    {"name": "key", "typePath": ["a0","[123]","value","[]","key"]},
+                    {"name": "value", "typePath": ["a0","[123]","value","[]","value"]}
                   ]
                 }
               ]
@@ -230,31 +230,31 @@ class FixedAllocator {
           ]
         },
         {
-          "name": "[]",
-          "typePath": ["a0","[]"],
+          "name": "[456]",
+          "typePath": ["a0","[456]"],
           "data": 456,
           "members": [
-            {"name": "key", "typePath": ["a0","[]","key"]},
+            {"name": "key", "typePath": ["a0","[456]","key"]},
             {
               "name": "value",
-              "typePath": ["a0","[]","value"],
+              "typePath": ["a0","[456]","value"],
               "members": [
                 {
                   "name": "[]",
-                  "typePath": ["a0","[]","value","[]"],
+                  "typePath": ["a0","[456]","value","[]"],
                   "NOT":"data",
                   "members": [
-                    {"name": "key", "typePath": ["a0","[]","value","[]","key"]},
-                    {"name": "value", "typePath": ["a0","[]","value","[]","value"]}
+                    {"name": "key", "typePath": ["a0","[456]","value","[]","key"]},
+                    {"name": "value", "typePath": ["a0","[456]","value","[]","value"]}
                   ]
                 },
                 {
                   "name": "[]",
-                  "typePath": ["a0","[]","value","[]"],
+                  "typePath": ["a0","[456]","value","[]"],
                   "NOT":"data",
                   "members": [
-                    {"name": "key", "typePath": ["a0","[]","value","[]","key"]},
-                    {"name": "value", "typePath": ["a0","[]","value","[]","value"]}
+                    {"name": "key", "typePath": ["a0","[456]","value","[]","key"]},
+                    {"name": "value", "typePath": ["a0","[456]","value","[]","value"]}
                   ]
                 }
               ]
@@ -283,21 +283,21 @@ class FixedAllocator {
           "typePath": ["a0","captureMyKeys"],
           "members": [
             {
-              "name": "[]",
-              "typePath": ["a0","captureMyKeys","[]"],
+              "name": "[1]",
+              "typePath": ["a0","captureMyKeys","[1]"],
               "data": 1,
               "members": [
-                {"name": "key", "typePath": ["a0","captureMyKeys","[]","key"]},
-                {"name": "value", "typePath": ["a0","captureMyKeys","[]","value"]}
+                {"name": "key", "typePath": ["a0","captureMyKeys","[1]","key"]},
+                {"name": "value", "typePath": ["a0","captureMyKeys","[1]","value"]}
               ]
             },
             {
-              "name": "[]",
-              "typePath": ["a0","captureMyKeys","[]"],
+              "name": "[3]",
+              "typePath": ["a0","captureMyKeys","[3]"],
               "data": 3,
               "members": [
-                {"name": "key", "typePath": ["a0","captureMyKeys","[]","key"]},
-                {"name": "value", "typePath": ["a0","captureMyKeys","[]","value"]}
+                {"name": "key", "typePath": ["a0","captureMyKeys","[3]","key"]},
+                {"name": "value", "typePath": ["a0","captureMyKeys","[3]","value"]}
               ]
             }
           ]

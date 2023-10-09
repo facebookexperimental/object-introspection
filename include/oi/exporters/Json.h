@@ -28,7 +28,7 @@ class Json {
 
   void print(const IntrospectionResult&);
   void print(IntrospectionResult::const_iterator& it,
-             IntrospectionResult::const_iterator end);
+             IntrospectionResult::const_iterator& end);
 
   void setPretty(bool pretty) {
     pretty_ = pretty;
