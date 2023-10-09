@@ -26,17 +26,20 @@ target_link_libraries(symbol_service
   dw
 )
 
+add_library(features Features.cpp)
+target_link_libraries(features glog::glog)
+
 add_library(container_info
   ContainerInfo.cpp
 )
 target_link_libraries(container_info
+  features
   glog::glog
   toml
 )
 
 add_library(codegen
   CodeGen.cpp
-  Features.cpp
   FuncGen.cpp
   OICodeGen.cpp
 )

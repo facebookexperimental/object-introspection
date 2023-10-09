@@ -22,6 +22,13 @@ This document describes the format of the container definition files contained i
   Only used for container adapters. Points OI to the template parameter
   representing the underlying container to be measured.
 
+- `required_features`
+
+  A set of feature names such as `tree-builder-v2` which must be enabled for
+  this container description to be included. Currently only supported with
+  CodeGen v2 as that's their only use case and an implementation for CodeGen v1
+  would be untested.
+
 ### codegen
 - `decl`
 
