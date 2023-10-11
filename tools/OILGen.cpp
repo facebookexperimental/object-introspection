@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <iostream>
+#include <vector>
 
 #include "oi/OICodeGen.h"
 #include "oi/OIGenerator.h"
@@ -61,7 +62,7 @@ int main(int argc, char* argv[]) {
   FLAGS_stderrthreshold = 0;
 
   fs::path outputPath = "a.o";
-  fs::path configFilePath = "/usr/local/share/oi/base.oid.toml";
+  std::vector<fs::path> configFilePaths;
   fs::path sourceFileDumpPath = "";
   bool exitCode = false;
   bool pic = false;
@@ -77,7 +78,7 @@ int main(int argc, char* argv[]) {
         outputPath = optarg;
         break;
       case 'c':
-        configFilePath = optarg;
+        configFilePaths.emplace_back(optarg);
         break;
       case 'd':
         google::LogToStderr();
@@ -114,7 +115,7 @@ int main(int argc, char* argv[]) {
   OIGenerator oigen;
 
   oigen.setOutputPath(std::move(outputPath));
-  oigen.setConfigFilePath(std::move(configFilePath));
+  oigen.setConfigFilePaths(std::move(configFilePaths));
   oigen.setSourceFileDumpPath(sourceFileDumpPath);
   oigen.setFailIfNothingGenerated(exitCode);
   oigen.setUsePIC(pic);

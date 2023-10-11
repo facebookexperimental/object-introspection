@@ -17,6 +17,7 @@
 #pragma once
 
 #include <filesystem>
+#include <vector>
 
 #include "oi/DrgnUtils.h"
 #include "oi/OICodeGen.h"
@@ -31,8 +32,8 @@ class OIGenerator {
   void setOutputPath(fs::path _outputPath) {
     outputPath = std::move(_outputPath);
   }
-  void setConfigFilePath(fs::path _configFilePath) {
-    configFilePath = std::move(_configFilePath);
+  void setConfigFilePaths(std::vector<fs::path> _configFilePaths) {
+    configFilePaths = std::move(_configFilePaths);
   }
   void setSourceFileDumpPath(fs::path _sourceFileDumpPath) {
     sourceFileDumpPath = std::move(_sourceFileDumpPath);
@@ -46,7 +47,7 @@ class OIGenerator {
 
  private:
   std::filesystem::path outputPath;
-  std::filesystem::path configFilePath;
+  std::vector<std::filesystem::path> configFilePaths;
   std::filesystem::path sourceFileDumpPath;
   bool failIfNothingGenerated = false;
   bool pic = false;
