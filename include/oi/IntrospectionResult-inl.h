@@ -72,9 +72,17 @@ inline const result::Element* IntrospectionResult::const_iterator::operator->()
 
 inline bool IntrospectionResult::const_iterator::operator==(
     const IntrospectionResult::const_iterator& that) const {
-  return this->data_ == that.data_ && !this->next_.has_value() &&
-         !that.next_.has_value();  // TODO: is this sufficient? kind of hacky as
-                                   // this only works for comparing to .end()
+  // Case 1: The next data to read differs, thus the iterators are different.
+  if (this->data_ != that.data_)
+    return false;
+  // Case 2: Both iterators have no next value, thus they are both complete. It
+  // is insufficient to check increments as the number of increments is unknown
+  // when constructing `end()`.
+  if (!this->next_.has_value() && !that.next_.has_value())
+    return true;
+  // Case 3: The iterators are reading the same data. If they have produced the
+  // same number of elements they are equal, else they are not.
+  return this->increments_ == that.increments_;
 }
 inline bool IntrospectionResult::const_iterator::operator!=(
     const IntrospectionResult::const_iterator& that) const {
