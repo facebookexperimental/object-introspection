@@ -101,6 +101,5 @@ auto list = std::get<ParsedData::List>(d.val);
 el.container_stats->length = list.length;
 el.exclusive_size += (el.container_stats->capacity - el.container_stats->length) * sizeof(T0);
 
-for (size_t i = 0; i < list.length; i++)
-  stack_ins(childField);
+stack_ins(inst::Repeat{ list.length, childField });
 """
