@@ -32,14 +32,24 @@ namespace oi::exporters::inst {
 
 struct PopTypePath;
 struct Field;
+struct Repeat;
 
-using Inst = std::variant<PopTypePath, std::reference_wrapper<const Field>>;
+using Inst =
+    std::variant<PopTypePath, Repeat, std::reference_wrapper<const Field>>;
 using Processor = void (*)(result::Element&,
                            std::function<void(Inst)>,
                            ParsedData);
 using ProcessorInst = std::pair<types::dy::Dynamic, Processor>;
 
 struct PopTypePath {};
+
+struct Repeat {
+  constexpr Repeat(size_t n_, const Field& field_) : n(n_), field(field_) {
+  }
+
+  size_t n;
+  std::reference_wrapper<const Field> field;
+};
 
 struct Field {
   template <size_t N0, size_t N1, size_t N2>

@@ -44,6 +44,12 @@ IntrospectionResult::const_iterator::operator++() {
           type_path_.pop_back();
           dynamic_type_path_.pop_back();
           return operator++();
+        } else if constexpr (std::is_same_v<U, exporters::inst::Repeat>) {
+          if (r.n-- != 0) {
+            stack_.emplace(r);
+            stack_.emplace(r.field);
+          }
+          return operator++();
         } else {
           // reference wrapper
           auto ty = r.get();
