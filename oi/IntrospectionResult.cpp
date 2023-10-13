@@ -30,9 +30,13 @@ namespace oi {
 IntrospectionResult::const_iterator&
 IntrospectionResult::const_iterator::operator++() {
   if (stack_.empty()) {
-    next_ = std::nullopt;
+    if (next_ != std::nullopt) {
+      ++increments_;
+      next_ = std::nullopt;
+    }
     return *this;
   }
+  ++increments_;
 
   auto el = stack_.top();
   stack_.pop();

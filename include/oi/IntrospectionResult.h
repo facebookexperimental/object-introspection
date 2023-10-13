@@ -63,6 +63,12 @@ class IntrospectionResult {
     // improvement but it isn't copyable. A string type with size fixed at
     // construction would also be good.
     std::list<std::string> dynamic_type_path_;
+
+    // We cannot track the position in the iteration solely by the underlying
+    // iterator as some fields do not extract data (for example, primitives).
+    // Track the number of increment operations as well to get an accurate
+    // equality check.
+    uint64_t increments_ = 0;
   };
 
   IntrospectionResult(std::vector<uint8_t> buf, exporters::inst::Inst inst);
