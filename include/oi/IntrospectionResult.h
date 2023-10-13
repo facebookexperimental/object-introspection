@@ -44,12 +44,15 @@ class IntrospectionResult {
     const_iterator operator++(int);
 
    private:
+    using stack_t =
+        std::stack<exporters::inst::Inst, std::vector<exporters::inst::Inst>>;
+
     const_iterator(std::vector<uint8_t>::const_iterator data,
                    exporters::inst::Inst type);
     const_iterator(std::vector<uint8_t>::const_iterator data);
 
     std::vector<uint8_t>::const_iterator data_;
-    std::stack<exporters::inst::Inst> stack_;
+    stack_t stack_;
     std::optional<result::Element> next_;
 
     std::vector<std::string_view> type_path_;
