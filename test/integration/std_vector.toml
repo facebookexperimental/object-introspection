@@ -1,4 +1,13 @@
 includes = ["vector"]
+
+definitions = '''
+  struct SimpleStruct {
+    int a;
+    char b;
+    long long c;
+  };
+'''
+
 [cases]
   [cases.int_empty]
     param_types = ["const std::vector<int>&"]
@@ -13,6 +22,15 @@ includes = ["vector"]
       {"staticSize":4, "exclusiveSize":4},
       {"staticSize":4, "exclusiveSize":4},
       {"staticSize":4, "exclusiveSize":4}
+    ]}]'''
+  [cases.struct_some]
+    param_types = ["const std::vector<SimpleStruct>&"]
+    setup = "return {{{}, {}, {}}};"
+    expect_json = '[{"staticSize":24, "dynamicSize":48, "length":3, "capacity":3, "elementStaticSize":16}]'
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "length":3, "capacity":3, "members":[
+      {"staticSize":16, "exclusiveSize":3},
+      {"staticSize":16, "exclusiveSize":3},
+      {"staticSize":16, "exclusiveSize":3}
     ]}]'''
   [cases.bool_empty]
     skip = true # https://github.com/facebookexperimental/object-introspection/issues/14

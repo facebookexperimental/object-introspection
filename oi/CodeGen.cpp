@@ -188,6 +188,22 @@ void genDecls(const TypeGraph& typeGraph, std::string& code) {
   }
 }
 
+namespace {
+
+size_t calculateExclusiveSize(const Type& t) {
+  if (const auto* c = dynamic_cast<const Class*>(&t)) {
+    return std::accumulate(c->members.cbegin(), c->members.cend(), 0,
+                           [](size_t a, const auto& m) {
+                             if (m.name.starts_with(AddPadding::MemberPrefix))
+                               return a + m.type().size();
+                             return a;
+                           });
+  }
+  return t.size();
+}
+
+}  // namespace
+
 void genNames(const TypeGraph& typeGraph, std::string& code) {
   code += R"(
 template <typename T>
@@ -203,6 +219,26 @@ struct NameProvider {};
     code += "> { static constexpr std::array<std::string_view, 1> names = {\"";
     code += t.inputName();
     code += "\"}; };\n";
+  }
+}
+
+void genExclusiveSizes(const TypeGraph& typeGraph, std::string& code) {
+  code += R"(
+template <typename T>
+struct ExclusiveSizeProvider {
+  static constexpr size_t size = sizeof(T);
+};
+)";
+
+  for (const Type& t : typeGraph.finalTypes) {
+    size_t exclusiveSize = calculateExclusiveSize(t);
+    if (exclusiveSize != t.size()) {
+      code += "template <> struct ExclusiveSizeProvider<";
+      code += t.name();
+      code += "> { static constexpr size_t size = ";
+      code += std::to_string(exclusiveSize);
+      code += "; };\n";
+    }
   }
 }
 
@@ -714,22 +750,6 @@ void CodeGen::genClassStaticType(const Class& c, std::string& code) {
   }
 }
 
-namespace {
-
-size_t calculateExclusiveSize(const Type& t) {
-  if (const auto* c = dynamic_cast<const Class*>(&t)) {
-    return std::accumulate(c->members.cbegin(), c->members.cend(), 0,
-                           [](size_t a, const auto& m) {
-                             if (m.name.starts_with(AddPadding::MemberPrefix))
-                               return a + m.type().size();
-                             return a;
-                           });
-  }
-  return t.size();
-}
-
-}  // namespace
-
 void CodeGen::genClassTreeBuilderInstructions(const Class& c,
                                               std::string& code) {
   code += " private:\n";
@@ -1047,7 +1067,7 @@ template <typename DB, typename T>
 constexpr inst::Field make_field(std::string_view name) {
   return inst::Field{
     sizeof(T),
-    sizeof(T), // TODO: this is incorrect for excl size
+    ExclusiveSizeProvider<T>::size,
     name,
     NameProvider<T>::names,
     TypeHandler<DB, T>::fields,
@@ -1245,8 +1265,10 @@ void CodeGen::generate(
   genDecls(typeGraph, code);
   genDefs(typeGraph, code);
   genStaticAsserts(typeGraph, code);
-  if (config_.features[Feature::TreeBuilderV2])
+  if (config_.features[Feature::TreeBuilderV2]) {
     genNames(typeGraph, code);
+    genExclusiveSizes(typeGraph, code);
+  }
 
   if (config_.features[Feature::TypedDataSegment]) {
     addStandardTypeHandlers(typeGraph, config_.features, code);

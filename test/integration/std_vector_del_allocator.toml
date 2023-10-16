@@ -27,7 +27,6 @@ includes = ["vector"]
 
 [cases]
   [cases.a]
-    oil_skip = "oil gets the exclusive size of vector subfields wrong" # https://github.com/facebookexperimental/object-introspection/issues/301
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;
