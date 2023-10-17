@@ -20,6 +20,7 @@
 #include <oi/types/dy.h>
 
 #include <cstdint>
+#include <optional>
 #include <stdexcept>
 #include <vector>
 
@@ -30,9 +31,6 @@ enum class Feature {
   CaptureThriftIsset,
   GenJitDebug,
 };
-
-template <typename T, Feature... Fs>
-IntrospectionResult __attribute__((noinline)) introspect(const T& objectAddr);
 
 #ifdef OIL_AOT_COMPILATION
 
@@ -46,6 +44,16 @@ IntrospectionResult introspect(const T& objectAddr) {
         "OIL is expecting AoT compilation but it doesn't appear to have run.");
 
   return introspectImpl<T, Fs...>(objectAddr);
+}
+
+template <typename T, Feature... Fs>
+std::optional<IntrospectionResult> tryIntrospect(const T& objectAddr) {
+  if (!introspectImpl<T, Fs...>)
+    return std::nullopt;
+
+  // This checks twice but is necessary for compile time as it currently
+  // depends on the presence of the strong symbol.
+  return introspect(objectAddr);
 }
 
 #endif
