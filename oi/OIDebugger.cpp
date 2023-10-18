@@ -56,7 +56,7 @@ extern "C" {
 #include "oi/type_graph/TypeGraph.h"
 
 #ifndef OSS_ENABLE
-#include "cea/object-introspection/internal/GobsService.h"
+#include "object-introspection/internal/GobsService.h"
 #endif
 
 using namespace std;

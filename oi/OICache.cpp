@@ -26,8 +26,8 @@
 #include "oi/Serialize.h"
 
 #ifndef OSS_ENABLE
-#include "cea/object-introspection/internal/GobsService.h"
-#include "cea/object-introspection/internal/ManifoldCache.h"
+#include "object-introspection/internal/GobsService.h"
+#include "object-introspection/internal/ManifoldCache.h"
 #endif
 
 namespace oi::detail {
