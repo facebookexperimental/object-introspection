@@ -251,11 +251,6 @@ if (STATIC_LINK)
   set_property(TARGET glog PROPERTY INTERFACE_LINK_LIBRARIES "gflags_static")
 endif()
 
-# FIXME: LLVM 12's source code is not compatible with C++20.
-# We should check with the compiler team if we could apply a fix to our LLVM.
-# In the meantime, we can compile OICompiler with C++17.
-set_source_files_properties(oi/OICompiler.cpp PROPERTIES COMPILE_FLAGS -std=c++17 SKIP_PRECOMPILE_HEADERS ON)
-
 
 
 ## OI Dependencies (linked to by output libraries and executables)

@@ -20,7 +20,9 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <set>
+#include <span>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -89,14 +91,6 @@ class OICompiler {
    */
   class Disassembler {
    public:
-    /*
-     * Please forgive me :(
-     * We have to remain compatible with C++17 for OICompiler.cpp
-     * So we use std::basic_string_view instead of std::span.
-     */
-    template <typename T>
-    using Span = std::basic_string_view<T>;
-
     /**
      * Instruction holds the information returned by the disassembler.
      * The fields are valid until a new Instruction struct has been
@@ -106,7 +100,7 @@ class OICompiler {
      */
     struct Instruction {
       uintptr_t offset;
-      Span<uint8_t> opcodes;
+      std::span<const uint8_t> opcodes;
       std::string_view disassembly;
     };
 
@@ -125,7 +119,7 @@ class OICompiler {
 
    private:
     uintptr_t offset = 0;
-    Span<uint8_t> funcText;
+    std::span<const uint8_t> funcText;
     std::array<char, 128> disassemblyBuffer;
   };
 
@@ -212,10 +206,16 @@ std::optional<std::vector<uintptr_t>> OICompiler::locateOpcodes(
   while (auto inst = DG()) {
     auto it = std::find_if(
         std::begin(needles), std::end(needles), [&](const auto& needle) {
-          // Inst->opcodes.starts_with(needle);
-          return 0 ==
-                 inst->opcodes.find(OICompiler::Disassembler::Span<uint8_t>(
-                     std::data(needle), std::size(needle)));
+          // std::ranges::starts_with(inst->opcodes, needle)
+          if (std::ranges::size(needle) > std::ranges::size(inst->opcodes))
+            return false;
+          auto it1 = std::ranges::begin(inst->opcodes);
+          auto it2 = std::ranges::begin(needle);
+          for (; it2 != std::ranges::end(needle); ++it1, ++it2) {
+            if (*it1 != *it2)
+              return false;
+          }
+          return true;
         });
 
     if (it != std::end(needles)) {
