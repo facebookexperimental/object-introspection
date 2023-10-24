@@ -23,9 +23,10 @@
 
 #include "oi/Descs.h"
 #include "oi/OICodeGen.h"
+#include "oi/Portability.h"
 #include "oi/Serialize.h"
 
-#ifndef OSS_ENABLE
+#if OI_PORTABILITY_META_INTERNAL()
 #include "object-introspection/internal/GobsService.h"
 #include "object-introspection/internal/ManifoldCache.h"
 #endif
@@ -163,7 +164,7 @@ INSTANTIATE_ARCHIVE(std::map<std::string, PaddingInfo>)
 
 // Upload all contents of cache for this request
 bool OICache::upload([[maybe_unused]] const irequest& req) {
-#ifndef OSS_ENABLE
+#if OI_PORTABILITY_META_INTERNAL()
   if (!isEnabled() || downloadedRemote || !enableUpload)
     return true;
   std::vector<std::filesystem::path> files;
@@ -197,7 +198,7 @@ bool OICache::upload([[maybe_unused]] const irequest& req) {
 
 // Try to fetch contents of cache
 bool OICache::download([[maybe_unused]] const irequest& req) {
-#ifndef OSS_ENABLE
+#if OI_PORTABILITY_META_INTERNAL()
   if (!isEnabled() || !enableDownload)
     return true;
 
@@ -244,7 +245,7 @@ std::string OICache::generateRemoteHash(const irequest& req) {
 
   std::string remote_cache_id = *buildID + "/" + req.func + "/" + req.arg +
                                 "/" + generatorConfig.toString();
-#ifndef OSS_ENABLE
+#if OI_PORTABILITY_META_INTERNAL()
   auto version_pair = ObjectIntrospection::GobsService::getOidRpmVersions();
   remote_cache_id += "/" + version_pair.first + "/" + version_pair.second;
 #endif

@@ -9,8 +9,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-add_compile_definitions(OSS_ENABLE)
-
 include(FetchContent)
 set(FETCHCONTENT_QUIET FALSE)
 

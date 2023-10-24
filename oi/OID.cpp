@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <folly/init/Init.h>
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 
@@ -37,8 +36,13 @@ extern "C" {
 #include "oi/OIDebugger.h"
 #include "oi/OIOpts.h"
 #include "oi/PaddingHunter.h"
+#include "oi/Portability.h"
 #include "oi/TimeUtils.h"
 #include "oi/TreeBuilder.h"
+
+#if OI_PORTABILITY_META_INTERNAL()
+#include <folly/init/Init.h>
+#endif
 
 namespace oi::detail {
 
@@ -480,7 +484,8 @@ int main(int argc, char* argv[]) {
   bool dumpDataSegment = false;
 
   metrics::Tracing _("main");
-#ifndef OSS_ENABLE
+
+#if OI_PORTABILITY_META_INTERNAL()
   folly::InitOptions init;
   init.useGFlags(false);
   init.removeFlags(false);
