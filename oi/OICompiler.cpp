@@ -121,7 +121,7 @@ OICompiler::Disassembler::operator()() {
   };
 
   offset += instSize;
-  funcText.remove_prefix(instSize);
+  funcText = funcText.subspan(instSize);
 
   return inst;
 }
