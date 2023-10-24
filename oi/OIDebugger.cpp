@@ -51,11 +51,12 @@ extern "C" {
 #include "oi/Metrics.h"
 #include "oi/OILexer.h"
 #include "oi/PaddingHunter.h"
+#include "oi/Portability.h"
 #include "oi/Syscall.h"
 #include "oi/type_graph/DrgnParser.h"
 #include "oi/type_graph/TypeGraph.h"
 
-#ifndef OSS_ENABLE
+#if OI_PORTABILITY_META_INTERNAL()
 #include "object-introspection/internal/GobsService.h"
 #endif
 
@@ -2147,7 +2148,7 @@ bool OIDebugger::compileCode() {
     if (cache.isEnabled()) {
       // try to download cache artifacts if present
       if (!downloadCache()) {
-#ifndef OSS_ENABLE
+#if OI_PORTABILITY_META_INTERNAL()
         // Send a request to the GOBS service
         char buf[PATH_MAX];
         const std::string procpath =
