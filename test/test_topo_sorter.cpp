@@ -178,24 +178,30 @@ std::map
 }
 
 TEST(TopoSorterTest, ContainersVector) {
-  // std::vector allows forward declared template parameters
+  // std::vector allows a forward declared type
   auto myparam = Class{1, Class::Kind::Struct, "MyParam", 13};
+  auto myalloc = Class{1, Class::Kind::Struct, "MyAlloc", 0};
   auto mycontainer = getVector();
   mycontainer.templateParams.push_back((myparam));
+  mycontainer.templateParams.push_back((myalloc));
 
   test({mycontainer}, R"(
+MyAlloc
 std::vector
 MyParam
 )");
 }
 
 TEST(TopoSorterTest, ContainersList) {
-  // std::list allows forward declared template parameters
+  // std::list allows a forward declared type
   auto myparam = Class{1, Class::Kind::Struct, "MyParam", 13};
+  auto myalloc = Class{1, Class::Kind::Struct, "MyAlloc", 0};
   auto mycontainer = getList();
   mycontainer.templateParams.push_back((myparam));
+  mycontainer.templateParams.push_back((myalloc));
 
   test({mycontainer}, R"(
+MyAlloc
 std::list
 MyParam
 )");

@@ -85,7 +85,7 @@ namespace {
  * Other containers are not required to do this, but might still have this
  * behaviour.
  */
-bool containerAllowsIncompleteParams(const Container& c) {
+bool containerAllowsIncompleteParam(const Container& c, size_t i) {
   switch (c.containerInfo_.ctype) {
     case SEQ_TYPE:
     case LIST_TYPE:
@@ -93,7 +93,7 @@ bool containerAllowsIncompleteParams(const Container& c) {
     case SHRD_PTR_TYPE:
       // Also std::forward_list, if we ever support that
       // Would be good to have this as an option in the TOML files
-      return true;
+      return i == 0;
     default:
       return false;
   }
@@ -101,17 +101,15 @@ bool containerAllowsIncompleteParams(const Container& c) {
 }  // namespace
 
 void TopoSorter::visit(Container& c) {
-  if (!containerAllowsIncompleteParams(c)) {
-    for (const auto& param : c.templateParams) {
+  for (size_t i = 0; i < c.templateParams.size(); i++) {
+    const auto& param = c.templateParams[i];
+    if (containerAllowsIncompleteParam(c, i)) {
+      acceptAfter(param.type());
+    } else {
       accept(param.type());
     }
   }
   sortedTypes_.push_back(c);
-  if (containerAllowsIncompleteParams(c)) {
-    for (const auto& param : c.templateParams) {
-      acceptAfter(param.type());
-    }
-  }
 }
 
 void TopoSorter::visit(Enum& e) {
