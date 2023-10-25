@@ -1,5 +1,5 @@
 # object-introspection
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 project(object-introspection)
 
 # Lets find_program() locate SETUID binaries
@@ -33,34 +33,42 @@ find_package(gflags REQUIRED)
 ### tomlplusplus (for configuration files)
 FetchContent_Declare(
   tomlplusplus
+  SYSTEM
   GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
   GIT_TAG        4b166b69f28e70a416a1a04a98f365d2aeb90de8 # v3.2.0
   GIT_PROGRESS   TRUE
+  FIND_PACKAGE_ARGS 3.2.0 CONFIG
 )
 FetchContent_MakeAvailable(tomlplusplus)
 
 ### glog
 FetchContent_Declare(
   glog
+  SYSTEM
   GIT_REPOSITORY https://github.com/google/glog.git
-  GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a
+  GIT_TAG        96a2f23dca4cc7180821ca5f32e526314395d26a # v0.4.0
   GIT_PROGRESS   TRUE
+  FIND_PACKAGE_ARGS 0.4.0 CONFIG
 )
 FetchContent_MakeAvailable(glog)
 
-# These glog executable targets still generate warnings - disable warnings for
-# them explicitly
-target_compile_options(demangle_unittest PRIVATE "-w")
-target_compile_options(logging_unittest PRIVATE "-w")
-target_compile_options(stl_logging_unittest PRIVATE "-w")
-target_compile_options(symbolize_unittest PRIVATE "-w")
-target_compile_options(utilities_unittest PRIVATE "-w")
+if (TARGET demangle_unittest)
+  # These glog executable targets still generate warnings - disable warnings for
+  # them explicitly
+  # NOTE: we only inherit these targets when FIND_PACKAGE_ARGS isn't used
+  target_compile_options(demangle_unittest PRIVATE "-w")
+  target_compile_options(logging_unittest PRIVATE "-w")
+  target_compile_options(stl_logging_unittest PRIVATE "-w")
+  target_compile_options(symbolize_unittest PRIVATE "-w")
+  target_compile_options(utilities_unittest PRIVATE "-w")
+endif()
 
 ### googletest
 # Do this in the main file so it can be fetched before setting project warnings.
 # After this is fixed with FetchContent, move to test/CMakeLists.txt.
 FetchContent_Declare(
   googletest
+  SYSTEM
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG        1ed6a8c67a0bd675149ece27bbec0ef1759854cf
   GIT_PROGRESS   TRUE
@@ -68,32 +76,56 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 ### rocksdb
-FetchContent_Declare(
-  rocksdb
-  GIT_REPOSITORY https://github.com/facebook/rocksdb.git
-  GIT_TAG        f32521662acf3352397d438b732144c7813bbbec # v8.5.3
-  GIT_PROGRESS   TRUE
-)
-FetchContent_Populate(rocksdb)
-add_custom_target(librocksdb ALL
-  WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
-  COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On -DFAIL_ON_WARNINGS=Off
-  COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
-  BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
-  COMMENT "Building RocksDB"
-  USES_TERMINAL
-)
-include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
+find_package(RocksDB 8.5.3)
+if (NOT RocksDB_FOUND)
+  FetchContent_Declare(
+    rocksdb
+    SYSTEM
+    GIT_REPOSITORY https://github.com/facebook/rocksdb.git
+    GIT_TAG        f32521662acf3352397d438b732144c7813bbbec # v8.5.3
+    GIT_PROGRESS   TRUE
+  )
+  FetchContent_Populate(rocksdb)
+  add_custom_target(librocksdb_build ALL
+    WORKING_DIRECTORY ${rocksdb_SOURCE_DIR}
+    COMMAND cmake -G Ninja -B ${rocksdb_BINARY_DIR} -DCMAKE_BUILD_TYPE=Release -DWITH_GFLAGS=Off -DWITH_LIBURING=Off -DWITH_ZSTD=On -DFAIL_ON_WARNINGS=Off
+    COMMAND cmake --build ${rocksdb_BINARY_DIR} --target rocksdb
+    BYPRODUCTS ${rocksdb_BINARY_DIR}/librocksdb.a
+    COMMENT "Building RocksDB"
+    USES_TERMINAL
+  )
+  add_library(librocksdb INTERFACE)
+  add_dependencies(librocksdb librocksdb_build)
+  target_include_directories(librocksdb INTERFACE SYSTEM "${rocksdb_SOURCE_DIR}/include")
+  add_library(rocksdb::librocksdb ALIAS librocksdb)
+
+  ### zstd (for rocksdb)
+  find_package(zstd REQUIRED)
+
+  target_link_libraries(librocksdb INTERFACE zstd::zstd ${rocksdb_BINARY_DIR}/librocksdb.a)
+endif()
 
 ### folly
 ### use folly as a header only library. some features won't be supported.
 FetchContent_Declare(
   folly
+  SYSTEM
   GIT_REPOSITORY https://github.com/JakeHillion/folly.git
   GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
   GIT_PROGRESS   TRUE
 )
 FetchContent_Populate(folly)
+
+### msgpack
+FetchContent_Declare(
+  msgpackc-cxx
+  SYSTEM
+  GIT_REPOSITORY https://github.com/msgpack/msgpack-c.git
+  GIT_TAG        8824c626b4c05698ec94ed77ababd64457f5574e # v5.0.0
+  GIT_PROGRESS   TRUE
+  FIND_PACKAGE_ARGS 5.0.0 CONFIG
+)
+FetchContent_MakeAvailable(msgpackc-cxx)
 
 set_project_warnings()
 
@@ -106,7 +138,6 @@ if (CODE_COVERAGE)
   add_compile_options(--coverage)
   add_link_options(--coverage)
 endif()
-
 
 ## System checks
 ## These checks are potentially fatal so perform them first.
@@ -175,17 +206,6 @@ message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 find_package(Clang REQUIRED CONFIG)
 message(STATUS "Found Clang ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
-
-### msgpack
-# msgpack v3.0.0 doesn't define the msgpackc-cxx target, but since the library is header only,
-# we can locate the header dir and add it to our include directories.
-# Ideally, we would use a more modern version, like v3.3.0, and directly use the msgpackc-cxx target.
-find_package(msgpack REQUIRED CONFIG)
-get_target_property(MSGPACK_INCLUDE_DIRS msgpackc INTERFACE_INCLUDE_DIRECTORIES)
-include_directories(SYSTEM ${MSGPACK_INCLUDE_DIRS})
-
-### zstd (for rocksdb)
-find_package(zstd REQUIRED)
 
 ### drgn
 # The setup.py script in drgn is really meant to build drgn (python
@@ -330,9 +350,8 @@ add_library(treebuilder
 )
 add_dependencies(treebuilder librocksdb)
 target_link_libraries(treebuilder
-  ${rocksdb_BINARY_DIR}/librocksdb.a
+  rocksdb::librocksdb
   oicore # overkill but it does need a lot of stuff
-  zstd::zstd
 )
 
 
@@ -368,10 +387,8 @@ target_link_libraries(oip oicore)
 
 ### Object Introspection RocksDB Printer (OIRP)
 add_executable(oirp tools/OIRP.cpp)
-add_dependencies(oirp librocksdb)
 target_link_libraries(oirp
-  ${rocksdb_BINARY_DIR}/librocksdb.a
-  zstd::zstd
+  rocksdb::librocksdb
   msgpackc
 )
 
