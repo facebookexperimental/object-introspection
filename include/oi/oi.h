@@ -38,7 +38,7 @@ template <class T, Feature... Fs>
 IntrospectionResult __attribute__((weak)) introspectImpl(const T& objectAddr);
 
 template <typename T, Feature... Fs>
-IntrospectionResult introspect(const T& objectAddr) {
+__attribute__((noinline)) IntrospectionResult introspect(const T& objectAddr) {
   if (!introspectImpl<T, Fs...>)
     throw std::logic_error(
         "OIL is expecting AoT compilation but it doesn't appear to have run.");
