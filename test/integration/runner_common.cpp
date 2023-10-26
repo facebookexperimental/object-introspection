@@ -188,7 +188,6 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
       "--dump-json"s,
       "--script-source"s, opts.scriptSource,
       "--mode=strict"s,
-      "--pid"s, std::to_string(targetProcess.id()),
   };
   // clang-format on
 
@@ -211,6 +210,9 @@ OidProc OidIntegration::runOidOnProcess(OidOpts opts,
     oid_args.emplace_back("--config-file");
     oid_args.emplace_back(*suffix);
   }
+
+  oid_args.emplace_back("--pid");
+  oid_args.emplace_back(std::to_string(targetProcess.id()));
 
   if (verbose) {
     std::cerr << "Running: " << targetExe << "\n";
