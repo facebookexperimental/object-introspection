@@ -1258,7 +1258,6 @@ void CodeGen::generate(
     FuncGen::DefineEncodeData(code);
     FuncGen::DefineEncodeDataSize(code);
     FuncGen::DefineStoreData(code);
-    FuncGen::DefineAddData(code);
   }
   FuncGen::DeclareGetContainer(code);
 

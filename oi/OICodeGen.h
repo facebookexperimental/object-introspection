@@ -65,7 +65,6 @@ class OICodeGen {
       bool topLevel = false;
     };
 
-    bool useDataSegment;
     FeatureSet features;
     std::set<std::filesystem::path> containerConfigPaths;
     std::set<std::string> defaultHeaders;
@@ -126,9 +125,6 @@ class OICodeGen {
 
   drgn_qualified_type getRootType();
   void setRootType(drgn_qualified_type rt);
-  void setLinkageName(std::string name) {
-    linkageName = name;
-  };
   TypeHierarchy getTypeHierarchy();
   std::map<std::string, PaddingInfo> getPaddingInfo();
 
@@ -157,7 +153,6 @@ class OICodeGen {
   using SortedTypeDefMap = std::vector<std::pair<drgn_type*, drgn_type*>>;
 
   std::string rootTypeStr;
-  std::string linkageName;
   std::map<drgn_type*, std::string> unnamedUnion;
   std::map<std::string, size_t> sizeMap;
   std::map<drgn_type*, ContainerTypeMapEntry> containerTypeMapDrgn;

@@ -142,12 +142,6 @@ void FuncGen::DeclareGetSize(std::string& testCode, const std::string& type) {
   testCode.append(fmt.str());
 }
 
-void FuncGen::DeclareTopLevelGetSize(std::string& testCode,
-                                     const std::string& type) {
-  boost::format fmt = boost::format("void getSizeType(const %1% &t);\n") % type;
-  testCode.append(fmt.str());
-}
-
 void FuncGen::DeclareExterns(std::string& code) {
   constexpr std::string_view vars = R"(
 extern uint8_t* dataBase;
@@ -202,9 +196,6 @@ void __jlogptr(uintptr_t ptr) {
 void FuncGen::DeclareStoreData(std::string& testCode) {
   testCode.append("void StoreData(uintptr_t data, size_t& dataSegOffset);\n");
 }
-void FuncGen::DeclareAddData(std::string& testCode) {
-  testCode.append("void AddData(uint64_t data, size_t& dataSegOffset);\n");
-}
 void FuncGen::DeclareEncodeData(std::string& testCode) {
   testCode.append("size_t EncodeVarint(uint64_t val, uint8_t* buf);\n");
 }
@@ -258,33 +249,6 @@ void FuncGen::DefineStoreData(std::string& testCode) {
     )";
 
   testCode.append(func);
-}
-
-void FuncGen::DefineAddData(std::string& testCode) {
-  std::string func = R"(
-    void AddData(uint64_t data, size_t& output) {
-      output += data;
-    }
-    )";
-
-  testCode.append(func);
-}
-
-void FuncGen::DefineTopLevelGetObjectSize(std::string& testCode,
-                                          const std::string& rawType,
-                                          const std::string& linkageName) {
-  std::string func = R"(
-    /* RawType: %1% */
-    extern "C" int %2%(const OIInternal::__ROOT_TYPE__* ObjectAddr, size_t* ObjectSize)
-    {
-      *ObjectSize = 0;
-      OIInternal::getSizeType(*ObjectAddr, *ObjectSize);
-      return 0;
-    }
-  )";
-
-  boost::format fmt = boost::format(func) % rawType % linkageName;
-  testCode.append(fmt.str());
 }
 
 void FuncGen::DefineTopLevelIntrospect(std::string& code,
@@ -526,27 +490,6 @@ const std::array<std::string_view, )";
   code += typeHash;
   code += ";\n";
   code += "#pragma GCC diagnostic pop\n";
-}
-
-void FuncGen::DefineTopLevelGetSizeRefRet(std::string& testCode,
-                                          const std::string& rawType) {
-  std::string func = R"(
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* Raw Type: %1% */
-    size_t __attribute__((used, retain)) getSize(const OIInternal::__ROOT_TYPE__& t)
-    #pragma GCC diagnostic pop
-    {
-      pointers.initialize();
-      size_t ret = 0;
-      pointers.add((uintptr_t)&t);
-      OIInternal::getSizeType(t, ret);
-      return ret;
-    }
-    )";
-
-  boost::format fmt = boost::format(func) % rawType;
-  testCode.append(fmt.str());
 }
 
 void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
