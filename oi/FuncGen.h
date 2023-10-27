@@ -35,9 +35,6 @@ class FuncGen {
   static void DeclareStoreData(std::string& testCode);
   static void DefineStoreData(std::string& testCode);
 
-  static void DeclareAddData(std::string& testCode);
-  static void DefineAddData(std::string& testCode);
-
   static void DeclareEncodeData(std::string& testCode);
   static void DefineEncodeData(std::string& testCode);
 
@@ -55,11 +52,6 @@ class FuncGen {
 
   static void DeclareGetSize(std::string& testCode, const std::string& type);
 
-  static void DeclareTopLevelGetSize(std::string& testCode,
-                                     const std::string& type);
-  static void DefineTopLevelGetObjectSize(std::string& testCode,
-                                          const std::string& type,
-                                          const std::string& linkageName);
   static void DefineTopLevelIntrospect(std::string& code,
                                        const std::string& type);
   static void DefineTopLevelIntrospectNamed(std::string& code,
@@ -79,9 +71,6 @@ class FuncGen {
       const std::string& rawType,
       size_t exclusiveSize,
       std::span<const std::string_view> typeNames);
-
-  static void DefineTopLevelGetSizeRefRet(std::string& testCode,
-                                          const std::string& type);
 
   static void DefineTopLevelGetSizeSmartPtr(std::string& testCode,
                                             const std::string& rawType,

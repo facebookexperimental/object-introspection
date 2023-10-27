@@ -3025,20 +3025,11 @@ bool OICodeGen::generateJitCode(std::string& code) {
     code.append(">\n");
   }
 
-  code.append("// storage macro definitions -----\n");
-  if (config.useDataSegment) {
-    code.append(R"(
-      #define SAVE_SIZE(val)
-      #define SAVE_DATA(val)    StoreData(val, returnArg)
-    )");
-  } else {
-    code.append(R"(
-      #define SAVE_SIZE(val)    AddData(val, returnArg)
-      #define SAVE_DATA(val)
-      #define JLOG(str)
-      #define JLOGPTR(ptr)
-    )");
-  }
+  code.append(R"(
+    // storage macro definitions -----
+    #define SAVE_SIZE(val)
+    #define SAVE_DATA(val)    StoreData(val, returnArg)
+  )");
 
   FuncGen::DefineJitLog(code, config.features);
 
@@ -3240,16 +3231,9 @@ bool OICodeGen::generateJitCode(std::string& code) {
     }
   }
 
-  if (config.useDataSegment || feature(Feature::ChaseRawPointers)) {
-    funcGen.DeclareStoreData(functionsCode);
-  }
-
-  if (config.useDataSegment) {
-    funcGen.DeclareEncodeData(functionsCode);
-    funcGen.DeclareEncodeDataSize(functionsCode);
-  } else {
-    funcGen.DeclareAddData(functionsCode);
-  }
+  funcGen.DeclareStoreData(functionsCode);
+  funcGen.DeclareEncodeData(functionsCode);
+  funcGen.DeclareEncodeDataSize(functionsCode);
 
   if (!funcGen.DefineGetSizeFuncs(functionsCode, containerTypesFuncDef,
                                   config.features)) {
@@ -3296,13 +3280,9 @@ bool OICodeGen::generateJitCode(std::string& code) {
     }
   }
 
-  if (config.useDataSegment) {
-    funcGen.DefineStoreData(functionsCode);
-    funcGen.DefineEncodeData(functionsCode);
-    funcGen.DefineEncodeDataSize(functionsCode);
-  } else {
-    funcGen.DefineAddData(functionsCode);
-  }
+  funcGen.DefineStoreData(functionsCode);
+  funcGen.DefineEncodeData(functionsCode);
+  funcGen.DefineEncodeDataSize(functionsCode);
 
   for (auto& structType : structDefType) {
     // Don't generate member offset asserts for unions since we pad them out
@@ -3345,23 +3325,14 @@ bool OICodeGen::generateJitCode(std::string& code) {
     /* Start function definitions. First define top level func for root object
      */
     auto rawTypeName = drgn_utils::typeToName(type);
-    if (config.useDataSegment) {
-      if (rootTypeStr.starts_with("unique_ptr") ||
-          rootTypeStr.starts_with("LowPtr") ||
-          rootTypeStr.starts_with("shared_ptr")) {
-        funcGen.DefineTopLevelGetSizeSmartPtr(functionsCode, rawTypeName,
-                                              config.features);
-      } else {
-        funcGen.DefineTopLevelGetSizeRef(functionsCode, rawTypeName,
-                                         config.features);
-      }
+    if (rootTypeStr.starts_with("unique_ptr") ||
+        rootTypeStr.starts_with("LowPtr") ||
+        rootTypeStr.starts_with("shared_ptr")) {
+      funcGen.DefineTopLevelGetSizeSmartPtr(functionsCode, rawTypeName,
+                                            config.features);
     } else {
-      if (linkageName.empty()) {
-        funcGen.DefineTopLevelGetSizeRefRet(functionsCode, rawTypeName);
-      } else {
-        funcGen.DefineTopLevelGetObjectSize(functionsCode, rawTypeName,
-                                            linkageName);
-      }
+      funcGen.DefineTopLevelGetSizeRef(functionsCode, rawTypeName,
+                                       config.features);
     }
   }
 
