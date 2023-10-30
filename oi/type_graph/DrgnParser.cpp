@@ -125,12 +125,14 @@ Type& DrgnParser::enumerateType(struct drgn_type* type) {
   } catch (const DrgnParserError& e) {
     depth_--;
     if (isTypeIncomplete) {
-      const char* typeName = "<incomplete>";
+      const char* typeName = nullptr;
       if (drgn_type_has_name(type)) {
         typeName = drgn_type_name(type);
       } else if (drgn_type_has_tag(type)) {
         typeName = drgn_type_tag(type);
       }
+      if (typeName == nullptr)
+        typeName = "<incomplete>";
 
       return makeType<Incomplete>(nullptr, typeName);
     } else {
