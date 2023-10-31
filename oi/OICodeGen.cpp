@@ -3331,8 +3331,8 @@ bool OICodeGen::generateJitCode(std::string& code) {
       funcGen.DefineTopLevelGetSizeSmartPtr(functionsCode, rawTypeName,
                                             config.features);
     } else {
-      funcGen.DefineTopLevelGetSizeRef(functionsCode, rawTypeName,
-                                       config.features);
+      funcGen.DefineTopLevelGetSizeRef(functionsCode, "__ROOT_TYPE__",
+                                       rawTypeName, config.features);
     }
   }
 

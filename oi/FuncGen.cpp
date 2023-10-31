@@ -252,13 +252,13 @@ void FuncGen::DefineStoreData(std::string& testCode) {
 }
 
 void FuncGen::DefineTopLevelIntrospect(std::string& code,
-                                       const std::string& type) {
+                                       const std::string& type,
+                                       const std::string& idToHash) {
   std::string func = R"(
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunknown-attributes"
-/* RawType: %1% */
 void __attribute__((used, retain)) introspect_%2$016x(
-    const OIInternal::__ROOT_TYPE__& t,
+    const OIInternal::%1%& t,
     std::vector<uint8_t>& v)
 #pragma GCC diagnostic pop
 {
@@ -269,7 +269,7 @@ void __attribute__((used, retain)) introspect_%2$016x(
   v.reserve(4096);
 
   using DataBufferType = DataBuffer::BackInserter<std::vector<uint8_t>>;
-  using ContentType = OIInternal::TypeHandler<DataBufferType, OIInternal::__ROOT_TYPE__>::type;
+  using ContentType = OIInternal::TypeHandler<DataBufferType, OIInternal::%1%>::type;
 
   ContentType ret{DataBufferType{v}};
   OIInternal::getSizeType<DataBufferType>(t, ret);
@@ -277,39 +277,47 @@ void __attribute__((used, retain)) introspect_%2$016x(
 )";
 
   code.append(
-      (boost::format(func) % type % std::hash<std::string>{}(type)).str());
+      (boost::format(func) % type % std::hash<std::string>{}(idToHash)).str());
 }
 
-void FuncGen::DefineTopLevelIntrospectNamed(std::string& code,
-                                            const std::string& type,
-                                            const std::string& linkageName) {
-  std::string typeHash =
-      (boost::format("%1$016x") % std::hash<std::string>{}(type)).str();
+void FuncGen::DefineTopLevelIntrospectNamed(
+    std::string& code,
+    const std::string& type,
+    const std::string& linkageName,
+    size_t exclusiveSize,
+    std::span<const std::string_view> typeNames) {
+  code += "namespace {\n";
+  DefineTreeBuilderInstructions(code, type, linkageName, exclusiveSize,
+                                typeNames);
+  DefineTopLevelIntrospect(code, type, linkageName);
+  code += "} // namespace\n";
 
-  code += "/* RawType: ";
-  code += type;
-  code += " */\n";
+  std::string internalId =
+      (boost::format("%1$016x") % std::hash<std::string>{}(linkageName)).str();
+
   code += "extern \"C\" IntrospectionResult ";
   code += linkageName;
-  code += "(const OIInternal::__ROOT_TYPE__& t) {\n";
+  code += "(const OIInternal::";
+  code += type;
+  code += "& t) {\n";
   code += "  std::vector<uint8_t> v{};\n";
   code += "  introspect_";
-  code += typeHash;
+  code += internalId;
   code += "(t, v);\n";
   code += "  return IntrospectionResult{std::move(v), treeBuilderInstructions";
-  code += typeHash;
+  code += internalId;
   code += "};\n";
   code += "}\n";
 }
 
 void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
-                                       const std::string& rawType,
+                                       const std::string& type,
+                                       const std::string& idToHash,
                                        FeatureSet features) {
   std::string func = R"(
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* RawType: %1% */
-    void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::__ROOT_TYPE__& t)
+    void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::%1%& t)
     #pragma GCC diagnostic pop
     {
     )";
@@ -348,7 +356,7 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
     )";
 
   boost::format fmt =
-      boost::format(func) % rawType % std::hash<std::string>{}(rawType);
+      boost::format(func) % type % std::hash<std::string>{}(idToHash);
   testCode.append(fmt.str());
 }
 
@@ -359,13 +367,13 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
  * with feature '-ftyped-data-segment'.
  */
 void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
-                                            const std::string& rawType,
+                                            const std::string& type,
+                                            const std::string& idToHash,
                                             FeatureSet features) {
   std::string func = R"(
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* RawType: %1% */
-    void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::__ROOT_TYPE__& t)
+    void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::%1%& t)
     #pragma GCC diagnostic pop
     {
     )";
@@ -390,7 +398,7 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
       JLOG("%1% @");
       JLOGPTR(&t);
 
-      using ContentType = OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type;
+      using ContentType = OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::%1%>::type;
       using SuffixType = types::st::Pair<
         DataBuffer::DataSegment,
         types::st::VarInt<DataBuffer::DataSegment>,
@@ -425,7 +433,7 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
     )";
 
   boost::format fmt =
-      boost::format(func) % rawType % std::hash<std::string>{}(rawType);
+      boost::format(func) % type % std::hash<std::string>{}(idToHash);
   testCode.append(fmt.str());
 }
 
@@ -434,28 +442,30 @@ void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
  *
  * Present the dynamic type of an object for OID/OIL/OITB to link against.
  */
-void FuncGen::DefineOutputType(std::string& code, const std::string& rawType) {
+void FuncGen::DefineOutputType(std::string& code,
+                               const std::string& type,
+                               const std::string& idToHash) {
   std::string func = R"(
     #pragma GCC diagnostic push
     #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* RawType: %1% */
     extern const types::dy::Dynamic __attribute__((used, retain)) outputType%2$016x =
-          OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type::describe;
+          OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::%1%>::type::describe;
     #pragma GCC diagnostic pop
 )";
 
   boost::format fmt =
-      boost::format(func) % rawType % std::hash<std::string>{}(rawType);
+      boost::format(func) % type % std::hash<std::string>{}(idToHash);
   code.append(fmt.str());
 }
 
 void FuncGen::DefineTreeBuilderInstructions(
     std::string& code,
-    const std::string& rawType,
+    const std::string& type,
+    const std::string& idToHash,
     size_t exclusiveSize,
     std::span<const std::string_view> typeNames) {
   std::string typeHash =
-      (boost::format("%1$016x") % std::hash<std::string>{}(rawType)).str();
+      (boost::format("%1$016x") % std::hash<std::string>{}(idToHash)).str();
 
   code += R"(
 #pragma GCC diagnostic push
@@ -474,13 +484,17 @@ const std::array<std::string_view, )";
   code += "};\n";
   code += "const exporters::inst::Field rootInstructions";
   code += typeHash;
-  code += "{sizeof(OIInternal::__ROOT_TYPE__), ";
+  code += "{sizeof(OIInternal::";
+  code += type;
+  code += "), ";
   code += std::to_string(exclusiveSize);
   code += ", \"a0\", typeNames";
   code += typeHash;
-  code +=
-      ", OIInternal::TypeHandler<int, OIInternal::__ROOT_TYPE__>::fields, "
-      "OIInternal::TypeHandler<int, OIInternal::__ROOT_TYPE__>::processors};\n";
+  code += ", OIInternal::TypeHandler<int, OIInternal::";
+  code += type;
+  code += ">::fields, OIInternal::TypeHandler<int, OIInternal::";
+  code += type;
+  code += ">::processors};\n";
   code += "} // namespace\n";
   code +=
       "extern const exporters::inst::Inst __attribute__((used, retain)) "

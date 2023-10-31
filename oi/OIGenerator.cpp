@@ -29,8 +29,15 @@
 #include "oi/Config.h"
 #include "oi/DrgnUtils.h"
 #include "oi/Headers.h"
+#include "oi/type_graph/DrgnParser.h"
+#include "oi/type_graph/TypeGraph.h"
 
 namespace oi::detail {
+
+using type_graph::DrgnParser;
+using type_graph::DrgnParserOptions;
+using type_graph::Type;
+using type_graph::TypeGraph;
 
 std::unordered_map<std::string, std::string>
 OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
@@ -128,42 +135,6 @@ OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
   return out;
 }
 
-fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
-                                      const OICompiler::Config& compilerConfig,
-                                      const drgn_qualified_type& type,
-                                      const std::string& linkageName,
-                                      SymbolService& symbols) {
-  CodeGen codegen{generatorConfig, symbols};
-
-  std::string code;
-  if (!codegen.codegenFromDrgn(type.type, linkageName, code)) {
-    LOG(ERROR) << "codegen failed!";
-    return {};
-  }
-
-  std::string sourcePath = sourceFileDumpPath;
-  if (sourceFileDumpPath.empty()) {
-    // This is the path Clang acts as if it has compiled from e.g. for debug
-    // information. It does not need to exist.
-    sourcePath = "oil_jit.cpp";
-  } else {
-    std::ofstream outputFile(sourcePath);
-    outputFile << code;
-  }
-
-  OICompiler compiler{{}, compilerConfig};
-
-  // TODO: Revert to outputPath and remove printing when typegraph is done.
-  fs::path tmpObject = outputPath;
-  tmpObject.replace_extension(
-      "." + std::to_string(std::hash<std::string>{}(linkageName)) + ".o");
-
-  if (!compiler.compile(code, sourcePath, tmpObject)) {
-    return {};
-  }
-  return tmpObject;
-}
-
 int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   drgnplusplus::program prog;
 
@@ -202,26 +173,34 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   generatorConfig.features = *features;
   compilerConfig.features = *features;
 
-  size_t failures = 0;
+  std::vector<CodeGen::DrgnRequest> reqs{};
+  reqs.reserve(oilTypes.size());
   for (const auto& [linkageName, type] : oilTypes) {
-    if (auto obj = generateForType(generatorConfig, compilerConfig, type,
-                                   linkageName, symbols);
-        !obj.empty()) {
-      std::cout << obj.string() << std::endl;
-    } else {
-      LOG(WARNING) << "failed to generate for symbol `" << linkageName
-                   << "`. this is non-fatal but the call will not work.";
-      failures++;
-    }
+    reqs.emplace_back(
+        CodeGen::DrgnRequest{.ty = type.type, .linkageName = linkageName});
   }
 
-  size_t successes = oilTypes.size() - failures;
-  LOG(INFO) << "object introspection generation complete. " << successes
-            << " successes and " << failures << " failures.";
+  CodeGen codegen{generatorConfig, symbols};
+  std::string code;
+  codegen.codegenFromDrgns(reqs, code);
 
-  if (failures > 0 || (failIfNothingGenerated && successes == 0)) {
+  std::string sourcePath = sourceFileDumpPath;
+  if (sourceFileDumpPath.empty()) {
+    // This is the path Clang acts as if it has compiled from e.g. for debug
+    // information. It does not need to exist.
+    sourcePath = "oil_jit.cpp";
+  } else {
+    std::ofstream outputFile(sourcePath);
+    outputFile << code;
+  }
+  OICompiler compiler{{}, compilerConfig};
+
+  if (!compiler.compile(code, sourcePath, outputPath)) {
     return -1;
   }
+
+  LOG(INFO) << "object introspection generation complete, generated for "
+            << oilTypes.size() << "sites.";
   return 0;
 }
 

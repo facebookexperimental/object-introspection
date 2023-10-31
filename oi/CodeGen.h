@@ -18,9 +18,11 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+#include <span>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <variant>
 #include <vector>
 
 #include "ContainerInfo.h"
@@ -40,6 +42,11 @@ namespace oi::detail {
 
 class CodeGen {
  public:
+  struct DrgnRequest {
+    drgn_type* ty = nullptr;
+    std::optional<std::string> linkageName;
+  };
+
   CodeGen(const OICodeGen::Config& config, SymbolService& symbols)
       : config_(config), symbols_(symbols) {
   }
@@ -48,29 +55,29 @@ class CodeGen {
    * Helper function to perform all the steps required for code generation for a
    * single drgn_type.
    */
-  bool codegenFromDrgn(struct drgn_type* drgnType, std::string& code);
-  bool codegenFromDrgn(struct drgn_type* drgnType,
-                       std::string linkageName,
-                       std::string& code);
+  bool codegenFromDrgn(drgn_type* drgnType, std::string& code);
+  bool codegenFromDrgns(std::span<DrgnRequest> reqs, std::string& code);
 
   void registerContainer(const std::filesystem::path& path);
-  void addDrgnRoot(struct drgn_type* drgnType,
-                   type_graph::TypeGraph& typeGraph);
   void transform(type_graph::TypeGraph& typeGraph);
-  void generate(type_graph::TypeGraph& typeGraph,
-                std::string& code,
-                struct drgn_type*
-                    drgnType /* TODO: this argument should not be required */
-  );
+  void generate(type_graph::TypeGraph& typeGraph, std::string& code);
 
  private:
+  struct ExactName {
+    std::string name;
+  };
+  struct HashedComponent {
+    std::string name;
+  };
+  using RootFunctionName = std::variant<ExactName, HashedComponent>;
+
   const OICodeGen::Config& config_;
   SymbolService& symbols_;
   std::vector<std::unique_ptr<ContainerInfo>> containerInfos_;
   std::unordered_set<const ContainerInfo*> definedContainers_;
   std::unordered_map<const type_graph::Class*, const type_graph::Member*>
       thriftIssetMembers_;
-  std::string linkageName_;
+  std::vector<RootFunctionName> rootNames_;
 
   void genDefsThrift(const type_graph::TypeGraph& typeGraph, std::string& code);
   void addGetSizeFuncDefs(const type_graph::TypeGraph& typeGraph,

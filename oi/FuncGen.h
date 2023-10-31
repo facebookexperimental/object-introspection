@@ -53,22 +53,30 @@ class FuncGen {
   static void DeclareGetSize(std::string& testCode, const std::string& type);
 
   static void DefineTopLevelIntrospect(std::string& code,
-                                       const std::string& type);
-  static void DefineTopLevelIntrospectNamed(std::string& code,
-                                            const std::string& type,
-                                            const std::string& linkageName);
+                                       const std::string& type,
+                                       const std::string& idToHash);
+  static void DefineTopLevelIntrospectNamed(
+      std::string& code,
+      const std::string& type,
+      const std::string& linkageName,
+      size_t exclusiveSize,
+      std::span<const std::string_view> typeNames);
 
   static void DefineTopLevelGetSizeRef(std::string& testCode,
-                                       const std::string& rawType,
+                                       const std::string& type,
+                                       const std::string& idToHash,
                                        FeatureSet features);
   static void DefineTopLevelGetSizeRefTyped(std::string& testCode,
-                                            const std::string& rawType,
+                                            const std::string& type,
+                                            const std::string& idToHash,
                                             FeatureSet features);
   static void DefineOutputType(std::string& testCode,
-                               const std::string& rawType);
+                               const std::string& type,
+                               const std::string& idToHash);
   static void DefineTreeBuilderInstructions(
       std::string& testCode,
-      const std::string& rawType,
+      const std::string& type,
+      const std::string& idToHash,
       size_t exclusiveSize,
       std::span<const std::string_view> typeNames);
 

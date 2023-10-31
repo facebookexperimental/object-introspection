@@ -16,6 +16,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -54,7 +55,7 @@ struct DrgnParserOptions {
 class DrgnParser {
  public:
   DrgnParser(TypeGraph& typeGraph,
-             const std::vector<std::unique_ptr<ContainerInfo>>& containers,
+             std::span<const std::unique_ptr<ContainerInfo>> containers,
              DrgnParserOptions options)
       : typeGraph_(typeGraph), containers_(containers), options_(options) {
   }
@@ -90,6 +91,7 @@ class DrgnParser {
     drgn_types_.insert({drgnType, newType});
     return newType;
   }
+
   bool chasePointer() const;
 
   // Store a mapping of drgn types to type graph nodes for deduplication during
@@ -98,7 +100,7 @@ class DrgnParser {
       drgn_types_;
 
   TypeGraph& typeGraph_;
-  const std::vector<std::unique_ptr<ContainerInfo>>& containers_;
+  std::span<const std::unique_ptr<ContainerInfo>> containers_;
   int depth_;
   DrgnParserOptions options_;
 };

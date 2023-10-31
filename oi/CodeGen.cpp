@@ -42,6 +42,9 @@
 #include "type_graph/TypeIdentifier.h"
 #include "type_graph/Types.h"
 
+template <typename T>
+inline constexpr bool always_false_v = false;
+
 namespace oi::detail {
 
 using type_graph::AddChildren;
@@ -73,6 +76,13 @@ template <typename T>
 using ref = std::reference_wrapper<T>;
 
 namespace {
+
+std::string rootTypedefName(Type& t) {
+  std::string out{"RootType"};
+  out += std::to_string(std::hash<std::string>{}(t.name()));
+  out += '_';
+  return out;
+}
 
 std::vector<std::string_view> enumerateTypeNames(Type& type) {
   std::vector<std::string_view> names;
@@ -1106,14 +1116,7 @@ void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
   }
 }
 
-bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType,
-                              std::string linkageName,
-                              std::string& code) {
-  linkageName_ = std::move(linkageName);
-  return codegenFromDrgn(drgnType, code);
-}
-
-bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
+bool CodeGen::codegenFromDrgns(std::span<DrgnRequest> reqs, std::string& code) {
   try {
     containerInfos_.reserve(config_.containerConfigPaths.size());
     for (const auto& path : config_.containerConfigPaths) {
@@ -1125,16 +1128,38 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
   }
 
   TypeGraph typeGraph;
-  try {
-    addDrgnRoot(drgnType, typeGraph);
-  } catch (const type_graph::DrgnParserError& err) {
-    LOG(ERROR) << "Error parsing DWARF: " << err.what();
-    return false;
+  DrgnParserOptions options{
+      .chaseRawPointers = config_.features[Feature::ChaseRawPointers],
+  };
+  DrgnParser drgnParser{typeGraph, containerInfos_, options};
+
+  for (auto& req : reqs) {
+    try {
+      Type& parsedRoot = drgnParser.parse(req.ty);
+      typeGraph.addRoot(parsedRoot);
+      if (req.linkageName.has_value()) {
+        rootNames_.emplace_back(ExactName{.name = std::move(*req.linkageName)});
+      } else {
+        rootNames_.emplace_back(
+            HashedComponent{.name = SymbolService::getTypeName(req.ty)});
+      }
+    } catch (const type_graph::DrgnParserError& err) {
+      LOG(ERROR) << "Error parsing DWARF: " << err.what();
+      return false;
+    }
   }
 
   transform(typeGraph);
-  generate(typeGraph, code, drgnType);
+  generate(typeGraph, code);
   return true;
+}
+
+bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
+  std::array<DrgnRequest, 1> reqs{DrgnRequest{
+      .ty = drgnType,
+      .linkageName = std::nullopt,
+  }};
+  return codegenFromDrgns(reqs, code);
 }
 
 void CodeGen::registerContainer(const fs::path& path) {
@@ -1145,15 +1170,6 @@ void CodeGen::registerContainer(const fs::path& path) {
   }
   VLOG(1) << "Registered container: " << info->typeName;
   containerInfos_.emplace_back(std::move(info));
-}
-
-void CodeGen::addDrgnRoot(struct drgn_type* drgnType, TypeGraph& typeGraph) {
-  DrgnParserOptions options{
-      .chaseRawPointers = config_.features[Feature::ChaseRawPointers],
-  };
-  DrgnParser drgnParser{typeGraph, containerInfos_, options};
-  Type& parsedRoot = drgnParser.parse(drgnType);
-  typeGraph.addRoot(parsedRoot);
 }
 
 void CodeGen::transform(TypeGraph& typeGraph) {
@@ -1207,11 +1223,7 @@ void CodeGen::transform(TypeGraph& typeGraph) {
   };
 }
 
-void CodeGen::generate(
-    TypeGraph& typeGraph,
-    std::string& code,
-    struct drgn_type* drgnType /* TODO: this argument should not be required */
-) {
+void CodeGen::generate(TypeGraph& typeGraph, std::string& code) {
   code = headers::oi_OITraceCode_cpp;
   if (!config_.features[Feature::Library]) {
     FuncGen::DeclareExterns(code);
@@ -1280,30 +1292,66 @@ void CodeGen::generate(
     addGetSizeFuncDefs(typeGraph, code);
   }
 
-  assert(typeGraph.rootTypes().size() == 1);
-  Type& rootType = typeGraph.rootTypes()[0];
-  code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
+  // Give each root type a unique typedef in the OIInternal namespace so they
+  // don't have naming issues from outside.
+  for (Type& rootType : typeGraph.rootTypes()) {
+    code += "using ";
+    code += rootTypedefName(rootType);
+    code += " = ";
+    code += rootType.name();
+    code += ";\n";
+  }
+
   code += "} // namespace\n} // namespace OIInternal\n";
 
-  const auto typeName = SymbolService::getTypeName(drgnType);
-  if (config_.features[Feature::Library]) {
-    FuncGen::DefineTopLevelIntrospect(code, typeName);
-  } else if (config_.features[Feature::TypedDataSegment]) {
-    FuncGen::DefineTopLevelGetSizeRefTyped(code, typeName, config_.features);
-  } else {
-    FuncGen::DefineTopLevelGetSizeRef(code, typeName, config_.features);
-  }
+  assert(typeGraph.rootTypes().size() == rootNames_.size());
+  // should be std::ranges::zip_view(typeGraph.rootTypes(), rootNames_)
+  auto rootTypeIt = typeGraph.rootTypes().begin();
+  for (auto rootNameIt = rootNames_.cbegin();
+       rootNameIt != rootNames_.cend() &&
+       rootTypeIt != typeGraph.rootTypes().end();
+       ++rootNameIt, ++rootTypeIt) {
+    Type& rootType = *rootTypeIt;
+    const auto& rootName = *rootNameIt;
 
-  if (config_.features[Feature::TreeBuilderV2]) {
-    FuncGen::DefineTreeBuilderInstructions(code, typeName,
-                                           calculateExclusiveSize(rootType),
-                                           enumerateTypeNames(rootType));
-  } else if (config_.features[Feature::TreeBuilderTypeChecking]) {
-    FuncGen::DefineOutputType(code, typeName);
-  }
+    const auto typedefName = rootTypedefName(rootType);
 
-  if (!linkageName_.empty())
-    FuncGen::DefineTopLevelIntrospectNamed(code, typeName, linkageName_);
+    if (config_.features[Feature::TreeBuilderV2]) {
+      std::visit(
+          [&](const auto& name) {
+            using T = std::decay_t<decltype(name)>;
+            if constexpr (std::is_same_v<ExactName, T>) {
+              FuncGen::DefineTopLevelIntrospectNamed(
+                  code, typedefName, name.name,
+                  calculateExclusiveSize(rootType),
+                  enumerateTypeNames(rootType));
+            } else if constexpr (std::is_same_v<HashedComponent, T>) {
+              FuncGen::DefineTopLevelIntrospect(code, typedefName, name.name);
+              FuncGen::DefineTreeBuilderInstructions(
+                  code, typedefName, name.name,
+                  calculateExclusiveSize(rootType),
+                  enumerateTypeNames(rootType));
+            } else {
+              static_assert(always_false_v<T>);
+            }
+          },
+          rootName);
+    } else if (config_.features[Feature::TypedDataSegment]) {
+      const auto& name = std::get<HashedComponent>(rootName).name;
+      FuncGen::DefineTopLevelGetSizeRefTyped(code, typedefName, name,
+                                             config_.features);
+    } else {
+      const auto& name = std::get<HashedComponent>(rootName).name;
+      FuncGen::DefineTopLevelGetSizeRef(code, typedefName, name,
+                                        config_.features);
+    }
+
+    if (config_.features[Feature::TreeBuilderTypeChecking] &&
+        !config_.features[Feature::TreeBuilderV2]) {
+      const auto& name = std::get<HashedComponent>(rootName).name;
+      FuncGen::DefineOutputType(code, typedefName, name);
+    }
+  }
 
   if (VLOG_IS_ON(3)) {
     VLOG(3) << "Generated trace code:\n";
