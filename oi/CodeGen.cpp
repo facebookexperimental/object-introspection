@@ -1168,6 +1168,7 @@ void CodeGen::transform(TypeGraph& typeGraph) {
   // Simplify the type graph first so there is less work for later passes
   pm.addPass(RemoveTopLevelPointer::createPass());
   pm.addPass(Flattener::createPass());
+  pm.addPass(AlignmentCalc::createPass());
   pm.addPass(IdentifyContainers::createPass(containerInfos_));
   pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
   if (config_.features[Feature::PruneTypeGraph])
@@ -1183,15 +1184,12 @@ void CodeGen::transform(TypeGraph& typeGraph) {
 
     // Re-run passes over newly added children
     pm.addPass(Flattener::createPass());
+    pm.addPass(AlignmentCalc::createPass());
     pm.addPass(IdentifyContainers::createPass(containerInfos_));
     pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
     if (config_.features[Feature::PruneTypeGraph])
       pm.addPass(Prune::createPass());
   }
-
-  // Calculate alignment before removing members, as those members may have an
-  // influence on the class' overall alignment.
-  pm.addPass(AlignmentCalc::createPass());
 
   pm.addPass(RemoveMembers::createPass(config_.membersToStub));
   if (!config_.features[Feature::TreeBuilderV2])

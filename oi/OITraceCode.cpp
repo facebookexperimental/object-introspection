@@ -101,6 +101,8 @@ struct alignas(align) DummySizedOperator {
 // container if an empty class is passed.
 template <int32_t Id>
 struct DummySizedOperator<0, 0, Id> {};
+template <int32_t Id>
+struct DummySizedOperator<0, 1, Id> {};
 
 template <template <typename, size_t, size_t, int32_t> typename DerivedT,
           typename T,
@@ -130,6 +132,9 @@ struct alignas(Align) DummyAllocator
 template <typename T, int32_t Id>
 struct DummyAllocator<T, 0, 0, Id>
     : DummyAllocatorBase<DummyAllocator, T, 0, 0, Id> {};
+template <typename T, int32_t Id>
+struct DummyAllocator<T, 0, 1, Id>
+    : DummyAllocatorBase<DummyAllocator, T, 0, 1, Id> {};
 
 template <typename Type, size_t ExpectedSize, size_t ActualSize = 0>
 struct validate_size {
