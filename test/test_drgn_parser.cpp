@@ -1,16 +1,15 @@
+#include "test_drgn_parser.h"
+
 #include <gtest/gtest.h>
 
 #include <regex>
 
-#include "oi/SymbolService.h"
-// TODO needed?:
-#include "oi/ContainerInfo.h"
 #include "oi/OIParser.h"
+#include "oi/SymbolService.h"
 #include "oi/type_graph/NodeTracker.h"
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "oi/type_graph/Types.h"
-#include "test_drgn_parser.h"
 
 using namespace type_graph;
 
@@ -19,25 +18,17 @@ using namespace type_graph;
 
 SymbolService* DrgnParserTest::symbols_ = nullptr;
 
-namespace {
-const std::vector<std::unique_ptr<ContainerInfo>>& getContainerInfos() {
-  static auto res = []() {
-    // TODO more container types, with various template parameter options
-    auto std_vector =
-        std::make_unique<ContainerInfo>("std::vector", SEQ_TYPE, "vector");
-    std_vector->stubTemplateParams = {1};
-
-    std::vector<std::unique_ptr<ContainerInfo>> containers;
-    containers.emplace_back(std::move(std_vector));
-    return containers;
-  }();
-  return res;
+void DrgnParserTest::SetUpTestSuite() {
+  symbols_ = new SymbolService{TARGET_EXE_PATH};
 }
-}  // namespace
+
+void DrgnParserTest::TearDownTestSuite() {
+  delete symbols_;
+}
 
 DrgnParser DrgnParserTest::getDrgnParser(TypeGraph& typeGraph,
                                          DrgnParserOptions options) {
-  DrgnParser drgnParser{typeGraph, getContainerInfos(), options};
+  DrgnParser drgnParser{typeGraph, options};
   return drgnParser;
 }
 
@@ -148,8 +139,9 @@ void DrgnParserTest::testGlob(std::string_view function,
   expected.remove_prefix(1);  // Remove initial '\n'
   auto [expectedIdx, actualIdx] = globMatch(expected, actual);
   if (expected.size() != expectedIdx) {
-    ADD_FAILURE() << prefixLines(expected.substr(expectedIdx), "-", 50) << "\n"
-                  << prefixLines(actual.substr(actualIdx), "+", 50);
+    ADD_FAILURE() << prefixLines(expected.substr(expectedIdx), "-", 10000)
+                  << "\n"
+                  << prefixLines(actual.substr(actualIdx), "+", 10000);
   }
 }
 
@@ -261,54 +253,58 @@ TEST_F(DrgnParserTest, InheritanceMultiple) {
 }
 
 TEST_F(DrgnParserTest, Container) {
-  testMultiCompiler("oid_test_case_std_vector_int_empty", R"(
-[4] Pointer
-[0]   Container: std::vector (size: 24)
-        Param
-          Primitive: int32_t
-        Param
-[1]       Class: allocator<int> (size: 1)
-            Param
-              Primitive: int32_t
-            Parent (offset: 0)
-[3]           Typedef: __allocator_base<int>
-[2]             Class: new_allocator<int> (size: 1)
-                  Param
-                    Primitive: int32_t
-                  Function: new_allocator
-                  Function: new_allocator
-                  Function: allocate
-                  Function: deallocate
-                  Function: _M_max_size
-            Function: allocator
-            Function: allocator
-            Function: operator=
-            Function: ~allocator
-            Function: allocate
-            Function: deallocate
+  testMultiCompilerGlob("oid_test_case_std_vector_int_empty", R"(
+[13] Pointer
+[0]    Class: vector<int, std::allocator<int> > (size: 24)
+         Param
+           Primitive: int32_t
+         Param
+[1]        Class: allocator<int> (size: 1)
+             Param
+               Primitive: int32_t
+             Parent (offset: 0)
+[3]            Typedef: __allocator_base<int>
+[2]              Class: new_allocator<int> (size: 1)
+                   Param
+                     Primitive: int32_t
+                   Function: new_allocator
+                   Function: new_allocator
+                   Function: allocate
+                   Function: deallocate
+                   Function: _M_max_size
+             Function: allocator
+             Function: allocator
+             Function: operator=
+             Function: ~allocator
+             Function: allocate
+             Function: deallocate
+         Parent (offset: 0)
+*
 )",
-                    R"(
-[3] Pointer
-[0]   Container: std::vector (size: 24)
-        Param
-          Primitive: int32_t
-        Param
-[1]       Class: allocator<int> (size: 1)
-            Parent (offset: 0)
-[2]           Class: new_allocator<int> (size: 1)
-                Param
-                  Primitive: int32_t
-                Function: new_allocator
-                Function: new_allocator
-                Function: allocate
-                Function: deallocate
-                Function: _M_max_size
-            Function: allocator
-            Function: allocator
-            Function: operator=
-            Function: ~allocator
-            Function: allocate
-            Function: deallocate
+                        R"(
+[9]  Pointer
+[0]    Class: vector<int, std::allocator<int> > (size: 24)
+         Param
+           Primitive: int32_t
+         Param
+[1]        Class: allocator<int> (size: 1)
+             Parent (offset: 0)
+[2]            Class: new_allocator<int> (size: 1)
+                 Param
+                   Primitive: int32_t
+                 Function: new_allocator
+                 Function: new_allocator
+                 Function: allocate
+                 Function: deallocate
+                 Function: _M_max_size
+             Function: allocator
+             Function: allocator
+             Function: operator=
+             Function: ~allocator
+             Function: allocate
+             Function: deallocate
+         Parent (offset: 0)
+*
 )");
 }
 // TODO test vector with custom allocator
@@ -452,70 +448,6 @@ TEST_F(DrgnParserTest, ClassTemplateInt) {
           Primitive: int32_t
         Member: val (offset: 0)
           Primitive: int32_t
-)");
-}
-
-TEST_F(DrgnParserTest, ClassTemplateVector) {
-  testMultiCompiler("oid_test_case_templates_vector", R"(
-[5] Pointer
-[0]   Class: TemplatedClass1<std::vector<int, std::allocator<int> > > (size: 24)
-        Param
-[1]       Container: std::vector (size: 24)
-            Param
-              Primitive: int32_t
-            Param
-[2]           Class: allocator<int> (size: 1)
-                Param
-                  Primitive: int32_t
-                Parent (offset: 0)
-[4]               Typedef: __allocator_base<int>
-[3]                 Class: new_allocator<int> (size: 1)
-                      Param
-                        Primitive: int32_t
-                      Function: new_allocator
-                      Function: new_allocator
-                      Function: allocate
-                      Function: deallocate
-                      Function: _M_max_size
-                Function: allocator
-                Function: allocator
-                Function: operator=
-                Function: ~allocator
-                Function: allocate
-                Function: deallocate
-        Member: val (offset: 0)
-          [1]
-        Function: ~TemplatedClass1
-        Function: TemplatedClass1
-)",
-                    R"(
-[4] Pointer
-[0]   Class: TemplatedClass1<std::vector<int, std::allocator<int> > > (size: 24)
-        Param
-[1]       Container: std::vector (size: 24)
-            Param
-              Primitive: int32_t
-            Param
-[2]           Class: allocator<int> (size: 1)
-                Parent (offset: 0)
-[3]               Class: new_allocator<int> (size: 1)
-                    Param
-                      Primitive: int32_t
-                    Function: new_allocator
-                    Function: new_allocator
-                    Function: allocate
-                    Function: deallocate
-                    Function: _M_max_size
-                Function: allocator
-                Function: allocator
-                Function: operator=
-                Function: ~allocator
-                Function: allocate
-                Function: deallocate
-        Member: val (offset: 0)
-          [1]
-        Function: TemplatedClass1
-        Function: ~TemplatedClass1
 )");
 }
 

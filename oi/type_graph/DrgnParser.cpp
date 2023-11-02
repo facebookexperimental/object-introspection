@@ -25,8 +25,6 @@ extern "C" {
 #include <drgn.h>
 }
 
-#include <regex>
-
 namespace oi::detail::type_graph {
 namespace {
 
@@ -148,31 +146,7 @@ Type& DrgnParser::enumerateType(struct drgn_type* type) {
   return *t;
 }
 
-/*
- * enumerateContainer
- *
- * Attempts to parse a drgn_type as a Container. Returns nullptr if not
- * sucessful.
- */
-Container* DrgnParser::enumerateContainer(struct drgn_type* type,
-                                          const std::string& fqName) {
-  auto size = get_drgn_type_size(type);
-
-  for (const auto& containerInfo : containers_) {
-    if (!std::regex_search(fqName, containerInfo->matcher)) {
-      continue;
-    }
-
-    VLOG(2) << "Matching container `" << containerInfo->typeName << "` from `"
-            << fqName << "`" << std::endl;
-    auto& c = makeType<Container>(type, *containerInfo, size);
-    enumerateClassTemplateParams(type, c.templateParams);
-    return &c;
-  }
-  return nullptr;
-}
-
-Type& DrgnParser::enumerateClass(struct drgn_type* type) {
+Class& DrgnParser::enumerateClass(struct drgn_type* type) {
   std::string fqName;
   char* nameStr = nullptr;
   size_t length = 0;
@@ -180,10 +154,6 @@ Type& DrgnParser::enumerateClass(struct drgn_type* type) {
   if (err == nullptr && nameStr != nullptr) {
     fqName = nameStr;
   }
-
-  auto* container = enumerateContainer(type, fqName);
-  if (container)
-    return *container;
 
   const char* typeTag = drgn_type_tag(type);
   std::string name = typeTag ? typeTag : "";
