@@ -13,7 +13,6 @@
 #include "test_drgn_parser.h"
 
 using namespace type_graph;
-using ::testing::HasSubstr;
 
 // TODO setup google logging for tests so it doesn't appear on terminal by
 // default
@@ -83,13 +82,75 @@ void DrgnParserTest::test(std::string_view function,
   test(function, expected, options);
 }
 
-void DrgnParserTest::testContains(std::string_view function,
-                                  std::string_view expected,
-                                  DrgnParserOptions options) {
+std::pair<size_t, size_t> globMatch(std::string_view pattern,
+                                    std::string_view str) {
+  size_t i = 0;
+  size_t j = 0;
+  size_t prevWildcardIdx = -1;
+  size_t backtrackIdx = -1;
+  size_t patternLineStart = 0;
+  size_t strLineStart = 0;
+
+  while (i < str.size()) {
+    if (i + 1 < str.size() && str[i] == '\n')
+      strLineStart = i + 1;
+    if (j + 1 < pattern.size() && pattern[j] == '\n')
+      patternLineStart = j + 1;
+
+    if (j < pattern.size() && str[i] == pattern[j]) {
+      // Exact character match
+      i++;
+      j++;
+    } else if (j < pattern.size() && pattern[j] == '*') {
+      // Wildcard
+      backtrackIdx = i + 1;
+      prevWildcardIdx = j++;
+    } else if (prevWildcardIdx != static_cast<size_t>(-1)) {
+      // No match, backtrack to previous wildcard
+      i = ++backtrackIdx;
+      j = prevWildcardIdx + 1;
+    } else {
+      // No match
+      return {patternLineStart, strLineStart};
+    }
+  }
+
+  while (j < pattern.size() && pattern[j] == '*') {
+    j++;
+  }
+
+  // If the pattern has been fully consumed then it's a match
+  return {j, i};
+}
+
+std::string prefixLines(std::string_view str,
+                        std::string_view prefix,
+                        size_t maxLen) {
+  std::string res;
+  res += prefix;
+  for (size_t i = 0; i < maxLen && i < str.size(); i++) {
+    char c = str[i];
+    res += c;
+    if (c == '\n') {
+      res += prefix;
+    }
+  }
+  if (str.size() > maxLen)
+    res += "...";
+  return res;
+}
+
+void DrgnParserTest::testGlob(std::string_view function,
+                              std::string_view expected,
+                              DrgnParserOptions options) {
   auto actual = run(function, options);
 
   expected.remove_prefix(1);  // Remove initial '\n'
-  EXPECT_THAT(actual, HasSubstr(expected));
+  auto [expectedIdx, actualIdx] = globMatch(expected, actual);
+  if (expected.size() != expectedIdx) {
+    ADD_FAILURE() << prefixLines(expected.substr(expectedIdx), "-", 50) << "\n"
+                  << prefixLines(actual.substr(actualIdx), "+", 50);
+  }
 }
 
 void DrgnParserTest::testMultiCompiler(
@@ -104,15 +165,15 @@ void DrgnParserTest::testMultiCompiler(
 #endif
 }
 
-void DrgnParserTest::testMultiCompilerContains(
+void DrgnParserTest::testMultiCompilerGlob(
     std::string_view function,
     [[maybe_unused]] std::string_view expectedClang,
     [[maybe_unused]] std::string_view expectedGcc,
     DrgnParserOptions options) {
 #if defined(__clang__)
-  testContains(function, expectedClang, options);
+  testGlob(function, expectedClang, options);
 #else
-  testContains(function, expectedGcc, options);
+  testGlob(function, expectedGcc, options);
 #endif
 }
 
@@ -495,56 +556,62 @@ TEST_F(DrgnParserTest, ClassTemplateValue) {
 }
 
 TEST_F(DrgnParserTest, TemplateEnumValue) {
-  testMultiCompilerContains("oid_test_case_enums_params_scoped_enum_val",
-                            R"(
+  testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val",
+                        R"(
 [1] Pointer
 [0]   Class: MyClass<ns_enums_params::MyNS::ScopedEnum::One> (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
           Enum: ScopedEnum (size: 4)
+*
 )",
-                            R"(
+                        R"(
 [1] Pointer
 [0]   Class: MyClass<(ns_enums_params::MyNS::ScopedEnum)1> (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
           Enum: ScopedEnum (size: 4)
+*
 )");
 }
 
 TEST_F(DrgnParserTest, TemplateEnumValueGaps) {
-  testMultiCompilerContains("oid_test_case_enums_params_scoped_enum_val_gaps",
-                            R"(
+  testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val_gaps",
+                        R"(
 [1] Pointer
 [0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
           Enum: EnumWithGaps (size: 4)
+*
 )",
-                            R"(
+                        R"(
 [1] Pointer
 [0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)20> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
           Enum: EnumWithGaps (size: 4)
+*
 )");
 }
 
 TEST_F(DrgnParserTest, TemplateEnumValueNegative) {
-  testMultiCompilerContains(
-      "oid_test_case_enums_params_scoped_enum_val_negative", R"(
+  testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val_negative",
+                        R"(
 [1] Pointer
 [0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
           Enum: EnumWithGaps (size: 4)
+*
 )",
-      R"(
+                        R"(
 [1] Pointer
 [0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
           Enum: EnumWithGaps (size: 4)
+*
 )");
 }
 
