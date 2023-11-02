@@ -62,11 +62,11 @@ TEST(CodeGenTest, TransformContainerAllocator) {
           Function: deallocate
 )",
                 R"(
-[2] Container: std::vector<int32_t, DummyAllocator<int32_t, 8, 0, 3>> (size: 24)
+[2] Container: std::vector<int32_t, DummyAllocator<int32_t, 8, 1, 3>> (size: 24)
       Param
         Primitive: int32_t
       Param
-[3]     DummyAllocator [MyAlloc] (size: 8)
+[3]     DummyAllocator [MyAlloc] (size: 8, align: 1)
           Primitive: int32_t
 )");
 }
@@ -95,13 +95,13 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
           Function: deallocate
 )",
                 R"(
-[4] Container: std::map<int32_t, int32_t, DummyAllocator<std::pair<int32_t const, int32_t>, 0, 0, 6>> (size: 24)
+[4] Container: std::map<int32_t, int32_t, DummyAllocator<std::pair<int32_t const, int32_t>, 0, 1, 6>> (size: 24)
       Param
         Primitive: int32_t
       Param
         Primitive: int32_t
       Param
-[6]     DummyAllocator [MyAlloc<std::pair<const int, int>>] (size: 0)
+[6]     DummyAllocator [MyAlloc<std::pair<const int, int>>] (size: 0, align: 1)
 [5]       Container: std::pair<int32_t const, int32_t> (size: 8)
             Param
               Primitive: int32_t
@@ -167,11 +167,11 @@ TEST(CodeGenTest, ReplaceContainersAndDummies) {
           Function: deallocate
 )",
                 R"(
-[2] Container: std::vector<uint32_t, DummyAllocator<uint32_t, 0, 0, 3>> (size: 24)
+[2] Container: std::vector<uint32_t, DummyAllocator<uint32_t, 0, 1, 3>> (size: 24)
       Param
         Primitive: uint32_t
       Param
-[3]     DummyAllocator [allocator<int>] (size: 0)
+[3]     DummyAllocator [allocator<int>] (size: 0, align: 1)
           Primitive: uint32_t
 )");
 }
