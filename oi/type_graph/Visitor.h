@@ -32,12 +32,28 @@ namespace oi::detail::type_graph {
  * Visitor
  *
  * Abstract visitor base class.
+ * A visitor simply walks over nodes in a type graph.
  */
 class Visitor {
  public:
   virtual ~Visitor() = default;
 
 #define X(OI_TYPE_NAME) virtual void visit(OI_TYPE_NAME&) = 0;
+  OI_TYPE_LIST
+#undef X
+};
+
+/*
+ * Mutator
+ *
+ * Abstract mutator base class.
+ * A mutator replaces nodes in a type graph with the node returned by visit().
+ */
+class Mutator {
+ public:
+  virtual ~Mutator() = default;
+
+#define X(OI_TYPE_NAME) virtual Type& visit(OI_TYPE_NAME&) = 0;
   OI_TYPE_LIST
 #undef X
 };
@@ -112,6 +128,71 @@ class RecursiveVisitor : public Visitor {
   }
   virtual void visit(CaptureKeys& c) {
     accept(c.container());
+  }
+};
+
+/*
+ * RecursiveMutator
+ *
+ * Mutator base class which recurses into types by default.
+ */
+class RecursiveMutator : public Mutator {
+ public:
+  virtual ~RecursiveMutator() = default;
+  virtual Type& mutate(Type&) = 0;
+  virtual Type& visit(Incomplete& i) {
+    return i;
+  }
+  virtual Type& visit(Class& c) {
+    for (auto& param : c.templateParams) {
+      param.setType(mutate(param.type()));
+    }
+    for (auto& parent : c.parents) {
+      parent.setType(mutate(parent.type()));
+    }
+    for (auto& mem : c.members) {
+      mem.setType(mutate(mem.type()));
+    }
+    for (auto& child : c.children) {
+      child = dynamic_cast<Class&>(mutate(child));
+    }
+    return c;
+  }
+  virtual Type& visit(Container& c) {
+    for (auto& param : c.templateParams) {
+      param.setType(mutate(param.type()));
+    }
+    return c;
+  }
+  virtual Type& visit(Primitive& p) {
+    return p;
+  }
+  virtual Type& visit(Enum& e) {
+    return e;
+  }
+  virtual Type& visit(Array& a) {
+    a.setElementType(mutate(a.elementType()));
+    return a;
+  }
+  virtual Type& visit(Typedef& td) {
+    td.setUnderlyingType(mutate(td.underlyingType()));
+    return td;
+  }
+  virtual Type& visit(Pointer& p) {
+    p.setPointeeType(mutate(p.pointeeType()));
+    return p;
+  }
+  virtual Type& visit(Dummy& d) {
+    return d;
+  }
+  virtual Type& visit(DummyAllocator& d) {
+    d.setAllocType(mutate(d.allocType()));
+    return d;
+  }
+  virtual Type& visit(CaptureKeys& c) {
+    auto& newContainer = dynamic_cast<Container&>(mutate(c.container()));
+    c.setContainer(newContainer);
+    return c;
   }
 };
 

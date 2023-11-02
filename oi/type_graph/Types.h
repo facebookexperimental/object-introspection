@@ -67,9 +67,11 @@ enum class Qualifier {
 using QualifierSet = EnumBitset<Qualifier, static_cast<size_t>(Qualifier::Max)>;
 
 class Visitor;
+class Mutator;
 class ConstVisitor;
-#define DECLARE_ACCEPT              \
-  void accept(Visitor& v) override; \
+#define DECLARE_ACCEPT               \
+  void accept(Visitor& v) override;  \
+  Type& accept(Mutator& m) override; \
   void accept(ConstVisitor& v) const override;
 
 // TODO delete copy and move ctors
@@ -83,6 +85,7 @@ class Type {
  public:
   virtual ~Type() = default;
   virtual void accept(Visitor& v) = 0;
+  virtual Type& accept(Mutator& m) = 0;
   virtual void accept(ConstVisitor& v) const = 0;
 
   virtual const std::string& name() const = 0;
@@ -123,6 +126,10 @@ class Member {
     return type_;
   }
 
+  void setType(Type& type) {
+    type_ = type;
+  }
+
  private:
   std::reference_wrapper<Type> type_;
 
@@ -152,6 +159,10 @@ struct Parent {
     return type_;
   }
 
+  void setType(Type& type) {
+    type_ = type;
+  }
+
   //  uint64_t offset() const {
   //    return offset_;
   //  }
@@ -176,6 +187,10 @@ struct TemplateParam {
 
   Type& type() const {
     return type_;
+  }
+
+  void setType(Type& type) {
+    type_ = type;
   }
 
  private:
@@ -426,6 +441,10 @@ class Container : public Type {
     return id_;
   }
 
+  void setAlign(uint64_t alignment) {
+    align_ = alignment;
+  }
+
   std::vector<TemplateParam> templateParams;
   const ContainerInfo& containerInfo_;
 
@@ -433,6 +452,7 @@ class Container : public Type {
   std::string name_;
   std::string inputName_;
   size_t size_;
+  uint64_t align_ = 0;
   NodeId id_ = -1;
 };
 
@@ -506,7 +526,7 @@ class Array : public Type {
   }
 
   void regenerateName() {
-    name_ = std::string{"OIArray<"} + elementType_.name() + ", " +
+    name_ = std::string{"OIArray<"} + elementType_.get().name() + ", " +
             std::to_string(len_) + ">";
   }
 
@@ -519,11 +539,11 @@ class Array : public Type {
   }
 
   virtual size_t size() const override {
-    return len_ * elementType_.size();
+    return len_ * elementType_.get().size();
   }
 
   virtual uint64_t align() const override {
-    return elementType_.align();
+    return elementType_.get().align();
   }
 
   virtual NodeId id() const override {
@@ -534,12 +554,16 @@ class Array : public Type {
     return elementType_;
   }
 
+  void setElementType(Type& type) {
+    elementType_ = type;
+  }
+
   size_t len() const {
     return len_;
   }
 
  private:
-  Type& elementType_;
+  std::reference_wrapper<Type> elementType_;
   std::string inputName_;
   size_t len_;
   NodeId id_ = -1;
@@ -623,11 +647,11 @@ class Typedef : public Type {
   }
 
   virtual size_t size() const override {
-    return underlyingType_.size();
+    return underlyingType_.get().size();
   }
 
   virtual uint64_t align() const override {
-    return underlyingType_.align();
+    return underlyingType_.get().align();
   }
 
   virtual NodeId id() const override {
@@ -638,10 +662,14 @@ class Typedef : public Type {
     return underlyingType_;
   }
 
+  void setUnderlyingType(Type& type) {
+    underlyingType_ = type;
+  }
+
  private:
   std::string name_;
   std::string inputName_;
-  Type& underlyingType_;
+  std::reference_wrapper<Type> underlyingType_;
   NodeId id_ = -1;
 };
 
@@ -661,7 +689,7 @@ class Pointer : public Type {
   }
 
   void regenerateName() {
-    name_ = pointeeType_.name() + "*";
+    name_ = pointeeType_.get().name() + "*";
   }
 
   virtual std::string_view inputName() const override {
@@ -688,8 +716,12 @@ class Pointer : public Type {
     return pointeeType_;
   }
 
+  void setPointeeType(Type& type) {
+    pointeeType_ = type;
+  }
+
  private:
-  Type& pointeeType_;
+  std::reference_wrapper<Type> pointeeType_;
   std::string inputName_;
   NodeId id_ = -1;
 
@@ -772,7 +804,7 @@ class DummyAllocator : public Type {
   }
 
   void regenerateName() {
-    name_ = std::string{"DummyAllocator<"} + type_.name() + ", " +
+    name_ = std::string{"DummyAllocator<"} + type_.get().name() + ", " +
             std::to_string(size_) + ", " + std::to_string(align_) + ", " +
             std::to_string(id_) + ">";
   }
@@ -797,8 +829,12 @@ class DummyAllocator : public Type {
     return type_;
   }
 
+  void setAllocType(Type& type) {
+    type_ = type;
+  }
+
  private:
-  Type& type_;
+  std::reference_wrapper<Type> type_;
   size_t size_;
   uint64_t align_;
   NodeId id_ = -1;
@@ -828,19 +864,19 @@ class CaptureKeys : public Type {
   }
 
   virtual std::string_view inputName() const override {
-    return container_.inputName();
+    return container_.get().inputName();
   }
 
   void regenerateName() {
-    name_ = "OICaptureKeys<" + container_.name() + ">";
+    name_ = "OICaptureKeys<" + container_.get().name() + ">";
   }
 
   virtual size_t size() const override {
-    return container_.size();
+    return container_.get().size();
   }
 
   virtual uint64_t align() const override {
-    return container_.align();
+    return container_.get().align();
   }
 
   virtual NodeId id() const override {
@@ -855,8 +891,12 @@ class CaptureKeys : public Type {
     return container_;
   }
 
+  void setContainer(Container& container) {
+    container_ = container;
+  }
+
  private:
-  Container& container_;
+  std::reference_wrapper<Container> container_;
   const ContainerInfo& containerInfo_;
   std::string name_;
 };
