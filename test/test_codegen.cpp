@@ -35,6 +35,9 @@ void testTransform(OICodeGen::Config& config,
 
   MockSymbolService symbols;
   CodeGen codegen{config, symbols};
+  for (auto& info : getContainerInfos()) {
+    codegen.registerContainer(std::move(info));
+  }
   codegen.transform(typeGraph);
 
   check(typeGraph, expectedAfter, "after transform");
@@ -48,7 +51,7 @@ void testTransform(std::string_view input, std::string_view expectedAfter) {
 
 TEST(CodeGenTest, TransformContainerAllocator) {
   testTransform(R"(
-[0] Container: std::vector (size: 24)
+[0] Class: std::vector (size: 24)
       Param
         Primitive: int32_t
       Param
@@ -59,18 +62,18 @@ TEST(CodeGenTest, TransformContainerAllocator) {
           Function: deallocate
 )",
                 R"(
-[0] Container: std::vector<int32_t, DummyAllocator<int32_t, 8, 0, 2>> (size: 24)
+[2] Container: std::vector<int32_t, DummyAllocator<int32_t, 8, 0, 3>> (size: 24)
       Param
         Primitive: int32_t
       Param
-[2]     DummyAllocator [MyAlloc] (size: 8)
+[3]     DummyAllocator [MyAlloc] (size: 8)
           Primitive: int32_t
 )");
 }
 
 TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
   testTransform(R"(
-[0] Container: std::map (size: 24)
+[0] Class: std::map (size: 24)
       Param
         Primitive: int32_t
       Param
@@ -80,7 +83,7 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
           Parent (offset: 0)
 [2]         Struct: MyAllocBase<std::pair<const int, int>> (size: 1)
               Param
-[3]             Container: std::pair (size: 8)
+[3]             Class: std::pair (size: 8)
                   Param
                     Primitive: int32_t
                     Qualifiers: const
@@ -92,14 +95,14 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
           Function: deallocate
 )",
                 R"(
-[0] Container: std::map<int32_t, int32_t, DummyAllocator<std::pair<int32_t const, int32_t>, 0, 0, 4>> (size: 24)
+[4] Container: std::map<int32_t, int32_t, DummyAllocator<std::pair<int32_t const, int32_t>, 0, 0, 6>> (size: 24)
       Param
         Primitive: int32_t
       Param
         Primitive: int32_t
       Param
-[4]     DummyAllocator [MyAlloc<std::pair<const int, int>>] (size: 0)
-[3]       Container: std::pair<int32_t const, int32_t> (size: 8)
+[6]     DummyAllocator [MyAlloc<std::pair<const int, int>>] (size: 0)
+[5]       Container: std::pair<int32_t const, int32_t> (size: 8)
             Param
               Primitive: int32_t
               Qualifiers: const
@@ -148,5 +151,27 @@ TEST(CodeGenTest, UnionMembersAlignment) {
       Member: __oi_padding_0 (offset: 0)
 [1]     Array: [int8_t[8]] (length: 8)
           Primitive: int8_t
+)");
+}
+
+TEST(CodeGenTest, ReplaceContainersAndDummies) {
+  testTransform(R"(
+[0] Class: std::vector (size: 24)
+      Param
+        Primitive: uint32_t
+      Param
+[1]     Class: allocator<int> (size: 1)
+          Param
+            Primitive: uint32_t
+          Function: allocate
+          Function: deallocate
+)",
+                R"(
+[2] Container: std::vector<uint32_t, DummyAllocator<uint32_t, 0, 0, 3>> (size: 24)
+      Param
+        Primitive: uint32_t
+      Param
+[3]     DummyAllocator [allocator<int>] (size: 0)
+          Primitive: uint32_t
 )");
 }

@@ -46,25 +46,19 @@ struct DrgnParserOptions {
  * - Performance: reading no more info from drgn than necessary
  *
  * For the most part we try to move logic out of DrgnParser and have later
- * passes clean up the type graph, e.g. flattening parents. However, we do
- * incorporate some extra logic here when it would allow us to read less DWARF
- * information, e.g. matching containers in DrngParser means we don't read
- * details about container internals.
+ * passes clean up the type graph, e.g. flattening parents and identifying
+ * containers.
  */
 class DrgnParser {
  public:
-  DrgnParser(TypeGraph& typeGraph,
-             const std::vector<std::unique_ptr<ContainerInfo>>& containers,
-             DrgnParserOptions options)
-      : typeGraph_(typeGraph), containers_(containers), options_(options) {
+  DrgnParser(TypeGraph& typeGraph, DrgnParserOptions options)
+      : typeGraph_(typeGraph), options_(options) {
   }
   Type& parse(struct drgn_type* root);
 
  private:
   Type& enumerateType(struct drgn_type* type);
-  Container* enumerateContainer(struct drgn_type* type,
-                                const std::string& fqName);
-  Type& enumerateClass(struct drgn_type* type);
+  Class& enumerateClass(struct drgn_type* type);
   Enum& enumerateEnum(struct drgn_type* type);
   Typedef& enumerateTypedef(struct drgn_type* type);
   Type& enumeratePointer(struct drgn_type* type);
@@ -98,7 +92,6 @@ class DrgnParser {
       drgn_types_;
 
   TypeGraph& typeGraph_;
-  const std::vector<std::unique_ptr<ContainerInfo>>& containers_;
   int depth_;
   DrgnParserOptions options_;
 };

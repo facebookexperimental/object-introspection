@@ -32,6 +32,7 @@
 #include "type_graph/DrgnParser.h"
 #include "type_graph/EnforceCompatibility.h"
 #include "type_graph/Flattener.h"
+#include "type_graph/IdentifyContainers.h"
 #include "type_graph/KeyCapture.h"
 #include "type_graph/NameGen.h"
 #include "type_graph/Prune.h"
@@ -55,6 +56,7 @@ using type_graph::DrgnParserOptions;
 using type_graph::EnforceCompatibility;
 using type_graph::Enum;
 using type_graph::Flattener;
+using type_graph::IdentifyContainers;
 using type_graph::KeyCapture;
 using type_graph::Member;
 using type_graph::NameGen;
@@ -1137,21 +1139,25 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
   return true;
 }
 
+void CodeGen::registerContainer(std::unique_ptr<ContainerInfo> info) {
+  VLOG(1) << "Registered container: " << info->typeName;
+  containerInfos_.emplace_back(std::move(info));
+}
+
 void CodeGen::registerContainer(const fs::path& path) {
   auto info = std::make_unique<ContainerInfo>(path);
   if (info->requiredFeatures != (config_.features & info->requiredFeatures)) {
     VLOG(1) << "Skipping container (feature conflict): " << info->typeName;
     return;
   }
-  VLOG(1) << "Registered container: " << info->typeName;
-  containerInfos_.emplace_back(std::move(info));
+  registerContainer(std::move(info));
 }
 
 void CodeGen::addDrgnRoot(struct drgn_type* drgnType, TypeGraph& typeGraph) {
   DrgnParserOptions options{
       .chaseRawPointers = config_.features[Feature::ChaseRawPointers],
   };
-  DrgnParser drgnParser{typeGraph, containerInfos_, options};
+  DrgnParser drgnParser{typeGraph, options};
   Type& parsedRoot = drgnParser.parse(drgnType);
   typeGraph.addRoot(parsedRoot);
 }
@@ -1162,6 +1168,7 @@ void CodeGen::transform(TypeGraph& typeGraph) {
   // Simplify the type graph first so there is less work for later passes
   pm.addPass(RemoveTopLevelPointer::createPass());
   pm.addPass(Flattener::createPass());
+  pm.addPass(IdentifyContainers::createPass(containerInfos_));
   pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
   if (config_.features[Feature::PruneTypeGraph])
     pm.addPass(Prune::createPass());
@@ -1171,11 +1178,12 @@ void CodeGen::transform(TypeGraph& typeGraph) {
     DrgnParserOptions options{
         .chaseRawPointers = config_.features[Feature::ChaseRawPointers],
     };
-    DrgnParser drgnParser{typeGraph, containerInfos_, options};
+    DrgnParser drgnParser{typeGraph, options};
     pm.addPass(AddChildren::createPass(drgnParser, symbols_));
 
     // Re-run passes over newly added children
     pm.addPass(Flattener::createPass());
+    pm.addPass(IdentifyContainers::createPass(containerInfos_));
     pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
     if (config_.features[Feature::PruneTypeGraph])
       pm.addPass(Prune::createPass());

@@ -53,6 +53,7 @@ class CodeGen {
                        std::string linkageName,
                        std::string& code);
 
+  void registerContainer(std::unique_ptr<ContainerInfo> containerInfo);
   void registerContainer(const std::filesystem::path& path);
   void addDrgnRoot(struct drgn_type* drgnType,
                    type_graph::TypeGraph& typeGraph);

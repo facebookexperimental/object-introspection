@@ -16,13 +16,8 @@ using namespace oi::detail;
 
 class DrgnParserTest : public ::testing::Test {
  protected:
-  static void SetUpTestSuite() {
-    symbols_ = new SymbolService{TARGET_EXE_PATH};
-  }
-
-  static void TearDownTestSuite() {
-    delete symbols_;
-  }
+  static void SetUpTestSuite();
+  static void TearDownTestSuite();
 
   static type_graph::DrgnParser getDrgnParser(
       type_graph::TypeGraph& typeGraph, type_graph::DrgnParserOptions options);

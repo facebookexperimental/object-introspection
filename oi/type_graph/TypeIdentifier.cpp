@@ -86,6 +86,7 @@ void TypeIdentifier::visit(Container& c) {
           }
           c.templateParams[i] = *dummy;
           replaced = true;
+          break;
         }
       }
 
