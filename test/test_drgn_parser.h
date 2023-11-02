@@ -34,17 +34,17 @@ class DrgnParserTest : public ::testing::Test {
             std::string_view expected,
             type_graph::DrgnParserOptions options);
   void test(std::string_view function, std::string_view expected);
-  void testContains(std::string_view function,
-                    std::string_view expected,
-                    type_graph::DrgnParserOptions options = {});
+  void testGlob(std::string_view function,
+                std::string_view expected,
+                type_graph::DrgnParserOptions options = {});
   void testMultiCompiler(std::string_view function,
                          std::string_view expectedClang,
                          std::string_view expectedGcc,
                          type_graph::DrgnParserOptions options = {});
-  void testMultiCompilerContains(std::string_view function,
-                                 std::string_view expectedClang,
-                                 std::string_view expectedGcc,
-                                 type_graph::DrgnParserOptions options = {});
+  void testMultiCompilerGlob(std::string_view function,
+                             std::string_view expectedClang,
+                             std::string_view expectedGcc,
+                             type_graph::DrgnParserOptions options = {});
 
   static SymbolService* symbols_;
 };
