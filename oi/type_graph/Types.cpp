@@ -23,6 +23,9 @@ namespace oi::detail::type_graph {
   void OI_TYPE_NAME::accept(Visitor& v) {            \
     v.visit(*this);                                  \
   }                                                  \
+  Type& OI_TYPE_NAME::accept(Mutator& m) {           \
+    return m.visit(*this);                           \
+  }                                                  \
   void OI_TYPE_NAME::accept(ConstVisitor& v) const { \
     v.visit(*this);                                  \
   }
