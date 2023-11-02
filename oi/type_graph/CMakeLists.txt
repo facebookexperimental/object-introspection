@@ -5,6 +5,7 @@ add_library(type_graph
   DrgnParser.cpp
   EnforceCompatibility.cpp
   Flattener.cpp
+  IdentifyContainers.cpp
   KeyCapture.cpp
   NameGen.cpp
   PassManager.cpp
