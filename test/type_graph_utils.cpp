@@ -59,6 +59,30 @@ void testNoChange(type_graph::Pass pass, std::string_view input) {
   test(pass, input, input);
 }
 
+std::vector<std::unique_ptr<ContainerInfo>> getContainerInfos() {
+  auto std_vector =
+      std::make_unique<ContainerInfo>("std::vector", SEQ_TYPE, "vector");
+  std_vector->stubTemplateParams = {1};
+
+  auto std_map = std::make_unique<ContainerInfo>("std::map", SEQ_TYPE, "map");
+  std_map->stubTemplateParams = {2, 3};
+
+  auto std_list =
+      std::make_unique<ContainerInfo>("std::list", SEQ_TYPE, "list");
+  std_list->stubTemplateParams = {1};
+
+  auto std_pair =
+      std::make_unique<ContainerInfo>("std::pair", SEQ_TYPE, "list");
+
+  std::vector<std::unique_ptr<ContainerInfo>> containers;
+  containers.emplace_back(std::move(std_vector));
+  containers.emplace_back(std::move(std_map));
+  containers.emplace_back(std::move(std_list));
+  containers.emplace_back(std::move(std_pair));
+
+  return containers;
+}
+
 Container getVector(NodeId id) {
   static ContainerInfo info{"std::vector", SEQ_TYPE, "vector"};
   info.stubTemplateParams = {1};
