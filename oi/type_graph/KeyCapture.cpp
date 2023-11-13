@@ -66,8 +66,7 @@ void KeyCapture::visit(Class& c) {
       continue;
     if (!keyToCapture.member.has_value())
       continue;
-    for (size_t i = 0; i < c.members.size(); i++) {
-      auto& member = c.members[i];
+    for (auto& member : c.members) {
       if (member.name != *keyToCapture.member)
         continue;
 
