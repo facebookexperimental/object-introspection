@@ -455,7 +455,8 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
             auto childID = nextNodeID++;
             auto child = process(childID, Variable{entry->second, "", ""});
             node.children = {childID, childID + 1};
-            setSize(node, child.staticSize + child.dynamicSize,
+            setSize(node,
+                    child.staticSize + child.dynamicSize,
                     child.staticSize + child.dynamicSize);
           }
         }
@@ -477,8 +478,8 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
           auto childID = nextNodeID++;
           auto child = process(childID, Variable{entry->second, "", ""});
           node.children = {childID, childID + 1};
-          setSize(node, child.dynamicSize,
-                  child.dynamicSize + child.staticSize);
+          setSize(
+              node, child.dynamicSize, child.dynamicSize + child.staticSize);
         }
       } break;
       case DRGN_TYPE_CLASS:
@@ -532,10 +533,12 @@ TreeBuilder::Node TreeBuilder::process(NodeID id, Variable variable) {
               }
             }
             const auto& member = members[i];
-            auto child =
-                process(childID++,
-                        Variable{member.type, member.member_name,
-                                 member.member_name, isset, member.isStubbed});
+            auto child = process(childID++,
+                                 Variable{member.type,
+                                          member.member_name,
+                                          member.member_name,
+                                          isset,
+                                          member.isStubbed});
             node.dynamicSize += child.dynamicSize;
             memberSizes += child.dynamicSize + child.staticSize;
           }
@@ -582,8 +585,8 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
       arrayElementType = drgn_type_type(variable.type).type;
       numElems = drgn_type_length(variable.type);
     } else {
-      drgn_utils::getDrgnArrayElementType(variable.type, &arrayElementType,
-                                          numElems);
+      drgn_utils::getDrgnArrayElementType(
+          variable.type, &arrayElementType, numElems);
     }
     assert(numElems > 0);
     elementTypes.push_back(
@@ -675,10 +678,11 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
       // elementTypes is only populated with the underlying container type for
       // container adapters
       auto containerType = elementTypes[0];
-      auto child = process(
-          childID++, {.type = containerType.type,
-                      .name = "",
-                      .typePath = drgnTypeToName(containerType.type) + "[]"});
+      auto child =
+          process(childID++,
+                  {.type = containerType.type,
+                   .name = "",
+                   .typePath = drgnTypeToName(containerType.type) + "[]"});
 
       setSize(node, child.dynamicSize, child.dynamicSize + child.staticSize);
       node.containerStats = child.containerStats;
@@ -715,10 +719,11 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
         auto childID = node.children->first;
 
         auto elementType = elementTypes[index];
-        auto child = process(
-            childID++, {.type = elementType.type,
-                        .name = "",
-                        .typePath = drgnTypeToName(elementType.type) + "[]"});
+        auto child =
+            process(childID++,
+                    {.type = elementType.type,
+                     .name = "",
+                     .typePath = drgnTypeToName(elementType.type) + "[]"});
 
         setSize(node, child.dynamicSize, child.dynamicSize + child.staticSize);
       }
@@ -879,8 +884,9 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
         "uninitialized data in the target process");
   }
   if (std::ranges::all_of(
-          elementTypes.cbegin(), elementTypes.cend(),
-          [this](auto& type) { return isPrimitive(type.type); })) {
+          elementTypes.cbegin(), elementTypes.cend(), [this](auto& type) {
+            return isPrimitive(type.type);
+          })) {
     VLOG(1)
         << "Container [" << node.id
         << "] contains only primitive types, skipping processing its members";
@@ -900,10 +906,10 @@ void TreeBuilder::processContainer(const Variable& variable, Node& node) {
   uint64_t memberSizes = 0;
   for (size_t i = 0; i < containerStats.length; i++) {
     for (auto& type : elementTypes) {
-      auto child =
-          process(childID++, {.type = type.type,
-                              .name = "",
-                              .typePath = drgnTypeToName(type.type) + "[]"});
+      auto child = process(childID++,
+                           {.type = type.type,
+                            .name = "",
+                            .typePath = drgnTypeToName(type.type) + "[]"});
       node.dynamicSize += child.dynamicSize;
       memberSizes += child.dynamicSize + child.staticSize;
     }

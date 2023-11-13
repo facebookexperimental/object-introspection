@@ -114,7 +114,8 @@ TEST(CodeGenTest, TransformContainerAllocatorParamInParent) {
 TEST(CodeGenTest, RemovedMemberAlignment) {
   OICodeGen::Config config;
   config.membersToStub = {{"MyClass", "b"}};
-  testTransform(config, R"(
+  testTransform(config,
+                R"(
 [0] Class: MyClass (size: 24)
       Member: a (offset: 0)
         Primitive: int8_t

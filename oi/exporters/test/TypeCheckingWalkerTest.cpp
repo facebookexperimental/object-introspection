@@ -145,8 +145,8 @@ TEST(TypeCheckingWalker, TestListEmpty) {
 TEST(TypeCheckingWalker, TestListSome) {
   // ASSIGN
   std::array<uint64_t, 3> listElements{59942, 44126, 64525};
-  std::vector<uint64_t> data{listElements.size(), listElements[0],
-                             listElements[1], listElements[2]};
+  std::vector<uint64_t> data{
+      listElements.size(), listElements[0], listElements[1], listElements[2]};
 
   types::dy::VarInt varint;
   types::dy::List rootType{varint};

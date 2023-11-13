@@ -50,9 +50,12 @@ TEST(CompilerTest, CompileAndRelocate) {
   EXPECT_TRUE(compiler.compile(code, sourcePath, objectPath));
 
   const size_t relocSlabSize = 4096;
-  void* relocSlab =
-      mmap(nullptr, relocSlabSize, PROT_READ | PROT_WRITE | PROT_EXEC,
-           MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+  void* relocSlab = mmap(nullptr,
+                         relocSlabSize,
+                         PROT_READ | PROT_WRITE | PROT_EXEC,
+                         MAP_ANONYMOUS | MAP_PRIVATE,
+                         -1,
+                         0);
   EXPECT_NE(relocSlab, nullptr);
 
   auto relocResult =
@@ -128,13 +131,16 @@ TEST(CompilerTest, CompileAndRelocateMultipleObjs) {
   EXPECT_TRUE(compiler.compile(codeY, sourceYPath, objectYPath));
 
   const size_t relocSlabSize = 8192;
-  void* relocSlab =
-      mmap(nullptr, relocSlabSize, PROT_READ | PROT_WRITE | PROT_EXEC,
-           MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
+  void* relocSlab = mmap(nullptr,
+                         relocSlabSize,
+                         PROT_READ | PROT_WRITE | PROT_EXEC,
+                         MAP_ANONYMOUS | MAP_PRIVATE,
+                         -1,
+                         0);
   EXPECT_NE(relocSlab, nullptr);
 
-  auto relocResult = compiler.applyRelocs((uintptr_t)relocSlab,
-                                          {objectXPath, objectYPath}, {});
+  auto relocResult = compiler.applyRelocs(
+      (uintptr_t)relocSlab, {objectXPath, objectYPath}, {});
   EXPECT_TRUE(relocResult.has_value());
 
   auto& [_, segs, jitSymbols] = relocResult.value();
@@ -254,10 +260,10 @@ TEST(CompilerTest, LocateOpcodes) {
   { /* Large range of differently sized needles */
     const std::array needles = {
         std::vector{0x41_b, 0x54_b}, /* push r12:     1 instance */
-        std::vector{0x48_b, 0x83_b, 0xec_b,
-                    0x18_b},         /* sub rsp,0x18: 1 instance */
-        std::vector(1, 0xe8_b),      /* call:         4 instances */
-        std::vector{0x41_b, 0x5c_b}, /* pop r12:      1 instance */
+        std::vector{
+            0x48_b, 0x83_b, 0xec_b, 0x18_b}, /* sub rsp,0x18: 1 instance */
+        std::vector(1, 0xe8_b),              /* call:         4 instances */
+        std::vector{0x41_b, 0x5c_b},         /* pop r12:      1 instance */
     };
     auto locs = OICompiler::locateOpcodes(insts, needles);
     ASSERT_TRUE(locs.has_value());

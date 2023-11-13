@@ -180,8 +180,8 @@ Class& DrgnParser::enumerateClass(struct drgn_type* type) {
                             std::to_string(drgn_type_kind(type))};
   }
 
-  auto& c = makeType<Class>(type, kind, std::move(name), std::move(fqName),
-                            size, virtuality);
+  auto& c = makeType<Class>(
+      type, kind, std::move(name), std::move(fqName), size, virtuality);
 
   enumerateClassTemplateParams(type, c.templateParams);
   enumerateClassParents(type, c.parents);
@@ -402,7 +402,8 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type* type,
     drgn_qualified_type t{};
     if (auto* err = drgn_member_function_type(&drgn_functions[i], &t)) {
       warnForDrgnError(
-          type, "Error looking up member function (" + std::to_string(i) + ")",
+          type,
+          "Error looking up member function (" + std::to_string(i) + ")",
           err);
       continue;
     }

@@ -92,7 +92,8 @@ TEST(ParserTest, MangledFunc) {
         "EEESaISF_EERS1_IS8_SaIS8_EERS1_ISB_IS8_dESaISM_EE:arg9");
     EXPECT_EQ(pdata.numReqs(), 1);
     EXPECT_REQ_EQ(
-        pdata.getReq(0), "entry",
+        pdata.getReq(0),
+        "entry",
         "_Z7doStuffR3FooRSt6vectorISt3mapINSt7__cxx1112basic_stringIcSt11char_"
         "traitsIcESaIcEEES8_St4lessIS8_ESaISt4pairIKS8_S8_EEESaISF_EERS1_IS8_"
         "SaIS8_EERS1_ISB_IS8_dESaISM_EE",

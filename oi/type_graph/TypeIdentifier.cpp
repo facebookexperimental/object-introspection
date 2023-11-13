@@ -112,8 +112,8 @@ void TypeIdentifier::visit(Container& c) {
             typeToAllocate, size, param.type().align(), allocator->name());
         c.templateParams[i] = dummy;
       } else {
-        auto& dummy = typeGraph_.makeType<Dummy>(size, param.type().align(),
-                                                 param.type().name());
+        auto& dummy = typeGraph_.makeType<Dummy>(
+            size, param.type().align(), param.type().name());
         c.templateParams[i] = dummy;
       }
     }

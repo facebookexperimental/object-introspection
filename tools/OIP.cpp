@@ -208,7 +208,9 @@ void printFuncArg(const std::shared_ptr<FuncDesc::TargetObject>& funcObj) {
       const auto& location = funcArg->locator.locations[i];
       printf(
           "{\"start\":\"0x%zx\",\"end\":\"0x%zx\",\"expr_size\":%zu,\"expr\":[",
-          location.start, location.end, location.expr_size);
+          location.start,
+          location.end,
+          location.expr_size);
       for (size_t j = 0; j < location.expr_size; j++) {
         if (j > 0) {
           printf(",");
@@ -232,8 +234,8 @@ void printFuncDesc(const std::shared_ptr<FuncDesc>& funcDesc) {
     if (!isFirstRange) {
       printf(",");
     }
-    printf("{\"start\": \"0x%zx\", \"end\": \"0x%zx\"}", range.start,
-           range.end);
+    printf(
+        "{\"start\": \"0x%zx\", \"end\": \"0x%zx\"}", range.start, range.end);
     isFirstRange = false;
   }
   printf("],");

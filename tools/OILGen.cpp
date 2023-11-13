@@ -31,17 +31,35 @@ using namespace oi::detail;
 
 constexpr static OIOpts opts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit."},
-    OIOpt{'o', "output", required_argument, "<file>",
+    OIOpt{'o',
+          "output",
+          required_argument,
+          "<file>",
           "Write output(s) to file(s) with this prefix."},
-    OIOpt{'c', "config-file", required_argument, "<oid.toml>",
+    OIOpt{'c',
+          "config-file",
+          required_argument,
+          "<oid.toml>",
           "Path to OI configuration file."},
-    OIOpt{'d', "debug-level", required_argument, "<level>",
+    OIOpt{'d',
+          "debug-level",
+          required_argument,
+          "<level>",
           "Verbose level for logging"},
-    OIOpt{'j', "dump-jit", optional_argument, "<jit.cpp>",
+    OIOpt{'j',
+          "dump-jit",
+          optional_argument,
+          "<jit.cpp>",
           "Write generated code to a file (for debugging)."},
-    OIOpt{'e', "exit-code", no_argument, nullptr,
+    OIOpt{'e',
+          "exit-code",
+          no_argument,
+          nullptr,
           "Return a bad exit code if nothing is generated."},
-    OIOpt{'p', "pic", no_argument, nullptr,
+    OIOpt{'p',
+          "pic",
+          no_argument,
+          nullptr,
           "Generate position independent code."},
 };
 
@@ -68,8 +86,8 @@ int main(int argc, char* argv[]) {
   bool pic = false;
 
   int c;
-  while ((c = getopt_long(argc, argv, opts.shortOpts(), opts.longOpts(),
-                          nullptr)) != -1) {
+  while ((c = getopt_long(
+              argc, argv, opts.shortOpts(), opts.longOpts(), nullptr)) != -1) {
     switch (c) {
       case 'h':
         usage();

@@ -11,7 +11,8 @@ TEST(KeyCaptureTest, InClass) {
       {"MyClass", "b"},
   };
   std::vector<std::unique_ptr<ContainerInfo>> containerInfos;
-  test(KeyCapture::createPass(keysToCapture, containerInfos), R"(
+  test(KeyCapture::createPass(keysToCapture, containerInfos),
+       R"(
 [0] Class: MyClass (size: 12)
       Member: a (offset: 0)
         Primitive: int32_t
@@ -45,7 +46,8 @@ TEST(KeyCaptureTest, MapInMap) {
       {"MyClass", "a"},
   };
   std::vector<std::unique_ptr<ContainerInfo>> containerInfos;
-  test(KeyCapture::createPass(keysToCapture, containerInfos), R"(
+  test(KeyCapture::createPass(keysToCapture, containerInfos),
+       R"(
 [0] Class: MyClass (size: 12)
       Member: a (offset: 8)
 [1]     Container: std::map (size: 24)
@@ -79,7 +81,8 @@ TEST(KeyCaptureTest, TopLevel) {
       {{}, {}, true},
   };
   std::vector<std::unique_ptr<ContainerInfo>> containerInfos;
-  test(KeyCapture::createPass(keysToCapture, containerInfos), R"(
+  test(KeyCapture::createPass(keysToCapture, containerInfos),
+       R"(
 [0] Container: std::map (size: 24)
       Param
         Primitive: int32_t

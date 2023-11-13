@@ -11,7 +11,8 @@ TEST(RemoveMembersTest, Match) {
       {"ClassA", "b"},
   };
 
-  test(RemoveMembers::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore),
+       R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -65,7 +66,8 @@ TEST(RemoveMembersTest, RecurseClassParam) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveMembers::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore),
+       R"(
 [0] Class: MyClass (size: 0)
       Param
 [1]     Class: ClassA (size: 12)
@@ -91,7 +93,8 @@ TEST(RemoveMembersTest, RecurseClassParent) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveMembers::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore),
+       R"(
 [0] Class: MyClass (size: 0)
       Parent (offset: 0)
 [1]     Class: ClassA (size: 12)
@@ -117,7 +120,8 @@ TEST(RemoveMembersTest, RecurseClassMember) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveMembers::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore),
+       R"(
 [0] Class: MyClass (size: 0)
       Member: xxx (offset: 0)
 [1]     Class: ClassA (size: 12)
@@ -143,7 +147,8 @@ TEST(RemoveMembersTest, RecurseClassChild) {
   const std::vector<std::pair<std::string, std::string>>& membersToIgnore = {
       {"ClassA", "b"},
   };
-  test(RemoveMembers::createPass(membersToIgnore), R"(
+  test(RemoveMembers::createPass(membersToIgnore),
+       R"(
 [0] Class: MyClass (size: 0)
       Child
 [1]     Class: ClassA (size: 12)
@@ -166,7 +171,8 @@ TEST(RemoveMembersTest, RecurseClassChild) {
 }
 
 TEST(RemoveMembersTest, Union) {
-  test(RemoveMembers::createPass({}), R"(
+  test(RemoveMembers::createPass({}),
+       R"(
 [0] Union: MyUnion (size: 4)
       Member: a (offset: 0)
         Primitive: int32_t

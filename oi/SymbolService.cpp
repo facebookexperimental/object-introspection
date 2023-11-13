@@ -66,7 +66,13 @@ static bool LoadExecutableAddressRange(
     while (std::getline(f, line)) {
       if (sscanf(line.c_str(),
                  "%" PRIx64 "-%" PRIx64 " %s %" PRIx64 " %x:%x %" PRIu64 " %n",
-                 &start, &end, perm, &offset, &dmajor, &dminor, &inode,
+                 &start,
+                 &end,
+                 perm,
+                 &offset,
+                 &dmajor,
+                 &dminor,
+                 &inode,
                  &nread) < 7 ||
           nread <= 0) {
         return false;
@@ -92,7 +98,9 @@ static bool isExecutableAddr(
 
   // Find the smallest exeAddrs range where addr < range.end
   auto it = std::upper_bound(
-      begin(exeAddrs), end(exeAddrs), std::make_pair(addr, addr),
+      begin(exeAddrs),
+      end(exeAddrs),
+      std::make_pair(addr, addr),
       [](const auto& r1, const auto& r2) { return r1.second < r2.second; });
 
   return it != end(exeAddrs) && addr >= it->first;
@@ -246,8 +254,9 @@ bool SymbolService::loadModulesFromPath(const fs::path& targetPath) {
 
   Dwarf_Addr start = 0;
   Dwarf_Addr end = 0;
-  if (dwfl_module_info(mod, nullptr, &start, &end, nullptr, nullptr, nullptr,
-                       nullptr) == nullptr) {
+  if (dwfl_module_info(
+          mod, nullptr, &start, &end, nullptr, nullptr, nullptr, nullptr) ==
+      nullptr) {
     LOG(ERROR) << "dwfl_module_info: " << dwfl_errmsg(dwfl_errno());
     return false;
   }
@@ -442,8 +451,8 @@ struct drgn_program* SymbolService::getDrgnProgram() {
       auto executable = fs::read_symlink(
           "/proc/" + std::to_string(std::get<pid_t>(target)) + "/exe");
       const auto* executableCStr = executable.c_str();
-      if (auto* err = drgn_program_load_debug_info(prog, &executableCStr, 1,
-                                                   false, false)) {
+      if (auto* err = drgn_program_load_debug_info(
+              prog, &executableCStr, 1, false, false)) {
         LOG(ERROR) << "Error loading debug info: " << err->message;
         return nullptr;
       }
@@ -769,8 +778,11 @@ std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
     drgn_object_deinit(&globalObj);
   };
 
-  if (auto* err = drgn_program_find_object(drgnProg, global.c_str(), nullptr,
-                                           DRGN_FIND_OBJECT_ANY, &globalObj)) {
+  if (auto* err = drgn_program_find_object(drgnProg,
+                                           global.c_str(),
+                                           nullptr,
+                                           DRGN_FIND_OBJECT_ANY,
+                                           &globalObj)) {
     LOG(ERROR) << "Failed to lookup global variable '" << global
                << "': " << err->code << " " << err->message;
 

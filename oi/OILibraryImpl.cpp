@@ -40,8 +40,12 @@ drgn_qualified_type getTypeFromAtomicHole(drgn_program* prog, void* hole);
 }  // namespace
 
 OILibraryImpl::LocalTextSegment::LocalTextSegment(size_t size) {
-  void* base = mmap(NULL, size, PROT_EXEC | PROT_READ | PROT_WRITE,
-                    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  void* base = mmap(NULL,
+                    size,
+                    PROT_EXEC | PROT_READ | PROT_WRITE,
+                    MAP_PRIVATE | MAP_ANONYMOUS,
+                    -1,
+                    0);
   if (base == MAP_FAILED)
     throw std::runtime_error(std::string("segment map failed: ") +
                              std::strerror(errno));
@@ -93,9 +97,10 @@ std::pair<void*, const exporters::inst::Inst&> OILibraryImpl::init() {
 }
 
 void OILibraryImpl::processConfigFile() {
-  auto features =
-      config::processConfigFiles(opts_.configFilePaths, requestedFeatures_,
-                                 compilerConfig_, generatorConfig_);
+  auto features = config::processConfigFiles(opts_.configFilePaths,
+                                             requestedFeatures_,
+                                             compilerConfig_,
+                                             generatorConfig_);
   if (!features)
     throw std::runtime_error("failed to process configuration");
 
@@ -164,7 +169,8 @@ std::pair<void*, const exporters::inst::Inst&> OILibraryImpl::compileCode() {
 
   for (const auto& [baseAddr, relocAddr, size] : segments)
     std::memcpy(reinterpret_cast<void*>(relocAddr),
-                reinterpret_cast<void*>(baseAddr), size);
+                reinterpret_cast<void*>(baseAddr),
+                size);
 
   textSeg.release();  // don't munmap() the region containing the code
   return {fp, *ty};

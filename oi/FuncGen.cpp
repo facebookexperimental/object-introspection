@@ -800,7 +800,8 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
 }
 
 ContainerInfo FuncGen::GetOiArrayContainerInfo() {
-  ContainerInfo oiArray{"OIArray", UNKNOWN_TYPE,
+  ContainerInfo oiArray{"OIArray",
+                        UNKNOWN_TYPE,
                         "cstdint"};  // TODO: remove the need for a dummy header
 
   oiArray.codegen.handler = R"(

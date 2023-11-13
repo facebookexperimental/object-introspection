@@ -87,8 +87,8 @@ void Json::print(IntrospectionResult::const_iterator& it,
     out_ << (pretty_ ? ",\n" : ",") << indent;
 
     out_ << tab << "\"typeNames\"" << space << ':' << space;
-    printStringList(out_, it->type_names.begin(), it->type_names.end(),
-                    pretty_);
+    printStringList(
+        out_, it->type_names.begin(), it->type_names.end(), pretty_);
     out_ << ',' << endl << indent;
 
     out_ << tab << "\"staticSize\":" << space << it->static_size << ',' << endl

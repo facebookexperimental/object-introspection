@@ -7,7 +7,8 @@
 using namespace type_graph;
 
 TEST(TypeIdentifierTest, StubbedParam) {
-  test(TypeIdentifier::createPass({}), R"(
+  test(TypeIdentifier::createPass({}),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -30,7 +31,8 @@ TEST(TypeIdentifierTest, StubbedParam) {
 }
 
 TEST(TypeIdentifierTest, Allocator) {
-  test(TypeIdentifier::createPass({}), R"(
+  test(TypeIdentifier::createPass({}),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -56,7 +58,8 @@ TEST(TypeIdentifierTest, Allocator) {
 }
 
 TEST(TypeIdentifierTest, AllocatorSize1) {
-  test(TypeIdentifier::createPass({}), R"(
+  test(TypeIdentifier::createPass({}),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -85,7 +88,8 @@ TEST(TypeIdentifierTest, PassThroughTypes) {
   std::vector<ContainerInfo> passThroughTypes;
   passThroughTypes.emplace_back("std::allocator", DUMMY_TYPE, "memory");
 
-  test(TypeIdentifier::createPass(passThroughTypes), R"(
+  test(TypeIdentifier::createPass(passThroughTypes),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -111,7 +115,8 @@ TEST(TypeIdentifierTest, PassThroughSameType) {
   std::vector<ContainerInfo> passThroughTypes;
   passThroughTypes.emplace_back("std::allocator", DUMMY_TYPE, "memory");
 
-  test(TypeIdentifier::createPass(passThroughTypes), R"(
+  test(TypeIdentifier::createPass(passThroughTypes),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -138,7 +143,8 @@ TEST(TypeIdentifierTest, PassThroughSameType) {
 }
 
 TEST(TypeIdentifierTest, ContainerNotReplaced) {
-  test(TypeIdentifier::createPass({}), R"(
+  test(TypeIdentifier::createPass({}),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t

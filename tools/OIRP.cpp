@@ -227,8 +227,10 @@ int main(int argc, const char** argv) {
     rocksdb::DB* _db = nullptr;
     if (auto status = rocksdb::DB::Open(options, dbpath.string(), &_db);
         !status.ok()) {
-      fprintf(stderr, "Failed to open DB '%s' with error %s\n",
-              dbpath.string().c_str(), status.ToString().c_str());
+      fprintf(stderr,
+              "Failed to open DB '%s' with error %s\n",
+              dbpath.string().c_str(),
+              status.ToString().c_str());
       return 1;
     }
     db.reset(_db);

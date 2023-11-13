@@ -204,8 +204,8 @@ std::string OICodeGen::preProcessUniquePtr(drgn_type* type, std::string name) {
     } else if (typeSize == cFunctionDeleterSize) {
       name.replace(begin, end - begin + 1, "void(*)(" + typeName + "*)");
     } else if (typeSize == stdFunctionDeleterSize) {
-      name.replace(begin, end - begin + 1,
-                   "std::function<void (" + typeName + "*)>");
+      name.replace(
+          begin, end - begin + 1, "std::function<void (" + typeName + "*)>");
     } else {
       LOG(ERROR) << "Unhandled case, unique_ptr size: " << typeSize;
     }
@@ -540,8 +540,8 @@ bool OICodeGen::buildNameInt(drgn_type* type,
     templateParamsStrings.push_back(templateParamName);
   }
 
-  replaceTemplateParameters(type, templateParams, templateParamsStrings,
-                            nameWithoutTemplate);
+  replaceTemplateParameters(
+      type, templateParams, templateParamsStrings, nameWithoutTemplate);
 
   outName = nameWithoutTemplate;
   for (size_t i = 0; i < templateParamsStrings.size(); ++i) {
@@ -765,8 +765,9 @@ bool OICodeGen::enumerateTemplateParamIdxs(drgn_type* type,
 
   auto& templateTypes =
       containerTypeMapDrgn
-          .emplace(type, std::pair(std::ref(containerInfo),
-                                   std::vector<drgn_qualified_type>()))
+          .emplace(type,
+                   std::pair(std::ref(containerInfo),
+                             std::vector<drgn_qualified_type>()))
           .first->second.second;
 
   for (auto i : paramIdxs) {
@@ -1721,8 +1722,8 @@ void OICodeGen::enumerateDescendants(drgn_type* type, drgn_type* baseType) {
 
   // TODO this list may end up containing duplicates
   const auto& children = it->second;
-  descendantClasses[baseType].insert(descendantClasses[baseType].end(),
-                                     children.begin(), children.end());
+  descendantClasses[baseType].insert(
+      descendantClasses[baseType].end(), children.begin(), children.end());
 
   for (const auto& child : children) {
     enumerateDescendants(child, baseType);
@@ -1878,7 +1879,8 @@ void OICodeGen::memberTransformName(
     sortedTypes.push_back(e.first);
   }
 
-  std::sort(sortedTypes.begin(), sortedTypes.end(),
+  std::sort(sortedTypes.begin(),
+            sortedTypes.end(),
             [](const std::string& first, const std::string& second) {
               return first.size() > second.size();
             });
@@ -2212,8 +2214,13 @@ bool OICodeGen::generateStructDef(drgn_type* e, std::string& code) {
 
   uint64_t offsetBits = 0;
   std::unordered_map<std::string, int> memberNames;
-  if (!generateStructMembers(e, memberNames, generatedMembers, offsetBits,
-                             paddingInfo, violatesAlignmentRequirement, 0)) {
+  if (!generateStructMembers(e,
+                             memberNames,
+                             generatedMembers,
+                             offsetBits,
+                             paddingInfo,
+                             violatesAlignmentRequirement,
+                             0)) {
     return false;
   }
 
@@ -2471,8 +2478,8 @@ std::optional<uint64_t> OICodeGen::generateMember(
       currOffsetBits = 0;
       VLOG(1) << "Member size: " << memberSize;
     } else {
-      addSizeComment(feature(Feature::GenPaddingStats), code, currOffsetBits,
-                     memberSize);
+      addSizeComment(
+          feature(Feature::GenPaddingStats), code, currOffsetBits, memberSize);
       currOffsetBits = currOffsetBits + memberSize;
     }
 
@@ -2499,8 +2506,12 @@ bool OICodeGen::generateParent(
   auto* underlyingType = drgn_utils::underlyingType(p);
   uint64_t offsetBits = 0;
 
-  if (!generateStructMembers(underlyingType, memberNames, code, offsetBits,
-                             paddingInfo, violatesAlignmentRequirement,
+  if (!generateStructMembers(underlyingType,
+                             memberNames,
+                             code,
+                             offsetBits,
+                             paddingInfo,
+                             violatesAlignmentRequirement,
                              offsetToNextMember)) {
     return false;
   }
@@ -2657,8 +2668,11 @@ bool OICodeGen::generateStructMembers(
       size_t prevOffsetBits = currOffsetBits;
 
       auto newCurrOffsetBits =
-          generateMember(members[memberIndex], memberNames, currOffsetBits,
-                         code, drgn_type_kind(e) == DRGN_TYPE_UNION);
+          generateMember(members[memberIndex],
+                         memberNames,
+                         currOffsetBits,
+                         code,
+                         drgn_type_kind(e) == DRGN_TYPE_UNION);
 
       if (!newCurrOffsetBits.has_value()) {
         return false;
@@ -2770,8 +2784,11 @@ bool OICodeGen::generateStructMembers(
         }
       }
 
-      if (!generateParent(parentClasses[e][parentIndex].type, memberNames,
-                          currOffsetBits, code, offsetToNextMember)) {
+      if (!generateParent(parentClasses[e][parentIndex].type,
+                          memberNames,
+                          currOffsetBits,
+                          code,
+                          offsetToNextMember)) {
         return false;
       }
 
@@ -2869,8 +2886,8 @@ bool OICodeGen::generateStructDefs(std::string& code) {
       if (parentClassesCopy.find(e) != parentClassesCopy.end()) {
         auto& parents = parentClassesCopy[e];
         for (auto& p : parents) {
-          auto it2 = std::find(structDefTypeCopy.begin(),
-                               structDefTypeCopy.end(), p.type);
+          auto it2 = std::find(
+              structDefTypeCopy.begin(), structDefTypeCopy.end(), p.type);
           if (it2 != structDefTypeCopy.cend()) {
             skip = true;
             break;
@@ -2886,7 +2903,8 @@ bool OICodeGen::generateStructDefs(std::string& code) {
 
           if (underlyingType != e) {
             auto it2 = std::find(structDefTypeCopy.begin(),
-                                 structDefTypeCopy.end(), underlyingType);
+                                 structDefTypeCopy.end(),
+                                 underlyingType);
             if (it2 != structDefTypeCopy.cend()) {
               skip = true;
               break;
@@ -3204,8 +3222,8 @@ bool OICodeGen::generateJitCode(std::string& code) {
   std::string functionsCode;
   functionsCode.append("namespace OIInternal {\nnamespace {\n");
   functionsCode.append("// functions -----\n");
-  if (!funcGen.DeclareGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                   config.features)) {
+  if (!funcGen.DeclareGetSizeFuncs(
+          functionsCode, containerTypesFuncDef, config.features)) {
     LOG(ERROR) << "declaring get size for containers failed";
     return false;
   }
@@ -3235,8 +3253,8 @@ bool OICodeGen::generateJitCode(std::string& code) {
   funcGen.DeclareEncodeData(functionsCode);
   funcGen.DeclareEncodeDataSize(functionsCode);
 
-  if (!funcGen.DefineGetSizeFuncs(functionsCode, containerTypesFuncDef,
-                                  config.features)) {
+  if (!funcGen.DefineGetSizeFuncs(
+          functionsCode, containerTypesFuncDef, config.features)) {
     LOG(ERROR) << "defining get size for containers failed";
     return false;
   }
@@ -3289,8 +3307,8 @@ bool OICodeGen::generateJitCode(std::string& code) {
     bool generateOffsetAsserts =
         (drgn_type_kind(structType) != DRGN_TYPE_UNION);
 
-    if (!addStaticAssertsForType(structType, generateOffsetAsserts,
-                                 functionsCode)) {
+    if (!addStaticAssertsForType(
+            structType, generateOffsetAsserts, functionsCode)) {
       return false;
     }
   }
@@ -3328,11 +3346,11 @@ bool OICodeGen::generateJitCode(std::string& code) {
     if (rootTypeStr.starts_with("unique_ptr") ||
         rootTypeStr.starts_with("LowPtr") ||
         rootTypeStr.starts_with("shared_ptr")) {
-      funcGen.DefineTopLevelGetSizeSmartPtr(functionsCode, rawTypeName,
-                                            config.features);
+      funcGen.DefineTopLevelGetSizeSmartPtr(
+          functionsCode, rawTypeName, config.features);
     } else {
-      funcGen.DefineTopLevelGetSizeRef(functionsCode, rawTypeName,
-                                       config.features);
+      funcGen.DefineTopLevelGetSizeRef(
+          functionsCode, rawTypeName, config.features);
     }
   }
 
@@ -3593,7 +3611,9 @@ bool OICodeGen::staticAssertMemberOffsets(
     // Operate on the underlying type for typedefs
     return staticAssertMemberOffsets(struct_name,
                                      drgn_utils::underlyingType(struct_type),
-                                     assert_str, memberNames, base_offset);
+                                     assert_str,
+                                     memberNames,
+                                     base_offset);
   }
 
   const auto* tag = drgn_type_tag(struct_type);
@@ -3606,8 +3626,11 @@ bool OICodeGen::staticAssertMemberOffsets(
     // Recurse into parents to find inherited members
     for (const auto& parent : parentClasses[struct_type]) {
       auto parentOffset = base_offset + parent.bit_offset / CHAR_BIT;
-      if (!staticAssertMemberOffsets(struct_name, parent.type, assert_str,
-                                     memberNames, parentOffset)) {
+      if (!staticAssertMemberOffsets(struct_name,
+                                     parent.type,
+                                     assert_str,
+                                     memberNames,
+                                     parentOffset)) {
         return false;
       }
     }
