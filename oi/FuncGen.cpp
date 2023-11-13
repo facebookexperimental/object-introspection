@@ -352,103 +352,6 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
   testCode.append(fmt.str());
 }
 
-/*
- * DefineTopLevelGetSizeRefTyped
- *
- * Top level function to run OI on a type utilising static types and enabled
- * with feature '-ftyped-data-segment'.
- */
-void FuncGen::DefineTopLevelGetSizeRefTyped(std::string& testCode,
-                                            const std::string& rawType,
-                                            FeatureSet features) {
-  std::string func = R"(
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* RawType: %1% */
-    void __attribute__((used, retain)) getSize_%2$016x(const OIInternal::__ROOT_TYPE__& t)
-    #pragma GCC diagnostic pop
-    {
-    )";
-  if (features[Feature::JitTiming]) {
-    func += "      const auto startTime = std::chrono::steady_clock::now();\n";
-  }
-  func += R"(
-      pointers.initialize();
-      pointers.add((uintptr_t)&t);
-      auto data = reinterpret_cast<uintptr_t*>(dataBase);
-
-      // TODO: Replace these with types::st::Uint64 once the VarInt decoding
-      // logic is moved out of OIDebugger and into new TreeBuilder.
-      size_t dataSegOffset = 0;
-      data[dataSegOffset++] = oidMagicId;
-      data[dataSegOffset++] = cookieValue;
-      uintptr_t& writtenSize = data[dataSegOffset++];
-      writtenSize = 0;
-      uintptr_t& timeTakenNs = data[dataSegOffset++];
-
-      dataSegOffset *= sizeof(uintptr_t);
-      JLOG("%1% @");
-      JLOGPTR(&t);
-
-      using ContentType = OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type;
-      using SuffixType = types::st::Pair<
-        DataBuffer::DataSegment,
-        types::st::VarInt<DataBuffer::DataSegment>,
-        types::st::VarInt<DataBuffer::DataSegment>
-      >;
-      using DataBufferType = types::st::Pair<
-        DataBuffer::DataSegment,
-        ContentType,
-        SuffixType
-      >;
-
-      DataBufferType db = DataBuffer::DataSegment(dataSegOffset);
-      SuffixType suffix = db.delegate([&t](auto ret) {
-        return OIInternal::getSizeType<DataBuffer::DataSegment>(t, ret);
-      });
-      types::st::Unit<DataBuffer::DataSegment> end = suffix
-        .write(123456789)
-        .write(123456789);
-
-      dataSegOffset = end.offset();
-      writtenSize = dataSegOffset;
-      dataBase += dataSegOffset;
-    )";
-  if (features[Feature::JitTiming]) {
-    func += R"(
-      timeTakenNs = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        std::chrono::steady_clock::now() - startTime).count();
-      )";
-  }
-  func += R"(
-    }
-    )";
-
-  boost::format fmt =
-      boost::format(func) % rawType % std::hash<std::string>{}(rawType);
-  testCode.append(fmt.str());
-}
-
-/*
- * DefineOutputType
- *
- * Present the dynamic type of an object for OID/OIL/OITB to link against.
- */
-void FuncGen::DefineOutputType(std::string& code, const std::string& rawType) {
-  std::string func = R"(
-    #pragma GCC diagnostic push
-    #pragma GCC diagnostic ignored "-Wunknown-attributes"
-    /* RawType: %1% */
-    extern const types::dy::Dynamic __attribute__((used, retain)) outputType%2$016x =
-          OIInternal::TypeHandler<DataBuffer::DataSegment, OIInternal::__ROOT_TYPE__>::type::describe;
-    #pragma GCC diagnostic pop
-)";
-
-  boost::format fmt =
-      boost::format(func) % rawType % std::hash<std::string>{}(rawType);
-  code.append(fmt.str());
-}
-
 void FuncGen::DefineTreeBuilderInstructions(
     std::string& code,
     const std::string& rawType,
@@ -804,23 +707,6 @@ ContainerInfo FuncGen::GetOiArrayContainerInfo() {
                         UNKNOWN_TYPE,
                         "cstdint"};  // TODO: remove the need for a dummy header
 
-  oiArray.codegen.handler = R"(
-template<typename DB, typename T0, long unsigned int N>
-struct TypeHandler<DB, %1%<T0, N>> {
-  using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, N> &container,
-      typename TypeHandler<DB, %1%<T0,N>>::type returnArg) {
-    auto tail = returnArg.write(N);
-    for (size_t i=0; i<N; i++) {
-      tail = tail.delegate([&container, i](auto ret) {
-          return TypeHandler<DB, T0>::getSizeType(container.vals[i], ret);
-      });
-    }
-    return tail.finish();
-  }
-};
-)";
   oiArray.codegen.traversalFunc = R"(
 auto tail = returnArg.write(N0);
 for (size_t i=0; i<N0; i++) {

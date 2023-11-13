@@ -61,11 +61,6 @@ class FuncGen {
   static void DefineTopLevelGetSizeRef(std::string& testCode,
                                        const std::string& rawType,
                                        FeatureSet features);
-  static void DefineTopLevelGetSizeRefTyped(std::string& testCode,
-                                            const std::string& rawType,
-                                            FeatureSet features);
-  static void DefineOutputType(std::string& testCode,
-                               const std::string& rawType);
   static void DefineTreeBuilderInstructions(
       std::string& testCode,
       const std::string& rawType,

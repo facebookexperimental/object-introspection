@@ -62,7 +62,7 @@ definitions = '''
       }]}]'''
   [cases.multidim_legacy] # Test for legacy behaviour. Remove with OICodeGen
     oil_disable = 'oil only runs on codegen v2'
-    cli_options = ["-Ftype-graph", "-Ftyped-data-segment", "-Ftree-builder-type-checking", "-Ftree-builder-v2"]
+    cli_options = ["-Ftype-graph", "-Ftree-builder-v2"]
     param_types = ["const MultiDim&"]
     setup = "return {};"
     expect_json = '''[{

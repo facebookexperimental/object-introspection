@@ -184,8 +184,6 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
 
   std::map<Feature, bool> featuresMap = {
       {Feature::TypeGraph, true},
-      {Feature::TypedDataSegment, true},
-      {Feature::TreeBuilderTypeChecking, true},
       {Feature::TreeBuilderV2, true},
       {Feature::Library, true},
       {Feature::PackStructs, true},
