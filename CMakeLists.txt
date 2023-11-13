@@ -95,6 +95,15 @@ FetchContent_Declare(
 )
 FetchContent_Populate(folly)
 
+### range-v3
+FetchContent_Declare(
+  range-v3
+  GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+  GIT_TAG        a81477931a8aa2ad025c6bda0609f38e09e4d7ec # 0.12.0
+  GIT_PROGRESS   TRUE
+)
+FetchContent_MakeAvailable(range-v3)
+
 set_project_warnings()
 
 if (ASAN)
@@ -291,6 +300,7 @@ target_link_libraries(oicore
   ${Boost_LIBRARIES}
   Boost::headers
   glog::glog
+  range-v3
   resources
 )
 if (FORCE_LLVM_STATIC)
