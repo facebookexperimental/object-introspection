@@ -21,20 +21,6 @@ workflows:
           oid_test_args: "-ftype-graph"
           tests_regex: "OidIntegration\\..*"
           exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0"
-      - test:
-          name: test-typed-data-segment-gcc
-          requires:
-            - build-gcc
-          oid_test_args: "-ftyped-data-segment"
-          tests_regex: "OidIntegration\\..*"
-          exclude_regex: ".*inheritance_polymorphic.*|.*pointers.*|.*arrays_member_int0|.*cycles_.*"
-      - test:
-          name: test-tree-builder-type-checking-gcc
-          requires:
-            - build-gcc
-          oid_test_args: "-ftree-builder-type-checking"
-          tests_regex: "OidIntegration\\..*"
-          exclude_regex: ".*inheritance_polymorphic.*|.*pointers.*|.*arrays_member_int0|.*cycles_.*"
       - coverage:
           name: coverage
           requires:
@@ -43,14 +29,6 @@ workflows:
           name: coverage-type-graph
           requires:
             - test-type-graph-gcc
-      - coverage:
-          name: coverage-typed-data-segment
-          requires:
-            - test-typed-data-segment-gcc
-      - coverage:
-          name: coverage-tree-builder-type-checking
-          requires:
-            - test-tree-builder-type-checking-gcc
 
       - build:
           name: build-clang

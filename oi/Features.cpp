@@ -40,11 +40,6 @@ std::optional<std::string_view> featureHelp(Feature f) {
       return "Use Type Graph for code generation (CodeGen v2).";
     case Feature::PruneTypeGraph:
       return "Prune unreachable nodes from the type graph";
-    case Feature::TypedDataSegment:
-      return "Use Typed Data Segment in generated code.";
-    case Feature::TreeBuilderTypeChecking:
-      return "Use Typed Data Segment to perform runtime Type Checking in "
-             "TreeBuilder.";
     case Feature::Library:
       return std::nullopt;  // Hide in OID help
     case Feature::TreeBuilderV2:
@@ -65,14 +60,8 @@ std::optional<std::string_view> featureHelp(Feature f) {
 
 std::span<const Feature> requirements(Feature f) {
   switch (f) {
-    case Feature::TypedDataSegment:
-      static constexpr std::array tds = {Feature::TypeGraph};
-      return tds;
-    case Feature::TreeBuilderTypeChecking:
-      static constexpr std::array tc = {Feature::TypedDataSegment};
-      return tc;
     case Feature::TreeBuilderV2:
-      static constexpr std::array tb2 = {Feature::TreeBuilderTypeChecking};
+      static constexpr std::array tb2 = {Feature::TypeGraph};
       return tb2;
     case Feature::Library:
       static constexpr std::array lib = {Feature::TreeBuilderV2};

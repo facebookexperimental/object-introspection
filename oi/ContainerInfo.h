@@ -36,7 +36,6 @@ struct ContainerInfo {
   struct Codegen {
     std::string decl;
     std::string func;
-    std::string handler = "";
     std::string traversalFunc = "";
     std::string extra = "";
     std::vector<Processor> processors{};

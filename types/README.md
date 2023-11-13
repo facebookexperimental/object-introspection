@@ -62,14 +62,10 @@ This document describes the format of the container definition files contained i
   will collide if they share the same name.
 
 
-## Changes introduced with Typed Data Segment
-- `decl` and `func` fields are ignored when using `-ftyped-data-segment` and the
-  `handler` field is used instead.
-
 ## Changes introduced with TreeBuilder V2
-- `decl`, `func`, and `handler` fields are ignored when using `-ftree-builder-v2`.
-   The `TypeHandler` is instead constructed from `traversal_func` and `processor`
-   entries.
+- `decl` and `func` fields are ignored when using `-ftree-builder-v2`. The
+  `TypeHandler` is constructed from `traversal_func` field and `processor`
+  entries.
 
 ## Changes introduced with TypeGraph
 - `typeName` and `matcher` fields have been merged into the single field `type_name`.

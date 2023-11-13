@@ -528,10 +528,8 @@ bool OICompiler::compile(const std::string& code,
   static const auto syntheticHeaders =
       std::array<std::pair<Feature, std::pair<std::string_view, std::string>>,
                  7>{{
-          {Feature::TypedDataSegment,
-           {headers::oi_types_st_h, "oi/types/st.h"}},
-          {Feature::TreeBuilderTypeChecking,
-           {headers::oi_types_dy_h, "oi/types/dy.h"}},
+          {Feature::TreeBuilderV2, {headers::oi_types_st_h, "oi/types/st.h"}},
+          {Feature::TreeBuilderV2, {headers::oi_types_dy_h, "oi/types/dy.h"}},
           {Feature::TreeBuilderV2,
            {headers::oi_exporters_inst_h, "oi/exporters/inst.h"}},
           {Feature::TreeBuilderV2,

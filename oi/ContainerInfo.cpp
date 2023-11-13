@@ -275,10 +275,6 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     throw ContainerInfoError(path, "`codegen.decl` is a required field");
   }
   if (std::optional<std::string> str =
-          codegenToml["handler"].value<std::string>()) {
-    codegen.handler = std::move(*str);
-  }
-  if (std::optional<std::string> str =
           codegenToml["traversal_func"].value<std::string>()) {
     codegen.traversalFunc = std::move(*str);
   }
@@ -323,8 +319,6 @@ ContainerInfo::ContainerInfo(std::string typeName_,
       matcher(getMatcher(typeName)),
       ctype(ctype_),
       header(std::move(header_)),
-      codegen(Codegen{"// DummyDecl %1%\n",
-                      "// DummyFunc %1%\n",
-                      "// DummyHandler %1%\n",
-                      "// DummyFunc\n"}) {
+      codegen(Codegen{
+          "// DummyDecl %1%\n", "// DummyFunc %1%\n", "// DummyFunc\n"}) {
 }
