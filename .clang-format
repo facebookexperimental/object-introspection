@@ -9,3 +9,4 @@ AllowShortLoopsOnASingleLine: false
 DerivePointerAlignment: false
 PointerAlignment: Left
 BinPackParameters: false
+BinPackArguments: false

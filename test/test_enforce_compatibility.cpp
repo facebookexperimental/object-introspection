@@ -6,7 +6,8 @@
 using namespace type_graph;
 
 TEST(EnforceCompatibilityTest, ParentContainers) {
-  test(EnforceCompatibility::createPass(), R"(
+  test(EnforceCompatibility::createPass(),
+       R"(
 [0] Class: MyClass (size: 24)
       Member: __oi_parent (offset: 0)
 [1]     Container: std::vector (size: 24)
@@ -19,7 +20,8 @@ TEST(EnforceCompatibilityTest, ParentContainers) {
 }
 
 TEST(EnforceCompatibilityTest, TypesToStub) {
-  test(EnforceCompatibility::createPass(), R"(
+  test(EnforceCompatibility::createPass(),
+       R"(
 [0] Class: EnumMap (size: 8)
       Member: a (offset: 0)
         Primitive: int32_t
@@ -32,7 +34,8 @@ TEST(EnforceCompatibilityTest, TypesToStub) {
 }
 
 TEST(EnforceCompatibilityTest, VoidPointer) {
-  test(EnforceCompatibility::createPass(), R"(
+  test(EnforceCompatibility::createPass(),
+       R"(
 [0] Class: MyClass (size: 8)
       Member: p (offset: 0)
 [1]     Pointer

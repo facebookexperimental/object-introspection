@@ -49,7 +49,8 @@ void PaddingHunter::outputPaddingInfo() {
 
   paddingStatsFile << "Total Saving Opportunity: " << sum << "\n\n\n";
 
-  std::sort(paddedStructsVec.begin(), paddedStructsVec.end(),
+  std::sort(paddedStructsVec.begin(),
+            paddedStructsVec.end(),
             [](const std::pair<std::string, PaddingInfo>& left,
                const std::pair<std::string, PaddingInfo>& right) {
               return left.second.instancesCnt * left.second.savingSize >

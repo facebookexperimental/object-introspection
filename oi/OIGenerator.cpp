@@ -169,9 +169,12 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
 
   {
     std::array<const char*, 1> objectPaths = {{primaryObject.c_str()}};
-    if (auto err = drgnplusplus::error(drgn_program_load_debug_info(
-            prog.get(), std::data(objectPaths), std::size(objectPaths), false,
-            false))) {
+    if (auto err = drgnplusplus::error(
+            drgn_program_load_debug_info(prog.get(),
+                                         std::data(objectPaths),
+                                         std::size(objectPaths),
+                                         false,
+                                         false))) {
       LOG(ERROR) << "error loading debug info program: " << err;
       throw err;
     }
@@ -193,8 +196,8 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
   OICompiler::Config compilerConfig{};
   compilerConfig.usePIC = pic;
 
-  auto features = config::processConfigFiles(configFilePaths, featuresMap,
-                                             compilerConfig, generatorConfig);
+  auto features = config::processConfigFiles(
+      configFilePaths, featuresMap, compilerConfig, generatorConfig);
   if (!features) {
     LOG(ERROR) << "failed to process config file";
     return -1;
@@ -204,8 +207,8 @@ int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
 
   size_t failures = 0;
   for (const auto& [linkageName, type] : oilTypes) {
-    if (auto obj = generateForType(generatorConfig, compilerConfig, type,
-                                   linkageName, symbols);
+    if (auto obj = generateForType(
+            generatorConfig, compilerConfig, type, linkageName, symbols);
         !obj.empty()) {
       std::cout << obj.string() << std::endl;
     } else {

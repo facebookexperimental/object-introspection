@@ -39,10 +39,17 @@ class CSV {
   static constexpr std::string_view kEscapedQuote = "\\\"";
   static constexpr std::string_view kListDelimiter = ";";
 
-  static constexpr std::string_view kColumns[] = {
-      "id",         "name",          "typePath", "typeNames",
-      "staticSize", "exclusiveSize", "pointer",  "length",
-      "capacity",   "is_set",        "parent_id"};
+  static constexpr std::string_view kColumns[] = {"id",
+                                                  "name",
+                                                  "typePath",
+                                                  "typeNames",
+                                                  "staticSize",
+                                                  "exclusiveSize",
+                                                  "pointer",
+                                                  "length",
+                                                  "capacity",
+                                                  "is_set",
+                                                  "parent_id"};
 
   size_t id_ = 0;
   std::vector<size_t> parentIdStack_ = {0};

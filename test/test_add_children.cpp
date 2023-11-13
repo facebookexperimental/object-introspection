@@ -66,7 +66,8 @@ TEST_F(AddChildrenTest, InheritanceStatic) {
 }
 
 TEST_F(AddChildrenTest, InheritancePolymorphic) {
-  testMultiCompilerGlob("oid_test_case_inheritance_polymorphic_a_as_a", R"(
+  testMultiCompilerGlob("oid_test_case_inheritance_polymorphic_a_as_a",
+                        R"(
 [1]  Pointer
 [0]    Class: A (size: 16)
          Member: _vptr$A (offset: 0)

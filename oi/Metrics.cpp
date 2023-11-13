@@ -130,8 +130,11 @@ void Tracing::stop() {
 
   std::lock_guard<std::mutex> guard{static_.mutex};
   // Can't use emplace_back() because of old clang++ on CI
-  static_.traces.push_back({getNextIndex(), std::move(traceName),
-                            duration.count(), rssBeforeBytes, rssAfterBytes});
+  static_.traces.push_back({getNextIndex(),
+                            std::move(traceName),
+                            duration.count(),
+                            rssBeforeBytes,
+                            rssAfterBytes});
 }
 
 void Tracing::saveTraces(const std::filesystem::path& output) {

@@ -39,7 +39,8 @@ TEST(FlattenerTest, OnlyParents) {
   //     int b;
   //     int c;
   //   };
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 8)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -72,7 +73,8 @@ TEST(FlattenerTest, ParentsFirst) {
   //     int a;
   //   };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 12)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -109,7 +111,8 @@ TEST(FlattenerTest, MembersFirst) {
   //     int c;
   //   };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 12)
       Parent (offset: 4)
 [1]     Class: ClassB (size: 4)
@@ -147,7 +150,8 @@ TEST(FlattenerTest, MixedMembersAndParents) {
   //     int c;
   //   };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 16)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -188,7 +192,8 @@ TEST(FlattenerTest, EmptyParent) {
   //     int a2;
   //   };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 12)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 0)
@@ -227,7 +232,8 @@ TEST(FlattenerTest, TwoDeep) {
   //     int a;
   //   };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 16)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 8)
@@ -271,7 +277,8 @@ TEST(FlattenerTest, DiamondInheritance) {
   //     int a;
   //   };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 16)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 8)
@@ -309,7 +316,8 @@ TEST(FlattenerTest, Member) {
   //   class B { int c; int b; };
   //   Class A { int a; B b; };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 12)
       Member: a (offset: 0)
         Primitive: int32_t
@@ -345,7 +353,8 @@ TEST(FlattenerTest, MemberOfParent) {
   //   class C { int c; };
   //   class A { int b; C c; int a; };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 12)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 8)
@@ -381,7 +390,8 @@ TEST(FlattenerTest, ContainerParam) {
   //   class A { int b; int a; };
   //   std::vector<A, int>
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
 [1]     Class: ClassA (size: 8)
@@ -413,7 +423,8 @@ TEST(FlattenerTest, Array) {
   //   class A : B { int a; };
   //   A[5]
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Array: (length: 5)
 [1]   Class: ClassA (size: 8)
         Parent (offset: 0)
@@ -439,7 +450,8 @@ TEST(FlattenerTest, Typedef) {
   //   class A : B { int a; };
   //   using aliasA = A;
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Typedef: aliasA
 [1]   Class: ClassA (size: 8)
         Parent (offset: 0)
@@ -465,7 +477,8 @@ TEST(FlattenerTest, TypedefParent) {
   //   using aliasB = B;
   //   class A : aliasB { int a; };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 8)
       Parent (offset: 0)
 [1]     Typedef: aliasB
@@ -502,7 +515,8 @@ TEST(FlattenerTest, Pointer) {
   auto classC = Class{0, Class::Kind::Class, "ClassC", 8};
   classC.members.push_back(Member{ptrA, "a", 0});
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassC (size: 8)
       Member: a (offset: 0)
 [1]     Pointer
@@ -539,7 +553,8 @@ TEST(FlattenerTest, PointerCycle) {
   classA.members.push_back(Member{classB, "b", 0});
   classB.members.push_back(Member{ptrA, "a", 0});
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 69)
       Member: b (offset: 0)
 [1]     Class: ClassB (size: 69)
@@ -565,7 +580,8 @@ TEST(FlattenerTest, Alignment) {
   //   class B { alignas(8) int b; };
   //   class A : B, C { int a; };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 12)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -605,7 +621,8 @@ TEST(FlattenerTest, Functions) {
   classB.functions.push_back(Function{"funcB"});
   classC.functions.push_back(Function{"funcC"});
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 0)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 0)
@@ -629,7 +646,8 @@ TEST(FlattenerTest, Children) {
   //   class B { int b; };
   //   class A : B, C { };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassB (size: 4)
       Member: b (offset: 0)
         Primitive: int32_t
@@ -664,7 +682,8 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
   //   class B : D { int b; };
   //   class A : B, C { int a; };
 
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassD (size: 4)
       Member: d (offset: 0)
         Primitive: int32_t
@@ -713,7 +732,8 @@ TEST(FlattenerTest, ChildrenTwoDeep) {
 }
 
 TEST(FlattenerTest, ParentContainer) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 32)
       Parent (offset: 0)
 [1]     Container: std::vector (size: 24)
@@ -734,7 +754,8 @@ TEST(FlattenerTest, ParentContainer) {
 }
 
 TEST(FlattenerTest, ParentTwoContainers) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 48)
       Parent (offset: 0)
 [1]     Container: std::vector (size: 24)
@@ -755,7 +776,8 @@ TEST(FlattenerTest, ParentTwoContainers) {
 }
 
 TEST(FlattenerTest, ParentClassAndContainer) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: ClassA (size: 32)
       Parent (offset: 0)
 [1]     Class: ClassB (size: 4)
@@ -778,7 +800,8 @@ TEST(FlattenerTest, ParentClassAndContainer) {
 }
 
 TEST(FlattenerTest, AllocatorParamInParent) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Container: std::map (size: 24)
       Param
         Primitive: int32_t
@@ -836,7 +859,8 @@ TEST(FlattenerTest, AllocatorUnfixableNoParent) {
 
 TEST(FlattenerTest, AllocatorUnfixableParentNotClass) {
   // This could be supported if need-be, we just don't do it yet
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -875,7 +899,8 @@ TEST(FlattenerTest, AllocatorUnfixableParentNotClass) {
 }
 
 TEST(FlattenerTest, AllocatorUnfixableParentNoParams) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
@@ -902,7 +927,8 @@ TEST(FlattenerTest, AllocatorUnfixableParentNoParams) {
 }
 
 TEST(FlattenerTest, AllocatorUnfixableParentParamIsValue) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Container: std::map (size: 24)
       Param
         Primitive: int32_t
@@ -936,7 +962,8 @@ TEST(FlattenerTest, AllocatorUnfixableParentParamIsValue) {
 }
 
 TEST(FlattenerTest, ClassParam) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: MyClass (size: 4)
       Param
 [1]     Class: MyChild (size: 4)
@@ -955,7 +982,8 @@ TEST(FlattenerTest, ClassParam) {
 }
 
 TEST(FlattenerTest, IncompleteParent) {
-  test(Flattener::createPass(), R"(
+  test(Flattener::createPass(),
+       R"(
 [0] Class: MyClass (size: 4)
       Parent (offset: 0)
         Incomplete: [IncompleteParent]

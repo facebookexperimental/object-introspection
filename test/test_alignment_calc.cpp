@@ -6,7 +6,8 @@
 using namespace type_graph;
 
 TEST(AlignmentCalcTest, PrimitiveMembers) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 16)
       Member: n (offset: 0)
         Primitive: int8_t
@@ -23,7 +24,8 @@ TEST(AlignmentCalcTest, PrimitiveMembers) {
 }
 
 TEST(AlignmentCalcTest, StructMembers) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 12)
       Member: n (offset: 0)
         Primitive: int8_t
@@ -48,7 +50,8 @@ TEST(AlignmentCalcTest, StructMembers) {
 }
 
 TEST(AlignmentCalcTest, StructInContainer) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Container: std::vector (size: 8)
       Param
 [1]     Class: MyClass (size: 16)
@@ -69,7 +72,8 @@ TEST(AlignmentCalcTest, StructInContainer) {
 }
 
 TEST(AlignmentCalcTest, PackedMembers) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Struct: MyStruct (size: 8)
       Member: n1 (offset: 0)
         Primitive: int8_t
@@ -98,7 +102,8 @@ TEST(AlignmentCalcTest, PackedMembers) {
 }
 
 TEST(AlignmentCalcTest, PackedTailPadding) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Struct: MyStruct (size: 5)
       Member: n1 (offset: 0)
         Primitive: int32_t
@@ -115,7 +120,8 @@ TEST(AlignmentCalcTest, PackedTailPadding) {
 }
 
 TEST(AlignmentCalcTest, RecurseClassParam) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 0)
       Param
 [1]     Class: ClassA (size: 16)
@@ -136,7 +142,8 @@ TEST(AlignmentCalcTest, RecurseClassParam) {
 }
 
 TEST(AlignmentCalcTest, RecurseClassParent) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 0)
       Parent (offset: 0)
 [1]     Class: ClassA (size: 16)
@@ -157,7 +164,8 @@ TEST(AlignmentCalcTest, RecurseClassParent) {
 }
 
 TEST(AlignmentCalcTest, RecurseClassMember) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 0)
       Member: xxx (offset: 0)
 [1]     Class: ClassA (size: 16)
@@ -178,7 +186,8 @@ TEST(AlignmentCalcTest, RecurseClassMember) {
 }
 
 TEST(AlignmentCalcTest, RecurseClassChild) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 0)
       Child
 [1]     Class: ClassA (size: 16)
@@ -199,7 +208,8 @@ TEST(AlignmentCalcTest, RecurseClassChild) {
 }
 
 TEST(AlignmentCalcTest, Bitfields) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 8)
       Member: a (offset: 0, bitsize: 2)
         Primitive: int8_t
@@ -216,7 +226,8 @@ TEST(AlignmentCalcTest, Bitfields) {
 }
 
 TEST(AlignmentCalcTest, Array) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 1)
       Member: a (offset: 0)
 [1]     Array: (length: 1)
@@ -235,7 +246,8 @@ TEST(AlignmentCalcTest, Array) {
 }
 
 TEST(AlignmentCalcTest, Typedef) {
-  test(AlignmentCalc::createPass(), R"(
+  test(AlignmentCalc::createPass(),
+       R"(
 [0] Class: MyClass (size: 1)
       Member: a (offset: 0)
 [1]     Typedef: MyTypedef

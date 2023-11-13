@@ -80,7 +80,8 @@ class ParseData {
  public:
   void addReq(std::string type, std::string func, std::list<std::string> args) {
     // Convert the args std::list into a more efficient std::vector
-    reqs.emplace_back(std::move(type), std::move(func),
+    reqs.emplace_back(std::move(type),
+                      std::move(func),
                       std::vector(std::make_move_iterator(args.begin()),
                                   std::make_move_iterator(args.end())));
   }

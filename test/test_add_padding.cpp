@@ -7,7 +7,8 @@
 using namespace type_graph;
 
 TEST(AddPaddingTest, BetweenMembers) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Class: MyClass (size: 16)
       Member: n1 (offset: 0)
         Primitive: int8_t
@@ -27,7 +28,8 @@ TEST(AddPaddingTest, BetweenMembers) {
 }
 
 TEST(AddPaddingTest, AtBeginning) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Struct: MyStruct (size: 16)
       Member: n1 (offset: 8)
         Primitive: int64_t
@@ -43,7 +45,8 @@ TEST(AddPaddingTest, AtBeginning) {
 }
 
 TEST(AddPaddingTest, AtEnd) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Struct: MyStruct (size: 16)
       Member: n1 (offset: 0)
         Primitive: int64_t
@@ -63,7 +66,8 @@ TEST(AddPaddingTest, AtEnd) {
 }
 
 TEST(AddPaddingTest, UnionBetweenMembers) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Union: MyUnion (size: 8)
       Member: n1 (offset: 0)
         Primitive: int64_t
@@ -80,7 +84,8 @@ TEST(AddPaddingTest, UnionBetweenMembers) {
 }
 
 TEST(AddPaddingTest, UnionAtEnd) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Union: MyUnion (size: 16)
       Member: n1 (offset: 0)
         Primitive: int64_t
@@ -100,7 +105,8 @@ TEST(AddPaddingTest, UnionAtEnd) {
 }
 
 TEST(AddPaddingTest, Bitfields) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Class: MyClass (size: 16)
       Member: b1 (offset: 0, bitsize: 3)
         Primitive: int64_t
@@ -148,7 +154,8 @@ TEST(AddPaddingTest, EmptyClass) {
 }
 
 TEST(AddPaddingTest, MemberlessClass) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Class: MyClass (size: 12)
 )",
        R"(
@@ -160,7 +167,8 @@ TEST(AddPaddingTest, MemberlessClass) {
 }
 
 TEST(AddPaddingTest, MemberlessUnion) {
-  test(AddPadding::createPass(), R"(
+  test(AddPadding::createPass(),
+       R"(
 [0] Union: MyUnion (size: 16)
 )",
        R"(

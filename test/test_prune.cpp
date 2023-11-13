@@ -6,7 +6,8 @@
 using type_graph::Prune;
 
 TEST(PruneTest, PruneClass) {
-  test(Prune::createPass(), R"(
+  test(Prune::createPass(),
+       R"(
 [0] Class: MyClass (size: 8)
       Param
         Primitive: int32_t
@@ -34,7 +35,8 @@ TEST(PruneTest, PruneClass) {
 }
 
 TEST(PruneTest, RecurseClassMember) {
-  test(Prune::createPass(), R"(
+  test(Prune::createPass(),
+       R"(
 [0] Class: MyClass (size: 0)
       Member: xxx (offset: 0)
 [1]     Class: ClassA (size: 12)
@@ -48,7 +50,8 @@ TEST(PruneTest, RecurseClassMember) {
 }
 
 TEST(PruneTest, RecurseClassChild) {
-  test(Prune::createPass(), R"(
+  test(Prune::createPass(),
+       R"(
 [0] Class: MyClass (size: 0)
       Child
 [1]     Class: ClassA (size: 12)

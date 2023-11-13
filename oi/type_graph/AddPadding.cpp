@@ -123,8 +123,8 @@ void AddPadding::addPadding(uint64_t paddingStartBits,
 
   if (paddingBits % 8 != 0) {
     // Pad with a bitfield up to the next byte
-    paddedMembers.emplace_back(primitive, MemberPrefix, paddingStartBits,
-                               paddingBits % 8);
+    paddedMembers.emplace_back(
+        primitive, MemberPrefix, paddingStartBits, paddingBits % 8);
   }
 
   uint64_t paddingBytes = paddingBits / 8;

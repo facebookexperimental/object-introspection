@@ -54,8 +54,8 @@ void flattenParent(const Parent& parent,
     }
   } else if (auto* parentContainer = dynamic_cast<Container*>(&parentType)) {
     // Create a new member to represent this parent container
-    flattenedMembers.emplace_back(*parentContainer, Flattener::ParentPrefix,
-                                  parent.bitOffset);
+    flattenedMembers.emplace_back(
+        *parentContainer, Flattener::ParentPrefix, parent.bitOffset);
   } else if (auto* parentPrimitive = dynamic_cast<Incomplete*>(&parentType)) {
     // Bad DWARF can lead to us seeing incomplete parent types. Just ignore
     // these as there is nothing we can do to recover the missing info.
@@ -151,7 +151,8 @@ void Flattener::visit(Class& c) {
   for (const auto& parent : c.parents) {
     Type& parentType = stripTypedefs(parent.type());
     if (Class* parentClass = dynamic_cast<Class*>(&parentType)) {
-      c.functions.insert(c.functions.end(), parentClass->functions.begin(),
+      c.functions.insert(c.functions.end(),
+                         parentClass->functions.begin(),
                          parentClass->functions.end());
     }
   }
@@ -201,8 +202,8 @@ void Flattener::visit(Class& c) {
   // Pull in children from flattened children
   // This may result in duplicates, but that shouldn't be a big deal
   for (const Class& child : c.children) {
-    c.children.insert(c.children.end(), child.children.begin(),
-                      child.children.end());
+    c.children.insert(
+        c.children.end(), child.children.begin(), child.children.end());
   }
 }
 

@@ -253,7 +253,8 @@ TEST_F(DrgnParserTest, InheritanceMultiple) {
 }
 
 TEST_F(DrgnParserTest, Container) {
-  testMultiCompilerGlob("oid_test_case_std_vector_int_empty", R"(
+  testMultiCompilerGlob("oid_test_case_std_vector_int_empty",
+                        R"(
 [13] Pointer
 [0]    Class: vector<int, std::allocator<int> > (size: 24)
          Param
@@ -340,7 +341,8 @@ TEST_F(DrgnParserTest, EnumNoValues) {
   DrgnParserOptions options{
       .readEnumValues = false,
   };
-  test("oid_test_case_enums_scoped", R"(
+  test("oid_test_case_enums_scoped",
+       R"(
     Enum: ScopedEnum (size: 4)
 )",
        options);
@@ -408,7 +410,8 @@ TEST_F(DrgnParserTest, PointerNoFollow) {
   DrgnParserOptions options{
       .chaseRawPointers = false,
   };
-  test("oid_test_case_pointers_struct_primitive_ptrs", R"(
+  test("oid_test_case_pointers_struct_primitive_ptrs",
+       R"(
 [1] Pointer
 [0]   Struct: PrimitivePtrs (size: 24)
         Member: a (offset: 0)
@@ -582,7 +585,8 @@ TEST_F(DrgnParserTest, MemberAlignment) {
 }
 
 TEST_F(DrgnParserTest, VirtualFunctions) {
-  testMultiCompiler("oid_test_case_inheritance_polymorphic_a_as_a", R"(
+  testMultiCompiler("oid_test_case_inheritance_polymorphic_a_as_a",
+                    R"(
 [1] Pointer
 [0]   Class: A (size: 16)
         Member: _vptr$A (offset: 0)

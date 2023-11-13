@@ -7,7 +7,8 @@
 using namespace type_graph;
 
 TEST(RemoveTopLevelPointerTest, TopLevelPointerRemoved) {
-  test(RemoveTopLevelPointer::createPass(), R"(
+  test(RemoveTopLevelPointer::createPass(),
+       R"(
 [0] Pointer
 [1]   Class: MyClass (size: 4)
         Member: n (offset: 0)

@@ -9,7 +9,8 @@ using namespace type_graph;
 
 namespace {
 void test(std::string_view input, std::string_view expectedAfter) {
-  ::test(IdentifyContainers::createPass(getContainerInfos()), input,
+  ::test(IdentifyContainers::createPass(getContainerInfos()),
+         input,
          expectedAfter);
 }
 };  // namespace

@@ -36,15 +36,24 @@ using namespace oi::detail;
 
 constexpr static OIOpts opts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit"},
-    OIOpt{'a', "log-all-structs", no_argument, nullptr,
+    OIOpt{'a',
+          "log-all-structs",
+          no_argument,
+          nullptr,
           "Enable TreeBuilder::Config::logAllStructs (=true)\n"
           "Note: this option is already enabled, this is a no-op"},
-    OIOpt{'J', "dump-json", optional_argument, "[oid_out.json]",
+    OIOpt{'J',
+          "dump-json",
+          optional_argument,
+          "[oid_out.json]",
           "File to dump the results to, as JSON\n"
           "(in addition to the default RocksDB output)"},
-    OIOpt{'f', "enable-feature", required_argument, "FEATURE",
-          "Enable feature"},
-    OIOpt{'F', "disable-feature", required_argument, "FEATURE",
+    OIOpt{
+        'f', "enable-feature", required_argument, "FEATURE", "Enable feature"},
+    OIOpt{'F',
+          "disable-feature",
+          required_argument,
+          "FEATURE",
           "Disable feature"},
 };
 
@@ -146,8 +155,8 @@ int main(int argc, char* argv[]) {
   };
 
   int c = '\0';
-  while ((c = getopt_long(argc, argv, opts.shortOpts(), opts.longOpts(),
-                          nullptr)) != -1) {
+  while ((c = getopt_long(
+              argc, argv, opts.shortOpts(), opts.longOpts(), nullptr)) != -1) {
     switch (c) {
       case 'h':
         usage(std::cout);

@@ -108,51 +108,90 @@ enum ExitStatus {
 
 constexpr static OIOpts opts{
     OIOpt{'h', "help", no_argument, nullptr, "Print this message and exit"},
-    OIOpt{'p', "pid", required_argument, "<pid>",
-          "Target process to attach to"},
-    OIOpt{'c', "config-file", required_argument, nullptr,
-          "</path/to/oid.toml>"},
-    OIOpt{'x', "data-buf-size", required_argument, "<bytes>",
+    OIOpt{
+        'p', "pid", required_argument, "<pid>", "Target process to attach to"},
+    OIOpt{
+        'c', "config-file", required_argument, nullptr, "</path/to/oid.toml>"},
+    OIOpt{'x',
+          "data-buf-size",
+          required_argument,
+          "<bytes>",
           "Size of data segment (default:1MB)\n"
           "Accepts multiplicative suffix: K, M, G, T, P, E"},
-    OIOpt{'d', "debug-level", required_argument, "<level>",
+    OIOpt{'d',
+          "debug-level",
+          required_argument,
+          "<level>",
           "Verbose level for logging"},
-    OIOpt{'r', "remove-mappings", no_argument, nullptr,
+    OIOpt{'r',
+          "remove-mappings",
+          no_argument,
+          nullptr,
           "Remove oid mappings from target process"},
     OIOpt{'s', "script", required_argument, nullptr, "</path/to/script.oid>"},
     OIOpt{'S', "script-source", required_argument, nullptr, "type:symbol:arg"},
-    OIOpt{'t', "timeout", required_argument, "<seconds>",
+    OIOpt{'t',
+          "timeout",
+          required_argument,
+          "<seconds>",
           "How long to probe the target process for"},
-    OIOpt{'k', "custom-code-file", required_argument, nullptr,
+    OIOpt{'k',
+          "custom-code-file",
+          required_argument,
+          nullptr,
           "</path/to/code.cpp>\n"
           "Use your own CPP file instead of CodeGen"},
-    OIOpt{'e', "compile-and-exit", no_argument, nullptr,
+    OIOpt{'e',
+          "compile-and-exit",
+          no_argument,
+          nullptr,
           "Compile only then exit"},
-    OIOpt{'o', "cache-path", required_argument, "<path>",
+    OIOpt{'o',
+          "cache-path",
+          required_argument,
+          "<path>",
           "Enable caching using the provided directory"},
-    OIOpt{'u', "cache-remote", required_argument, nullptr,
+    OIOpt{'u',
+          "cache-remote",
+          required_argument,
+          nullptr,
           "Enable upload/download of cache files\n"
           "Pick from {both,upload,download}"},
-    OIOpt{'i', "debug-path", required_argument, nullptr,
+    OIOpt{'i',
+          "debug-path",
+          required_argument,
+          nullptr,
           "</path/to/binary>\n"
           "Run oid on a executable with debug infos instead of a running "
           "process"},
     // Optional arguments are pretty nasty - it will only work as
     // "--dump-json=PATH" and not "--dump-json PATH". Try and make this take a
     // required argument at a later point
-    OIOpt{'J', "dump-json", optional_argument, "[oid_out.json]",
+    OIOpt{'J',
+          "dump-json",
+          optional_argument,
+          "[oid_out.json]",
           "File to dump the results to, as JSON\n"
           "(in addition to the default RocksDB output)"},
     OIOpt{
-        'B', "dump-data-segment", no_argument, nullptr,
+        'B',
+        "dump-data-segment",
+        no_argument,
+        nullptr,
         "Dump the data segment's content, before TreeBuilder processes it\n"
         "Each argument gets its own dump file: 'dataseg.<oid-pid>.<arg>.dump'"},
     OIOpt{'a', "log-all-structs", no_argument, nullptr, "Log all structures"},
-    OIOpt{'m', "mode", required_argument, "MODE",
+    OIOpt{'m',
+          "mode",
+          required_argument,
+          "MODE",
           "Allows to specify a mode of operation/group of settings"},
-    OIOpt{'f', "enable-feature", required_argument, "FEATURE",
-          "Enable feature"},
-    OIOpt{'F', "disable-feature", required_argument, "FEATURE",
+    OIOpt{
+        'f', "enable-feature", required_argument, "FEATURE", "Enable feature"},
+    OIOpt{'F',
+          "disable-feature",
+          required_argument,
+          "FEATURE",
           "Disable feature"},
 };
 
@@ -287,11 +326,11 @@ static ExitStatus::ExitStatus runScript(
 
   std::shared_ptr<OIDebugger> oid;  // share oid with the global signal handler
   if (oidConfig.pid != 0) {
-    oid = std::make_shared<OIDebugger>(oidConfig.pid, codeGenConfig,
-                                       compilerConfig, tbConfig);
+    oid = std::make_shared<OIDebugger>(
+        oidConfig.pid, codeGenConfig, compilerConfig, tbConfig);
   } else {
-    oid = std::make_shared<OIDebugger>(oidConfig.debugInfoFile, codeGenConfig,
-                                       compilerConfig, tbConfig);
+    oid = std::make_shared<OIDebugger>(
+        oidConfig.debugInfoFile, codeGenConfig, compilerConfig, tbConfig);
   }
   weak_oid = oid;  // set the weak_ptr for signal handlers
 
@@ -496,8 +535,8 @@ int main(int argc, char* argv[]) {
   google::SetStderrLogging(google::WARNING);
 
   int c = 0;
-  while ((c = getopt_long(argc, argv, opts.shortOpts(), opts.longOpts(),
-                          nullptr)) != -1) {
+  while ((c = getopt_long(
+              argc, argv, opts.shortOpts(), opts.longOpts(), nullptr)) != -1) {
     switch (c) {
       case 'F':
         [[fallthrough]];
@@ -675,8 +714,8 @@ int main(int argc, char* argv[]) {
       .jsonPath = jsonPath,
   };
 
-  auto featureSet = config::processConfigFiles(oidConfig.configFiles, features,
-                                               compilerConfig, codeGenConfig);
+  auto featureSet = config::processConfigFiles(
+      oidConfig.configFiles, features, compilerConfig, codeGenConfig);
   if (!featureSet) {
     return ExitStatus::UsageError;
   }
@@ -690,15 +729,15 @@ int main(int argc, char* argv[]) {
       return ExitStatus::FileNotFoundError;
     }
     std::ifstream script(scriptFile);
-    auto status = runScript(scriptFile, script, oidConfig, codeGenConfig,
-                            compilerConfig, tbConfig);
+    auto status = runScript(
+        scriptFile, script, oidConfig, codeGenConfig, compilerConfig, tbConfig);
     if (status != ExitStatus::Success) {
       return status;
     }
   } else if (!scriptSource.empty()) {
     std::istringstream script(scriptSource);
-    auto status = runScript(scriptFile, script, oidConfig, codeGenConfig,
-                            compilerConfig, tbConfig);
+    auto status = runScript(
+        scriptFile, script, oidConfig, codeGenConfig, compilerConfig, tbConfig);
     if (status != ExitStatus::Success) {
       return status;
     }

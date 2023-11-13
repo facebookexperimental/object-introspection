@@ -67,8 +67,9 @@ namespace oi::detail {
 constexpr int oidMagicId = 0x01DE8;
 
 bool OIDebugger::isGlobalDataProbeEnabled(void) const {
-  return std::any_of(cbegin(pdata), cend(pdata),
-                     [](const auto& r) { return r.type == "global"; });
+  return std::any_of(cbegin(pdata), cend(pdata), [](const auto& r) {
+    return r.type == "global";
+  });
 }
 
 bool OIDebugger::parseScript(std::istream& script) {
@@ -214,7 +215,8 @@ bool OIDebugger::setupLogFile(void) {
      * The memory will be re-used anyway and the path will get overwritten.
      */
     if (!writeTargetMemory((void*)logFilePath.c_str(),
-                           (void*)segConfig.textSegBase, logFilePathLen)) {
+                           (void*)segConfig.textSegBase,
+                           logFilePathLen)) {
       LOG(ERROR) << "Failed to write Log File's path into target process";
       return false;
     }
@@ -381,9 +383,15 @@ void OIDebugger::deleteSegmentConfig(bool deleteSegConfigFile) {
  */
 std::string OIDebugger::taskStateToString(OIDebugger::StatusType status) {
   /* Must reflect the order of OIDebugger::StatusType enum */
-  static const std::array enumMapping{"SLEEP",   "TRACED", "RUNNING",
-                                      "ZOMBIE",  "DEAD",   "DISK SLEEP",
-                                      "STOPPED", "OTHER",  "BAD"};
+  static const std::array enumMapping{"SLEEP",
+                                      "TRACED",
+                                      "RUNNING",
+                                      "ZOMBIE",
+                                      "DEAD",
+                                      "DISK SLEEP",
+                                      "STOPPED",
+                                      "OTHER",
+                                      "BAD"};
 
   return enumMapping[static_cast<int>(status)];
 }
@@ -583,7 +591,8 @@ bool OIDebugger::locateObjectsAddresses(const trapInfo& tInfo,
     }
 
     VLOG(4) << "Entry: arg addr: " << std::hex << *addr;
-    if (!writeTargetMemory((void*)(&addr.value()), (void*)remoteObjAddr->second,
+    if (!writeTargetMemory((void*)(&addr.value()),
+                           (void*)remoteObjAddr->second,
                            sizeof(*addr))) {
       LOG(ERROR) << "Entry: writeTargetMemory remoteObjAddr failed!";
       ret = false;
@@ -882,8 +891,8 @@ bool OIDebugger::processGlobal(const std::string& varName) {
     return false;
   }
 
-  if (!writeTargetMemory((void*)&addr, (void*)remoteObjAddr->second,
-                         sizeof(addr))) {
+  if (!writeTargetMemory(
+          (void*)&addr, (void*)remoteObjAddr->second, sizeof(addr))) {
     LOG(ERROR) << "processGlobal: writeTargetMemory remoteObjAddr failed!";
   }
 
@@ -1023,7 +1032,9 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
         VLOG(4) << "child was stopped with: " << WSTOPSIG(tstatus);
       }
 
-      ptrace(PTRACE_SETOPTIONS, childPid, NULL,
+      ptrace(PTRACE_SETOPTIONS,
+             childPid,
+             NULL,
              PTRACE_O_TRACESYSGOOD | PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE |
                  PTRACE_O_TRACEVFORK);
 
@@ -1230,8 +1241,9 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
 
 std::optional<std::vector<uintptr_t>> OIDebugger::findRetLocs(FuncDesc& fd) {
   size_t maxSize = std::accumulate(
-      fd.ranges.begin(), fd.ranges.end(), size_t(0),
-      [](auto currMax, auto& r) { return std::max(currMax, r.size()); });
+      fd.ranges.begin(), fd.ranges.end(), size_t(0), [](auto currMax, auto& r) {
+        return std::max(currMax, r.size());
+      });
 
   std::vector<uintptr_t> retLocs;
   std::vector<std::byte> text(maxSize);
@@ -1384,8 +1396,9 @@ bool OIDebugger::functionPatch(const prequest& req) {
 
   /* 1. Locate all TRAP points and create a corresponding empty trapInfo in
    * tiVec */
-  bool hasArg = std::any_of(begin(req.args), end(req.args),
-                            [](auto& arg) { return arg != "retval"; });
+  bool hasArg = std::any_of(begin(req.args), end(req.args), [](auto& arg) {
+    return arg != "retval";
+  });
 
   if (req.type == "entry" || hasArg) {
     trapType tType =
@@ -1414,8 +1427,8 @@ bool OIDebugger::functionPatch(const prequest& req) {
     }
 
     for (auto addr : *retLocs) {
-      tiVec.push_back(std::make_shared<trapInfo>(OID_TRAP_VECT_RET, addr,
-                                                 segConfig.textSegBase));
+      tiVec.push_back(std::make_shared<trapInfo>(
+          OID_TRAP_VECT_RET, addr, segConfig.textSegBase));
     }
   }
 
@@ -1433,8 +1446,12 @@ bool OIDebugger::functionPatch(const prequest& req) {
   }
 
   errno = 0;
-  auto readBytes = process_vm_readv(traceePid, localIov.data(), localIov.size(),
-                                    remoteIov.data(), remoteIov.size(), 0);
+  auto readBytes = process_vm_readv(traceePid,
+                                    localIov.data(),
+                                    localIov.size(),
+                                    remoteIov.data(),
+                                    remoteIov.size(),
+                                    0);
   if (readBytes < 0) {
     LOG(ERROR) << "Failed to get original instructions: " << strerror(errno);
     return false;
@@ -1489,9 +1506,12 @@ bool OIDebugger::functionPatch(const prequest& req) {
 
   /* 4. Save the original instructions in our Replay Instruction buffer */
   errno = 0;
-  auto writtenBytes =
-      process_vm_writev(traceePid, localIov.data(), localIov.size(),
-                        remoteIov.data(), remoteIov.size(), 0);
+  auto writtenBytes = process_vm_writev(traceePid,
+                                        localIov.data(),
+                                        localIov.size(),
+                                        remoteIov.data(),
+                                        remoteIov.size(),
+                                        0);
   if (writtenBytes < 0) {
     LOG(ERROR) << "Failed to save original instructions: " << strerror(errno);
     return false;
@@ -1588,8 +1608,12 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
      * x86-64        rdi   rsi   rdx   r10   r8    r9    -
      */
     const std::array<unsigned long long*, 6> argToReg = {
-        &newregs.rdi, &newregs.rsi, &newregs.rdx,
-        &newregs.r10, &newregs.r8,  &newregs.r9,
+        &newregs.rdi,
+        &newregs.rsi,
+        &newregs.rdx,
+        &newregs.r10,
+        &newregs.r8,
+        &newregs.r9,
     };
 
     unsigned long long args[] = {(unsigned long long)_args...};
@@ -1682,15 +1706,19 @@ bool OIDebugger::setupSegment(SegType seg) {
   std::optional<void*> segAddr;
   if (seg == SegType::text) {
     segAddr =
-        remoteSyscall<SysMmap>(nullptr, textSegSize,  // addr & size
+        remoteSyscall<SysMmap>(nullptr,
+                               textSegSize,  // addr & size
                                PROT_READ | PROT_WRITE | PROT_EXEC,  // prot
                                MAP_PRIVATE | MAP_ANONYMOUS,         // flags
-                               -1, 0);  // fd & offset
+                               -1,
+                               0);  // fd & offset
   } else {
-    segAddr = remoteSyscall<SysMmap>(nullptr, dataSegSize,        // addr & size
+    segAddr = remoteSyscall<SysMmap>(nullptr,
+                                     dataSegSize,                 // addr & size
                                      PROT_READ | PROT_WRITE,      // prot
                                      MAP_SHARED | MAP_ANONYMOUS,  // flags
-                                     -1, 0);                      // fd & offset
+                                     -1,
+                                     0);  // fd & offset
   }
 
   if (!segAddr.has_value()) {
@@ -1835,13 +1863,16 @@ bool OIDebugger::removeTrap(pid_t pid, const trapInfo& t) {
         break;
       }
 
-      memcpy(repatchedBytes.data() + off, it->second->patchedTextBytes,
+      memcpy(repatchedBytes.data() + off,
+             it->second->patchedTextBytes,
              windowSize - off);
     }
   }
 
   VLOG(4) << "removeTrap removing int3 at " << std::hex << t.trapAddr;
-  if (ptrace(PTRACE_POKETEXT, (!pid ? traceePid : pid), t.trapAddr,
+  if (ptrace(PTRACE_POKETEXT,
+             (!pid ? traceePid : pid),
+             t.trapAddr,
              *reinterpret_cast<uintptr_t*>(repatchedBytes.data())) < 0) {
     LOG(ERROR) << "Execute: Couldn't poke text: " << strerror(errno);
     return false;
@@ -2120,8 +2151,8 @@ bool OIDebugger::writePrologue(
 
   assert(off <= prologueLength);
 
-  return writeTargetMemory(&newInsts, (void*)segConfig.textSegBase,
-                           prologueLength);
+  return writeTargetMemory(
+      &newInsts, (void*)segConfig.textSegBase, prologueLength);
 }
 
 /*
@@ -2161,7 +2192,9 @@ bool OIDebugger::compileCode() {
         } else {
           LOG(INFO) << "Attempting to get cache request from gobs";
           ObjectIntrospection::GobsService::requestCache(
-              procpath, std::string(buf, buf_size), req.toString(),
+              procpath,
+              std::string(buf, buf_size),
+              req.toString(),
               generatorConfig.toOptions());
         }
 #endif
@@ -2236,7 +2269,8 @@ bool OIDebugger::compileCode() {
       }
 
       const auto& [rootType, typeHierarchy, paddingInfo] = typeInfos.at(req);
-      cache.store(req, OICache::Entity::TypeHierarchy,
+      cache.store(req,
+                  OICache::Entity::TypeHierarchy,
                   std::make_pair(rootType, typeHierarchy));
       cache.store(req, OICache::Entity::PaddingInfo, paddingInfo);
     }
@@ -2256,8 +2290,8 @@ bool OIDebugger::compileCode() {
     for (const auto& o : objectFiles) {
       VLOG(2) << "  * " << o;
     }
-    auto relocRes = compiler.applyRelocs(segConfig.jitCodeStart, objectFiles,
-                                         syntheticSymbols);
+    auto relocRes = compiler.applyRelocs(
+        segConfig.jitCodeStart, objectFiles, syntheticSymbols);
     if (!relocRes.has_value()) {
       LOG(ERROR) << "Failed to relocate object code";
       return false;
@@ -2292,7 +2326,8 @@ bool OIDebugger::compileCode() {
       return false;
     }
 
-    if (!writeTargetMemory(&dataSegSize, (void*)syntheticSymbols["dataSize"],
+    if (!writeTargetMemory(&dataSegSize,
+                           (void*)syntheticSymbols["dataSize"],
                            sizeof(dataSegSize))) {
       LOG(ERROR) << "Failed to write dataSegSize in probe's dataSize";
       return false;
@@ -2307,8 +2342,8 @@ bool OIDebugger::compileCode() {
 
     int logFile =
         generatorConfig.features[Feature::JitLogging] ? segConfig.logFile : 0;
-    if (!writeTargetMemory(&logFile, (void*)syntheticSymbols["logFile"],
-                           sizeof(logFile))) {
+    if (!writeTargetMemory(
+            &logFile, (void*)syntheticSymbols["logFile"], sizeof(logFile))) {
       LOG(ERROR) << "Failed to write logFile in probe's cookieValue";
       return false;
     }
@@ -2329,8 +2364,9 @@ void OIDebugger::restoreState(void) {
    * Ensure we don't have any trap in the target process still active.
    */
   const size_t activeTrapsCount = std::count_if(
-      activeTraps.cbegin(), activeTraps.cend(),
-      [](const auto& t) { return t.second->trapKind != OID_TRAP_JITCODERET; });
+      activeTraps.cbegin(), activeTraps.cend(), [](const auto& t) {
+        return t.second->trapKind != OID_TRAP_JITCODERET;
+      });
   VLOG(1) << "Active traps still within the target process: "
           << activeTrapsCount;
   assert(activeTrapsCount == 0);
@@ -2562,7 +2598,9 @@ bool OIDebugger::targetAttach() {
          * here (note: ptrace(2) overloads the ESRCH return but with a seize
          * I think it can only mean one thing).
          */
-        if (ptrace(PTRACE_SEIZE, pid, NULL,
+        if (ptrace(PTRACE_SEIZE,
+                   pid,
+                   NULL,
                    PTRACE_O_TRACECLONE | PTRACE_O_TRACEFORK |
                        PTRACE_O_TRACEVFORK | PTRACE_O_TRACEEXIT) < 0) {
           LOG(ERROR) << "Couldn't seize thread " << pid
@@ -2750,9 +2788,11 @@ bool OIDebugger::decodeTargetData(const DataHeader& dataHeader,
 static bool dumpDataSegment(const irequest& req,
                             const std::vector<uint64_t>& dataSeg) {
   char dumpPath[PATH_MAX] = {0};
-  auto dumpPathSize =
-      snprintf(dumpPath, sizeof(dumpPath), "/tmp/dataseg.%d.%s.dump", getpid(),
-               req.arg.c_str());
+  auto dumpPathSize = snprintf(dumpPath,
+                               sizeof(dumpPath),
+                               "/tmp/dataseg.%d.%s.dump",
+                               getpid(),
+                               req.arg.c_str());
   if (dumpPathSize < 0 || (size_t)dumpPathSize > sizeof(dumpPath)) {
     LOG(ERROR) << "Failed to generate data-segment path";
     return false;
@@ -2781,7 +2821,8 @@ bool OIDebugger::processTargetData() {
 
   std::vector<std::byte> buf{dataSegSize};
   if (!readTargetMemory(reinterpret_cast<void*>(segConfig.dataSegBase),
-                        buf.data(), dataSegSize)) {
+                        buf.data(),
+                        dataSegSize)) {
     LOG(ERROR) << "Failed to read data segment from target process";
     return false;
   }
@@ -2838,8 +2879,8 @@ bool OIDebugger::processTargetData() {
     }
 
     try {
-      typeTree.build(outVec, rootType.varName, rootType.type.type,
-                     typeHierarchy);
+      typeTree.build(
+          outVec, rootType.varName, rootType.type.type, typeHierarchy);
     } catch (std::exception& e) {
       LOG(ERROR) << "Failed to run TreeBuilder for " << req.arg;
       LOG(ERROR) << e.what();
@@ -2901,7 +2942,8 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   typeInfos.emplace(
       req,
       std::make_tuple(RootInfo{rootInfo.varName, codegen->getRootType()},
-                      codegen->getTypeHierarchy(), codegen->getPaddingInfo()));
+                      codegen->getTypeHierarchy(),
+                      codegen->getPaddingInfo()));
 
   if (generatorConfig.features[Feature::TypeGraph]) {
     CodeGen codegen2{generatorConfig, *symbols};

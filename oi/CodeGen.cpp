@@ -194,12 +194,12 @@ namespace {
 
 size_t calculateExclusiveSize(const Type& t) {
   if (const auto* c = dynamic_cast<const Class*>(&t)) {
-    return std::accumulate(c->members.cbegin(), c->members.cend(), 0,
-                           [](size_t a, const auto& m) {
-                             if (m.name.starts_with(AddPadding::MemberPrefix))
-                               return a + m.type().size();
-                             return a;
-                           });
+    return std::accumulate(
+        c->members.cbegin(), c->members.cend(), 0, [](size_t a, const auto& m) {
+          if (m.name.starts_with(AddPadding::MemberPrefix))
+            return a + m.type().size();
+          return a;
+        });
   }
   return t.size();
 }
@@ -1087,8 +1087,8 @@ constexpr inst::Field make_field(std::string_view name) {
       TemplateParam{typeGraph.makeType<Primitive>(Primitive::Kind::UInt64),
                     "0"},
   };
-  genContainerTypeHandler(features, used, FuncGen::GetOiArrayContainerInfo(),
-                          arrayParams, code);
+  genContainerTypeHandler(
+      features, used, FuncGen::GetOiArrayContainerInfo(), arrayParams, code);
 }
 
 }  // namespace
@@ -1098,12 +1098,17 @@ void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
       genClassTypeHandler(*c, code);
     } else if (const auto* con = dynamic_cast<const Container*>(&t)) {
-      genContainerTypeHandler(config_.features, definedContainers_,
-                              con->containerInfo_, con->templateParams, code);
+      genContainerTypeHandler(config_.features,
+                              definedContainers_,
+                              con->containerInfo_,
+                              con->templateParams,
+                              code);
     } else if (const auto* cap = dynamic_cast<const CaptureKeys*>(&t)) {
-      genContainerTypeHandler(config_.features, definedContainers_,
+      genContainerTypeHandler(config_.features,
+                              definedContainers_,
                               cap->containerInfo(),
-                              cap->container().templateParams, code);
+                              cap->container().templateParams,
+                              code);
     }
   }
 }
@@ -1301,7 +1306,8 @@ void CodeGen::generate(
   }
 
   if (config_.features[Feature::TreeBuilderV2]) {
-    FuncGen::DefineTreeBuilderInstructions(code, typeName,
+    FuncGen::DefineTreeBuilderInstructions(code,
+                                           typeName,
                                            calculateExclusiveSize(rootType),
                                            enumerateTypeNames(rootType));
   } else if (config_.features[Feature::TreeBuilderTypeChecking]) {

@@ -215,8 +215,8 @@ std::optional<FeatureSet> processConfigFile(
             auto* members = (*captureKeys)["members"].as_array();
             if (!members) {
               generatorConfig.keysToCapture.push_back(
-                  OICodeGen::Config::KeyToCapture{type->value_or(""), "*",
-                                                  false});
+                  OICodeGen::Config::KeyToCapture{
+                      type->value_or(""), "*", false});
             } else {
               for (auto&& member : *members) {
                 generatorConfig.keysToCapture.push_back(
@@ -226,8 +226,8 @@ std::optional<FeatureSet> processConfigFile(
             }
           } else if (topLevel) {
             generatorConfig.keysToCapture.push_back(
-                OICodeGen::Config::KeyToCapture{std::nullopt, std::nullopt,
-                                                true});
+                OICodeGen::Config::KeyToCapture{
+                    std::nullopt, std::nullopt, true});
           }
         }
       }

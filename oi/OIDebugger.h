@@ -113,7 +113,8 @@ class OIDebugger {
     return std::all_of(
         std::begin(pdata), std::end(pdata), [this](const auto& req) {
           return std::all_of(
-              std::begin(req.args), std::end(req.args),
+              std::begin(req.args),
+              std::end(req.args),
               [this, &req](const auto& arg) {
                 return cache.upload(irequest{req.type, req.func, arg});
               });
@@ -123,7 +124,8 @@ class OIDebugger {
     return std::all_of(
         std::begin(pdata), std::end(pdata), [this](const auto& req) {
           return std::all_of(
-              std::begin(req.args), std::end(req.args),
+              std::begin(req.args),
+              std::end(req.args),
               [this, &req](const auto& arg) {
                 return cache.download(irequest{req.type, req.func, arg});
               });

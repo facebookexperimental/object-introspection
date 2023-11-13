@@ -79,8 +79,8 @@ static struct LLVMInitializer {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetDisassembler();
 
-    disassemblerContext = LLVMCreateDisasm("x86_64-pc-linux", nullptr, 0,
-                                           nullptr, symbolLookupCallback);
+    disassemblerContext = LLVMCreateDisasm(
+        "x86_64-pc-linux", nullptr, 0, nullptr, symbolLookupCallback);
     if (!disassemblerContext) {
       throw std::runtime_error("Failed to initialize disassemblerContext");
     }
@@ -106,10 +106,13 @@ OICompiler::Disassembler::operator()() {
     return std::nullopt;
   }
 
-  size_t instSize = LLVMDisasmInstruction(
-      disassemblerContext, const_cast<uint8_t*>(std::data(funcText)),
-      std::size(funcText), 0, std::data(disassemblyBuffer),
-      std::size(disassemblyBuffer));
+  size_t instSize =
+      LLVMDisasmInstruction(disassemblerContext,
+                            const_cast<uint8_t*>(std::data(funcText)),
+                            std::size(funcText),
+                            0,
+                            std::data(disassemblyBuffer),
+                            std::size(disassemblyBuffer));
   if (instSize == 0) {
     return std::nullopt;
   }
@@ -150,7 +153,9 @@ class OIMemoryManager : public RTDyldMemoryManager {
       std::error_code errorCode;
       auto mem = sys::Memory::allocateMappedMemory(
           alignTo(totalSize + 256, 256),  // Extra to fit paddings added below
-          nullptr, sys::Memory::MF_READ | sys::Memory::MF_WRITE, errorCode);
+          nullptr,
+          sys::Memory::MF_READ | sys::Memory::MF_WRITE,
+          errorCode);
 
       /*
        * It looks like report_fatal_error() calls exit() by default. If it's
@@ -509,7 +514,9 @@ bool OICompiler::compile(const std::string& code,
 
   for (const auto& path : config.userHeaderPaths) {
     headerSearchOptions.AddPath(
-        path.c_str(), clang::frontend::IncludeDirGroup::IndexHeaderMap, false,
+        path.c_str(),
+        clang::frontend::IncludeDirGroup::IndexHeaderMap,
+        false,
         false);
   }
 
@@ -518,22 +525,25 @@ bool OICompiler::compile(const std::string& code,
         path.c_str(), clang::frontend::IncludeDirGroup::System, false, false);
   }
 
-  static const auto syntheticHeaders = std::array<
-      std::pair<Feature, std::pair<std::string_view, std::string>>, 7>{{
-      {Feature::TypedDataSegment, {headers::oi_types_st_h, "oi/types/st.h"}},
-      {Feature::TreeBuilderTypeChecking,
-       {headers::oi_types_dy_h, "oi/types/dy.h"}},
-      {Feature::TreeBuilderV2,
-       {headers::oi_exporters_inst_h, "oi/exporters/inst.h"}},
-      {Feature::TreeBuilderV2,
-       {headers::oi_exporters_ParsedData_h, "oi/exporters/ParsedData.h"}},
-      {Feature::TreeBuilderV2,
-       {headers::oi_result_Element_h, "oi/result/Element.h"}},
-      {Feature::Library,
-       {headers::oi_IntrospectionResult_h, "oi/IntrospectionResult.h"}},
-      {Feature::Library,
-       {headers::oi_IntrospectionResult_inl_h, "oi/IntrospectionResult-inl.h"}},
-  }};
+  static const auto syntheticHeaders =
+      std::array<std::pair<Feature, std::pair<std::string_view, std::string>>,
+                 7>{{
+          {Feature::TypedDataSegment,
+           {headers::oi_types_st_h, "oi/types/st.h"}},
+          {Feature::TreeBuilderTypeChecking,
+           {headers::oi_types_dy_h, "oi/types/dy.h"}},
+          {Feature::TreeBuilderV2,
+           {headers::oi_exporters_inst_h, "oi/exporters/inst.h"}},
+          {Feature::TreeBuilderV2,
+           {headers::oi_exporters_ParsedData_h, "oi/exporters/ParsedData.h"}},
+          {Feature::TreeBuilderV2,
+           {headers::oi_result_Element_h, "oi/result/Element.h"}},
+          {Feature::Library,
+           {headers::oi_IntrospectionResult_h, "oi/IntrospectionResult.h"}},
+          {Feature::Library,
+           {headers::oi_IntrospectionResult_inl_h,
+            "oi/IntrospectionResult-inl.h"}},
+      }};
   for (const auto& [k, v] : syntheticHeaders) {
     if (!config.features[k])
       continue;
@@ -546,7 +556,9 @@ bool OICompiler::compile(const std::string& code,
     if (config.features[k]) {
       headerSearchOptions.AddPath(
           "/synthetic/headers",
-          clang::frontend::IncludeDirGroup::IndexHeaderMap, false, false);
+          clang::frontend::IncludeDirGroup::IndexHeaderMap,
+          false,
+          false);
       break;
     }
   }
@@ -657,9 +669,10 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
               << currentRelocAddress + offset;
     }
 
-    res.relocInfos.push_back(RelocResult::RelocInfo{
-        (uintptr_t)slab.memBlock.base(), currentRelocAddress,
-        slab.memBlock.allocatedSize()});
+    res.relocInfos.push_back(
+        RelocResult::RelocInfo{(uintptr_t)slab.memBlock.base(),
+                               currentRelocAddress,
+                               slab.memBlock.allocatedSize()});
     currentRelocAddress =
         alignTo(currentRelocAddress + slab.memBlock.allocatedSize(), 128);
     res.newBaseRelocAddr = currentRelocAddress;
