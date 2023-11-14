@@ -33,28 +33,53 @@ void getSizeType(const %1%<T, Allocator> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1>
-struct TypeHandler<DB, %1% <T0, T1>> {
-  using type = types::st::Pair<DB,
-        types::st::VarInt<DB>,
-        types::st::List<DB, typename TypeHandler<DB, T0>::type>>;
+traversal_func = """
+auto tail = returnArg.write((uintptr_t)&container)
+                .write(container.size());
 
-  static types::st::Unit<DB> getSizeType(
-      const %1% <T0, T1> & container,
-      typename TypeHandler<DB, %1% <T0, T1>>::type returnArg) {
-    auto tail = returnArg.write((uintptr_t)&container)
-                    .write(container.size());
+for (auto&& it : container) {
+  tail = tail.delegate([&it](auto ret) {
+    return OIInternal::getSizeType<DB>(it, ret);
+  });
+}
 
-    // The double ampersand is needed otherwise this loop doesn't work with
-    // vector<bool>
-    for (auto&& it : container) {
-      tail = tail.delegate([&it](auto ret) {
-        return OIInternal::getSizeType<DB>(it, ret);
-      });
-    }
+return tail.finish();
+"""
 
-    return tail.finish();
-  }
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+func = """
+#ifdef __GLIBCXX__
+static constexpr size_t element_size = sizeof(std::_List_node<T0>);
+#else
+static_assert(false && "No known element_size for list. See types/cxx11_list_type.toml");
+#endif
+
+static constexpr std::array<inst::Field, 1> child_field{
+  make_field<DB, T0>("*"),
 };
+static constexpr inst::Field element{
+  element_size,
+  element_size - sizeof(T0),
+  "[]",
+  std::array<std::string_view, 0>{},
+  child_field,
+  std::array<inst::ProcessorInst, 0>{},
+};
+static constexpr auto childField = make_field<DB, T0>("[]");
+
+auto list = std::get<ParsedData::List>(d.val);
+el.container_stats.emplace(result::Element::ContainerStats{
+  .capacity = list.length,
+  .length = list.length,
+});
+el.exclusive_size += (el.container_stats->capacity - el.container_stats->length) * sizeof(T0);
+
+stack_ins(inst::Repeat{ list.length, childField });
 """
