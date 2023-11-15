@@ -44,9 +44,12 @@ class {
  private:
   // 1 MiB of pointers
   std::array<uintptr_t, (1 << 20) / sizeof(uintptr_t)> data;
+  size_t numEntries;
 
-  // twang_mix64 hash function, taken from Folly where it is used
-  // as the default hash function for 64-bit integers
+  /*
+   * twang_mix64 hash function, taken from Folly where it is used as the
+   * default hash function for 64-bit integers.
+   */
   constexpr static uint64_t twang_mix64(uint64_t key) noexcept {
     key = (~key) + (key << 21);  // key *= (1 << 21) - 1; key -= 1;
     key = key ^ (key >> 24);
@@ -61,26 +64,46 @@ class {
  public:
   void initialize() noexcept {
     data.fill(0);
+    numEntries = 0;
   }
 
-  // Adds the pointer to the set.
-  // Returns `true` if the value was newly added,
-  // or `false` if the value was already present.
+  /*
+   * Adds the pointer to the set.
+   * Returns `true` if the value was newly added. `false` may be returned if
+   * the value was already present or if there are no entries left in the
+   * array.
+   */
   bool add(uintptr_t pointer) noexcept {
-    __builtin_assume(pointer > 0);
+    if (pointer == 0) {
+      return false;
+    }
+
     uint64_t index = twang_mix64(pointer) % data.size();
     while (true) {
       uintptr_t entry = data[index];
+
       if (entry == 0) {
         data[index] = pointer;
+        ++numEntries;
         return true;
       }
-      if (entry == pointer) {
+
+      if (entry == pointer || numEntries >= data.size()) {
         return false;
       }
+
       index = (index + 1) % data.size();
     }
   }
+
+  size_t size(void) {
+    return numEntries;
+  }
+
+  size_t capacity(void) {
+    return data.size();
+  }
+
   bool add(const auto* p) {
     return add((uintptr_t)p);
   }
