@@ -36,33 +36,5 @@ void getSizeType(const %1%<Types...> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename... Types>
-struct TypeHandler<DB, %1%<Types...>> {
-    using type = types::st::Sum<DB, typename TypeHandler<DB, Types>::type..., types::st::Unit<DB>>;
-
-    static types::st::Unit<DB> getSizeType(
-        const %1%<Types...>& container,
-        typename TypeHandler<DB, %1%<Types...>>::type returnArg) {
-      return getSizeTypeRecursive(container, returnArg);
-    }
-
-  private:
-    template <size_t I = 0>
-    static types::st::Unit<DB> getSizeTypeRecursive(
-        const %1%<Types...>& container,
-        typename TypeHandler<DB, %1%<Types...>>::type returnArg) {
-      if constexpr (I < sizeof...(Types)) {
-        if (I == container.index()) {
-          return returnArg.template delegate<I>([&container](auto ret) {
-            return OIInternal::getSizeType<DB>(std::get<I>(container), ret);
-          });
-        } else {
-          return getSizeTypeRecursive<I+1>(container, returnArg);
-        }
-      } else {
-        return returnArg.template delegate<sizeof...(Types)>(std::identity());
-      }
-    }
-};
-"""
+# TODO: Add tbv2 definitions. The removed intermediate handler is a good
+# template for this, find it in the git logs.

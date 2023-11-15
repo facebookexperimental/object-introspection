@@ -35,38 +35,6 @@ void getSizeType(const %1%<T,Deleter> &u_ptr, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1>
-struct TypeHandler<DB, %1%<T0,T1>> {
-    using type = typename std::conditional<
-      std::is_void<T0>::value,
-      types::st::Unit<DB>,
-      types::st::Pair<DB,
-        types::st::VarInt<DB>,
-        types::st::Sum<DB,
-          types::st::Unit<DB>,
-          typename TypeHandler<DB, T0>::type
-      >>>::type;
-
-    static types::st::Unit<DB> getSizeType(
-        const %1%<T0,T1>& container,
-        typename TypeHandler<DB, %1%<T0,T1>>::type returnArg) {
-      if constexpr (!std::is_void<T0>::value) {
-        auto r0 = returnArg.write((uintptr_t)(container.get()));
-        if (container && pointers.add((uintptr_t)(container.get()))) {
-          return r0.template delegate<1>([&container](auto ret) {
-            return OIInternal::getSizeType<DB>(*(container.get()), ret);
-          });
-        } else {
-          return r0.template delegate<0>(std::identity());
-        }
-      } else {
-        return returnArg;
-      }
-    }
-};
-"""
-
 traversal_func = """
 auto tail = returnArg.write((uintptr_t)container.get());
 

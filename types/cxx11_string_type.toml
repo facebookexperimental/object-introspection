@@ -36,24 +36,6 @@ void getSizeType(const %1%<T, Traits, Allocator> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0>
-struct TypeHandler<DB, %1% <T0>> {
-  using type =
-      types::st::Pair<DB, types::st::VarInt<DB>, types::st::VarInt<DB>>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1% <T0> & container,
-      typename TypeHandler<DB, %1% <T0>>::type returnArg) {
-    bool sso = ((uintptr_t)container.data() <
-                (uintptr_t)(&container + sizeof(%1% <T0>))) &&
-               ((uintptr_t)container.data() >= (uintptr_t)&container);
-
-    return returnArg.write(container.capacity()).write(container.size());
-  }
-};
-"""
-
 extra = """
 template <typename DB, typename CharT, typename Traits, typename Allocator>
 class CaptureKeyHandler<DB, std::__cxx11::basic_string<CharT, Traits, Allocator>> {
