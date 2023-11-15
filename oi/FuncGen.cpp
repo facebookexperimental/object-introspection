@@ -268,11 +268,13 @@ void __attribute__((used, retain)) introspect_%2$016x(
   v.clear();
   v.reserve(4096);
 
-  using DataBufferType = DataBuffer::BackInserter<std::vector<uint8_t>>;
-  using ContentType = OIInternal::TypeHandler<DataBufferType, OIInternal::__ROOT_TYPE__>::type;
+  struct Context {
+    using DataBuffer = DataBuffer::BackInserter<std::vector<uint8_t>>;
+  };
+  using ContentType = OIInternal::TypeHandler<Context, OIInternal::__ROOT_TYPE__>::type;
 
-  ContentType ret{DataBufferType{v}};
-  OIInternal::getSizeType<DataBufferType>(t, ret);
+  ContentType ret{Context::DataBuffer{v}};
+  OIInternal::getSizeType<Context>(t, ret);
 }
 )";
 
@@ -368,6 +370,9 @@ void FuncGen::DefineTreeBuilderInstructions(
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunknown-attributes"
 namespace {
+struct FakeContext {
+  using DataBuffer = int;
+};
 const std::array<std::string_view, )";
   code += std::to_string(typeNames.size());
   code += "> typeNames";
@@ -386,8 +391,10 @@ const std::array<std::string_view, )";
   code += ", \"a0\", typeNames";
   code += typeHash;
   code +=
-      ", OIInternal::TypeHandler<int, OIInternal::__ROOT_TYPE__>::fields, "
-      "OIInternal::TypeHandler<int, OIInternal::__ROOT_TYPE__>::processors};\n";
+      ", OIInternal::TypeHandler<FakeContext, "
+      "OIInternal::__ROOT_TYPE__>::fields, "
+      "OIInternal::TypeHandler<FakeContext, "
+      "OIInternal::__ROOT_TYPE__>::processors};\n";
   code += "} // namespace\n";
   code +=
       "extern const exporters::inst::Inst __attribute__((used, retain)) "
@@ -603,14 +610,15 @@ class BackInserter {
  */
 void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
   code += R"(
-    template <typename DB, typename T>
+    template <typename Ctx, typename T>
     struct TypeHandler {
+        using DB = typename Ctx::DataBuffer;
       private:
         static auto choose_type() {
             if constexpr(std::is_pointer_v<T>) {
                 return std::type_identity<types::st::Pair<DB,
                   types::st::VarInt<DB>,
-                  types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<DB, std::remove_pointer_t<T>>::type>
+                  types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<Ctx, std::remove_pointer_t<T>>::type>
                 >>();
             } else {
                 return std::type_identity<types::st::Unit<DB>>();
@@ -631,8 +639,8 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
             sizeof(T),
             "*",
             names,
-            TypeHandler<DB, T>::fields,
-            TypeHandler<DB, T>::processors,
+            TypeHandler<Ctx, T>::fields,
+            TypeHandler<Ctx, T>::processors,
           };
 
           const ParsedData::Sum& sum = std::get<ParsedData::Sum>(d.val);
@@ -657,7 +665,7 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
           if constexpr(std::is_pointer_v<T>) {
             return std::array<inst::ProcessorInst, 2>{
               {types::st::VarInt<DB>::describe, &process_pointer},
-              {types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<DB, std::remove_pointer_t<T>>::type>::describe, &process_pointer_content},
+              {types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<Ctx, std::remove_pointer_t<T>>::type>::describe, &process_pointer_content},
             };
           } else {
             return std::array<inst::ProcessorInst, 0>{};
@@ -671,7 +679,7 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
   code += R"(
         static types::st::Unit<DB> getSizeType(
           const T& t,
-          typename TypeHandler<DB, T>::type returnArg) {
+          typename TypeHandler<Ctx, T>::type returnArg) {
               if constexpr(std::is_pointer_v<T>) {
                 JLOG("ptr val @");
                 JLOGPTR(t);
@@ -679,7 +687,7 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
                 if (t && pointers.add((uintptr_t)t)) {
                   return r0.template delegate<1>([&t](auto ret) {
                     if constexpr (!std::is_void<std::remove_pointer_t<T>>::value) {
-                      return TypeHandler<DB, std::remove_pointer_t<T>>::getSizeType(*t, ret);
+                      return TypeHandler<Ctx, std::remove_pointer_t<T>>::getSizeType(*t, ret);
                     } else {
                       return ret;
                     }
@@ -695,8 +703,9 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
   )";
 
   code += R"(
-    template <typename DB>
-    class TypeHandler<DB, void> {
+    template <typename Ctx>
+    class TypeHandler<Ctx, void> {
+        using DB = typename Ctx::DataBuffer;
       public:
         using type = types::st::Unit<DB>;
 )";
@@ -719,21 +728,21 @@ ContainerInfo FuncGen::GetOiArrayContainerInfo() {
 auto tail = returnArg.write(N0);
 for (size_t i=0; i<N0; i++) {
   tail = tail.delegate([&container, i](auto ret) {
-      return TypeHandler<DB, T0>::getSizeType(container.vals[i], ret);
+      return TypeHandler<Ctx, T0>::getSizeType(container.vals[i], ret);
   });
 }
 return tail.finish();
 )";
   oiArray.codegen.processors.emplace_back(ContainerInfo::Processor{
-      .type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>",
+      .type = "types::st::List<DB, typename TypeHandler<Ctx, T0>::type>",
       .func = R"(
 static constexpr std::array<std::string_view, 1> names{"TODO"};
 static constexpr auto childField = inst::Field{
   sizeof(T0),
   "[]",
   names,
-  TypeHandler<DB, T0>::fields,
-  TypeHandler<DB, T0>::processors,
+  TypeHandler<Ctx, T0>::fields,
+  TypeHandler<Ctx, T0>::processors,
 };
 
 el.exclusive_size = 0;

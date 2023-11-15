@@ -651,7 +651,7 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
   code += funcName;
   code += "(\n      const ";
   code += c.name();
-  code += "& t,\n      typename TypeHandler<DB, ";
+  code += "& t,\n      typename TypeHandler<Ctx, ";
   code += c.name();
   code += ">::type returnArg) {\n";
 
@@ -683,7 +683,7 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
     } else {
       code += "delegate";
     }
-    code += "([&t](auto ret) { return OIInternal::getSizeType<DB>(t.";
+    code += "([&t](auto ret) { return OIInternal::getSizeType<Ctx>(t.";
     code += member.name;
     code += ", ret); })";
   }
@@ -695,7 +695,7 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
 }
 
 // Generate the static type for the class's representation in the data buffer.
-// For `class { int a,b,c; }` we generate (DB omitted for clarity):
+// For `class { int a,b,c; }` we generate (Ctx/DB omitted for clarity):
 // Pair<TypeHandler<int>::type,
 //   Pair<TypeHandler<int>::type,
 //     TypeHandler<int>::type
@@ -734,7 +734,7 @@ void CodeGen::genClassStaticType(const Class& c, std::string& code) {
     }
 
     code +=
-        (boost::format("typename TypeHandler<DB, decltype(%1%::%2%)>::type") %
+        (boost::format("typename TypeHandler<Ctx, decltype(%1%::%2%)>::type") %
          c.name() % member.name)
             .str();
 
@@ -787,8 +787,8 @@ void CodeGen::genClassTreeBuilderInstructions(const Class& c,
     code += "      inst::Field{sizeof(" + fullName + "), " +
             std::to_string(calculateExclusiveSize(m.type())) + ",\"" +
             m.inputName + "\", member_" + std::to_string(index) +
-            "_type_names, TypeHandler<DB, decltype(" + fullName +
-            ")>::fields, TypeHandler<DB, decltype(" + fullName +
+            "_type_names, TypeHandler<Ctx, decltype(" + fullName +
+            ")>::fields, TypeHandler<Ctx, decltype(" + fullName +
             ")>::processors},\n";
   }
   code += "  };\n";
@@ -820,10 +820,11 @@ void CodeGen::genClassTypeHandler(const Class& c, std::string& code) {
                    .str();
   }
 
-  code += "template <typename DB>\n";
-  code += "class TypeHandler<DB, ";
+  code += "template <typename Ctx>\n";
+  code += "class TypeHandler<Ctx, ";
   code += c.name();
   code += "> {\n";
+  code += "  using DB = typename Ctx::DataBuffer;\n";
   code += helpers;
   code += " public:\n";
   code += "  using type = ";
@@ -877,7 +878,7 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
     containerWithTypes = "OICaptureKeys<" + containerWithTypes + ">";
   }
 
-  code += "template <typename DB";
+  code += "template <typename Ctx";
   types = 0, values = 0;
   for (const auto& p : templateParams) {
     if (p.value) {
@@ -889,9 +890,10 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
     }
   }
   code += ">\n";
-  code += "struct TypeHandler<DB, ";
+  code += "struct TypeHandler<Ctx, ";
   code += containerWithTypes;
   code += "> {\n";
+  code += "  using DB = typename Ctx::DataBuffer;\n";
 
   if (c.captureKeys) {
     code += "  static constexpr bool captureKeys = true;\n";
@@ -922,7 +924,7 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   code += "      const ";
   code += containerWithTypes;
   code += "& container,\n";
-  code += "      typename TypeHandler<DB, ";
+  code += "      typename TypeHandler<Ctx, ";
   code += containerWithTypes;
   code += ">::type returnArg) {\n";
   code += func;  // has rubbish indentation
@@ -961,8 +963,9 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
 
 void addCaptureKeySupport(std::string& code) {
   code += R"(
-    template <typename DB, typename T>
+    template <typename Ctx, typename T>
     class CaptureKeyHandler {
+      using DB = typename Ctx::DataBuffer;
      public:
       using type = types::st::Sum<DB, types::st::VarInt<DB>, types::st::VarInt<DB>>;
 
@@ -975,24 +978,24 @@ void addCaptureKeySupport(std::string& code) {
       }
     };
 
-    template <bool CaptureKeys, typename DB, typename T>
+    template <bool CaptureKeys, typename Ctx, typename T>
     auto maybeCaptureKey(const T& key, auto returnArg) {
       if constexpr (CaptureKeys) {
         return returnArg.delegate([&key](auto ret) {
-          return CaptureKeyHandler<DB, T>::captureKey(key, ret);
+          return CaptureKeyHandler<Ctx, T>::captureKey(key, ret);
         });
       } else {
         return returnArg;
       }
     }
 
-    template <typename DB, typename T>
+    template <typename Ctx, typename T>
     static constexpr inst::ProcessorInst CaptureKeysProcessor{
-      CaptureKeyHandler<DB, T>::type::describe,
+      CaptureKeyHandler<Ctx, T>::type::describe,
       [](result::Element& el, std::function<void(inst::Inst)> stack_ins, ParsedData d) {
         if constexpr (std::is_same_v<
-            typename CaptureKeyHandler<DB, T>::type,
-            types::st::List<DB, types::st::VarInt<DB>>>) {
+            typename CaptureKeyHandler<Ctx, T>::type,
+            types::st::List<typename Ctx::DataBuffer, types::st::VarInt<typename Ctx::DataBuffer>>>) {
           // String
           auto& str = el.data.emplace<std::string>();
           auto list = std::get<ParsedData::List>(d.val);
@@ -1013,11 +1016,11 @@ void addCaptureKeySupport(std::string& code) {
       }
     };
 
-    template <bool CaptureKeys, typename DB, typename T>
+    template <bool CaptureKeys, typename Ctx, typename T>
     static constexpr auto maybeCaptureKeysProcessor() {
       if constexpr (CaptureKeys) {
         return std::array<inst::ProcessorInst, 1>{
-          CaptureKeysProcessor<DB, T>,
+          CaptureKeysProcessor<Ctx, T>,
         };
       }
       else {
@@ -1034,28 +1037,28 @@ void addStandardTypeHandlers(TypeGraph& typeGraph,
     addCaptureKeySupport(code);
 
   // Provide a wrapper function, getSizeType, to infer T instead of having to
-  // explicitly specify it with TypeHandler<DB, T>::getSizeType every time.
+  // explicitly specify it with TypeHandler<Ctx, T>::getSizeType every time.
   code += R"(
-    template <typename DB, typename T>
-    types::st::Unit<DB>
-    getSizeType(const T &t, typename TypeHandler<DB, T>::type returnArg) {
+    template <typename Ctx, typename T>
+    types::st::Unit<typename Ctx::DataBuffer>
+    getSizeType(const T &t, typename TypeHandler<Ctx, T>::type returnArg) {
       JLOG("obj @");
       JLOGPTR(&t);
-      return TypeHandler<DB, T>::getSizeType(t, returnArg);
+      return TypeHandler<Ctx, T>::getSizeType(t, returnArg);
     }
 )";
 
   if (features[Feature::TreeBuilderV2]) {
     code += R"(
-template <typename DB, typename T>
+template <typename Ctx, typename T>
 constexpr inst::Field make_field(std::string_view name) {
   return inst::Field{
     sizeof(T),
     ExclusiveSizeProvider<T>::size,
     name,
     NameProvider<T>::names,
-    TypeHandler<DB, T>::fields,
-    TypeHandler<DB, T>::processors,
+    TypeHandler<Ctx, T>::fields,
+    TypeHandler<Ctx, T>::processors,
   };
 }
 )";

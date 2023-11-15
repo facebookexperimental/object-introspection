@@ -43,7 +43,7 @@ auto tail = returnArg
 
 for (auto &&entry: container) {
   tail = tail.delegate([&entry](auto ret) {
-    return OIInternal::getSizeType<DB>(entry, ret);
+    return OIInternal::getSizeType<Ctx>(entry, ret);
   });
 }
 
@@ -64,7 +64,7 @@ el.container_stats.emplace(result::Element::ContainerStats {
 
 [[codegen.processor]]
 type = """
-types::st::List<DB, typename TypeHandler<DB, T0>::type>
+types::st::List<DB, typename TypeHandler<Ctx, T0>::type>
 """
 func = """
 auto allocationSize = el.pointer.value();
@@ -75,7 +75,7 @@ el.container_stats->length = list.length;
 
 el.exclusive_size += allocationSize - list.length * sizeof(T0);
 
-static constexpr auto childField = make_field<DB, T0>("[]");
+static constexpr auto childField = make_field<Ctx, T0>("[]");
 for (size_t i = 0; i < list.length; i++)
   stack_ins(childField);
 """

@@ -56,8 +56,8 @@ auto tail = returnArg
   .write(container.size());
 
 for (auto &&it: container) {
-  tail = tail.delegate([&it](typename TypeHandler<DB, T0>::type ret) {
-    return OIInternal::getSizeType<DB>(it, ret);
+  tail = tail.delegate([&it](typename TypeHandler<Ctx, T0>::type ret) {
+    return OIInternal::getSizeType<Ctx>(it, ret);
   });
 }
 
@@ -81,7 +81,7 @@ el.container_stats.emplace(result::Element::ContainerStats {
 """
 
 [[codegen.processor]]
-type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+type = "types::st::List<DB, typename TypeHandler<Ctx, T0>::type>"
 func = """
 // Reading the `uses_intern_storage` boolean that was stored in `pointer` by the processor above.
 bool uses_intern_storage = std::exchange(el.pointer.value(), (uintptr_t)0);
@@ -97,7 +97,7 @@ if (uses_intern_storage) {
   el.exclusive_size += (el.container_stats->capacity - el.container_stats->length) * sizeof(T0);
 }
 
-static constexpr auto childField = make_field<DB, T0>("[]");
+static constexpr auto childField = make_field<Ctx, T0>("[]");
 for (size_t i = 0; i < list.length; i++)
   stack_ins(childField);
 """
