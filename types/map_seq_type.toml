@@ -43,11 +43,11 @@ traversal_func = '''
 
     for (const auto& kv : container) {
       tail = tail.delegate([&kv](auto ret) {
-        auto start = maybeCaptureKey<captureKeys, DB, T0>(kv.first, ret);
-        auto next = start.delegate([&kv](typename TypeHandler<DB, T0>::type ret) {
-          return OIInternal::getSizeType<DB>(kv.first, ret);
+        auto start = maybeCaptureKey<captureKeys, Ctx, T0>(kv.first, ret);
+        auto next = start.delegate([&kv](typename TypeHandler<Ctx, T0>::type ret) {
+          return OIInternal::getSizeType<Ctx>(kv.first, ret);
         });
-        return OIInternal::getSizeType<DB>(kv.second, next);
+        return OIInternal::getSizeType<Ctx>(kv.second, next);
       });
     }
 
@@ -68,22 +68,22 @@ el.container_stats.emplace(result::Element::ContainerStats{ .capacity = std::get
 type = '''
 std::conditional_t<captureKeys,
   types::st::List<DB, types::st::Pair<DB,
-    typename CaptureKeyHandler<DB, T0>::type,
+    typename CaptureKeyHandler<Ctx, T0>::type,
     types::st::Pair<DB,
-      typename TypeHandler<DB, T0>::type,
-      typename TypeHandler<DB, T1>::type>>>,
+      typename TypeHandler<Ctx, T0>::type,
+      typename TypeHandler<Ctx, T1>::type>>>,
   types::st::List<DB, types::st::Pair<DB,
-    typename TypeHandler<DB, T0>::type,
-    typename TypeHandler<DB, T1>::type>>>
+    typename TypeHandler<Ctx, T0>::type,
+    typename TypeHandler<Ctx, T1>::type>>>
 '''
 func = '''
 using element_type = std::pair<T0, T1>;
 
 static constexpr std::array<inst::Field, 2> entryFields{
-  make_field<DB, T0>("key"),
-  make_field<DB, T1>("value"),
+  make_field<Ctx, T0>("key"),
+  make_field<Ctx, T1>("value"),
 };
-static constexpr auto processors = maybeCaptureKeysProcessor<captureKeys, DB, T0>();
+static constexpr auto processors = maybeCaptureKeysProcessor<captureKeys, Ctx, T0>();
 static constexpr auto entry = inst::Field {
   sizeof(element_type),
   sizeof(element_type) - sizeof(T0) - sizeof(T1),

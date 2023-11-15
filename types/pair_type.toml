@@ -27,19 +27,19 @@ void getSizeType(const %1%<P,Q> &container, size_t& returnArg)
 """
 
 traversal_func = """
-    return OIInternal::getSizeType<DB>(
+    return OIInternal::getSizeType<Ctx>(
         container.second,
         returnArg.delegate([&container](auto ret) {
-            return OIInternal::getSizeType<DB>(container.first, ret);
+            return OIInternal::getSizeType<Ctx>(container.first, ret);
         })
     );
 """
 
 [[codegen.processor]]
-type = "types::st::Pair<DB, typename TypeHandler<DB, T0>::type, typename TypeHandler<DB, T1>::type>"
+type = "types::st::Pair<DB, typename TypeHandler<Ctx, T0>::type, typename TypeHandler<Ctx, T1>::type>"
 func = """
-static constexpr auto firstField = make_field<DB, T0>("first");
-static constexpr auto secondField = make_field<DB, T1>("second");
+static constexpr auto firstField = make_field<Ctx, T0>("first");
+static constexpr auto secondField = make_field<Ctx, T1>("second");
 
 el.exclusive_size = sizeof(std::pair<T0, T1>) - sizeof(T0) - sizeof(T1);
 stack_ins(secondField);

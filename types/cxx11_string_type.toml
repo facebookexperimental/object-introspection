@@ -37,8 +37,9 @@ void getSizeType(const %1%<T, Traits, Allocator> &container, size_t& returnArg)
 """
 
 extra = """
-template <typename DB, typename CharT, typename Traits, typename Allocator>
-class CaptureKeyHandler<DB, std::__cxx11::basic_string<CharT, Traits, Allocator>> {
+template <typename Ctx, typename CharT, typename Traits, typename Allocator>
+class CaptureKeyHandler<Ctx, std::__cxx11::basic_string<CharT, Traits, Allocator>> {
+  using DB = typename Ctx::DataBuffer;
  public:
   // List of characters
   using type = types::st::List<DB, types::st::VarInt<DB>>;

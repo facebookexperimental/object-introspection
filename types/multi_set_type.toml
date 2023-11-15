@@ -43,7 +43,7 @@ auto tail = returnArg.write((uintptr_t)&container)
 // vector<bool>
 for (auto&& it : container) {
   tail = tail.delegate([&it](auto ret) {
-    return OIInternal::getSizeType<DB>(it, ret);
+    return OIInternal::getSizeType<Ctx>(it, ret);
   });
 }
 
@@ -57,7 +57,7 @@ el.pointer = std::get<ParsedData::VarInt>(d.val).value;
 """
 
 [[codegen.processor]]
-type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+type = "types::st::List<DB, typename TypeHandler<Ctx, T0>::type>"
 func = """
 #ifdef __GLIBCXX__
 /* We don't have access to the _Rb_tree_node struct, so we manually re-create it
@@ -103,7 +103,7 @@ static constexpr size_t element_size = sizeof(OI__tree_node);
 static_assert(false && "No known element_size for multisets. See types/multi_set_type.toml");
 #endif
 
-static constexpr auto childField = make_field<DB, T0>("[]");
+static constexpr auto childField = make_field<Ctx, T0>("[]");
 
 auto list = std::get<ParsedData::List>(d.val);
 el.container_stats.emplace(result::Element::ContainerStats {

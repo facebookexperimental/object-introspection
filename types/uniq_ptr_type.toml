@@ -46,7 +46,7 @@ if constexpr (std::is_void<T0>::value) {
     return tail.template delegate<0>(std::identity());
 
   return tail.template delegate<1>([&container](auto ret) {
-    return OIInternal::getSizeType<DB>(*container, ret);
+    return OIInternal::getSizeType<Ctx>(*container, ret);
   });
 }
 """
@@ -61,7 +61,7 @@ el.pointer = std::get<ParsedData::VarInt>(d.val).value;
 type = """
 types::st::Sum<DB,
   types::st::Unit<DB>,
-  typename TypeHandler<DB, T0>::type>
+  typename TypeHandler<Ctx, T0>::type>
 """
 func = """
 auto sum = std::get<ParsedData::Sum>(d.val);
@@ -70,10 +70,10 @@ el.container_stats.emplace(result::Element::ContainerStats {
   .length = sum.index, // 0 for empty containers/void, 1 otherwise
 });
 
-// Must be in a `if constexpr` or the compiler will complain about make_field<DB, void>
+// Must be in a `if constexpr` or the compiler will complain about make_field<Ctx, void>
 if constexpr (!std::is_void<T0>::value) {
   if (sum.index == 1) {
-    static constexpr auto element = make_field<DB, T0>("ptr_val");
+    static constexpr auto element = make_field<Ctx, T0>("ptr_val");
     stack_ins(element);
   }
 }

@@ -31,7 +31,7 @@ void getSizeType(const %1%<T>& container, size_t& returnArg) {
 traversal_func = """
 if (container.has_value()) {
   return returnArg.template delegate<1>([&container](auto ret) {
-    return OIInternal::getSizeType<DB>(*container, ret);
+    return OIInternal::getSizeType<Ctx>(*container, ret);
   });
 } else {
   return returnArg.template delegate<0>(std::identity());
@@ -39,15 +39,15 @@ if (container.has_value()) {
 """
 
 [[codegen.processor]]
-type = "types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<DB, T0>::type>"
+type = "types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<Ctx, T0>::type>"
 func = """
 static constexpr std::array<std::string_view, 1> names{"TODO"};
 static constexpr auto elementField = inst::Field{
   sizeof(T0),
   "el",
   names,
-  TypeHandler<DB, T0>::fields,
-  TypeHandler<DB, T0>::processors,
+  TypeHandler<Ctx, T0>::fields,
+  TypeHandler<Ctx, T0>::processors,
 };
 
 auto sum = std::get<ParsedData::Sum>(d.val);

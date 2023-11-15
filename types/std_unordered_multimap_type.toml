@@ -47,7 +47,7 @@ auto tail = returnArg
 
 for (const auto &it : container) {
   tail = tail.delegate([&it](auto ret) {
-    return OIInternal::getSizeType<DB>(it, ret);
+    return OIInternal::getSizeType<Ctx>(it, ret);
   });
 }
 
@@ -73,8 +73,8 @@ el.container_stats.emplace(result::Element::ContainerStats {
 [[codegen.processor]]
 type = """
 types::st::List<DB, types::st::Pair<DB,
-  typename TypeHandler<DB, T0>::type,
-  typename TypeHandler<DB, T1>::type>>
+  typename TypeHandler<Ctx, T0>::type,
+  typename TypeHandler<Ctx, T1>::type>>
 """
 func = """
 #ifdef __GLIBCXX__
@@ -110,8 +110,8 @@ el.container_stats.emplace(result::Element::ContainerStats {
 });
 
 static constexpr std::array<inst::Field, 2> element_fields{
-  make_field<DB, T0>("key"),
-  make_field<DB, T1>("value"),
+  make_field<Ctx, T0>("key"),
+  make_field<Ctx, T1>("value"),
 };
 
 static constexpr auto element = inst::Field{

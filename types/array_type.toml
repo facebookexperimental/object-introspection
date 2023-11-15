@@ -34,7 +34,7 @@ traversal_func = """
 
     for (auto & it: container) {
         tail = tail.delegate([&it](auto ret) {
-            return TypeHandler<DB, T0>::getSizeType(it, ret);
+            return TypeHandler<Ctx, T0>::getSizeType(it, ret);
         });
     }
 
@@ -42,9 +42,9 @@ traversal_func = """
 """
 
 [[codegen.processor]]
-type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+type = "types::st::List<DB, typename TypeHandler<Ctx, T0>::type>"
 func = """
-static constexpr auto childField = make_field<DB, T0>("[]");
+static constexpr auto childField = make_field<Ctx, T0>("[]");
 
 size_t size = std::get<ParsedData::List>(d.val).length;
 el.exclusive_size = N0 == 0 ? 1 : 0;

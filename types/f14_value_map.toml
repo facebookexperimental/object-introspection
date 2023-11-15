@@ -44,10 +44,10 @@ auto tail = returnArg
 
 for (auto &&entry: container) {
   tail = tail.delegate([&key = entry.first, &value = entry.second](auto ret) {
-    auto next = ret.delegate([&key](typename TypeHandler<DB, T0>::type ret) {
-      return OIInternal::getSizeType<DB>(key, ret);
+    auto next = ret.delegate([&key](typename TypeHandler<Ctx, T0>::type ret) {
+      return OIInternal::getSizeType<Ctx>(key, ret);
     });
-    return OIInternal::getSizeType<DB>(value, next);
+    return OIInternal::getSizeType<Ctx>(value, next);
   });
 }
 
@@ -69,8 +69,8 @@ el.container_stats.emplace(result::Element::ContainerStats {
 [[codegen.processor]]
 type = """
 types::st::List<DB, types::st::Pair<DB,
-  typename TypeHandler<DB, T0>::type,
-  typename TypeHandler<DB, T1>::type>>
+  typename TypeHandler<Ctx, T0>::type,
+  typename TypeHandler<Ctx, T1>::type>>
 """
 func = """
 static constexpr size_t element_size = sizeof(typename container_type::value_type);
@@ -84,8 +84,8 @@ el.container_stats->length = list.length;
 el.exclusive_size += allocationSize - list.length * element_size;
 
 static constexpr std::array<inst::Field, 2> element_fields{
-  make_field<DB, T0>("key"),
-  make_field<DB, T1>("value"),
+  make_field<Ctx, T0>("key"),
+  make_field<Ctx, T1>("value"),
 };
 
 static constexpr inst::Field element{

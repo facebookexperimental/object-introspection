@@ -38,7 +38,7 @@ auto tail = returnArg.write((uintptr_t)&container)
 
 for (const auto& el : container) {
   tail = tail.delegate([&el](auto ret) {
-    return OIInternal::getSizeType<DB>(el, ret);
+    return OIInternal::getSizeType<Ctx>(el, ret);
   });
 }
 
@@ -56,9 +56,9 @@ el.container_stats.emplace(result::Element::ContainerStats{ .capacity = std::get
 '''
 
 [[codegen.processor]]
-type = "types::st::List<DB, typename TypeHandler<DB, T0>::type>"
+type = "types::st::List<DB, typename TypeHandler<Ctx, T0>::type>"
 func = """
-static constexpr auto childField = make_field<DB, T0>("[]");
+static constexpr auto childField = make_field<Ctx, T0>("[]");
 
 auto list = std::get<ParsedData::List>(d.val);
 el.container_stats->length = list.length;

@@ -40,10 +40,10 @@ auto tail = returnArg
 
 for (const auto &entry: container) {
   tail = tail.delegate([&key = entry.first, &value = entry.second](auto ret) {
-    auto next = ret.delegate([&key](typename TypeHandler<DB, T0>::type ret) {
-      return OIInternal::getSizeType<DB>(key, ret);
+    auto next = ret.delegate([&key](typename TypeHandler<Ctx, T0>::type ret) {
+      return OIInternal::getSizeType<Ctx>(key, ret);
     });
-    return OIInternal::getSizeType<DB>(value, next);
+    return OIInternal::getSizeType<Ctx>(value, next);
   });
 }
 
@@ -57,8 +57,8 @@ func = "el.pointer = std::get<ParsedData::VarInt>(d.val).value;"
 [[codegen.processor]]
 type = """
 types::st::List<DB, types::st::Pair<DB,
-  typename TypeHandler<DB, T0>::type,
-  typename TypeHandler<DB, T1>::type>>
+  typename TypeHandler<Ctx, T0>::type,
+  typename TypeHandler<Ctx, T1>::type>>
 """
 func = """
 #ifdef __GLIBCXX__
@@ -108,8 +108,8 @@ static_assert(false && "No known element_size for sets. See types/multi_map_type
 #endif
 
 static constexpr std::array<inst::Field, 2> elementFields{
-  make_field<DB, T0>("key"),
-  make_field<DB, T1>("value"),
+  make_field<Ctx, T0>("key"),
+  make_field<Ctx, T1>("value"),
 };
 static constexpr auto element = inst::Field {
   element_size,
