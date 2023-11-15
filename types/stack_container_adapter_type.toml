@@ -31,21 +31,3 @@ void getSizeType(const %1%<T, Container> &containerAdapter, size_t& returnArg)
     getSizeType(container, returnArg);
 }
 """
-
-handler = """
-template <typename DB, typename T0, typename T1>
-struct TypeHandler<DB, %1%<T0, T1>> {
-  using type = types::st::Pair<DB,
-      types::st::VarInt<DB>,
-      typename TypeHandler<DB, T1>::type>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1% <T0, T1> & container,
-      typename TypeHandler<DB, %1% <T0, T1>>::type returnArg) {
-    auto tail = returnArg.write((uintptr_t)&container);
-
-    const T1 &underlyingContainer = get_container(container);
-    return OIInternal::getSizeType<DB>(underlyingContainer, tail);
-  }
-};
-"""

@@ -17,9 +17,6 @@ decl = """
 func = """
 // DummyFunc %1%
 """
-handler = """
-// DummyHandler %1%
-"""
 
 traversal_func = """
 return returnArg;

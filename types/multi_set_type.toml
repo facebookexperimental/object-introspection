@@ -35,31 +35,6 @@ void getSizeType(const %1%<Key, Compare, Alloc> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1, typename T2>
-struct TypeHandler<DB, %1% <T0, T1, T2>> {
-  using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, T1, T2>& container,
-      typename TypeHandler<DB, %1%<T0, T1, T2>>::type returnArg) {
-    constexpr size_t nodeSize = sizeof(typename %1%<T0, T1, T2>::node_type);
-
-    auto tail = returnArg.write(container.size());
-
-    // The double ampersand is needed otherwise this loop doesn't work with
-    // vector<bool>
-    for (auto&& it : container) {
-      tail = tail.delegate([&it](auto ret) {
-        return OIInternal::getSizeType<DB>(it, ret);
-      });
-    }
-
-    return tail.finish();
-  }
-};
-"""
-
 traversal_func = """
 auto tail = returnArg.write((uintptr_t)&container)
                 .write(container.size());

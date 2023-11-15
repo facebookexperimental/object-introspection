@@ -70,8 +70,8 @@ class {
   /*
    * Adds the pointer to the set.
    * Returns `true` if the value was newly added. `false` may be returned if
-   * the value was already present or if there are no entries left in the
-   * array.
+   * the value was already present, a null pointer was passed or if there are
+   * no entries left in the array.
    */
   bool add(uintptr_t pointer) noexcept {
     if (pointer == 0) {

@@ -29,27 +29,6 @@ void getSizeType(const %1%<T,N> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template<typename DB, typename T0, long unsigned int N>
-struct TypeHandler<DB, %1%<T0, N>> {
-  using type = types::st::List<DB, typename TypeHandler<DB, T0>::type>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, N> &container,
-      typename TypeHandler<DB, %1%<T0,N>>::type returnArg) {
-    auto tail = returnArg.write(container.size());
-
-    for (auto & it: container) {
-        tail = tail.delegate([&it](auto ret) {
-            return TypeHandler<DB, T0>::getSizeType(it, ret);
-        });
-    }
-
-    return tail.finish();
-  }
-};
-"""
-
 traversal_func = """
     auto tail = returnArg.write(container.size());
 

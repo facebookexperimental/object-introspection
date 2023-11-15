@@ -26,26 +26,6 @@ void getSizeType(const %1%<P,Q> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1>
-struct TypeHandler<DB, %1%<T0, T1>> {
-  using type = types::st::Pair<DB,
-      typename TypeHandler<DB, T0>::type,
-      typename TypeHandler<DB, T1>::type>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, T1> & container,
-      typename TypeHandler<DB, %1%<T0, T1>>::type returnArg) {
-    return OIInternal::getSizeType<DB>(
-        container.second,
-        returnArg.delegate([&container](auto ret) {
-            return OIInternal::getSizeType<DB>(container.first, ret);
-        })
-    );
-  }
-};
-"""
-
 traversal_func = """
     return OIInternal::getSizeType<DB>(
         container.second,
