@@ -2869,6 +2869,9 @@ bool OIDebugger::processTargetData() {
       if (!dumpDataSegment(req, outVec)) {
         LOG(ERROR) << "Failed to dump data-segment for " << req.arg;
       }
+
+      // Skip running Tree Builder
+      continue;
     }
 
     auto typeInfo = typeInfos.find(req);
@@ -2908,6 +2911,11 @@ bool OIDebugger::processTargetData() {
     if (treeBuilderConfig.features[Feature::GenPaddingStats]) {
       paddingHunter.processLocalPaddingInfo();
     }
+  }
+
+  if (treeBuilderConfig.dumpDataSegment) {
+    // Tree Builder was not run
+    return true;
   }
 
   if (typeTree.emptyOutput()) {
