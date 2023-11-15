@@ -327,6 +327,8 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
       uintptr_t& writtenSize = data[dataSegOffset++];
       writtenSize = 0;
       uintptr_t& timeTakenNs = data[dataSegOffset++];
+      size_t& pointersSize = data[dataSegOffset++];
+      size_t& pointersCapacity = data[dataSegOffset++];
 
       dataSegOffset *= sizeof(uintptr_t);
       JLOG("%1% @");
@@ -336,6 +338,8 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
       writtenSize = dataSegOffset;
       dataBase += dataSegOffset;
+      pointersSize = pointers.size();
+      pointersCapacity = pointers.capacity();
     )";
   if (features[Feature::JitTiming]) {
     func += R"(
@@ -419,6 +423,8 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
       uintptr_t& writtenSize = data[dataSegOffset++];
       writtenSize = 0;
       uintptr_t& timeTakenNs = data[dataSegOffset++];
+      size_t& pointersSize = data[dataSegOffset++];
+      size_t& pointersCapacity = data[dataSegOffset++];
 
       dataSegOffset *= sizeof(uintptr_t);
 
@@ -427,6 +433,8 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
       writtenSize = dataSegOffset;
       dataBase += dataSegOffset;
+      pointersSize = pointers.size();
+      pointersCapacity = pointers.capacity();
     )";
   if (features[Feature::JitTiming]) {
     func += R"(

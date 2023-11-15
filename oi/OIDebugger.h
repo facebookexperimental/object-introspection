@@ -276,6 +276,8 @@ class OIDebugger {
     uintptr_t cookie;
     uintptr_t size;
     uintptr_t timeTakenNs;
+    size_t pointersSize;
+    size_t pointersCapacity;
 
     /*
      * Flexible Array Member are not standard in C++, but this is

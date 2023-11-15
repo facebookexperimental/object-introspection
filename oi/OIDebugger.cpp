@@ -2746,6 +2746,14 @@ bool OIDebugger::decodeTargetData(const DataHeader& dataHeader,
     LOG(INFO) << "JIT Timing: " << dataHeader.timeTakenNs << "ns";
   }
 
+  VLOG(1) << "Pointer tracking stats: " << dataHeader.pointersCapacity << "/"
+          << dataHeader.pointersSize;
+
+  if (dataHeader.pointersCapacity == dataHeader.pointersSize) {
+    VLOG(1) << "Pointer tracking array is exhausted! Results may be"
+               " partial.";
+  }
+
   /*
    * Currently  we use MAX_INT to indicate two things:
    *  - a single MAX_INT indicates the end of results for  the current object
