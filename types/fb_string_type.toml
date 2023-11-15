@@ -38,38 +38,6 @@ void getSizeType(const %1%<E, T, A, Storage> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1, typename T2, typename T3>
-struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
-  using type = types::st::Pair<DB,
-      types::st::VarInt<DB>,
-      types::st::Pair<DB,
-        types::st::VarInt<DB>,
-        types::st::Pair<DB,
-          types::st::VarInt<DB>,
-          types::st::VarInt<DB>
-      >>>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, T1, T2, T3>& container,
-      typename TypeHandler<DB, %1%<T0, T1, T2, T3>>::type returnArg) {
-    auto last = returnArg.write((uintptr_t)container.data())
-                    .write(container.capacity())
-                    .write(container.size());
-
-    bool inlined = ((uintptr_t)container.data() < (uintptr_t)(&container + sizeof(%1%<T0, T1, T2, T3>)))
-        &&
-      ((uintptr_t)container.data() >= (uintptr_t)&container);
-
-    if (!inlined && pointers.add((uintptr_t)container.data())) {
-      return last.write(1);
-    } else {
-      return last.write(0);
-    }
-  }
-};
-"""
-
 traversal_func = """
 // fbstring has inlining (SSO) and allocates large strings as
 // reference counted strings. Reference counted strings have an

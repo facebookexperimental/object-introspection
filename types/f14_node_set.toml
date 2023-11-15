@@ -35,36 +35,6 @@ void getSizeType(const %1%<Key, Hasher, KeyEqual, Alloc> &container, size_t& ret
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1, typename T2, typename T3>
-struct TypeHandler<DB, %1%<T0, T1, T2, T3>> {
-  using type = types::st::Pair<DB,
-    types::st::VarInt<DB>,
-    types::st::Pair<DB,
-      types::st::VarInt<DB>,
-      types::st::List<DB,
-        typename TypeHandler<DB, T0>::type>>>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, T1, T2, T3>& container,
-      typename TypeHandler<DB, %1%<T0, T1, T2, T3>>::type returnArg) {
-    size_t memorySize = container.getAllocatedMemorySize();
-    auto tail = returnArg
-      .write(memorySize)
-      .write(container.bucket_count())
-      .write(container.size());
-
-    for (auto &&entry: container) {
-      tail = tail.delegate([&entry](auto ret) {
-        return OIInternal::getSizeType<DB>(entry, ret);
-      });
-    }
-
-    return tail.finish();
-  }
-};
-"""
-
 traversal_func = """
 auto tail = returnArg
   .write((uintptr_t)container.getAllocatedMemorySize())

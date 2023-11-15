@@ -39,42 +39,6 @@ void getSizeType(const %1%<K, T, H, KE, A> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1, typename T2, typename T3, typename T4>
-struct TypeHandler<DB, %1%<T0, T1, T2, T3, T4>> {
-  using type = types::st::Pair<DB,
-      types::st::VarInt<DB>,
-      types::st::Pair<DB,
-        types::st::VarInt<DB>,
-        types::st::List<DB, types::st::Pair<DB,
-          typename TypeHandler<DB, T0>::type,
-          typename TypeHandler<DB, T1>::type
-    >>>>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, T1, T2, T3, T4>& container,
-      typename TypeHandler<DB, %1%<T0, T1, T2, T3, T4>>::type returnArg) {
-    constexpr size_t nodeSize = sizeof(typename %1%<T0, T1, T2, T3, T4>::node_type);
-
-    auto tail = returnArg.write(nodeSize)
-                    .write(container.bucket_count())
-                    .write(container.size());
-
-    // The double ampersand is needed otherwise this loop doesn't work with
-    // vector<bool>
-    for (const auto& it : container) {
-      tail = tail.delegate([&it](auto ret) {
-        return OIInternal::getSizeType<DB>(it.second, ret.delegate([&it](auto ret) {
-            return OIInternal::getSizeType<DB>(it.first, ret);
-        }));
-      });
-    }
-
-    return tail.finish();
-  }
-};
-"""
-
 traversal_func = """
 auto tail = returnArg
   .write((uintptr_t)&container)

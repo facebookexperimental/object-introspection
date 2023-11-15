@@ -28,28 +28,6 @@ void getSizeType(const %1%<T>& container, size_t& returnArg) {
 }
 """
 
-handler = """
-template <typename DB, typename T0>
-struct TypeHandler<DB, %1%<T0>> {
-    using type = types::st::Sum<DB,
-      types::st::Unit<DB>,
-      typename TypeHandler<DB, T0>::type
-    >;
-
-    static types::st::Unit<DB> getSizeType(
-        const %1%<T0>& container,
-        typename TypeHandler<DB, %1%<T0>>::type returnArg) {
-      if (container) {
-        return returnArg.template delegate<1>([&container](auto ret) {
-          return OIInternal::getSizeType<DB>(*container, ret);
-        });
-      } else {
-        return returnArg.template delegate<0>(std::identity());
-      }
-    }
-};
-"""
-
 traversal_func = """
 if (container.has_value()) {
   return returnArg.template delegate<1>([&container](auto ret) {

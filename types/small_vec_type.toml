@@ -42,33 +42,6 @@ void getSizeType(const %1%<V, N, P> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, std::size_t N0, typename T1>
-struct TypeHandler<DB, %1%<T0, N0, T1>> {
-  using type = types::st::Pair<
-      DB, types::st::VarInt<DB>,
-      types::st::Pair<
-          DB, types::st::VarInt<DB>,
-          types::st::List<DB, typename TypeHandler<DB, T0>::type>>>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, N0, T1> & container,
-      typename TypeHandler<DB, %1%<T0, N0, T1>>::type returnArg) {
-    auto tail = returnArg.write(N0)
-                    .write(container.capacity())
-                    .write(container.size());
-
-    for (auto& it : container) {
-      tail = tail.delegate([&it](auto ret) {
-        return OIInternal::getSizeType<DB>(it, ret);
-      });
-    }
-
-    return tail.finish();
-  }
-};
-"""
-
 traversal_func = """
 // If `container.data()` pointer is within the container struct,
 // then the container's storage is inlined and doesn't uses the heap.

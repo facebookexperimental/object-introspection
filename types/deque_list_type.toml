@@ -33,28 +33,3 @@ void getSizeType(const %1%<T, Allocator> &container, size_t& returnArg)
 }
 """
 
-handler = """
-template <typename DB, typename T0, typename T1>
-struct TypeHandler<DB, %1%<T0, T1>> {
-  using type = types::st::Pair<DB,
-      types::st::VarInt<DB>,
-      types::st::List<DB, typename TypeHandler<DB, T0>::type>>;
-
-  static types::st::Unit<DB> getSizeType(
-      const %1%<T0, T1>& container,
-      typename TypeHandler<DB, %1%<T0, T1>>::type returnArg) {
-    auto tail = returnArg.write((uintptr_t)&container)
-                    .write(container.size());
-
-    // The double ampersand is needed otherwise this loop doesn't work with
-    // vector<bool>
-    for (auto&& it : container) {
-      tail = tail.delegate([&it](auto ret) {
-        return TypeHandler<DB, T0>::getSizeType(it, ret);
-      });
-    }
-
-    return tail.finish();
-  }
-};
-"""
