@@ -58,6 +58,7 @@ struct ContainerInfo {
                 std::optional<size_t> allocatorIndex_,
                 std::optional<size_t> underlyingContainerIndex_,
                 std::vector<size_t> stubTemplateParams_,
+                oi::detail::FeatureSet requiredFeatures,
                 ContainerInfo::Codegen codegen_)
       : typeName(std::move(typeName_)),
         matcher(std::move(matcher_)),
@@ -69,6 +70,7 @@ struct ContainerInfo {
         allocatorIndex(allocatorIndex_),
         underlyingContainerIndex(underlyingContainerIndex_),
         stubTemplateParams(std::move(stubTemplateParams_)),
+        requiredFeatures(requiredFeatures),
         codegen(std::move(codegen_)) {
   }
 

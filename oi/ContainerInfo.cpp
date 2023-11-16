@@ -126,6 +126,20 @@ const char* containerTypeEnumToStr(ContainerTypeEnum ty) {
     });
   }
 
+  oi::detail::FeatureSet requiredFeatures;
+  if (toml::array* arr = (*info)["required_features"].as_array()) {
+    arr->for_each([&](auto&& el) {
+      if constexpr (toml::is_string<decltype(el)>) {
+        oi::detail::Feature f = oi::detail::featureFromStr(*el);
+        if (f == oi::detail::Feature::UnknownFeature) {
+          LOG(WARNING) << "unknown feature in container config: " << el;
+          return;
+        }
+        requiredFeatures[f] = true;
+      }
+    });
+  }
+
   std::optional<size_t> allocatorIndex =
       (*info)["allocatorIndex"].value<size_t>();
   std::optional<size_t> underlyingContainerIndex =
@@ -166,6 +180,7 @@ const char* containerTypeEnumToStr(ContainerTypeEnum ty) {
       allocatorIndex,
       underlyingContainerIndex,
       {},
+      requiredFeatures,
       {
           std::move(decl),
           std::move(func),

@@ -85,6 +85,10 @@ bool OICodeGen::registerContainer(const fs::path& path) {
   if (!info) {
     return false;
   }
+  if (info->requiredFeatures != (config.features & info->requiredFeatures)) {
+    VLOG(1) << "Skipping container (feature conflict): " << info->typeName;
+    return true;
+  }
 
   VLOG(1) << "registered container, type: " << info->typeName;
   containerInfoList.emplace_back(std::move(info));
