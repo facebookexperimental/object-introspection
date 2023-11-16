@@ -30,8 +30,8 @@ void getSizeType(const %1%<T>& container, size_t& returnArg) {
 
 traversal_func = """
 if (container.has_value()) {
-  return returnArg.template delegate<1>([&container](auto ret) {
-    return OIInternal::getSizeType<Ctx>(*container, ret);
+  return returnArg.template delegate<1>([&ctx, &container](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, *container, ret);
   });
 } else {
   return returnArg.template delegate<0>(std::identity());

@@ -56,8 +56,8 @@ auto tail = returnArg
   .write(container.size());
 
 for (auto &&it: container) {
-  tail = tail.delegate([&it](typename TypeHandler<Ctx, T0>::type ret) {
-    return OIInternal::getSizeType<Ctx>(it, ret);
+  tail = tail.delegate([&ctx, &it](typename TypeHandler<Ctx, T0>::type ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, it, ret);
   });
 }
 

@@ -37,8 +37,8 @@ auto tail = returnArg.write((uintptr_t)&container)
                 .write(container.size());
 
 for (const auto& el : container) {
-  tail = tail.delegate([&el](auto ret) {
-    return OIInternal::getSizeType<Ctx>(el, ret);
+  tail = tail.delegate([&ctx, &el](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, el, ret);
   });
 }
 

@@ -38,8 +38,8 @@ auto tail = returnArg.write((uintptr_t)&container)
                 .write(container.size());
 
 for (auto&& it : container) {
-  tail = tail.delegate([&it](auto ret) {
-    return OIInternal::getSizeType<Ctx>(it, ret);
+  tail = tail.delegate([&ctx, &it](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, it, ret);
   });
 }
 

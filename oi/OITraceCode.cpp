@@ -40,10 +40,11 @@ constexpr int oidMagicId = 0x01DE8;
 
 namespace {
 
-class {
+template <size_t Size = (1 << 20) / sizeof(uintptr_t)>
+class PointerHashSet {
  private:
   // 1 MiB of pointers
-  std::array<uintptr_t, (1 << 20) / sizeof(uintptr_t)> data;
+  std::array<uintptr_t, Size> data;
   size_t numEntries;
 
   /*
@@ -107,7 +108,7 @@ class {
   bool add(const auto* p) {
     return add((uintptr_t)p);
   }
-} static pointers;
+};
 
 }  // namespace
 

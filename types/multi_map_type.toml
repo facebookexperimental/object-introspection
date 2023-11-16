@@ -39,11 +39,11 @@ auto tail = returnArg
   .write(container.size());
 
 for (const auto &entry: container) {
-  tail = tail.delegate([&key = entry.first, &value = entry.second](auto ret) {
-    auto next = ret.delegate([&key](typename TypeHandler<Ctx, T0>::type ret) {
-      return OIInternal::getSizeType<Ctx>(key, ret);
+  tail = tail.delegate([&ctx, &key = entry.first, &value = entry.second](auto ret) {
+    auto next = ret.delegate([&ctx, &key](typename TypeHandler<Ctx, T0>::type ret) {
+      return OIInternal::getSizeType<Ctx>(ctx, key, ret);
     });
-    return OIInternal::getSizeType<Ctx>(value, next);
+    return OIInternal::getSizeType<Ctx>(ctx, value, next);
   });
 }
 

@@ -21,7 +21,7 @@ void getSizeType(const %1%<T> &ref, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<T>));
     SAVE_DATA((uintptr_t)&(ref.get()));
-    if (pointers.add((uintptr_t)&ref.get())) {
+    if (ctx.pointers.add((uintptr_t)&ref.get())) {
         SAVE_DATA(1);
         getSizeType(ref.get(), returnArg);
     } else {

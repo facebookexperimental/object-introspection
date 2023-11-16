@@ -262,19 +262,24 @@ void __attribute__((used, retain)) introspect_%2$016x(
     std::vector<uint8_t>& v)
 #pragma GCC diagnostic pop
 {
-  pointers.initialize();
-  pointers.add((uintptr_t)&t);
-
   v.clear();
   v.reserve(4096);
 
+  auto pointers = std::make_unique<PointerHashSet<>>();
+  pointers->initialize();
+
   struct Context {
     using DataBuffer = DataBuffer::BackInserter<std::vector<uint8_t>>;
+
+    PointerHashSet<>& pointers;
   };
+  Context ctx{ .pointers = *pointers };
+  ctx.pointers.add((uintptr_t)&t);
+
   using ContentType = OIInternal::TypeHandler<Context, OIInternal::__ROOT_TYPE__>::type;
 
   ContentType ret{Context::DataBuffer{v}};
-  OIInternal::getSizeType<Context>(t, ret);
+  OIInternal::getSizeType<Context>(ctx, t, ret);
 }
 )";
 
@@ -319,8 +324,8 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
     func += "      const auto startTime = std::chrono::steady_clock::now();\n";
   }
   func += R"(
-      pointers.initialize();
-      pointers.add((uintptr_t)&t);
+      ctx.pointers.initialize();
+      ctx.pointers.add((uintptr_t)&t);
       auto data = reinterpret_cast<uintptr_t*>(dataBase);
 
       size_t dataSegOffset = 0;
@@ -340,8 +345,8 @@ void FuncGen::DefineTopLevelGetSizeRef(std::string& testCode,
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
       writtenSize = dataSegOffset;
       dataBase += dataSegOffset;
-      pointersSize = pointers.size();
-      pointersCapacity = pointers.capacity();
+      pointersSize = ctx.pointers.size();
+      pointersCapacity = ctx.pointers.capacity();
     )";
   if (features[Feature::JitTiming]) {
     func += R"(
@@ -421,7 +426,7 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
     func += "      const auto startTime = std::chrono::steady_clock::now();\n";
   }
   func += R"(
-      pointers.initialize();
+      ctx.pointers.initialize();
       auto data = reinterpret_cast<uintptr_t*>(dataBase);
 
       size_t dataSegOffset = 0;
@@ -440,8 +445,8 @@ void FuncGen::DefineTopLevelGetSizeSmartPtr(std::string& testCode,
       OIInternal::StoreData((uintptr_t)123456789, dataSegOffset);
       writtenSize = dataSegOffset;
       dataBase += dataSegOffset;
-      pointersSize = pointers.size();
-      pointersCapacity = pointers.capacity();
+      pointersSize = ctx.pointers.size();
+      pointersCapacity = ctx.pointers.capacity();
     )";
   if (features[Feature::JitTiming]) {
     func += R"(
@@ -678,13 +683,14 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
   }
   code += R"(
         static types::st::Unit<DB> getSizeType(
+          Ctx& ctx,
           const T& t,
           typename TypeHandler<Ctx, T>::type returnArg) {
               if constexpr(std::is_pointer_v<T>) {
                 JLOG("ptr val @");
                 JLOGPTR(t);
                 auto r0 = returnArg.write((uintptr_t)t);
-                if (t && pointers.add((uintptr_t)t)) {
+                if (t && ctx.pointers.add((uintptr_t)t)) {
                   return r0.template delegate<1>([&t](auto ret) {
                     if constexpr (!std::is_void<std::remove_pointer_t<T>>::value) {
                       return TypeHandler<Ctx, std::remove_pointer_t<T>>::getSizeType(*t, ret);
@@ -727,8 +733,8 @@ ContainerInfo FuncGen::GetOiArrayContainerInfo() {
   oiArray.codegen.traversalFunc = R"(
 auto tail = returnArg.write(N0);
 for (size_t i=0; i<N0; i++) {
-  tail = tail.delegate([&container, i](auto ret) {
-      return TypeHandler<Ctx, T0>::getSizeType(container.vals[i], ret);
+  tail = tail.delegate([&ctx, &container, i](auto ret) {
+      return TypeHandler<Ctx, T0>::getSizeType(ctx, container.vals[i], ret);
   });
 }
 return tail.finish();

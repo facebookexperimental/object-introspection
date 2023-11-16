@@ -33,8 +33,8 @@ traversal_func = """
     auto tail = returnArg.write(container.size());
 
     for (auto & it: container) {
-        tail = tail.delegate([&it](auto ret) {
-            return TypeHandler<Ctx, T0>::getSizeType(it, ret);
+        tail = tail.delegate([&ctx, &it](auto ret) {
+            return TypeHandler<Ctx, T0>::getSizeType(ctx, it, ret);
         });
     }
 

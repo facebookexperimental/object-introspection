@@ -46,12 +46,12 @@ auto tail = returnArg
   .write(container.size());
 
 for (const auto& kv : container) {
-  tail = tail.delegate([&kv](auto ret) {
-    auto start = maybeCaptureKey<captureKeys, Ctx, T0>(kv.first, ret);
-    auto next = start.delegate([&kv](typename TypeHandler<Ctx, T0>::type ret) {
-      return OIInternal::getSizeType<Ctx>(kv.first, ret);
+  tail = tail.delegate([&ctx, &kv](auto ret) {
+    auto start = maybeCaptureKey<captureKeys, Ctx, T0>(ctx, kv.first, ret);
+    auto next = start.delegate([&ctx, &kv](typename TypeHandler<Ctx, T0>::type ret) {
+      return OIInternal::getSizeType<Ctx>(ctx, kv.first, ret);
     });
-    return OIInternal::getSizeType<Ctx>(kv.second, next);
+    return OIInternal::getSizeType<Ctx>(ctx, kv.second, next);
   });
 }
 
