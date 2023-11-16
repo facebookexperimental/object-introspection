@@ -39,7 +39,6 @@ class IdentifyContainers : public RecursiveMutator {
  public:
   static Pass createPass(
       const std::vector<std::unique_ptr<ContainerInfo>>& containers);
-  static bool isAllocator(Type& t);
 
   IdentifyContainers(
       TypeGraph& typeGraph,

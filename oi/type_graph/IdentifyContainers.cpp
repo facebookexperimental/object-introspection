@@ -34,21 +34,6 @@ Pass IdentifyContainers::createPass(
   return Pass("IdentifyContainers", fn);
 }
 
-bool IdentifyContainers::isAllocator(Type& t) {
-  auto* c = dynamic_cast<Class*>(&t);
-  if (!c)
-    return false;
-
-  // Maybe add more checks for an allocator.
-  // For now, just test for the presence of an "allocate" function
-  for (const auto& func : c->functions) {
-    if (func.name == "allocate") {
-      return true;
-    }
-  }
-  return false;
-}
-
 IdentifyContainers::IdentifyContainers(
     TypeGraph& typeGraph,
     const std::vector<std::unique_ptr<ContainerInfo>>& containers)
