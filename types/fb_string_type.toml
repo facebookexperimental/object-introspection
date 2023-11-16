@@ -29,7 +29,7 @@ void getSizeType(const %1%<E, T, A, Storage> &container, size_t& returnArg)
         &&
       ((uintptr_t)container.data() >= (uintptr_t)&container);
 
-    if (!inlined && pointers.add((uintptr_t)container.data())) {
+    if (!inlined && ctx.pointers.add((uintptr_t)container.data())) {
       SAVE_SIZE(container.capacity() * sizeof(T));
       SAVE_DATA(1);
     } else {
@@ -60,7 +60,7 @@ if (isStorageInline(container)) {
   category = Category::InlinedStorage;
 } else if (capacity < minLargeSize) {
   category = Category::OwnedHeapStorage;
-} else if (pointers.add(container.data())) {
+} else if (ctx.pointers.add(container.data())) {
   category = Category::ReferenceCountedStorage;
 } else {
   category = Category::AlreadyAttributed;

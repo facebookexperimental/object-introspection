@@ -3049,6 +3049,12 @@ bool OICodeGen::generateJitCode(std::string& code) {
     #define SAVE_DATA(val)    StoreData(val, returnArg)
   )");
 
+  code.append("namespace {\n");
+  code.append("static struct Context {\n");
+  code.append("  PointerHashSet<> pointers;\n");
+  code.append("} ctx;\n");
+  code.append("} // namespace\n");
+
   FuncGen::DefineJitLog(code, config.features);
 
   // The purpose of the anonymous namespace within `OIInternal` is that
@@ -3267,7 +3273,7 @@ bool OICodeGen::generateJitCode(std::string& code) {
       JLOG("ptr val @");
       JLOGPTR(s_ptr);
       StoreData((uintptr_t)(s_ptr), returnArg);
-      if (s_ptr && pointers.add((uintptr_t)s_ptr)) {
+      if (s_ptr && ctx.pointers.add((uintptr_t)s_ptr)) {
         StoreData(1, returnArg);
         getSizeType(*(s_ptr), returnArg);
       } else {

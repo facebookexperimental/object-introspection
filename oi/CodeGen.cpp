@@ -128,8 +128,9 @@ void addIncludes(const TypeGraph& typeGraph,
     includes.emplace("oi/types/st.h");
   }
   if (features[Feature::Library]) {
-    includes.emplace("vector");
+    includes.emplace("memory");
     includes.emplace("oi/IntrospectionResult.h");
+    includes.emplace("vector");
   }
   if (features[Feature::JitTiming]) {
     includes.emplace("chrono");
@@ -428,7 +429,7 @@ void addStandardGetSizeFuncDefs(std::string& code) {
       JLOG("ptr val @");
       JLOGPTR(s_ptr);
       StoreData((uintptr_t)(s_ptr), returnArg);
-      if (s_ptr && pointers.add((uintptr_t)s_ptr)) {
+      if (s_ptr && ctx.pointers.add((uintptr_t)s_ptr)) {
         StoreData(1, returnArg);
         getSizeType(*(s_ptr), returnArg);
       } else {
@@ -649,7 +650,8 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
 
   code += "  static types::st::Unit<DB> ";
   code += funcName;
-  code += "(\n      const ";
+  code += "(\n      Ctx& ctx,\n";
+  code += "    const ";
   code += c.name();
   code += "& t,\n      typename TypeHandler<Ctx, ";
   code += c.name();
@@ -683,7 +685,8 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
     } else {
       code += "delegate";
     }
-    code += "([&t](auto ret) { return OIInternal::getSizeType<Ctx>(t.";
+    code +=
+        "([&ctx, &t](auto ret) { return OIInternal::getSizeType<Ctx>(ctx, t.";
     code += member.name;
     code += ", ret); })";
   }
@@ -921,6 +924,7 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   code += ";\n";
 
   code += "  static types::st::Unit<DB> getSizeType(\n";
+  code += "      Ctx& ctx,\n";
   code += "      const ";
   code += containerWithTypes;
   code += "& container,\n";
@@ -979,7 +983,7 @@ void addCaptureKeySupport(std::string& code) {
     };
 
     template <bool CaptureKeys, typename Ctx, typename T>
-    auto maybeCaptureKey(const T& key, auto returnArg) {
+    auto maybeCaptureKey(Ctx& ctx, const T& key, auto returnArg) {
       if constexpr (CaptureKeys) {
         return returnArg.delegate([&key](auto ret) {
           return CaptureKeyHandler<Ctx, T>::captureKey(key, ret);
@@ -1041,10 +1045,10 @@ void addStandardTypeHandlers(TypeGraph& typeGraph,
   code += R"(
     template <typename Ctx, typename T>
     types::st::Unit<typename Ctx::DataBuffer>
-    getSizeType(const T &t, typename TypeHandler<Ctx, T>::type returnArg) {
+    getSizeType(Ctx& ctx, const T &t, typename TypeHandler<Ctx, T>::type returnArg) {
       JLOG("obj @");
       JLOGPTR(&t);
-      return TypeHandler<Ctx, T>::getSizeType(t, returnArg);
+      return TypeHandler<Ctx, T>::getSizeType(ctx, t, returnArg);
     }
 )";
 
@@ -1232,6 +1236,13 @@ void CodeGen::generate(
 
   if (config_.features[Feature::CaptureThriftIsset]) {
     genDefsThrift(typeGraph, code);
+  }
+  if (!config_.features[Feature::TreeBuilderV2]) {
+    code += "namespace {\n";
+    code += "static struct Context {\n";
+    code += "  PointerHashSet<> pointers;\n";
+    code += "} ctx;\n";
+    code += "} // namespace\n";
   }
 
   /*

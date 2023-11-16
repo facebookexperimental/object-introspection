@@ -25,7 +25,7 @@ void getSizeType(const %1%<T,Deleter> &u_ptr, size_t& returnArg)
     if constexpr (!std::is_void<T>::value) {
         SAVE_DATA((uintptr_t)(u_ptr.get()));
 
-        if (u_ptr && pointers.add((uintptr_t)(u_ptr.get()))) {
+        if (u_ptr && ctx.pointers.add((uintptr_t)(u_ptr.get()))) {
             SAVE_DATA(1);
             getSizeType(*(u_ptr.get()), returnArg);
         } else {
@@ -41,12 +41,12 @@ auto tail = returnArg.write((uintptr_t)container.get());
 if constexpr (std::is_void<T0>::value) {
   return tail.template delegate<0>(std::identity());
 } else {
-  bool do_visit = container && pointers.add((uintptr_t)container.get());
+  bool do_visit = container && ctx.pointers.add((uintptr_t)container.get());
   if (!do_visit)
     return tail.template delegate<0>(std::identity());
 
-  return tail.template delegate<1>([&container](auto ret) {
-    return OIInternal::getSizeType<Ctx>(*container, ret);
+  return tail.template delegate<1>([&ctx, &container](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, *container, ret);
   });
 }
 """

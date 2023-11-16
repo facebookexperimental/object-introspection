@@ -42,8 +42,8 @@ auto tail = returnArg.write((uintptr_t)&container)
 // The double ampersand is needed otherwise this loop doesn't work with
 // vector<bool>
 for (auto&& it : container) {
-  tail = tail.delegate([&it](auto ret) {
-    return OIInternal::getSizeType<Ctx>(it, ret);
+  tail = tail.delegate([&ctx, &it](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, it, ret);
   });
 }
 

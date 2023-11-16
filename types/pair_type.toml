@@ -27,10 +27,10 @@ void getSizeType(const %1%<P,Q> &container, size_t& returnArg)
 """
 
 traversal_func = """
-    return OIInternal::getSizeType<Ctx>(
+    return OIInternal::getSizeType<Ctx>(ctx, 
         container.second,
-        returnArg.delegate([&container](auto ret) {
-            return OIInternal::getSizeType<Ctx>(container.first, ret);
+        returnArg.delegate([&ctx, &container](auto ret) {
+            return OIInternal::getSizeType<Ctx>(ctx, container.first, ret);
         })
     );
 """
