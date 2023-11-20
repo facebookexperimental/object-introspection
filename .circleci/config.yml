@@ -4,6 +4,7 @@ workflows:
   object-introspection:
     jobs:
       - lint
+      - infer
 
       - build:
           name: build-gcc
@@ -60,51 +61,8 @@ executors:
       image: ubuntu-2204:2022.10.2
     resource_class: 2xlarge
 
-jobs:
-  lint:
-    executor: ubuntu-docker
-    steps:
-      - run:
-          name: Install dependencies
-          command: |
-            apt-get update
-            apt-get install -y \
-              clang-format \
-              git \
-              python3-pip
-            # click broke semver with 8.1.0, causing issues for black
-            pip install click==8.0.0 black isort
-          environment:
-            DEBIAN_FRONTEND: noninteractive
-      - checkout
-      - run:
-          name: clang-format
-          command: |
-            git ls-files '*.cpp' '*.h' | xargs clang-format --fallback-style=Google -i
-            git ls-files '*.py' | xargs black
-            git ls-files '*.py' | xargs isort
-            git diff --exit-code
-      - run:
-          name: python linting
-          command: |
-            black --check --diff test/
-            isort --check --diff test/
-
-  build:
-    # TODO this job could be run in Docker
-    executor: big-boy
-    parameters:
-      cc:
-        type: string
-      cxx:
-        type: string
-      warnings_as_errors:
-        type: string
-    environment:
-      CC: << parameters.cc >>
-      CXX: << parameters.cxx >>
-    working_directory:
-      /tmp/object-introspection
+commands:
+  install_build_dependencies:
     steps:
       - run:
           name: Install dependencies
@@ -140,6 +98,73 @@ jobs:
             pip3 install toml
           environment:
             DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  lint:
+    executor: ubuntu-docker
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            apt-get update
+            apt-get install -y \
+              clang-format \
+              git \
+              python3-pip
+            # click broke semver with 8.1.0, causing issues for black
+            pip install click==8.0.0 black isort
+          environment:
+            DEBIAN_FRONTEND: noninteractive
+      - checkout
+      - run:
+          name: clang-format
+          command: |
+            git ls-files '*.cpp' '*.h' | xargs clang-format --fallback-style=Google -i
+            git ls-files '*.py' | xargs black
+            git ls-files '*.py' | xargs isort
+            git diff --exit-code
+      - run:
+          name: python linting
+          command: |
+            black --check --diff test/
+            isort --check --diff test/
+
+  infer:
+    # TODO this job should be run in Docker
+    executor: big-boy
+    steps:
+      - install_build_dependencies
+      - run:
+          name: Install Infer
+          command: |
+            pushd /tmp
+            curl -sLO https://github.com/facebook/infer/releases/download/v1.1.0/infer-linux64-v1.1.0.tar.xz
+            sudo tar -xf infer-linux64-v1.1.0.tar.xz -C /usr/local --strip-components=1
+            popd
+      - checkout
+      - run:
+          name: Infer
+          command: |
+            cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -B build/
+            infer run --compilation-database build/compile_commands.json
+
+  build:
+    # TODO this job could be run in Docker
+    executor: big-boy
+    parameters:
+      cc:
+        type: string
+      cxx:
+        type: string
+      warnings_as_errors:
+        type: string
+    environment:
+      CC: << parameters.cc >>
+      CXX: << parameters.cxx >>
+    working_directory:
+      /tmp/object-introspection
+    steps:
+      - install_build_dependencies
       - checkout
       - run:
           name: Build
