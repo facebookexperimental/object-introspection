@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <gflags/gflags.h>
 #include <glog/logging.h>
 
 #include <boost/archive/text_iarchive.hpp>
@@ -145,6 +146,7 @@ int main(int argc, char* argv[]) {
   google::LogToStderr();
   google::SetStderrLogging(google::INFO);
   google::SetVLOGLevel("TreeBuilder", 3);
+  gflags::SetCommandLineOption("minloglevel", "0");
 
   /* Reflects `oid`'s defaults for TreeBuilder::Config */
   TreeBuilder::Config tbConfig{
