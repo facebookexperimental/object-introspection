@@ -29,6 +29,7 @@
 #include <cerrno>
 #include <chrono>
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
 #include <numeric>
 #include <span>
@@ -195,61 +196,91 @@ bool OIDebugger::singleStepFunc(pid_t pid, uint64_t real_end) {
 }
 
 bool OIDebugger::setupLogFile(void) {
-  // 1. Copy the log file path in out text segment
-  // 2. Run the syscall
-  // 3. Store the resulting fd in the segmentConfigFile
-  if (!segConfig.existingConfig) {
-    auto logFilePath =
-        fs::path("/tmp") / ("oid-" + std::to_string(traceePid) + ".jit.log");
+  // 1. Open an anonymous memfd in the target with `memfd_create`.
+  // 2. Duplicate that fd to the debugger using `pidfd_getfd`.
+  // 3. Store the resulting fds in OIDebugger.
+  bool ret = true;
 
-    auto logFilePathLen = strlen(logFilePath.c_str()) + 1;
-    if (logFilePathLen > textSegSize) {
-      LOG(ERROR) << "The Log File's path " << logFilePath << " ("
-                 << logFilePathLen << ") is too long for the text segment ("
-                 << textSegSize << ")";
-      return false;
-    }
+  auto traceeFd = remoteSyscall<MemfdCreate>("jit.log", 0);
+  if (!traceeFd.has_value()) {
+    LOG(ERROR) << "Failed to create memory log file";
+    return false;
+  }
+  logFds.traceeFd = *traceeFd;
 
-    /*
-     * Using the text segment to store the path in the remote process' memory.
-     * The memory will be re-used anyway and the path will get overwritten.
-     */
-    if (!writeTargetMemory((void*)logFilePath.c_str(),
-                           (void*)segConfig.textSegBase,
-                           logFilePathLen)) {
-      LOG(ERROR) << "Failed to write Log File's path into target process";
-      return false;
-    }
-
-    /*
-     * Execute the `open(2)` syscall on the remote process.
-     * We use the O_SYNC flags to ensure each write we do make it on the disk.
-     * Another option would have been O_DSYNC, but since the logs get always
-     * appended to the end of the file, the file size always changes and
-     * we have to update the metadata everytime anyways.
-     * So O_SYNC won't incure a performance penalty, compared to O_DSYNC,
-     * and ensure we can use the metadata for future automation, etc.
-     */
-    auto fd = remoteSyscall<SysOpen>(segConfig.textSegBase,          // path
-                                     O_CREAT | O_APPEND | O_WRONLY,  // flags
-                                     S_IRUSR | S_IWUSR | S_IRGRP);   // mode
-    if (!fd.has_value()) {
-      LOG(ERROR) << "Failed to open Log File " << logFilePath;
-      return false;
-    }
-
-    segConfig.logFile = *fd;
+  auto traceePidFd = syscall(SYS_pidfd_open, traceePid, 0);
+  if (traceePidFd == -1) {
+    PLOG(ERROR) << "Failed to open child pidfd";
+    return false;
+  }
+  auto debuggerFd = syscall(SYS_pidfd_getfd, traceePidFd, *traceeFd, 0);
+  if (close(static_cast<int>(traceePidFd)) != 0) {
+    PLOG(ERROR) << "Failed to close pidfd";
+    ret = false;
+  }
+  if (debuggerFd == -1) {
+    PLOG(ERROR) << "Failed to duplicate child memfd to debugger";
+    return false;
   }
 
-  return true;
+  logFds.debuggerFd = static_cast<int>(debuggerFd);
+  return ret;
 }
 
 bool OIDebugger::cleanupLogFile(void) {
-  return remoteSyscall<SysClose>(segConfig.logFile).has_value();
+  bool ret = true;
+  if (logFds.traceeFd == -1)
+    return ret;
+
+  if (!remoteSyscall<SysClose>(logFds.traceeFd).has_value()) {
+    LOG(ERROR) << "Remote close failed";
+    ret = false;
+  }
+
+  if (logFds.debuggerFd == -1)
+    return ret;
+
+  FILE* logs = fdopen(logFds.debuggerFd, "r");
+  if (logs == NULL) {
+    PLOG(ERROR) << "Failed to fdopen jitlog";
+    return false;
+  }
+  if (fseek(logs, 0, SEEK_SET) != 0) {
+    PLOG(ERROR) << "Failed to fseek jitlog";
+    return false;
+  }
+
+  char* line = nullptr;
+  size_t read = 0;
+  VLOG(1) << "Outputting JIT logs:";
+  errno = 0;
+  while ((read = getline(&line, &read, logs)) != (size_t)-1) {
+    VLOG(1) << "JITLOG: " << line;
+  }
+  if (errno) {
+    PLOG(ERROR) << "getline";
+    return false;
+  }
+  VLOG(1) << "Finished outputting JIT logs.";
+
+  free(line);
+  if (fclose(logs) == -1) {
+    PLOG(ERROR) << "fclose";
+    return false;
+  }
+
+  return ret;
 }
 
 /* Set up traced process results and text segments */
 bool OIDebugger::segmentInit(void) {
+  if (generatorConfig.features[Feature::JitLogging]) {
+    if (!setupLogFile()) {
+      LOG(ERROR) << "setUpLogFile failed!!!";
+      return false;
+    }
+  }
+
   /*
    * TODO: change this. If setup_results_segment() fails we have to remove
    * the text segment.
@@ -258,11 +289,6 @@ bool OIDebugger::segmentInit(void) {
     if (!segConfig.existingConfig) {
       if (!setupSegment(SegType::text) || !setupSegment(SegType::data)) {
         LOG(ERROR) << "setUpSegment failed!!!";
-        return false;
-      }
-
-      if (!setupLogFile()) {
-        LOG(ERROR) << "setUpLogFile failed!!!";
         return false;
       }
     } else {
@@ -345,8 +371,7 @@ void OIDebugger::createSegmentConfigFile(void) {
             << " dataSegBase: " << segConfig.dataSegBase
             << " dataSegSize: " << segConfig.dataSegSize
             << " replayInstBase: " << segConfig.replayInstBase
-            << " cookie: " << segConfig.cookie
-            << " logFile: " << segConfig.logFile;
+            << " cookie: " << segConfig.cookie;
 
     assert(segConfig.existingConfig);
   }
@@ -1767,11 +1792,6 @@ bool OIDebugger::unmapSegments(bool deleteSegConfFile) {
     ret = false;
   }
 
-  if (ret && !cleanupLogFile()) {
-    LOG(ERROR) << "Problem closing target process log file";
-    ret = false;
-  }
-
   deleteSegmentConfig(deleteSegConfFile);
 
   return ret;
@@ -1828,13 +1848,6 @@ bool OIDebugger::removeTraps(pid_t pid) {
     }
 
     it = activeTraps.erase(it);
-  }
-
-  if (generatorConfig.features[Feature::JitLogging]) {
-    /* Flush the JIT log, so it's always written on disk at least once */
-    if (!remoteSyscall<SysFsync>(segConfig.logFile).has_value()) {
-      LOG(ERROR) << "Failed to flush the JIT Log";
-    }
   }
 
   /* Resume the main thread now, so it doesn't have to wait on restoreState */
@@ -2341,7 +2354,7 @@ bool OIDebugger::compileCode() {
     }
 
     int logFile =
-        generatorConfig.features[Feature::JitLogging] ? segConfig.logFile : 0;
+        generatorConfig.features[Feature::JitLogging] ? logFds.traceeFd : 0;
     if (!writeTargetMemory(
             &logFile, (void*)syntheticSymbols["logFile"], sizeof(logFile))) {
       LOG(ERROR) << "Failed to write logFile in probe's cookieValue";
@@ -2411,7 +2424,6 @@ void OIDebugger::restoreState(void) {
         VLOG(1) << "Couldn't interrupt target pid " << p
                 << " (Reason: " << strerror(errno) << ")";
       }
-
       VLOG(1) << "Waiting to stop PID : " << p;
 
       if (waitpid(p, 0, WSTOPPED) != p) {
@@ -2557,6 +2569,9 @@ void OIDebugger::restoreState(void) {
         dumpRegs("Unknown Sig", p, &regs);
       }
     }
+
+    if (!cleanupLogFile())
+      LOG(ERROR) << "failed to cleanup log file!";
 
     if (ptrace(PTRACE_DETACH, p, 0L, 0L) < 0) {
       LOG(ERROR) << "restoreState Couldn't detach target pid " << p

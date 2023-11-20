@@ -249,6 +249,11 @@ class OIDebugger {
   std::filesystem::path segConfigFilePath;
   std::filesystem::path customCodeFile;
 
+  struct {
+    int traceeFd = -1;
+    int debuggerFd = -1;
+  } logFds;
+
   struct c {
     uintptr_t textSegBase{};
     size_t textSegSize{};
@@ -259,7 +264,6 @@ class OIDebugger {
     uintptr_t dataSegBase{};
     size_t dataSegSize{};
     uintptr_t cookie{};
-    int logFile{};
   } segConfig{};
 
   /*
