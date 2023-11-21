@@ -71,6 +71,8 @@ struct Syscall {
 using SysOpen = Syscall<"open", SYS_open, int, const char*, int, mode_t>;
 using SysClose = Syscall<"close", SYS_close, int, int>;
 using SysFsync = Syscall<"fsync", SYS_fsync, int, int>;
+using MemfdCreate =
+    Syscall<"memfd_create", SYS_memfd_create, int, const char*, unsigned int>;
 
 using SysMmap =
     Syscall<"mmap", SYS_mmap, void*, void*, size_t, int, int, int, off_t>;
