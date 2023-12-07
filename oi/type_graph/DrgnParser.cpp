@@ -116,6 +116,9 @@ Type& DrgnParser::enumerateType(struct drgn_type* type) {
       case DRGN_TYPE_VOID:
         t = &enumeratePrimitive(type);
         break;
+      case DRGN_TYPE_FUNCTION:
+        t = &enumerateFunction(type);
+        break;
       default:
         throw DrgnParserError{"Unknown drgn type kind: " +
                               std::to_string(kind)};
@@ -467,6 +470,10 @@ Type& DrgnParser::enumeratePointer(struct drgn_type* type) {
 
   Type& t = enumerateType(pointeeType);
   return makeType<Pointer>(type, t);
+}
+
+Type& DrgnParser::enumerateFunction(struct drgn_type* type) {
+  return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
 }
 
 Array& DrgnParser::enumerateArray(struct drgn_type* type) {

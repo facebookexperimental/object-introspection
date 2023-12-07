@@ -62,6 +62,7 @@ class DrgnParser {
   Enum& enumerateEnum(struct drgn_type* type);
   Typedef& enumerateTypedef(struct drgn_type* type);
   Type& enumeratePointer(struct drgn_type* type);
+  Type& enumerateFunction(struct drgn_type* type);
   Array& enumerateArray(struct drgn_type* type);
   Primitive& enumeratePrimitive(struct drgn_type* type);
 
