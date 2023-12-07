@@ -103,7 +103,7 @@ cpp_unittest(
 if (WITH_FLAKY_TESTS)
   add_test(
     NAME integration_py
-    COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/integration.py
+    COMMAND ${PYTHON} ${CMAKE_CURRENT_SOURCE_DIR}/integration.py
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
   )
   set_tests_properties(integration_py PROPERTIES

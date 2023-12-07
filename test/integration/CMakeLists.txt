@@ -28,8 +28,6 @@ add_link_options(-no-pie)
 set(INTEGRATION_TEST_TARGET_SRC integration_test_target.cpp)
 set(INTEGRATION_TEST_RUNNER_SRC integration_test_runner.cpp)
 
-find_program(PYTHON_CMD NAMES python3.6 python3)
-
 set(INTEGRATION_TEST_THRIFT_SRCS ${THRIFT_TESTS})
 list(TRANSFORM INTEGRATION_TEST_THRIFT_SRCS APPEND ".thrift")
 
@@ -38,7 +36,7 @@ add_custom_command(
     ${INTEGRATION_TEST_TARGET_SRC}
     ${INTEGRATION_TEST_RUNNER_SRC}
     ${INTEGRATION_TEST_THRIFT_SRCS}
-  COMMAND ${PYTHON_CMD}
+  COMMAND ${PYTHON}
     ${CMAKE_CURRENT_SOURCE_DIR}/gen_tests.py
     ${INTEGRATION_TEST_TARGET_SRC}
     ${INTEGRATION_TEST_RUNNER_SRC}
@@ -49,7 +47,7 @@ add_custom_command(
 add_executable(integration_test_target
   ${INTEGRATION_TEST_TARGET_SRC}
   folly_shims.cpp)
-target_compile_options(integration_test_target PRIVATE -O1)
+target_compile_options(integration_test_target PRIVATE -O1 -g3)
 target_link_libraries(integration_test_target PRIVATE oil_jit exporters_json Boost::headers ${Boost_LIBRARIES})
 
 add_executable(integration_test_runner ${INTEGRATION_TEST_RUNNER_SRC} runner_common.cpp)
