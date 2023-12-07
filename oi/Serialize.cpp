@@ -281,7 +281,9 @@ void serialize(Archive& ar,
   // and `num_parents` set to NULL/0 per the initial `memset`, see
   // "AVOIDING OVERSERIALIZATION" comment above
 
-  ar& type._private.die_addr;
+  uintptr_t die_addr = (uintptr_t)type._private.die_addr;
+  ar& die_addr;
+  type._private.die_addr = (void*)die_addr;
   // `.module` is NULL, per the initial `memset`
   if (Archive::is_saving::value) {
     struct drgn_error* err = drgn_type_sizeof(&type, &type._private.oi_size);
