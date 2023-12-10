@@ -8,6 +8,7 @@ add_library(type_graph
   Flattener.cpp
   IdentifyContainers.cpp
   KeyCapture.cpp
+  LLDBParser.cpp
   NameGen.cpp
   PassManager.cpp
   Printer.cpp
