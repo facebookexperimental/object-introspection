@@ -16,6 +16,7 @@
 #include "LLDBParser.h"
 
 #include <glog/logging.h>
+#include <lldb/API/LLDB.h>
 
 namespace oi::detail::type_graph {
 
@@ -26,6 +27,7 @@ Type& LLDBParser::parse(lldb::SBType* root) {
   options_ = {};
 
   depth_ = 0;
+  LOG(WARNING) << "Parsing lldb type: " << root->GetName();
   throw std::runtime_error("Not implemented yet!");
 }
 

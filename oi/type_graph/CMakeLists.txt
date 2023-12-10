@@ -25,6 +25,7 @@ target_link_libraries(type_graph
   container_info
   symbol_service
 
+  LLDB
   "-L${DRGN_PATH}/.libs"
   drgn
 )

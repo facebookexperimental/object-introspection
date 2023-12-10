@@ -1,6 +1,8 @@
 #include "test_lldb_parser.h"
 
 #include <gtest/gtest.h>
+#include <lldb/API/LLDB.h>
+#include <lldb/API/SBDebugger.h>
 
 #include <regex>
 
@@ -16,14 +18,19 @@ using namespace type_graph;
 // TODO setup google logging for tests so it doesn't appear on terminal by
 // default
 
-SymbolService* LLDBParserTest::symbols_ = nullptr;
+lldb::SBDebugger LLDBParserTest::debugger_;
+lldb::SBTarget LLDBParserTest::target_;
 
 void LLDBParserTest::SetUpTestSuite() {
-  symbols_ = new SymbolService{TARGET_EXE_PATH};
+  lldb::SBDebugger::Initialize();
+  debugger_ = lldb::SBDebugger::Create(false);
+  target_ = debugger_.CreateTarget(TARGET_EXE_PATH);
 }
 
 void LLDBParserTest::TearDownTestSuite() {
-  delete symbols_;
+  debugger_.DeleteTarget(target_);
+  lldb::SBDebugger::Destroy(debugger_);
+  lldb::SBDebugger::Terminate();
 }
 
 LLDBParser LLDBParserTest::getLLDBParser(TypeGraph& typeGraph,
@@ -32,19 +39,22 @@ LLDBParser LLDBParserTest::getLLDBParser(TypeGraph& typeGraph,
   return lldbParser;
 }
 
-lldb::SBType* LLDBParserTest::getLLDBRoot(std::string_view function) {
-  irequest req{"entry", std::string{function}, "arg0"};
-  auto* lldbRoot = symbols_->getRootType(req)->type.type;
-  return nullptr;
+lldb::SBType LLDBParserTest::getLLDBRoot(std::string_view function) {
+  auto fns = target_.FindFunctions(function.data());
+  assert(fns.GetSize() == 1);
+  auto fn = fns.GetContextAtIndex(0).GetFunction();
+  auto args = fn.GetBlock().GetVariables(target_, true, false, false);
+  assert(args.GetSize() >= 1);
+  return args.GetValueAtIndex(0).GetType();
 }
 
 std::string LLDBParserTest::run(std::string_view function,
                                 LLDBParserOptions options) {
   TypeGraph typeGraph;
   auto lldbParser = getLLDBParser(typeGraph, options);
-  auto* lldbRoot = getLLDBRoot(function);
+  auto lldbRoot = getLLDBRoot(function);
 
-  Type& type = lldbParser.parse(lldbRoot);
+  Type& type = lldbParser.parse(&lldbRoot);
 
   std::stringstream out;
   NodeTracker tracker;
