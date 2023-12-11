@@ -115,7 +115,7 @@ definitions = '''
         "dynamicSize": 12,
         "members": [{
           "name": "node",
-          "typeName": "struct Node *",
+          "typeName": "ns_anonymous::Node *",
           "staticSize": 8,
           "dynamicSize": 12,
           "members": [{
@@ -172,7 +172,7 @@ definitions = '''
           "exclusiveSize": 0,
           "members": [{
             "name": "node",
-            "typeName": "struct Node *",
+            "typeName": "ns_anonymous::Node *",
             "staticSize": 8,
             "dynamicSize": 12,
             "exclusiveSize": 8,

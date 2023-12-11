@@ -48,7 +48,7 @@ definitions = '''
             "dynamicSize": 0
           },
           {
-            "typeName": "struct RawNode *",
+            "typeName": "ns_cycles::RawNode *",
             "staticSize": 8,
             "dynamicSize": 32,
             "members": [
@@ -63,7 +63,7 @@ definitions = '''
                     "dynamicSize": 0
                   },
                   {
-                    "typeName": "struct RawNode *",
+                    "typeName": "ns_cycles::RawNode *",
                     "staticSize": 8,
                     "dynamicSize": 16,
                     "members": [
@@ -78,7 +78,7 @@ definitions = '''
                             "dynamicSize": 0
                           },
                           {
-                            "typeName": "struct RawNode *",
+                            "typeName": "ns_cycles::RawNode *",
                             "staticSize": 8,
                             "dynamicSize": 0
                           }
@@ -113,7 +113,7 @@ definitions = '''
       "dynamicSize": 48,
       "members": [{
         "name": "t",
-        "typeName": "struct RawNode *",
+        "typeName": "ns_cycles::RawNode *",
         "staticSize": 8,
         "dynamicSize": 48,
         "members": [{
@@ -124,7 +124,7 @@ definitions = '''
             { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
             {
               "name": "next",
-              "typeName": "struct RawNode *",
+              "typeName": "ns_cycles::RawNode *",
               "staticSize": 8,
               "dynamicSize": 32,
               "members": [{
@@ -135,7 +135,7 @@ definitions = '''
                   { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
                   {
                     "name": "next",
-                    "typeName": "struct RawNode *",
+                    "typeName": "ns_cycles::RawNode *",
                     "staticSize": 8,
                     "dynamicSize": 16,
                     "members": [{
@@ -146,7 +146,7 @@ definitions = '''
                         { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
                         {
                           "name": "next",
-                          "typeName": "struct RawNode *",
+                          "typeName": "ns_cycles::RawNode *",
                           "staticSize": 8,
                           "dynamicSize": 0
                         }
