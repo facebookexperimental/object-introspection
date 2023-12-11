@@ -165,8 +165,13 @@ std::string OICodeGen::preProcessUniquePtr(drgn_type* type, std::string name) {
   std::string typeName;
   std::string deleterName;
 
-  size_t end = name.rfind('>') - 1;
-  size_t pos = end;
+  size_t end = name.rfind('>');
+  if (end == std::string::npos) {
+    LOG(ERROR) << "No template parameter for the unique_ptr " << type;
+    return name;
+  }
+
+  size_t pos = end = end - 1;  // Skip the '>' found
   size_t begin = 0;
   bool found = false;
 
