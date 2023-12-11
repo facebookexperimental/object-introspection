@@ -30,7 +30,8 @@ struct LLDBParserOptions {};
 class LLDBParser {
  public:
   LLDBParser(TypeGraph& typeGraph, LLDBParserOptions options)
-    : typeGraph_(typeGraph), options_(options) {}
+      : typeGraph_(typeGraph), options_(options) {
+  }
   Type& parse(lldb::SBType* root);
 
  private:
@@ -41,7 +42,8 @@ class LLDBParser {
 
 class LLDBParserError : public std::runtime_error {
  public:
-  LLDBParserError(const std::string& msg) : std::runtime_error{msg} {}
+  LLDBParserError(const std::string& msg) : std::runtime_error{msg} {
+  }
 };
 
 }  // namespace oi::detail::type_graph

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <gmock/gmock.h>
-#include <lldb/API/SBType.h>
 #include <lldb/API/SBDebugger.h>
+#include <lldb/API/SBType.h>
 
 #include "oi/type_graph/LLDBParser.h"
 

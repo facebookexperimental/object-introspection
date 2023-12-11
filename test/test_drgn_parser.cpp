@@ -10,6 +10,7 @@
 #include "oi/type_graph/Printer.h"
 #include "oi/type_graph/TypeGraph.h"
 #include "oi/type_graph/Types.h"
+#include "type_graph_utils.h"
 
 using namespace type_graph;
 
@@ -71,64 +72,6 @@ void DrgnParserTest::test(std::string_view function,
       .readEnumValues = true,
   };
   test(function, expected, options);
-}
-
-static std::pair<size_t, size_t> globMatch(std::string_view pattern,
-                                    std::string_view str) {
-  size_t i = 0;
-  size_t j = 0;
-  size_t prevWildcardIdx = -1;
-  size_t backtrackIdx = -1;
-  size_t patternLineStart = 0;
-  size_t strLineStart = 0;
-
-  while (i < str.size()) {
-    if (i + 1 < str.size() && str[i] == '\n')
-      strLineStart = i + 1;
-    if (j + 1 < pattern.size() && pattern[j] == '\n')
-      patternLineStart = j + 1;
-
-    if (j < pattern.size() && str[i] == pattern[j]) {
-      // Exact character match
-      i++;
-      j++;
-    } else if (j < pattern.size() && pattern[j] == '*') {
-      // Wildcard
-      backtrackIdx = i + 1;
-      prevWildcardIdx = j++;
-    } else if (prevWildcardIdx != static_cast<size_t>(-1)) {
-      // No match, backtrack to previous wildcard
-      i = ++backtrackIdx;
-      j = prevWildcardIdx + 1;
-    } else {
-      // No match
-      return {patternLineStart, strLineStart};
-    }
-  }
-
-  while (j < pattern.size() && pattern[j] == '*') {
-    j++;
-  }
-
-  // If the pattern has been fully consumed then it's a match
-  return {j, i};
-}
-
-static std::string prefixLines(std::string_view str,
-                        std::string_view prefix,
-                        size_t maxLen) {
-  std::string res;
-  res += prefix;
-  for (size_t i = 0; i < maxLen && i < str.size(); i++) {
-    char c = str[i];
-    res += c;
-    if (c == '\n') {
-      res += prefix;
-    }
-  }
-  if (str.size() > maxLen)
-    res += "...";
-  return res;
 }
 
 void DrgnParserTest::testGlob(std::string_view function,
