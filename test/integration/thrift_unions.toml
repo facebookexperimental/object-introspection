@@ -16,6 +16,7 @@ raw_definitions = '''
 namespace cpp2 {
   void StaticUnion::__fbthrift_clear() {}
   void DynamicUnion::__fbthrift_clear() {}
+  DynamicUnion::~DynamicUnion() {}
 }
 '''
 
