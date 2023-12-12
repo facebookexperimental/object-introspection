@@ -183,3 +183,23 @@ TEST(RemoveMembersTest, Union) {
 [0] Union: MyUnion (size: 4)
 )");
 }
+
+TEST(RemoveMembersTest, Incomplete) {
+  test(RemoveMembers::createPass({}),
+       R"(
+[0] Class: ClassA (size: 12)
+      Member: a (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 4)
+        Incomplete: [MyIncompleteType]
+      Member: c (offset: 8)
+        Primitive: int32_t
+)",
+       R"(
+[0] Class: ClassA (size: 12)
+      Member: a (offset: 0)
+        Primitive: int32_t
+      Member: c (offset: 8)
+        Primitive: int32_t
+)");
+}

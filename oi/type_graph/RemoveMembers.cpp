@@ -61,7 +61,11 @@ void RemoveMembers::visit(Class& c) {
   }
 
   std::erase_if(c.members, [this, &c](Member member) {
-    return ignoreMember(c.name(), member.name);
+    if (ignoreMember(c.name(), member.name))
+      return true;
+    if (dynamic_cast<Incomplete*>(&member.type()))
+      return true;
+    return false;
   });
 }
 
