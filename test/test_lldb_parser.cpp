@@ -40,12 +40,18 @@ LLDBParser LLDBParserTest::getLLDBParser(TypeGraph& typeGraph,
 }
 
 lldb::SBType LLDBParserTest::getLLDBRoot(std::string_view function) {
+  /* This method makes a lot of assumptions about the structure of the
+   * integration_test_target. Each test case has a single function with a
+   * single argument.
+   */
   auto fns = target_.FindFunctions(function.data());
-  assert(fns.GetSize() == 1);
+  EXPECT_EQ(fns.GetSize(), 1);
   auto fn = fns.GetContextAtIndex(0).GetFunction();
   auto args = fn.GetBlock().GetVariables(target_, true, false, false);
-  assert(args.GetSize() >= 1);
-  return args.GetValueAtIndex(0).GetType();
+  EXPECT_EQ(args.GetSize(), 1);
+  auto root = args.GetValueAtIndex(0).GetType();
+  EXPECT_TRUE(root.IsValid());
+  return root;
 }
 
 std::string LLDBParserTest::run(std::string_view function,
@@ -54,7 +60,7 @@ std::string LLDBParserTest::run(std::string_view function,
   auto lldbParser = getLLDBParser(typeGraph, options);
   auto lldbRoot = getLLDBRoot(function);
 
-  Type& type = lldbParser.parse(&lldbRoot);
+  Type& type = lldbParser.parse(lldbRoot);
 
   std::stringstream out;
   NodeTracker tracker;

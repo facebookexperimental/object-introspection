@@ -20,9 +20,9 @@
 
 namespace oi::detail::type_graph {
 
-Type& LLDBParser::parse(lldb::SBType* root) {
+Type& LLDBParser::parse(lldb::SBType& root) {
   depth_ = 0;
-  return enumerateType(*root);
+  return enumerateType(root);
 }
 
 struct DepthGuard {
@@ -37,6 +37,10 @@ struct DepthGuard {
 };
 
 Type& LLDBParser::enumerateType(lldb::SBType& type) {
+  // Avoid re-enumerating an already-processsed type
+  if (auto it = lldb_types_.find(type); it != lldb_types_.end())
+    return it->second;
+
   DepthGuard guard(depth_);
 
   Type *t = nullptr;
@@ -84,7 +88,7 @@ Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {
     }
   }
 
-  return makeType<Enum>(&type, name, size, std::move(enumeratorMap));
+  return makeType<Enum>(type, name, size, std::move(enumeratorMap));
 }
 
 }  // namespace oi::detail::type_graph

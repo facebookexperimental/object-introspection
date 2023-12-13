@@ -18,10 +18,28 @@
 #include "TypeGraph.h"
 #include "Types.h"
 
-// TODO: use LLDB's includes
-namespace lldb {
-class SBType;
-}
+#include <lldb/API/SBType.h>
+
+namespace std {
+template <>
+struct hash<lldb::SBType> {
+  size_t operator()(const lldb::SBType& key) const {
+    auto &keyAsSP = reinterpret_cast<const lldb::TypeImplSP&>(key);
+    auto SPHasher = std::hash<lldb::TypeImplSP>();
+    return SPHasher(keyAsSP);
+  }
+};
+
+template <>
+struct equal_to<lldb::SBType> {
+  bool operator()(const lldb::SBType& lhs, const lldb::SBType& rhs) const {
+    auto &lhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(lhs);
+    auto &rhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(rhs);
+    auto SPEqualTo = std::equal_to<lldb::TypeImplSP>();
+    return SPEqualTo(lhsAsSP, rhsAsSP);
+  }
+};
+}  // namespace std
 
 namespace oi::detail::type_graph {
 
@@ -34,18 +52,20 @@ class LLDBParser {
   LLDBParser(TypeGraph& typeGraph, LLDBParserOptions options)
       : typeGraph_(typeGraph), options_(options) {
   }
-  Type& parse(lldb::SBType* root);
+  Type& parse(lldb::SBType& root);
 
  private:
   Type& enumerateType(lldb::SBType& type);
   Enum& enumerateEnum(lldb::SBType& type);
 
     template <typename T, typename... Args>
-  T& makeType(lldb::SBType *lldbType, Args&&... args) {
+  T& makeType(lldb::SBType& lldbType, Args&&... args) {
     auto& newType = typeGraph_.makeType<T>(std::forward<Args>(args)...);
-    //drgn_types_.insert({drgnType, newType});
+    lldb_types_.emplace(lldbType, newType);
     return newType;
   }
+
+  std::unordered_map<lldb::SBType, std::reference_wrapper<Type>> lldb_types_;
 
   TypeGraph& typeGraph_;
   int depth_;
