@@ -528,6 +528,8 @@ bool OICodeGen::buildNameInt(drgn_type* type,
 
       if (drgn_type_has_name(arrayElementType)) {
         templateParamName = drgn_type_name(arrayElementType);
+      } else if (drgn_type_has_tag(arrayElementType)) {
+        templateParamName = drgn_type_tag(arrayElementType);
       } else {
         LOG(ERROR) << "Failed4 to get typename ";
         return false;
