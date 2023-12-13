@@ -76,15 +76,6 @@ void EnforceCompatibility::visit(Class& c) {
     // CodeGen v1 replaces parent containers with padding
     if (member.name.starts_with(Flattener::ParentPrefix))
       return true;
-
-    if (auto* ptr = dynamic_cast<Pointer*>(&member.type())) {
-      if (auto* incomplete = dynamic_cast<Incomplete*>(&ptr->pointeeType())) {
-        // This is a pointer to an incomplete type. CodeGen v1 does not record
-        // the pointer's address in this case.
-        return true;
-      }
-    }
-
     return false;
   });
 }

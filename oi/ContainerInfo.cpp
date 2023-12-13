@@ -325,6 +325,9 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
       }
     });
   }
+
+  // Only used for TreeBuilder v1:
+  numTemplateParams = info["numTemplateParams"].value<size_t>();
 }
 
 ContainerInfo::ContainerInfo(std::string typeName_,

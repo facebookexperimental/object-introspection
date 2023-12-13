@@ -17,6 +17,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <list>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -25,6 +26,7 @@
 
 #include "ContainerInfo.h"
 #include "OICodeGen.h"
+#include "type_graph/TypeGraph.h"
 
 struct drgn_type;
 namespace oi::detail {
@@ -33,7 +35,6 @@ class SymbolService;
 namespace oi::detail::type_graph {
 class Class;
 class Member;
-class TypeGraph;
 }  // namespace oi::detail::type_graph
 
 namespace oi::detail {
@@ -52,6 +53,9 @@ class CodeGen {
   bool codegenFromDrgn(struct drgn_type* drgnType,
                        std::string linkageName,
                        std::string& code);
+  void exportDrgnTypes(TypeHierarchy& th,
+                       std::list<drgn_type>& drgnTypes,
+                       drgn_type** rootType) const;
 
   void registerContainer(std::unique_ptr<ContainerInfo> containerInfo);
   void registerContainer(const std::filesystem::path& path);
@@ -65,6 +69,7 @@ class CodeGen {
   );
 
  private:
+  type_graph::TypeGraph typeGraph_;
   const OICodeGen::Config& config_;
   SymbolService& symbols_;
   std::vector<std::unique_ptr<ContainerInfo>> containerInfos_;

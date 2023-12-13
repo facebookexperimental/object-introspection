@@ -19,15 +19,18 @@
 
 namespace oi::detail::type_graph {
 
-#define X(OI_TYPE_NAME)                              \
-  void OI_TYPE_NAME::accept(Visitor<void>& v) {      \
-    v.visit(*this);                                  \
-  }                                                  \
-  Type& OI_TYPE_NAME::accept(Visitor<Type&>& m) {    \
-    return m.visit(*this);                           \
-  }                                                  \
-  void OI_TYPE_NAME::accept(ConstVisitor& v) const { \
-    v.visit(*this);                                  \
+#define X(OI_TYPE_NAME)                                     \
+  void OI_TYPE_NAME::accept(Visitor<void>& v) {             \
+    v.visit(*this);                                         \
+  }                                                         \
+  drgn_type* OI_TYPE_NAME::accept(Visitor<drgn_type*>& v) { \
+    return v.visit(*this);                                  \
+  }                                                         \
+  Type& OI_TYPE_NAME::accept(Visitor<Type&>& m) {           \
+    return m.visit(*this);                                  \
+  }                                                         \
+  void OI_TYPE_NAME::accept(ConstVisitor& v) const {        \
+    v.visit(*this);                                         \
   }
 OI_TYPE_LIST
 #undef X

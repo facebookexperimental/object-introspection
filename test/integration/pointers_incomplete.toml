@@ -94,7 +94,6 @@ definitions = '''
     expect_json = '''[{
       "staticSize": 88,
       "dynamicSize": 0,
-      "paddingSavingsSize": 21,
       "members": [
         { "name": "ptrundef", "staticSize": 8, "dynamicSize": 0 },
         { "name": "__makePad1", "staticSize": 1, "dynamicSize": 0 },

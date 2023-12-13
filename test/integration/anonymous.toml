@@ -110,16 +110,16 @@ definitions = '''
       "dynamicSize": 12,
       "members": [{
         "name": "anon",
-        "typeName": "__anon_struct_0",
+        "typeName": "__oi_anon_1",
         "staticSize": 8,
         "dynamicSize": 12,
         "members": [{
           "name": "node",
-          "typeName": "ns_anonymous::Node *",
+          "typeName": "ns_anonymous::Node*",
           "staticSize": 8,
           "dynamicSize": 12,
           "members": [{
-            "typeName": "Node",
+            "typeName": "ns_anonymous::Node",
             "staticSize": 12,
             "dynamicSize": 0,
             "members": [
@@ -165,19 +165,19 @@ definitions = '''
         "exclusiveSize": 0,
         "members": [{
           "name": "",
-          "typeName": "__anon_struct_0",
+          "typeName": "__oi_anon_2",
           "isTypedef": false,
           "staticSize": 8,
           "dynamicSize": 12,
           "exclusiveSize": 0,
           "members": [{
             "name": "node",
-            "typeName": "ns_anonymous::Node *",
+            "typeName": "ns_anonymous::Node*",
             "staticSize": 8,
             "dynamicSize": 12,
             "exclusiveSize": 8,
             "members": [{
-              "typeName": "Node",
+              "typeName": "ns_anonymous::Node",
               "staticSize": 12,
               "exclusiveSize": 0,
               "members": [
@@ -199,9 +199,9 @@ definitions = '''
       "staticSize": 24,
       "dynamicSize": 0,
       "members": [
-        {"name":"__anon_member_0", "staticSize":2, "dynamicSize":0},
-        {"name":"__anon_member_1", "staticSize":8, "dynamicSize":0},
-        {"name":"e", "staticSize":4, "dynamicSize":0, "typeName":"int"}
+        {"name":"__oi_anon_0", "staticSize":2, "dynamicSize":0},
+        {"name":"__oi_anon_2", "staticSize":8, "dynamicSize":0},
+        {"name":"e", "staticSize":4, "dynamicSize":0}
       ]
     }]'''
     expect_json_v2 = '''[{
@@ -231,7 +231,6 @@ definitions = '''
         { "name": "v",
           "staticSize": 32,
           "dynamicSize": 12,
-          "paddingSavingsSize": 4,
           "members": [
             { "name": "a", "staticSize": 4, "dynamicSize": 0 },
             { "name": "b", "staticSize": 4, "dynamicSize": 0 },
