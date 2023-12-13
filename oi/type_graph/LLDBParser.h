@@ -57,6 +57,7 @@ class LLDBParser {
 
  private:
   Type& enumerateType(lldb::SBType& type);
+  Class& enumerateClass(lldb::SBType& type);
   Enum& enumerateEnum(lldb::SBType& type);
   Typedef& enumerateTypedef(lldb::SBType& type);
   Type& enumeratePointer(lldb::SBType& type);

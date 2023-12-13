@@ -45,6 +45,11 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
 
   Type *t = nullptr;
   switch (auto kind = type.GetTypeClass()) {
+    case lldb::eTypeClassClass:
+    case lldb::eTypeClassStruct:
+    case lldb::eTypeClassUnion:
+      t = &enumerateClass(type);
+      break;
     case lldb::eTypeClassEnumeration:
       t = &enumerateEnum(type);
       break;
@@ -63,7 +68,6 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
       break;
     case lldb::eTypeClassInvalid:
     case lldb::eTypeClassBlockPointer:
-    case lldb::eTypeClassClass:
     case lldb::eTypeClassComplexFloat:
     case lldb::eTypeClassComplexInteger:
     case lldb::eTypeClassFunction:
@@ -71,8 +75,6 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
     case lldb::eTypeClassObjCObject:
     case lldb::eTypeClassObjCInterface:
     case lldb::eTypeClassObjCObjectPointer:
-    case lldb::eTypeClassStruct:
-    case lldb::eTypeClassUnion:
     case lldb::eTypeClassVector:
     case lldb::eTypeClassOther:
     case lldb::eTypeClassAny:
@@ -80,6 +82,31 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
   }
 
   return *t;
+}
+
+Class& LLDBParser::enumerateClass(lldb::SBType& type) {
+  auto name = type.GetName();
+  auto displayName = type.GetDisplayTypeName();
+  auto size = type.GetByteSize();
+  auto virtuality = type.IsPolymorphicClass();
+
+  Class::Kind kind;
+  switch (auto typeClass = type.GetTypeClass()) {
+    case lldb::eTypeClassClass:
+      kind = Class::Kind::Class;
+      break;
+    case lldb::eTypeClassStruct:
+      kind = Class::Kind::Struct;
+      break;
+    case lldb::eTypeClassUnion:
+      kind = Class::Kind::Union;
+      break;
+    default:
+      throw LLDBParserError{"Invalid type class for compound type: " + std::to_string(typeClass)};
+  }
+
+  auto &c = makeType<Class>(type, kind, displayName, name, size, virtuality);
+  return c;
 }
 
 Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {
