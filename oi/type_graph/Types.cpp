@@ -20,10 +20,10 @@
 namespace oi::detail::type_graph {
 
 #define X(OI_TYPE_NAME)                              \
-  void OI_TYPE_NAME::accept(Visitor& v) {            \
+  void OI_TYPE_NAME::accept(Visitor<void>& v) {      \
     v.visit(*this);                                  \
   }                                                  \
-  Type& OI_TYPE_NAME::accept(Mutator& m) {           \
+  Type& OI_TYPE_NAME::accept(Visitor<Type&>& m) {    \
     return m.visit(*this);                           \
   }                                                  \
   void OI_TYPE_NAME::accept(ConstVisitor& v) const { \

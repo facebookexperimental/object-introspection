@@ -34,26 +34,12 @@ namespace oi::detail::type_graph {
  * Abstract visitor base class.
  * A visitor simply walks over nodes in a type graph.
  */
+template <typename T>
 class Visitor {
  public:
   virtual ~Visitor() = default;
 
-#define X(OI_TYPE_NAME) virtual void visit(OI_TYPE_NAME&) = 0;
-  OI_TYPE_LIST
-#undef X
-};
-
-/*
- * Mutator
- *
- * Abstract mutator base class.
- * A mutator replaces nodes in a type graph with the node returned by visit().
- */
-class Mutator {
- public:
-  virtual ~Mutator() = default;
-
-#define X(OI_TYPE_NAME) virtual Type& visit(OI_TYPE_NAME&) = 0;
+#define X(OI_TYPE_NAME) virtual T visit(OI_TYPE_NAME&) = 0;
   OI_TYPE_LIST
 #undef X
 };
@@ -63,7 +49,7 @@ class Mutator {
  *
  * Visitor base class which takes no action by default.
  */
-class LazyVisitor : public Visitor {
+class LazyVisitor : public Visitor<void> {
  public:
   virtual ~LazyVisitor() = default;
 
@@ -79,7 +65,7 @@ class LazyVisitor : public Visitor {
  *
  * Visitor base class which recurses into types by default.
  */
-class RecursiveVisitor : public Visitor {
+class RecursiveVisitor : public Visitor<void> {
  public:
   virtual ~RecursiveVisitor() = default;
   virtual void accept(Type&) = 0;
@@ -136,7 +122,7 @@ class RecursiveVisitor : public Visitor {
  *
  * Mutator base class which recurses into types by default.
  */
-class RecursiveMutator : public Mutator {
+class RecursiveMutator : public Visitor<Type&> {
  public:
   virtual ~RecursiveMutator() = default;
   virtual Type& mutate(Type&) = 0;
