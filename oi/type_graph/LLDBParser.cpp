@@ -48,14 +48,19 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
     case lldb::eTypeClassEnumeration:
       t = &enumerateEnum(type);
       break;
+    case lldb::eTypeClassTypedef:
+      t = &enumerateTypedef(type);
+      break;
     case lldb::eTypeClassPointer:
     case lldb::eTypeClassReference:
       t = &enumeratePointer(type);
       break;
+    case lldb::eTypeClassBuiltin:
+      t = &enumeratePrimitive(type);
+      break;
     case lldb::eTypeClassInvalid:
     case lldb::eTypeClassArray:
     case lldb::eTypeClassBlockPointer:
-    case lldb::eTypeClassBuiltin:
     case lldb::eTypeClassClass:
     case lldb::eTypeClassComplexFloat:
     case lldb::eTypeClassComplexInteger:
@@ -65,12 +70,11 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
     case lldb::eTypeClassObjCInterface:
     case lldb::eTypeClassObjCObjectPointer:
     case lldb::eTypeClassStruct:
-    case lldb::eTypeClassTypedef:
     case lldb::eTypeClassUnion:
     case lldb::eTypeClassVector:
     case lldb::eTypeClassOther:
     case lldb::eTypeClassAny:
-      throw std::runtime_error("Unhandled type class: " + std::to_string(kind));
+      throw LLDBParserError{"Unhandled type class: " + std::to_string(kind)};
   }
 
   return *t;
@@ -91,6 +95,14 @@ Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {
   }
 
   return makeType<Enum>(type, name, size, std::move(enumeratorMap));
+}
+
+Typedef& LLDBParser::enumerateTypedef(lldb::SBType& type) {
+  std::string name = type.GetName();
+
+  lldb::SBType underlyingType = type.GetTypedefedType();
+  auto& t = enumerateType(underlyingType);
+  return makeType<Typedef>(type, name, t);
 }
 
 Type& LLDBParser::enumeratePointer(lldb::SBType& type) {
@@ -125,5 +137,87 @@ bool LLDBParser::chasePointer() const {
   return options_.chaseRawPointers;
 }
 
+Primitive::Kind LLDBParser::primitiveIntKind(lldb::SBType& type, bool is_signed) {
+  switch (auto size = type.GetByteSize()) {
+    case 1:
+      return is_signed ? Primitive::Kind::Int8 : Primitive::Kind::UInt8;
+    case 2:
+      return is_signed ? Primitive::Kind::Int16 : Primitive::Kind::UInt16;
+    case 4:
+      return is_signed ? Primitive::Kind::Int32 : Primitive::Kind::UInt32;
+    case 8:
+      return is_signed ? Primitive::Kind::Int64 : Primitive::Kind::UInt64;
+    default:
+      throw LLDBParserError{"Invalid integer size: " + std::to_string(size)};
+  }
+}
+Primitive::Kind LLDBParser::primitiveFloatKind(lldb::SBType& type) {
+  switch (auto size = type.GetByteSize()) {
+    case 4:
+      return Primitive::Kind::Float32;
+    case 8:
+      return Primitive::Kind::Float64;
+    case 16:
+      return Primitive::Kind::Float128;
+    default:
+      throw LLDBParserError{"Invalid float size: " + std::to_string(size)};
+  }
+}
+
+Primitive& LLDBParser::enumeratePrimitive(lldb::SBType& type) {
+  Primitive::Kind primitiveKind = Primitive::Kind::Void;
+
+  switch (auto kind = type.GetBasicType()) {
+    /* TODO: Do we need to handle char differently from int? */
+    case lldb::eBasicTypeChar:
+    case lldb::eBasicTypeSignedChar:
+    case lldb::eBasicTypeWChar:
+    case lldb::eBasicTypeSignedWChar:
+    case lldb::eBasicTypeChar16:
+    case lldb::eBasicTypeChar32:
+    case lldb::eBasicTypeChar8:
+    case lldb::eBasicTypeShort:
+    case lldb::eBasicTypeInt:
+    case lldb::eBasicTypeLong:
+    case lldb::eBasicTypeLongLong:
+    case lldb::eBasicTypeInt128:
+      primitiveKind = primitiveIntKind(type, true);
+      break;
+    case lldb::eBasicTypeUnsignedChar:
+    case lldb::eBasicTypeUnsignedWChar:
+    case lldb::eBasicTypeUnsignedShort:
+    case lldb::eBasicTypeUnsignedInt:
+    case lldb::eBasicTypeUnsignedLong:
+    case lldb::eBasicTypeUnsignedLongLong:
+    case lldb::eBasicTypeUnsignedInt128:
+      primitiveKind = primitiveIntKind(type, false);
+      break;
+    case lldb::eBasicTypeHalf:
+    case lldb::eBasicTypeFloat:
+    case lldb::eBasicTypeDouble:
+    case lldb::eBasicTypeLongDouble:
+      primitiveKind = primitiveFloatKind(type);
+      break;
+    case lldb::eBasicTypeBool:
+      primitiveKind = Primitive::Kind::Bool;
+      break;
+    case lldb::eBasicTypeVoid:
+    case lldb::eBasicTypeNullPtr:
+      primitiveKind = Primitive::Kind::Void;
+      break;
+    case lldb::eBasicTypeInvalid:
+    case lldb::eBasicTypeFloatComplex:
+    case lldb::eBasicTypeDoubleComplex:
+    case lldb::eBasicTypeLongDoubleComplex:
+    case lldb::eBasicTypeObjCID:
+    case lldb::eBasicTypeObjCClass:
+    case lldb::eBasicTypeObjCSel:
+    case lldb::eBasicTypeOther:
+    default:
+      throw LLDBParserError{"Unhandled primitive type: " + std::to_string(kind)};
+  }
+
+  return makeType<Primitive>(type, primitiveKind);
+}
 
 }  // namespace oi::detail::type_graph

@@ -305,7 +305,7 @@ TEST_F(LLDBParserTest, EnumNoValues) {
 
 TEST_F(LLDBParserTest, Typedef) {
   test("oid_test_case_typedefs_c_style", R"(
-[2] Typedef: TdUInt64
+[2] Typedef: ns_typedefs::TdUInt64
 [1]   Typedef: uint64_t
 [0]     Typedef: __uint64_t
           Primitive: uint64_t
@@ -314,7 +314,7 @@ TEST_F(LLDBParserTest, Typedef) {
 
 TEST_F(LLDBParserTest, Using) {
   test("oid_test_case_typedefs_using", R"(
-[2] Typedef: UsingUInt64
+[2] Typedef: ns_typedefs::UsingUInt64
 [1]   Typedef: uint64_t
 [0]     Typedef: __uint64_t
           Primitive: uint64_t
