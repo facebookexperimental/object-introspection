@@ -48,6 +48,10 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
     case lldb::eTypeClassEnumeration:
       t = &enumerateEnum(type);
       break;
+    case lldb::eTypeClassPointer:
+    case lldb::eTypeClassReference:
+      t = &enumeratePointer(type);
+      break;
     case lldb::eTypeClassInvalid:
     case lldb::eTypeClassArray:
     case lldb::eTypeClassBlockPointer:
@@ -60,8 +64,6 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
     case lldb::eTypeClassObjCObject:
     case lldb::eTypeClassObjCInterface:
     case lldb::eTypeClassObjCObjectPointer:
-    case lldb::eTypeClassPointer:
-    case lldb::eTypeClassReference:
     case lldb::eTypeClassStruct:
     case lldb::eTypeClassTypedef:
     case lldb::eTypeClassUnion:
@@ -90,5 +92,38 @@ Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {
 
   return makeType<Enum>(type, name, size, std::move(enumeratorMap));
 }
+
+Type& LLDBParser::enumeratePointer(lldb::SBType& type) {
+ if (!chasePointer()) {
+  return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
+ }
+
+  lldb::SBType pointeeType;
+  switch (auto kind = type.GetTypeClass()) {
+    case lldb::eTypeClassPointer:
+      pointeeType = type.GetPointeeType();
+      break;
+    case lldb::eTypeClassReference:
+      pointeeType = type.GetDereferencedType();
+      break;
+    default:
+      throw LLDBParserError{"Invalid type class for pointer type: " + std::to_string(kind)};
+  }
+
+  if (pointeeType.IsFunctionType()) {
+   return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
+  }
+
+  Type& t = enumerateType(pointeeType);
+  return makeType<Pointer>(type, t);
+}
+
+bool LLDBParser::chasePointer() const {
+  // Always chase top-level pointers.
+  if (depth_ == 1)
+    return true;
+  return options_.chaseRawPointers;
+}
+
 
 }  // namespace oi::detail::type_graph

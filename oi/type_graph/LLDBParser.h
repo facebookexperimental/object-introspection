@@ -44,6 +44,7 @@ struct equal_to<lldb::SBType> {
 namespace oi::detail::type_graph {
 
 struct LLDBParserOptions {
+  bool chaseRawPointers = false;
   bool readEnumValues = false;
 };
 
@@ -57,6 +58,9 @@ class LLDBParser {
  private:
   Type& enumerateType(lldb::SBType& type);
   Enum& enumerateEnum(lldb::SBType& type);
+  Type& enumeratePointer(lldb::SBType& type);
+
+  bool chasePointer() const;
 
     template <typename T, typename... Args>
   T& makeType(lldb::SBType& lldbType, Args&&... args) {
