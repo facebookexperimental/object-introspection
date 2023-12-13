@@ -64,7 +64,7 @@ definitions = '''
           "capacity":0,
           "elementStaticSize":4,
           "isTypedef":false,
-          "typeName":"vector<int, std::allocator<int> >",
+          "typeName":"std::vector<int32_t, std::allocator<int32_t>>",
           "NOT":"members"
         }
       ]}]'''

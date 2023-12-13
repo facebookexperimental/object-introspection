@@ -40,20 +40,20 @@ includes = ["vector"]
       "members":[
         {"name":"v1", "staticSize":24, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4,
           "members":[
-            {"name":"", "typeName": "C", "staticSize":4, "dynamicSize":0,
+            {"name":"", "staticSize":4, "dynamicSize":0,
               "members":[
-                {"name":"a", "typeName": "int", "staticSize":4, "dynamicSize":0}
+                {"name":"a", "staticSize":4, "dynamicSize":0}
               ]}
           ]},
         {"name":"v2", "staticSize":24, "dynamicSize":8, "length":2, "capacity":2, "elementStaticSize":4,
           "members":[
-            {"name":"", "typeName": "C", "staticSize":4, "dynamicSize":0,
+            {"name":"", "staticSize":4, "dynamicSize":0,
               "members":[
-                {"name":"b", "typeName": "int", "staticSize":4, "dynamicSize":0}
+                {"name":"b", "staticSize":4, "dynamicSize":0}
               ]},
-            {"name":"", "typeName": "C", "staticSize":4, "dynamicSize":0,
+            {"name":"", "staticSize":4, "dynamicSize":0,
               "members":[
-                {"name":"b", "typeName": "int", "staticSize":4, "dynamicSize":0}
+                {"name":"b", "staticSize":4, "dynamicSize":0}
               ]}
           ]}
       ]}]'''

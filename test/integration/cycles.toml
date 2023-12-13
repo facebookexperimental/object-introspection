@@ -38,47 +38,47 @@ definitions = '''
     expect_json = '''
     [
       {
-        "typeName": "RawNode",
+        "typeName": "ns_cycles::RawNode",
         "staticSize": 16,
         "dynamicSize": 32,
         "members": [
           {
-            "typeName": "int",
+            "typeName": "int32_t",
             "staticSize": 4,
             "dynamicSize": 0
           },
           {
-            "typeName": "ns_cycles::RawNode *",
+            "typeName": "ns_cycles::RawNode*",
             "staticSize": 8,
             "dynamicSize": 32,
             "members": [
               {
-                "typeName": "RawNode",
+                "typeName": "ns_cycles::RawNode",
                 "staticSize": 16,
                 "dynamicSize": 16,
                 "members": [
                   {
-                    "typeName": "int",
+                    "typeName": "int32_t",
                     "staticSize": 4,
                     "dynamicSize": 0
                   },
                   {
-                    "typeName": "ns_cycles::RawNode *",
+                    "typeName": "ns_cycles::RawNode*",
                     "staticSize": 8,
                     "dynamicSize": 16,
                     "members": [
                       {
-                        "typeName": "RawNode",
+                        "typeName": "ns_cycles::RawNode",
                         "staticSize": 16,
                         "dynamicSize": 0,
                         "members": [
                           {
-                            "typeName": "int",
+                            "typeName": "int32_t",
                             "staticSize": 4,
                             "dynamicSize": 0
                           },
                           {
-                            "typeName": "ns_cycles::RawNode *",
+                            "typeName": "ns_cycles::RawNode*",
                             "staticSize": 8,
                             "dynamicSize": 0
                           }
@@ -113,40 +113,40 @@ definitions = '''
       "dynamicSize": 48,
       "members": [{
         "name": "t",
-        "typeName": "ns_cycles::RawNode *",
+        "typeName": "ns_cycles::RawNode*",
         "staticSize": 8,
         "dynamicSize": 48,
         "members": [{
-          "typeName": "RawNode",
+          "typeName": "ns_cycles::RawNode",
           "staticSize": 16,
           "dynamicSize": 32,
           "members": [
-            { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
+            { "name": "value", "typeName": "int32_t", "staticSize": 4, "dynamicSize": 0 },
             {
               "name": "next",
-              "typeName": "ns_cycles::RawNode *",
+              "typeName": "ns_cycles::RawNode*",
               "staticSize": 8,
               "dynamicSize": 32,
               "members": [{
-                "typeName": "RawNode",
+                "typeName": "ns_cycles::RawNode",
                 "staticSize": 16,
                 "dynamicSize": 16,
                 "members": [
-                  { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
+                  { "name": "value", "typeName": "int32_t", "staticSize": 4, "dynamicSize": 0 },
                   {
                     "name": "next",
-                    "typeName": "ns_cycles::RawNode *",
+                    "typeName": "ns_cycles::RawNode*",
                     "staticSize": 8,
                     "dynamicSize": 16,
                     "members": [{
-                      "typeName": "RawNode",
+                      "typeName": "ns_cycles::RawNode",
                       "staticSize": 16,
                       "dynamicSize": 0,
                       "members": [
-                        { "name": "value", "typeName": "int", "staticSize": 4, "dynamicSize": 0 },
+                        { "name": "value", "typeName": "int32_t", "staticSize": 4, "dynamicSize": 0 },
                         {
                           "name": "next",
-                          "typeName": "ns_cycles::RawNode *",
+                          "typeName": "ns_cycles::RawNode*",
                           "staticSize": 8,
                           "dynamicSize": 0
                         }
@@ -167,52 +167,52 @@ definitions = '''
     expect_json = '''
     [
       {
-        "typeName": "reference_wrapper<ns_cycles::UniqueNode>",
+        "typeName": "std::reference_wrapper<ns_cycles::UniqueNode>",
         "staticSize": 8,
         "dynamicSize": 48,
         "members": [
           {
-            "typeName": "UniqueNode",
+            "typeName": "ns_cycles::UniqueNode",
             "staticSize": 16,
             "dynamicSize": 32,
             "members": [
               {
-                "typeName": "int",
+                "typeName": "int32_t",
                 "staticSize": 4,
                 "dynamicSize": 0
               },
               {
-                "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                "typeName": "std::unique_ptr<ns_cycles::UniqueNode, default_delete<ns_cycles::UniqueNode>>",
                 "staticSize": 8,
                 "dynamicSize": 32,
                 "members": [
                   {
-                    "typeName": "UniqueNode",
+                    "typeName": "ns_cycles::UniqueNode",
                     "staticSize": 16,
                     "dynamicSize": 16,
                     "members": [
                       {
-                        "typeName": "int",
+                        "typeName": "int32_t",
                         "staticSize": 4,
                         "dynamicSize": 0
                       },
                       {
-                        "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                        "typeName": "std::unique_ptr<ns_cycles::UniqueNode, default_delete<ns_cycles::UniqueNode>>",
                         "staticSize": 8,
                         "dynamicSize": 16,
                         "members": [
                           {
-                            "typeName": "UniqueNode",
+                            "typeName": "ns_cycles::UniqueNode",
                             "staticSize": 16,
                             "dynamicSize": 0,
                             "members": [
                               {
-                                "typeName": "int",
+                                "typeName": "int32_t",
                                 "staticSize": 4,
                                 "dynamicSize": 0
                               },
                               {
-                                "typeName": "unique_ptr<ns_cycles::UniqueNode, std::default_delete<ns_cycles::UniqueNode> >",
+                                "typeName": "std::unique_ptr<ns_cycles::UniqueNode, default_delete<ns_cycles::UniqueNode>>",
                                 "staticSize": 8,
                                 "dynamicSize": 0
                               }
@@ -245,52 +245,52 @@ definitions = '''
     expect_json = '''
     [
       {
-        "typeName": "reference_wrapper<ns_cycles::SharedNode>",
+        "typeName": "std::reference_wrapper<ns_cycles::SharedNode>",
         "staticSize": 8,
         "dynamicSize": 72,
         "members": [
           {
-            "typeName": "SharedNode",
+            "typeName": "ns_cycles::SharedNode",
             "staticSize": 24,
             "dynamicSize": 48,
             "members": [
               {
-                "typeName": "int",
+                "typeName": "int32_t",
                 "staticSize": 4,
                 "dynamicSize": 0
               },
               {
-                "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                "typeName": "std::shared_ptr<ns_cycles::SharedNode>",
                 "staticSize": 16,
                 "dynamicSize": 48,
                 "members": [
                   {
-                    "typeName": "SharedNode",
+                    "typeName": "ns_cycles::SharedNode",
                     "staticSize": 24,
                     "dynamicSize": 24,
                     "members": [
                       {
-                        "typeName": "int",
+                        "typeName": "int32_t",
                         "staticSize": 4,
                         "dynamicSize": 0
                       },
                       {
-                        "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                        "typeName": "std::shared_ptr<ns_cycles::SharedNode>",
                         "staticSize": 16,
                         "dynamicSize": 24,
                         "members": [
                           {
-                            "typeName": "SharedNode",
+                            "typeName": "ns_cycles::SharedNode",
                             "staticSize": 24,
                             "dynamicSize": 0,
                             "members": [
                               {
-                                "typeName": "int",
+                                "typeName": "int32_t",
                                 "staticSize": 4,
                                 "dynamicSize": 0
                               },
                               {
-                                "typeName": "shared_ptr<ns_cycles::SharedNode>",
+                                "typeName": "std::shared_ptr<ns_cycles::SharedNode>",
                                 "staticSize": 16,
                                 "dynamicSize": 0
                               }

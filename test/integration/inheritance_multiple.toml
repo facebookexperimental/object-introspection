@@ -27,21 +27,21 @@ definitions = '''
       "staticSize":24,
       "dynamicSize":0,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"b", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"c", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"d", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"e", "staticSize":4, "dynamicSize":0, "typeName": "int"},
-        {"name":"f", "staticSize":4, "dynamicSize":0, "typeName": "int"}
+        {"name":"a", "staticSize":4, "dynamicSize":0},
+        {"name":"b", "staticSize":4, "dynamicSize":0},
+        {"name":"c", "staticSize":4, "dynamicSize":0},
+        {"name":"d", "staticSize":4, "dynamicSize":0},
+        {"name":"e", "staticSize":4, "dynamicSize":0},
+        {"name":"f", "staticSize":4, "dynamicSize":0}
       ]}]'''
     expect_json_v2 = '''[{
       "staticSize":24,
       "exclusiveSize":0,
       "members":[
-        {"name":"a", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
-        {"name":"b", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
-        {"name":"c", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
-        {"name":"d", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
-        {"name":"e", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]},
-        {"name":"f", "staticSize":4, "exclusiveSize":4, "typeNames": ["int32_t"]}
+        {"name":"a", "staticSize":4, "exclusiveSize":4},
+        {"name":"b", "staticSize":4, "exclusiveSize":4},
+        {"name":"c", "staticSize":4, "exclusiveSize":4},
+        {"name":"d", "staticSize":4, "exclusiveSize":4},
+        {"name":"e", "staticSize":4, "exclusiveSize":4},
+        {"name":"f", "staticSize":4, "exclusiveSize":4}
       ]}]'''

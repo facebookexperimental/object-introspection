@@ -28,21 +28,21 @@ definitions = '''
     param_types = ["const TemplatedClass1<int>&"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName":"TemplatedClass1<int>",
+      "typeName":"ns_templates::TemplatedClass1<int>",
       "staticSize":4,
       "dynamicSize":0,
       "members":[{
-        "typeName":"int"
+        "typeName":"int32_t"
     }]}]'''
   [cases.vector]
     param_types = ["const TemplatedClass1<std::vector<int>>&"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName":"TemplatedClass1<std::vector<int, std::allocator<int> > >",
+      "typeName":"ns_templates::TemplatedClass1<std::vector<int, std::allocator<int> > >",
       "staticSize":24,
       "dynamicSize":0,
       "members":[{
-        "typeName":"vector<int, std::allocator<int> >",
+        "typeName":"std::vector<int32_t, std::allocator<int32_t>>",
         "staticSize":24,
         "dynamicSize":0,
         "length":0,
@@ -65,18 +65,18 @@ definitions = '''
     param_types = ["const TemplatedClass2<Foo, int>&"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName":"TemplatedClass2<ns_templates::Foo, int>",
+      "typeName":"ns_templates::TemplatedClass2<ns_templates::Foo, int>",
       "staticSize":12,
       "dynamicSize":0,
       "members":[
-        {"typeName":"TemplatedClass1<ns_templates::Foo>", "staticSize":8, "dynamicSize":0},
-        {"typeName":"int", "staticSize":4, "dynamicSize":0}
+        {"typeName":"ns_templates::TemplatedClass1<ns_templates::Foo>", "staticSize":8, "dynamicSize":0},
+        {"typeName":"int32_t", "staticSize":4, "dynamicSize":0}
       ]}]'''
   [cases.value]
     param_types = ["const TemplatedClassVal<3>&"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName":"TemplatedClassVal<3>",
+      "typeName":"ns_templates::TemplatedClassVal<3>",
       "staticSize":12,
       "dynamicSize":0,
       "members":[{

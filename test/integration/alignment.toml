@@ -47,8 +47,8 @@ definitions = '''
     expect_json = '''[
       {"staticSize": 32, "exclusiveSize": 15, "members": [
         {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
-        {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
     expect_json_v2 = '''[
       {"staticSize": 32, "exclusiveSize": 15, "members": [
@@ -62,8 +62,8 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[
       {"staticSize": 32, "exclusiveSize": 16, "members": [
-        {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
   [cases.wrapper_two_members]
     param_types = ["const Wrapper<TwoStruct>&"]
@@ -71,12 +71,12 @@ definitions = '''
     expect_json = '''[
       {"staticSize": 64, "exclusiveSize": 15, "members": [
         {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
-        {"typeName": "TwoStruct", "staticSize": 48, "exclusiveSize": 15, "members": [
-          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]},
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]}
+        {"typeName": "ns_alignment::TwoStruct", "staticSize": 48, "exclusiveSize": 15, "members": [
+          {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}]},
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}]}
     ]}]}]'''
     expect_json_v2 = '''[
       {"staticSize": 64, "exclusiveSize": 15, "members": [
@@ -94,12 +94,12 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[
       {"staticSize": 64, "exclusiveSize": 16, "members": [
-        {"typeName": "TwoStruct", "staticSize": 48, "exclusiveSize": 15, "members": [
-          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]},
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}]}
+        {"typeName": "ns_alignment::TwoStruct", "staticSize": 48, "exclusiveSize": 15, "members": [
+          {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}]},
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}]}
     ]}]}]'''
   [cases.wrapper_member_alignment]
     param_types = ["const Wrapper<MemberAlignment>&"]
@@ -107,9 +107,9 @@ definitions = '''
     expect_json = '''[
       {"staticSize": 96, "exclusiveSize": 31, "members": [
         {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
-        {"typeName": "MemberAlignment", "staticSize": 64, "exclusiveSize": 62, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::MemberAlignment", "staticSize": 64, "exclusiveSize": 62, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
     expect_json_v2 = '''[
       {"staticSize": 96, "exclusiveSize": 31, "members": [
@@ -124,9 +124,9 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[
       {"staticSize": 96, "exclusiveSize": 32, "members": [
-        {"typeName": "MemberAlignment", "staticSize": 64, "exclusiveSize": 62, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::MemberAlignment", "staticSize": 64, "exclusiveSize": 62, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
   [cases.wrapper_union_member]
     param_types = ["const Wrapper<UnionMember>&"]
@@ -134,7 +134,7 @@ definitions = '''
     expect_json = '''[
       {"staticSize": 64, "exclusiveSize": 31, "members": [
         {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
-        {"typeName": "UnionMember", "staticSize": 32, "exclusiveSize": 32, "NOT":"members"}
+        {"typeName": "ns_alignment::UnionMember", "staticSize": 32, "exclusiveSize": 32, "NOT":"members"}
     ]}]'''
     expect_json_v2 = '''[
       {"staticSize": 64, "exclusiveSize": 31, "members": [
@@ -147,7 +147,7 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[
       {"staticSize": 64, "exclusiveSize": 32, "members": [
-        {"typeName": "UnionMember", "staticSize": 32, "exclusiveSize": 32, "NOT":"members"}
+        {"typeName": "ns_alignment::UnionMember", "staticSize": 32, "exclusiveSize": 32, "NOT":"members"}
     ]}]'''
   [cases.wrapper_member_override]
     param_types = ["const Wrapper<MemberAlignmentOverriden>&"]
@@ -155,10 +155,10 @@ definitions = '''
     expect_json = '''[
       {"staticSize": 96, "exclusiveSize": 31, "members": [
         {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
-        {"typeName": "MemberAlignmentOverriden", "staticSize": 64, "exclusiveSize": 47, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::MemberAlignmentOverriden", "staticSize": 64, "exclusiveSize": 47, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]}]'''
     expect_json_v2 = '''[
       {"staticSize": 96, "exclusiveSize": 31, "members": [
@@ -174,10 +174,10 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[
       {"staticSize": 96, "exclusiveSize": 32, "members": [
-        {"typeName": "MemberAlignmentOverriden", "staticSize": 64, "exclusiveSize": 47, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
-            {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::MemberAlignmentOverriden", "staticSize": 64, "exclusiveSize": 47, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "ns_alignment::Align16", "staticSize": 16, "exclusiveSize": 15, "members": [
+            {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]}]'''
   [cases.wrapper_member_lower]
     param_types = ["const Wrapper<AlignedStructMemberAlignLower>&"]
@@ -185,9 +185,9 @@ definitions = '''
     expect_json = '''[
       {"staticSize": 256, "exclusiveSize": 127, "members": [
         {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
-        {"typeName": "AlignedStructMemberAlignLower", "staticSize": 128, "exclusiveSize": 126, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::AlignedStructMemberAlignLower", "staticSize": 128, "exclusiveSize": 126, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''
     expect_json_v2 = '''[
       {"staticSize": 256, "exclusiveSize": 127, "members": [
@@ -202,7 +202,7 @@ definitions = '''
     setup = "return {};"
     expect_json = '''[
       {"staticSize": 256, "exclusiveSize": 128, "members": [
-        {"typeName": "AlignedStructMemberAlignLower", "staticSize": 128, "exclusiveSize": 126, "members": [
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1},
-          {"typeName": "char", "staticSize": 1, "exclusiveSize": 1}
+        {"typeName": "ns_alignment::AlignedStructMemberAlignLower", "staticSize": 128, "exclusiveSize": 126, "members": [
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+          {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
     ]}]}]'''

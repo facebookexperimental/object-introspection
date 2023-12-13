@@ -29,6 +29,7 @@
 #include "type_graph/AddChildren.h"
 #include "type_graph/AddPadding.h"
 #include "type_graph/AlignmentCalc.h"
+#include "type_graph/DrgnExporter.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/EnforceCompatibility.h"
 #include "type_graph/Flattener.h"
@@ -39,7 +40,6 @@
 #include "type_graph/RemoveMembers.h"
 #include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"
-#include "type_graph/TypeGraph.h"
 #include "type_graph/TypeIdentifier.h"
 #include "type_graph/Types.h"
 
@@ -1116,17 +1116,27 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
     return false;
   }
 
-  TypeGraph typeGraph;
   try {
-    addDrgnRoot(drgnType, typeGraph);
+    addDrgnRoot(drgnType, typeGraph_);
   } catch (const type_graph::DrgnParserError& err) {
     LOG(ERROR) << "Error parsing DWARF: " << err.what();
     return false;
   }
 
-  transform(typeGraph);
-  generate(typeGraph, code, drgnType);
+  transform(typeGraph_);
+  generate(typeGraph_, code, drgnType);
   return true;
+}
+
+void CodeGen::exportDrgnTypes(TypeHierarchy& th,
+                              std::list<drgn_type>& drgnTypes,
+                              drgn_type** rootType) const {
+  assert(typeGraph_.rootTypes().size() == 1);
+
+  type_graph::DrgnExporter drgnExporter{th, drgnTypes};
+  for (auto& type : typeGraph_.rootTypes()) {
+    *rootType = drgnExporter.accept(type);
+  }
 }
 
 void CodeGen::registerContainer(std::unique_ptr<ContainerInfo> info) {

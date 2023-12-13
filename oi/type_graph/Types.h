@@ -54,6 +54,7 @@
   X(CaptureKeys)
 
 struct ContainerInfo;
+struct drgn_type;
 
 namespace oi::detail::type_graph {
 
@@ -69,9 +70,10 @@ using QualifierSet = EnumBitset<Qualifier, static_cast<size_t>(Qualifier::Max)>;
 template <typename T>
 class Visitor;
 class ConstVisitor;
-#define DECLARE_ACCEPT                      \
-  void accept(Visitor<void>& v) override;   \
-  Type& accept(Visitor<Type&>& m) override; \
+#define DECLARE_ACCEPT                                \
+  void accept(Visitor<void>& v) override;             \
+  drgn_type* accept(Visitor<drgn_type*>& v) override; \
+  Type& accept(Visitor<Type&>& m) override;           \
   void accept(ConstVisitor& v) const override;
 
 // TODO delete copy and move ctors
@@ -85,6 +87,7 @@ class Type {
  public:
   virtual ~Type() = default;
   virtual void accept(Visitor<void>& v) = 0;
+  virtual drgn_type* accept(Visitor<drgn_type*>& v) = 0;
   virtual Type& accept(Visitor<Type&>& m) = 0;
   virtual void accept(ConstVisitor& v) const = 0;
 

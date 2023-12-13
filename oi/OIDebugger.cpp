@@ -2969,28 +2969,41 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
 
   std::string code(headers::oi_OITraceCode_cpp);
 
-  auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
-  if (!codegen) {
-    return nullopt;
-  }
-
-  RootInfo rootInfo = *root;
-  codegen->setRootType(rootInfo.type);
-  if (!codegen->generate(code)) {
-    LOG(ERROR) << "Failed to generate code for probe: " << req.type << ":"
-               << req.func << ":" << req.arg;
-    return std::nullopt;
-  }
-
-  typeInfos.emplace(
-      req,
-      std::make_tuple(RootInfo{rootInfo.varName, codegen->getRootType()},
-                      codegen->getTypeHierarchy(),
-                      codegen->getPaddingInfo()));
-
   if (generatorConfig.features[Feature::TypeGraph]) {
+    // CodeGen v2
     CodeGen codegen2{generatorConfig, *symbols};
     codegen2.codegenFromDrgn(root->type.type, code);
+
+    TypeHierarchy th;
+    // Make this static as a big hack to extend the fake drgn_types' lifetimes
+    // for use in TreeBuilder
+    static std::list<drgn_type> drgnTypes;
+    drgn_type* rootType;
+    codegen2.exportDrgnTypes(th, drgnTypes, &rootType);
+
+    typeInfos[req] = {RootInfo{root->varName, {rootType, drgn_qualifiers{}}},
+                      th,
+                      std::map<std::string, PaddingInfo>{}};
+  } else {
+    // OICodeGen (v1)
+    auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
+    if (!codegen) {
+      return nullopt;
+    }
+
+    RootInfo rootInfo = *root;
+    codegen->setRootType(rootInfo.type);
+    if (!codegen->generate(code)) {
+      LOG(ERROR) << "Failed to generate code for probe: " << req.type << ":"
+                 << req.func << ":" << req.arg;
+      return std::nullopt;
+    }
+
+    typeInfos.emplace(
+        req,
+        std::make_tuple(RootInfo{rootInfo.varName, codegen->getRootType()},
+                        codegen->getTypeHierarchy(),
+                        codegen->getPaddingInfo()));
   }
 
   if (auto sourcePath = cache.getPath(req, OICache::Entity::Source)) {

@@ -5,11 +5,11 @@ includes = ["queue"]
     param_types = ["const std::priority_queue<int>&"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName": "priority_queue<int, std::vector<int, std::allocator<int> >, std::less<int> >",
+      "typeName": "std::priority_queue<int32_t, std::vector<int32_t, std::allocator<int32_t>>, less<int>>",
       "staticSize": 32, "dynamicSize": 0, "length": 0, "capacity": 0, "elementStaticSize": 4,
       "members": [
         {
-          "typeName": "vector<int, std::allocator<int> >",
+          "typeName": "std::vector<int32_t, std::allocator<int32_t>>",
           "staticSize": 24, "dynamicSize": 0, "length": 0, "capacity": 0, "elementStaticSize": 4
         }
       ]}]'''
@@ -18,11 +18,11 @@ includes = ["queue"]
     param_types = ["const std::priority_queue<int>&"]
     setup = "return std::priority_queue<int>({}, {3,2,1});"
     expect_json = '''[{
-      "typeName": "priority_queue<int, std::vector<int, std::allocator<int> >, std::less<int> >",
+      "typeName": "std::priority_queue<int32_t, std::vector<int32_t, std::allocator<int32_t>>, less<int>>",
       "staticSize": 32, "dynamicSize": 12, "length": 3, "capacity": 3, "elementStaticSize": 4,
       "members": [
         {
-          "typeName": "vector<int, std::allocator<int> >",
+          "typeName": "std::vector<int32_t, std::allocator<int32_t>>",
           "staticSize": 24, "dynamicSize": 12, "length": 3, "capacity": 3, "elementStaticSize": 4
         }
       ]}]'''
@@ -31,11 +31,11 @@ includes = ["queue"]
     param_types = ["const std::priority_queue<int, std::deque<int>>&"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName": "priority_queue<int, std::deque<int, std::allocator<int> >, std::less<int> >",
+      "typeName": "std::priority_queue<int32_t, std::deque<int32_t, std::allocator<int32_t>>, less<int>>",
       "staticSize": 88, "dynamicSize": 0, "length": 0, "capacity": 0, "elementStaticSize": 4,
       "members": [
         {
-          "typeName": "deque<int, std::allocator<int> >",
+          "typeName": "std::deque<int32_t, std::allocator<int32_t>>",
           "staticSize": 80, "dynamicSize": 0, "length": 0, "capacity": 0, "elementStaticSize": 4
         }
       ]}]'''
@@ -44,11 +44,11 @@ includes = ["queue"]
     param_types = ["const std::priority_queue<int, std::deque<int>>&"]
     setup = "return std::priority_queue<int, std::deque<int>>({}, {3,2,1});"
     expect_json = '''[{
-      "typeName": "priority_queue<int, std::deque<int, std::allocator<int> >, std::less<int> >",
+      "typeName": "std::priority_queue<int32_t, std::deque<int32_t, std::allocator<int32_t>>, less<int>>",
       "staticSize": 88, "dynamicSize": 12, "length": 3, "capacity": 3, "elementStaticSize": 4,
       "members": [
         {
-          "typeName": "deque<int, std::allocator<int> >",
+          "typeName": "std::deque<int32_t, std::allocator<int32_t>>",
           "staticSize": 80, "dynamicSize": 12, "length": 3, "capacity": 3, "elementStaticSize": 4
         }
       ]}]'''

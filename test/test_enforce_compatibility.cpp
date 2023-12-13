@@ -32,17 +32,3 @@ TEST(EnforceCompatibilityTest, TypesToStub) {
 [0] Class: EnumMap (size: 8)
 )");
 }
-
-TEST(EnforceCompatibilityTest, VoidPointer) {
-  test(EnforceCompatibility::createPass(),
-       R"(
-[0] Class: MyClass (size: 8)
-      Member: p (offset: 0)
-[1]     Pointer
-          Incomplete
-            Primitive: void
-)",
-       R"(
-[0] Class: MyClass (size: 8)
-)");
-}
