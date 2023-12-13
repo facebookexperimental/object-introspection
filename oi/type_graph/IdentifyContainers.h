@@ -50,7 +50,7 @@ class IdentifyContainers : public RecursiveMutator {
   Type& visit(Class& c) override;
 
  private:
-  MutationTracker tracker_;
+  ResultTracker<Type*> tracker_;
   TypeGraph& typeGraph_;
   const std::vector<std::unique_ptr<ContainerInfo>>& containers_;
 };

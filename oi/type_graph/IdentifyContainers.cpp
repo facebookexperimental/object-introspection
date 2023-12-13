@@ -47,7 +47,7 @@ Type& IdentifyContainers::mutate(Type& type) {
     return *mutated;
 
   Type& mutated = type.accept(*this);
-  tracker_.set(type, mutated);
+  tracker_.set(type, &mutated);
   return mutated;
 }
 
@@ -60,12 +60,12 @@ Type& IdentifyContainers::visit(Class& c) {
     auto& container = typeGraph_.makeType<Container>(*containerInfo, c.size());
     container.templateParams = c.templateParams;
 
-    tracker_.set(c, container);
+    tracker_.set(c, &container);
     RecursiveMutator::visit(container);
     return container;
   }
 
-  tracker_.set(c, c);
+  tracker_.set(c, &c);
   RecursiveMutator::visit(c);
   return c;
 }

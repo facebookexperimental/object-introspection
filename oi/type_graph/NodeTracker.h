@@ -109,23 +109,27 @@ class NodeTrackerHolder {
 };
 
 /*
- * MutationTracker
+ * ResultTracker
  *
- * Helper class for mutators. Efficiently tracks visited and replaces nodes.
+ * Efficiently caches the results of visited nodes.
  */
-class MutationTracker {
+template <typename T>
+class ResultTracker {
  public:
-  MutationTracker(size_t size) : visited_(size) {
+  ResultTracker() = default;
+  ResultTracker(size_t size) : visited_(size) {
   }
+
+  static_assert(std::is_pointer_v<T>);
 
   /*
    * get
    *
-   * Returns a type pointer if the given node has been visited or replaced.
+   * Returns the cached result if the given node has been visited.
    * Returns nullptr if this node has not yet been seen.
    */
-  Type* get(const Type& oldType) {
-    auto id = oldType.id();
+  T get(const Type& type) {
+    auto id = type.id();
     if (id < 0)
       return nullptr;
     if (visited_.size() <= static_cast<size_t>(id))
@@ -136,19 +140,19 @@ class MutationTracker {
   /*
    * set
    *
-   * Sets newType as the replacement node for oldType.
+   * Caches the result of visiting the given node.
    */
-  void set(const Type& oldType, Type& newType) {
-    auto id = oldType.id();
+  void set(const Type& type, T result) {
+    auto id = type.id();
     if (id < 0)
       return;
     if (visited_.size() <= static_cast<size_t>(id))
       visited_.resize(id + 1);
-    visited_[id] = &newType;
+    visited_[id] = result;
   }
 
  private:
-  std::vector<Type*> visited_;
+  std::vector<T> visited_;
 };
 
 }  // namespace oi::detail::type_graph

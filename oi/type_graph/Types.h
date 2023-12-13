@@ -66,12 +66,12 @@ enum class Qualifier {
 };
 using QualifierSet = EnumBitset<Qualifier, static_cast<size_t>(Qualifier::Max)>;
 
+template <typename T>
 class Visitor;
-class Mutator;
 class ConstVisitor;
-#define DECLARE_ACCEPT               \
-  void accept(Visitor& v) override;  \
-  Type& accept(Mutator& m) override; \
+#define DECLARE_ACCEPT                      \
+  void accept(Visitor<void>& v) override;   \
+  Type& accept(Visitor<Type&>& m) override; \
   void accept(ConstVisitor& v) const override;
 
 // TODO delete copy and move ctors
@@ -84,8 +84,8 @@ class ConstVisitor;
 class Type {
  public:
   virtual ~Type() = default;
-  virtual void accept(Visitor& v) = 0;
-  virtual Type& accept(Mutator& m) = 0;
+  virtual void accept(Visitor<void>& v) = 0;
+  virtual Type& accept(Visitor<Type&>& m) = 0;
   virtual void accept(ConstVisitor& v) const = 0;
 
   virtual const std::string& name() const = 0;
