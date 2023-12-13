@@ -25,7 +25,9 @@ class SBType;
 
 namespace oi::detail::type_graph {
 
-struct LLDBParserOptions {};
+struct LLDBParserOptions {
+  bool readEnumValues = false;
+};
 
 class LLDBParser {
  public:
@@ -35,6 +37,16 @@ class LLDBParser {
   Type& parse(lldb::SBType* root);
 
  private:
+  Type& enumerateType(lldb::SBType& type);
+  Enum& enumerateEnum(lldb::SBType& type);
+
+    template <typename T, typename... Args>
+  T& makeType(lldb::SBType *lldbType, Args&&... args) {
+    auto& newType = typeGraph_.makeType<T>(std::forward<Args>(args)...);
+    //drgn_types_.insert({drgnType, newType});
+    return newType;
+  }
+
   TypeGraph& typeGraph_;
   int depth_;
   LLDBParserOptions options_;

@@ -36,8 +36,7 @@ void LLDBParserTest::TearDownTestSuite() {
 
 LLDBParser LLDBParserTest::getLLDBParser(TypeGraph& typeGraph,
                                          LLDBParserOptions options) {
-  LLDBParser lldbParser{typeGraph, options};
-  return lldbParser;
+  return LLDBParser{typeGraph, options};
 }
 
 lldb::SBType LLDBParserTest::getLLDBRoot(std::string_view function) {
@@ -77,7 +76,9 @@ void LLDBParserTest::test(std::string_view function,
 void LLDBParserTest::test(std::string_view function,
                           std::string_view expected) {
   // Enable options in unit tests so we get more coverage
-  LLDBParserOptions options = {};
+  LLDBParserOptions options = {
+    .readEnumValues = true,
+  };
   test(function, expected, options);
 }
 
@@ -262,7 +263,7 @@ TEST_F(LLDBParserTest, Container) {
 
 TEST_F(LLDBParserTest, Enum) {
   test("oid_test_case_enums_scoped", R"(
-    Enum: ScopedEnum (size: 4)
+    Enum: ns_enums::ScopedEnum (size: 4)
       Enumerator: 0:CaseA
       Enumerator: 1:CaseB
       Enumerator: 2:CaseC
@@ -271,7 +272,7 @@ TEST_F(LLDBParserTest, Enum) {
 
 TEST_F(LLDBParserTest, EnumUint8) {
   test("oid_test_case_enums_scoped_uint8", R"(
-    Enum: ScopedEnumUint8 (size: 1)
+    Enum: ns_enums::ScopedEnumUint8 (size: 1)
       Enumerator: 2:CaseA
       Enumerator: 3:CaseB
       Enumerator: 4:CaseC
@@ -280,7 +281,7 @@ TEST_F(LLDBParserTest, EnumUint8) {
 
 TEST_F(LLDBParserTest, UnscopedEnum) {
   test("oid_test_case_enums_unscoped", R"(
-    Enum: UNSCOPED_ENUM (size: 4)
+    Enum: ns_enums::UNSCOPED_ENUM (size: 4)
       Enumerator: -2:CASE_B
       Enumerator: 5:CASE_A
       Enumerator: 20:CASE_C
@@ -291,7 +292,7 @@ TEST_F(LLDBParserTest, EnumNoValues) {
   LLDBParserOptions options{};
   test("oid_test_case_enums_scoped",
        R"(
-    Enum: ScopedEnum (size: 4)
+    Enum: ns_enums::ScopedEnum (size: 4)
 )",
        options);
 }

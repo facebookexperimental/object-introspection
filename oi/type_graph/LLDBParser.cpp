@@ -21,14 +21,70 @@
 namespace oi::detail::type_graph {
 
 Type& LLDBParser::parse(lldb::SBType* root) {
-  // The following two lines silence a warning about unused variables.
-  // Remove them once we have enough implementation to resolve the warning.
-  typeGraph_.size();
-  options_ = {};
-
   depth_ = 0;
-  LOG(WARNING) << "Parsing lldb type: " << root->GetName();
-  throw std::runtime_error("Not implemented yet!");
+  return enumerateType(*root);
+}
+
+struct DepthGuard {
+  explicit DepthGuard(int& depth) : depth_(depth) {
+    ++depth_;
+  }
+  ~DepthGuard() {
+    --depth_;
+  }
+ private:
+  int& depth_;
+};
+
+Type& LLDBParser::enumerateType(lldb::SBType& type) {
+  DepthGuard guard(depth_);
+
+  Type *t = nullptr;
+  switch (auto kind = type.GetTypeClass()) {
+    case lldb::eTypeClassEnumeration:
+      t = &enumerateEnum(type);
+      break;
+    case lldb::eTypeClassInvalid:
+    case lldb::eTypeClassArray:
+    case lldb::eTypeClassBlockPointer:
+    case lldb::eTypeClassBuiltin:
+    case lldb::eTypeClassClass:
+    case lldb::eTypeClassComplexFloat:
+    case lldb::eTypeClassComplexInteger:
+    case lldb::eTypeClassFunction:
+    case lldb::eTypeClassMemberPointer:
+    case lldb::eTypeClassObjCObject:
+    case lldb::eTypeClassObjCInterface:
+    case lldb::eTypeClassObjCObjectPointer:
+    case lldb::eTypeClassPointer:
+    case lldb::eTypeClassReference:
+    case lldb::eTypeClassStruct:
+    case lldb::eTypeClassTypedef:
+    case lldb::eTypeClassUnion:
+    case lldb::eTypeClassVector:
+    case lldb::eTypeClassOther:
+    case lldb::eTypeClassAny:
+      throw std::runtime_error("Unhandled type class: " + std::to_string(kind));
+  }
+
+  return *t;
+}
+
+Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {
+  const char *typeName = type.GetName();
+  std::string name = typeName ? typeName : "";
+  uint64_t size = type.GetByteSize();
+
+  std::map<int64_t, std::string> enumeratorMap;
+  if (options_.readEnumValues) {
+    auto members = type.GetEnumMembers();
+    for (uint32_t i = 0; i < members.GetSize(); i++) {
+      auto member = members.GetTypeEnumMemberAtIndex(i);
+      enumeratorMap[member.GetValueAsSigned()] = member.GetName();
+    }
+  }
+
+  return makeType<Enum>(&type, name, size, std::move(enumeratorMap));
 }
 
 }  // namespace oi::detail::type_graph
