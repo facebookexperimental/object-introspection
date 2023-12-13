@@ -60,6 +60,7 @@ class LLDBParser {
   Enum& enumerateEnum(lldb::SBType& type);
   Typedef& enumerateTypedef(lldb::SBType& type);
   Type& enumeratePointer(lldb::SBType& type);
+  Array& enumerateArray(lldb::SBType& type);
   Primitive& enumeratePrimitive(lldb::SBType& type);
 
   Primitive::Kind primitiveIntKind(lldb::SBType& type, bool is_signed);

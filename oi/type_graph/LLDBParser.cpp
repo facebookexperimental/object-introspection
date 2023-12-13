@@ -58,8 +58,10 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
     case lldb::eTypeClassBuiltin:
       t = &enumeratePrimitive(type);
       break;
-    case lldb::eTypeClassInvalid:
     case lldb::eTypeClassArray:
+      t = &enumerateArray(type);
+      break;
+    case lldb::eTypeClassInvalid:
     case lldb::eTypeClassBlockPointer:
     case lldb::eTypeClassClass:
     case lldb::eTypeClassComplexFloat:
@@ -162,6 +164,14 @@ Primitive::Kind LLDBParser::primitiveFloatKind(lldb::SBType& type) {
     default:
       throw LLDBParserError{"Invalid float size: " + std::to_string(size)};
   }
+}
+
+Array& LLDBParser::enumerateArray(lldb::SBType& type) {
+  auto elementType = type.GetArrayElementType();
+  /* TODO: Is there a better way to get the array size? */
+  auto len = type.GetByteSize() / elementType.GetByteSize();
+  auto& t = enumerateType(elementType);
+  return makeType<Array>(type, t, len);
 }
 
 Primitive& LLDBParser::enumeratePrimitive(lldb::SBType& type) {
