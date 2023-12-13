@@ -43,45 +43,56 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
 
   DepthGuard guard(depth_);
 
-  Type *t = nullptr;
-  switch (auto kind = type.GetTypeClass()) {
-    case lldb::eTypeClassClass:
-    case lldb::eTypeClassStruct:
-    case lldb::eTypeClassUnion:
-      t = &enumerateClass(type);
-      break;
-    case lldb::eTypeClassEnumeration:
-      t = &enumerateEnum(type);
-      break;
-    case lldb::eTypeClassTypedef:
-      t = &enumerateTypedef(type);
-      break;
-    case lldb::eTypeClassPointer:
-    case lldb::eTypeClassReference:
-      t = &enumeratePointer(type);
-      break;
-    case lldb::eTypeClassBuiltin:
-      t = &enumeratePrimitive(type);
-      break;
-    case lldb::eTypeClassArray:
-      t = &enumerateArray(type);
-      break;
-    case lldb::eTypeClassInvalid:
-    case lldb::eTypeClassBlockPointer:
-    case lldb::eTypeClassComplexFloat:
-    case lldb::eTypeClassComplexInteger:
-    case lldb::eTypeClassFunction:
-    case lldb::eTypeClassMemberPointer:
-    case lldb::eTypeClassObjCObject:
-    case lldb::eTypeClassObjCInterface:
-    case lldb::eTypeClassObjCObjectPointer:
-    case lldb::eTypeClassVector:
-    case lldb::eTypeClassOther:
-    case lldb::eTypeClassAny:
-      throw LLDBParserError{"Unhandled type class: " + std::to_string(kind)};
+  bool isTypeIncomplete = !type.IsTypeComplete();
+
+  std::optional<std::reference_wrapper<Type>> t;
+  try {
+    switch (auto kind = type.GetTypeClass()) {
+      case lldb::eTypeClassClass:
+      case lldb::eTypeClassStruct:
+      case lldb::eTypeClassUnion:
+        t = enumerateClass(type);
+        break;
+      case lldb::eTypeClassEnumeration:
+        t = enumerateEnum(type);
+        break;
+      case lldb::eTypeClassTypedef:
+        t = enumerateTypedef(type);
+        break;
+      case lldb::eTypeClassPointer:
+      case lldb::eTypeClassReference:
+        t = enumeratePointer(type);
+        break;
+      case lldb::eTypeClassBuiltin:
+        t = enumeratePrimitive(type);
+        break;
+      case lldb::eTypeClassArray:
+        t = enumerateArray(type);
+        break;
+      case lldb::eTypeClassInvalid:
+      case lldb::eTypeClassBlockPointer:
+      case lldb::eTypeClassComplexFloat:
+      case lldb::eTypeClassComplexInteger:
+      case lldb::eTypeClassFunction:
+      case lldb::eTypeClassMemberPointer:
+      case lldb::eTypeClassObjCObject:
+      case lldb::eTypeClassObjCInterface:
+      case lldb::eTypeClassObjCObjectPointer:
+      case lldb::eTypeClassVector:
+      case lldb::eTypeClassOther:
+      case lldb::eTypeClassAny:
+        throw LLDBParserError{"Unhandled type class: " + std::to_string(kind)};
+    }
+  } catch (const LLDBParserError& e) {
+    if (!isTypeIncomplete)
+      throw;
   }
 
-  return *t;
+  if (isTypeIncomplete) {
+    return makeType<Incomplete>(type, *t);
+  }
+
+  return t.value();
 }
 
 Class& LLDBParser::enumerateClass(lldb::SBType& type) {
