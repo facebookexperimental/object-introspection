@@ -51,6 +51,10 @@ workflows:
           exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0|.*fbstring.*|.*std_string_*|.*multi_arg_tb_.*|.*ignored_a"
 
 executors:
+  nix-docker:
+    docker:
+      - image: nixos/nix:latest
+    resource_class: small
   ubuntu-docker:
     docker:
       - image: ubuntu:jammy
@@ -62,33 +66,12 @@ executors:
 
 jobs:
   lint:
-    executor: ubuntu-docker
+    executor: nix-docker
     steps:
-      - run:
-          name: Install dependencies
-          command: |
-            apt-get update
-            apt-get install -y \
-              clang-format \
-              git \
-              python3-pip
-            # click broke semver with 8.1.0, causing issues for black
-            pip install click==8.0.0 black isort
-          environment:
-            DEBIAN_FRONTEND: noninteractive
       - checkout
       - run:
-          name: clang-format
-          command: |
-            git ls-files '*.cpp' '*.h' | xargs clang-format --fallback-style=Google -i
-            git ls-files '*.py' | xargs black
-            git ls-files '*.py' | xargs isort
-            git diff --exit-code
-      - run:
-          name: python linting
-          command: |
-            black --check --diff test/
-            isort --check --diff test/
+          name: Flake check
+          command: nix --experimental-features 'nix-command flakes' flake check
 
   build:
     # TODO this job could be run in Docker
