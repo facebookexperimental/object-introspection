@@ -83,6 +83,7 @@ void LLDBParserTest::test(std::string_view function,
                           std::string_view expected) {
   // Enable options in unit tests so we get more coverage
   LLDBParserOptions options = {
+    .chaseRawPointers = true,
     .readEnumValues = true,
   };
   test(function, expected, options);
@@ -129,7 +130,7 @@ void LLDBParserTest::testMultiCompilerGlob(
 TEST_F(LLDBParserTest, SimpleStruct) {
   test("oid_test_case_simple_struct", R"(
 [1] Pointer
-[0]   Struct: SimpleStruct (size: 16)
+[0]   Struct: ns_simple::SimpleStruct (size: 16)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 4)
@@ -142,7 +143,7 @@ TEST_F(LLDBParserTest, SimpleStruct) {
 TEST_F(LLDBParserTest, SimpleClass) {
   test("oid_test_case_simple_class", R"(
 [1] Pointer
-[0]   Class: SimpleClass (size: 16)
+[0]   Class: ns_simple::SimpleClass (size: 16)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 4)
@@ -155,7 +156,7 @@ TEST_F(LLDBParserTest, SimpleClass) {
 TEST_F(LLDBParserTest, SimpleUnion) {
   test("oid_test_case_simple_union", R"(
 [1] Pointer
-[0]   Union: SimpleUnion (size: 8)
+[0]   Union: ns_simple::SimpleUnion (size: 8)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 0)
@@ -324,7 +325,7 @@ TEST_F(LLDBParserTest, Using) {
 TEST_F(LLDBParserTest, ArrayMember) {
   test("oid_test_case_arrays_member_int10", R"(
 [2] Pointer
-[0]   Struct: Foo10 (size: 40)
+[0]   Struct: ns_arrays::Foo10 (size: 40)
         Member: arr (offset: 0)
 [1]       Array: (length: 10)
             Primitive: int32_t
@@ -349,7 +350,7 @@ TEST_F(LLDBParserTest, ArrayDirect) {
 TEST_F(LLDBParserTest, Pointer) {
   test("oid_test_case_pointers_struct_primitive_ptrs", R"(
 [3] Pointer
-[0]   Struct: PrimitivePtrs (size: 24)
+[0]   Struct: ns_pointers::PrimitivePtrs (size: 24)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 8)
@@ -366,7 +367,7 @@ TEST_F(LLDBParserTest, PointerNoFollow) {
   test("oid_test_case_pointers_struct_primitive_ptrs",
        R"(
 [1] Pointer
-[0]   Struct: PrimitivePtrs (size: 24)
+[0]   Struct: ns_pointers::PrimitivePtrs (size: 24)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 8)
@@ -516,18 +517,20 @@ TEST_F(LLDBParserTest, TemplateEnumValueNegative) {
 //}
 
 TEST_F(LLDBParserTest, StructAlignment) {
+  GTEST_SKIP() << "Alignment not reported by LLDB yet";
   test("oid_test_case_alignment_struct", R"(
 [1] Pointer
-[0]   Struct: Align16 (size: 16, align: 16)
+[0]   Struct: ns_alignment::Align16 (size: 16, align: 16)
         Member: c (offset: 0)
           Primitive: int8_t
 )");
 }
 
 TEST_F(LLDBParserTest, MemberAlignment) {
+  GTEST_SKIP() << "Alignment not reported by LLDB yet";
   test("oid_test_case_alignment_member_alignment", R"(
 [1] Pointer
-[0]   Struct: MemberAlignment (size: 64)
+[0]   Struct: ns_alignment::MemberAlignment (size: 64)
         Member: c (offset: 0)
           Primitive: int8_t
         Member: c32 (offset: 32, align: 32)
@@ -567,7 +570,7 @@ TEST_F(LLDBParserTest, VirtualFunctions) {
 TEST_F(LLDBParserTest, BitfieldsSingle) {
   test("oid_test_case_bitfields_single", R"(
 [1] Pointer
-[0]   Struct: Single (size: 4)
+[0]   Struct: ns_bitfields::Single (size: 4)
         Member: bitfield (offset: 0, bitsize: 3)
           Primitive: int32_t
 )");
@@ -576,7 +579,7 @@ TEST_F(LLDBParserTest, BitfieldsSingle) {
 TEST_F(LLDBParserTest, BitfieldsWithinBytes) {
   test("oid_test_case_bitfields_within_bytes", R"(
 [1] Pointer
-[0]   Struct: WithinBytes (size: 2)
+[0]   Struct: ns_bitfields::WithinBytes (size: 2)
         Member: a (offset: 0, bitsize: 3)
           Primitive: int8_t
         Member: b (offset: 0.375, bitsize: 5)
@@ -589,7 +592,7 @@ TEST_F(LLDBParserTest, BitfieldsWithinBytes) {
 TEST_F(LLDBParserTest, BitfieldsStraddleBytes) {
   test("oid_test_case_bitfields_straddle_bytes", R"(
 [1] Pointer
-[0]   Struct: StraddleBytes (size: 3)
+[0]   Struct: ns_bitfields::StraddleBytes (size: 3)
         Member: a (offset: 0, bitsize: 7)
           Primitive: int8_t
         Member: b (offset: 1, bitsize: 7)
@@ -602,7 +605,7 @@ TEST_F(LLDBParserTest, BitfieldsStraddleBytes) {
 TEST_F(LLDBParserTest, BitfieldsMixed) {
   test("oid_test_case_bitfields_mixed", R"(
 [1] Pointer
-[0]   Struct: Mixed (size: 12)
+[0]   Struct: ns_bitfields::Mixed (size: 12)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 4, bitsize: 4)
@@ -617,10 +620,9 @@ TEST_F(LLDBParserTest, BitfieldsMixed) {
 }
 
 TEST_F(LLDBParserTest, BitfieldsMoreBitsThanType) {
-  GTEST_SKIP() << "LLDB errors out";
   test("oid_test_case_bitfields_more_bits_than_type", R"(
 [1] Pointer
-[0]   Struct: MoreBitsThanType (size: 4)
+[0]   Struct: ns_bitfields::MoreBitsThanType (size: 4)
         Member: a (offset: 0, bitsize: 8)
           Primitive: int8_t
 )");
@@ -629,7 +631,7 @@ TEST_F(LLDBParserTest, BitfieldsMoreBitsThanType) {
 TEST_F(LLDBParserTest, BitfieldsZeroBits) {
   test("oid_test_case_bitfields_zero_bits", R"(
 [1] Pointer
-[0]   Struct: ZeroBits (size: 2)
+[0]   Struct: ns_bitfields::ZeroBits (size: 2)
         Member: b1 (offset: 0, bitsize: 3)
           Primitive: int8_t
         Member: b2 (offset: 1, bitsize: 2)
@@ -640,14 +642,14 @@ TEST_F(LLDBParserTest, BitfieldsZeroBits) {
 TEST_F(LLDBParserTest, BitfieldsEnum) {
   test("oid_test_case_bitfields_enum", R"(
 [1] Pointer
-[0]   Struct: Enum (size: 4)
+[0]   Struct: ns_bitfields::Enum (size: 4)
         Member: e (offset: 0, bitsize: 2)
-          Enum: MyEnum (size: 4)
+          Enum: ns_bitfields::MyEnum (size: 4)
             Enumerator: 0:One
             Enumerator: 1:Two
             Enumerator: 2:Three
         Member: f (offset: 0.25, bitsize: 4)
-          Enum: MyEnum (size: 4)
+          Enum: ns_bitfields::MyEnum (size: 4)
             Enumerator: 0:One
             Enumerator: 1:Two
             Enumerator: 2:Three

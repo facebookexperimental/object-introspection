@@ -67,9 +67,11 @@ class LLDBParser {
   Primitive::Kind primitiveIntKind(lldb::SBType& type, bool is_signed);
   Primitive::Kind primitiveFloatKind(lldb::SBType& type);
 
+  void enumerateClassMembers(lldb::SBType& type, std::vector<Member>& members);
+
   bool chasePointer() const;
 
-    template <typename T, typename... Args>
+  template <typename T, typename... Args>
   T& makeType(lldb::SBType& lldbType, Args&&... args) {
     auto& newType = typeGraph_.makeType<T>(std::forward<Args>(args)...);
     lldb_types_.emplace(lldbType, newType);

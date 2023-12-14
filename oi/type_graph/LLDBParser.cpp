@@ -17,6 +17,7 @@
 
 #include <glog/logging.h>
 #include <lldb/API/LLDB.h>
+#include <cassert>
 
 namespace oi::detail::type_graph {
 
@@ -97,7 +98,7 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
 
 Class& LLDBParser::enumerateClass(lldb::SBType& type) {
   auto name = type.GetName();
-  auto displayName = type.GetDisplayTypeName();
+  auto displayName = type.GetUnqualifiedType().GetDisplayTypeName();
   auto size = type.GetByteSize();
   auto virtuality = type.IsPolymorphicClass();
 
@@ -117,7 +118,32 @@ Class& LLDBParser::enumerateClass(lldb::SBType& type) {
   }
 
   auto &c = makeType<Class>(type, kind, displayName, name, size, virtuality);
+
+  enumerateClassMembers(type, c.members);
+
   return c;
+}
+
+void LLDBParser::enumerateClassMembers(lldb::SBType& type, std::vector<Member>& members) {
+  assert(members.empty());
+  members.reserve(type.GetNumberOfFields());
+
+  for (uint32_t i = 0; i < type.GetNumberOfFields(); i++) {
+    auto field = type.GetFieldAtIndex(i);
+    if (field.GetName() == nullptr)
+      continue; // Skip anonymous fields (TODO: Why?)
+    auto fieldName = field.GetName();
+    auto fieldType = field.GetType();
+    auto bitFieldSize = field.GetBitfieldSizeInBits();
+    auto bitOffset = field.GetOffsetInBits();
+
+    auto& enumeratedField = enumerateType(fieldType);
+    members.emplace_back(enumeratedField, fieldName, bitOffset, bitFieldSize);
+  }
+
+  std::sort(members.begin(), members.end(), [](const auto& a, const auto& b) {
+    return a.bitOffset < b.bitOffset;
+  });
 }
 
 Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {
