@@ -150,6 +150,17 @@ void Printer::visit(const Pointer& p) {
   print(p.pointeeType());
 }
 
+void Printer::visit(const Reference& p) {
+  if (prefix(p))
+    return;
+
+  out_ << "Reference";
+  if (auto inp = p.inputName(); !inp.empty())
+    out_ << " [" << inp << "]";
+  out_ << std::endl;
+  print(p.pointeeType());
+}
+
 void Printer::visit(const Dummy& d) {
   if (prefix(d))
     return;
