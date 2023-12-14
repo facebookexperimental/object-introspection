@@ -214,16 +214,16 @@ TEST_F(LLDBParserTest, Container) {
   testMultiCompilerGlob("oid_test_case_std_vector_int_empty",
                         R"(
 [13] Pointer
-[0]    Class: vector<int, std::allocator<int> > (size: 24)
+[0]    Class: std::vector<int, std::allocator<int> > (size: 24)
          Param
            Primitive: int32_t
          Param
-[1]        Class: allocator<int> (size: 1)
+[1]        Class: std::allocator<int> (size: 1)
              Param
                Primitive: int32_t
              Parent (offset: 0)
-[3]            Typedef: __allocator_base<int>
-[2]              Class: new_allocator<int> (size: 1)
+[3]            Typedef: std::__allocator_base<int>
+[2]              Class: __gnu_cxx::new_allocator<int> (size: 1)
                    Param
                      Primitive: int32_t
                    Function: new_allocator
@@ -242,13 +242,13 @@ TEST_F(LLDBParserTest, Container) {
 )",
                         R"(
 [9]  Pointer
-[0]    Class: vector<int, std::allocator<int> > (size: 24)
+[0]    Class: std::vector<int, std::allocator<int> > (size: 24)
          Param
            Primitive: int32_t
          Param
-[1]        Class: allocator<int> (size: 1)
+[1]        Class: std::allocator<int> (size: 1)
              Parent (offset: 0)
-[2]            Class: new_allocator<int> (size: 1)
+[2]            Class: __gnu_cxx::new_allocator<int> (size: 1)
                  Param
                    Primitive: int32_t
                  Function: new_allocator
@@ -380,15 +380,16 @@ TEST_F(LLDBParserTest, PointerNoFollow) {
 
 TEST_F(LLDBParserTest, PointerIncomplete) {
   test("oid_test_case_pointers_incomplete_raw", R"(
-[0] Pointer
-      Incomplete: [IncompleteType]
+[1] Pointer
+      Incomplete
+[0]     Struct: ns_pointers_incomplete::IncompleteType (size: 0)
 )");
 }
 
 TEST_F(LLDBParserTest, Cycle) {
   test("oid_test_case_cycles_raw_ptr", R"(
 [2] Pointer
-[0]   Struct: RawNode (size: 16)
+[0]   Struct: ns_cycles::RawNode (size: 16)
         Member: value (offset: 0)
           Primitive: int32_t
         Member: next (offset: 8)
@@ -400,7 +401,7 @@ TEST_F(LLDBParserTest, Cycle) {
 TEST_F(LLDBParserTest, ClassTemplateInt) {
   test("oid_test_case_templates_int", R"(
 [1] Pointer
-[0]   Class: TemplatedClass1<int> (size: 4)
+[0]   Class: ns_templates::TemplatedClass1<int> (size: 4)
         Param
           Primitive: int32_t
         Member: val (offset: 0)
@@ -411,9 +412,9 @@ TEST_F(LLDBParserTest, ClassTemplateInt) {
 TEST_F(LLDBParserTest, ClassTemplateTwo) {
   test("oid_test_case_templates_two", R"(
 [3] Pointer
-[0]   Class: TemplatedClass2<ns_templates::Foo, int> (size: 12)
+[0]   Class: ns_templates::TemplatedClass2<ns_templates::Foo, int> (size: 12)
         Param
-[1]       Struct: Foo (size: 8)
+[1]       Struct: ns_templates::Foo (size: 8)
             Member: a (offset: 0)
               Primitive: int32_t
             Member: b (offset: 4)
@@ -421,7 +422,7 @@ TEST_F(LLDBParserTest, ClassTemplateTwo) {
         Param
           Primitive: int32_t
         Member: tc1 (offset: 0)
-[2]       Class: TemplatedClass1<ns_templates::Foo> (size: 8)
+[2]       Class: ns_templates::TemplatedClass1<ns_templates::Foo> (size: 8)
             Param
               [1]
             Member: val (offset: 0)
@@ -434,7 +435,7 @@ TEST_F(LLDBParserTest, ClassTemplateTwo) {
 TEST_F(LLDBParserTest, ClassTemplateValue) {
   test("oid_test_case_templates_value", R"(
 [2] Pointer
-[0]   Struct: TemplatedClassVal<3> (size: 12)
+[0]   Struct: ns_templates::TemplatedClassVal<3> (size: 12)
         Param
           Value: 3
           Primitive: int32_t
@@ -448,18 +449,18 @@ TEST_F(LLDBParserTest, TemplateEnumValue) {
   testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val",
                         R"(
 [1] Pointer
-[0]   Class: MyClass<ns_enums_params::MyNS::ScopedEnum::One> (size: 4)
+[0]   Class: ns_enums_params::MyClass<ns_enums_params::MyNS::ScopedEnum::One> (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
-          Enum: ScopedEnum (size: 4)
+          Enum: ns_enums_params::MyNS::ScopedEnum (size: 4)
 *
 )",
                         R"(
 [1] Pointer
-[0]   Class: MyClass<(ns_enums_params::MyNS::ScopedEnum)1> (size: 4)
+[0]   Class: ns_enums_params::MyClass<(ns_enums_params::MyNS::ScopedEnum)1> (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
-          Enum: ScopedEnum (size: 4)
+          Enum: ns_enums_params::MyNS::ScopedEnum (size: 4)
 *
 )");
 }
@@ -468,10 +469,10 @@ TEST_F(LLDBParserTest, TemplateEnumValueGaps) {
   testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val_gaps",
                         R"(
 [1] Pointer
-[0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty> (size: 4)
+[0]   Class: ns_enums_params::ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
-          Enum: EnumWithGaps (size: 4)
+          Enum: ns_enums_params::MyNS::EnumWithGaps (size: 4)
 *
 )",
                         R"(
@@ -479,7 +480,7 @@ TEST_F(LLDBParserTest, TemplateEnumValueGaps) {
 [0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)20> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
-          Enum: EnumWithGaps (size: 4)
+          Enum: ns_enums_params::MyNS::EnumWithGaps (size: 4)
 *
 )");
 }
@@ -488,18 +489,18 @@ TEST_F(LLDBParserTest, TemplateEnumValueNegative) {
   testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val_negative",
                         R"(
 [1] Pointer
-[0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo> (size: 4)
+[0]   Class: ns_enums_params::ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
-          Enum: EnumWithGaps (size: 4)
+          Enum: ns_enums_params::MyNS::EnumWithGaps (size: 4)
 *
 )",
                         R"(
 [1] Pointer
-[0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2> (size: 4)
+[0]   Class: ns_enums_params::ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2> (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
-          Enum: EnumWithGaps (size: 4)
+          Enum: ns_enums_params::MyNS::EnumWithGaps (size: 4)
 *
 )");
 }
@@ -620,10 +621,11 @@ TEST_F(LLDBParserTest, BitfieldsMixed) {
 }
 
 TEST_F(LLDBParserTest, BitfieldsMoreBitsThanType) {
+  // TODO: Validate with integration tests that 29 bitsize doesn't break CodeGen
   test("oid_test_case_bitfields_more_bits_than_type", R"(
 [1] Pointer
 [0]   Struct: ns_bitfields::MoreBitsThanType (size: 4)
-        Member: a (offset: 0, bitsize: 8)
+        Member: a (offset: 0, bitsize: 29)
           Primitive: int8_t
 )");
 }

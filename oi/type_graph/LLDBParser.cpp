@@ -157,11 +157,33 @@ Class& LLDBParser::enumerateClass(lldb::SBType& type) {
 
   auto &c = makeType<Class>(type, kind, displayName, name, size, virtuality);
 
+  enumerateClassTemplateParams(type, c.templateParams);
   enumerateClassParents(type, c.parents);
   enumerateClassMembers(type, c.members);
   enumerateClassFunctions(type, c.functions);
 
   return c;
+}
+
+void LLDBParser::enumerateClassTemplateParams(lldb::SBType &type, std::vector<TemplateParam>& params) {
+  assert(params.empty());
+  params.reserve(type.GetNumberOfTemplateArguments());
+
+  for (uint32_t i = 0; i < type.GetNumberOfTemplateArguments(); i++) {
+    auto param = type.GetTemplateArgumentType(i);
+    enumerateTemplateParam(type, param, i, params);
+  }
+}
+
+void LLDBParser::enumerateTemplateParam(lldb::SBType& /*type*/,
+                                        lldb::SBType& param,
+                                        uint32_t /*i*/,
+                                        std::vector<TemplateParam>& params) {
+  QualifierSet qualifiers;
+  qualifiers[Qualifier::Const] = param.GetName() != param.GetUnqualifiedType().GetName(); // TODO: Wonky as hell :/
+  auto& paramType = enumerateType(param);
+
+  params.emplace_back(paramType, qualifiers);
 }
 
 void LLDBParser::enumerateClassParents(lldb::SBType& type, std::vector<Parent>& parents) {

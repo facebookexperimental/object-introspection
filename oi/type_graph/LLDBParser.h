@@ -61,6 +61,8 @@ class LLDBParser {
   Primitive::Kind primitiveIntKind(lldb::SBType& type, bool is_signed);
   Primitive::Kind primitiveFloatKind(lldb::SBType& type);
 
+  void enumerateClassTemplateParams(lldb::SBType &type, std::vector<TemplateParam>& params);
+  void enumerateTemplateParam(lldb::SBType& type, lldb::SBType& param, uint32_t i, std::vector<TemplateParam>& params);
   void enumerateClassParents(lldb::SBType& type, std::vector<Parent>& parents);
   void enumerateClassMembers(lldb::SBType& type, std::vector<Member>& members);
   void enumerateClassFunctions(lldb::SBType &type, std::vector<Function>& functions);
