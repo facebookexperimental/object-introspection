@@ -192,7 +192,6 @@ definitions = '''
     }]'''
 
   [cases.anon_union]
-    oil_skip = "anonymous unions are fully stubbed in the generated code" # https://github.com/facebookexperimental/object-introspection/issues/292
     param_types = ["const AnonUnionContainer&"]
     setup = 'return AnonUnionContainer{ .a = 3 };'
     cli_options = ["-fchase-raw-pointers"]
@@ -209,8 +208,8 @@ definitions = '''
       "staticSize": 24,
       "exclusiveSize": 10,
       "members": [
-        {"name":"__anon_member_0", "staticSize":2, "exclusiveSize":2},
-        {"name":"__anon_member_1", "staticSize":8, "exclusiveSize":8},
+        {"name":"__oi_anon_0", "staticSize":2, "exclusiveSize":2},
+        {"name":"__oi_anon_2", "staticSize":8, "exclusiveSize":8},
         {"name":"e", "staticSize":4, "exclusiveSize":4, "typeNames":["int32_t"]}
       ]
     }]'''

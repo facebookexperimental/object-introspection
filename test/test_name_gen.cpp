@@ -475,3 +475,29 @@ TEST(NameGenTest, AnonymousTypes) {
   EXPECT_EQ(myenum.inputName(), "__oi_anon_1");
   EXPECT_EQ(mytypedef.inputName(), "");
 }
+
+TEST(NameGenTest, AnonymousMembers) {
+  auto myint = Primitive{Primitive::Kind::Int32};
+
+  auto myclass = Class{0, Class::Kind::Class, "C", 69};
+  auto myunion1 = Class{1, Class::Kind::Union, "", 4};
+  auto myunion2 = Class{2, Class::Kind::Union, "", 4};
+
+  myclass.members.push_back(Member{myunion1, "", 0});
+  myclass.members.push_back(Member{myunion2, "", 4});
+
+  NameGen nameGen;
+  nameGen.generateNames({myclass, myunion1, myunion2});
+
+  EXPECT_EQ(myclass.name(), "C_0");
+  EXPECT_EQ(myunion1.name(), "__oi_anon_1");
+  EXPECT_EQ(myunion2.name(), "__oi_anon_2");
+  EXPECT_EQ(myclass.members[0].name, "__oi_anon_0");
+  EXPECT_EQ(myclass.members[1].name, "__oi_anon_1");
+
+  EXPECT_EQ(myclass.inputName(), "C");
+  EXPECT_EQ(myunion1.inputName(), "__oi_anon_1");
+  EXPECT_EQ(myunion2.inputName(), "__oi_anon_2");
+  EXPECT_EQ(myclass.members[0].inputName, "__oi_anon_0");
+  EXPECT_EQ(myclass.members[1].inputName, "__oi_anon_1");
+}
