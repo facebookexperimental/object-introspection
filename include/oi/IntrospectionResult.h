@@ -56,13 +56,9 @@ class IntrospectionResult {
     std::optional<result::Element> next_;
 
     std::vector<std::string_view> type_path_;
-    // This field could be more space efficient as these strings are primarily
-    // empty. They are used when the string isn't stored in the .rodata section,
-    // currently when performing key capture. It needs reference stability as we
-    // keep views in type_path_. A std::unique_ptr<std::string> would be an
-    // improvement but it isn't copyable. A string type with size fixed at
-    // construction would also be good.
-    std::list<std::string> dynamic_type_path_;
+    // Holds a pair of the type path entry this represents and the owned string
+    // that type_path_ has a view of.
+    std::list<std::pair<size_t, std::string>> dynamic_type_path_;
 
     // We cannot track the position in the iteration solely by the underlying
     // iterator as some fields do not extract data (for example, primitives).
