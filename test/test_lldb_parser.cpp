@@ -83,8 +83,8 @@ void LLDBParserTest::test(std::string_view function,
                           std::string_view expected) {
   // Enable options in unit tests so we get more coverage
   LLDBParserOptions options = {
-    .chaseRawPointers = true,
-    .readEnumValues = true,
+      .chaseRawPointers = true,
+      .readEnumValues = true,
   };
   test(function, expected, options);
 }

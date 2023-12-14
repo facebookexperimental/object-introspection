@@ -17,6 +17,7 @@
 
 #include <glog/logging.h>
 #include <lldb/API/LLDB.h>
+
 #include <cassert>
 
 namespace std {
@@ -29,10 +30,10 @@ namespace std {
  *       Is there a better way to do this?
  */
 size_t hash<lldb::SBType>::operator()(const lldb::SBType& key) const {
-  auto *name = const_cast<lldb::SBType&>(key).GetName();
+  auto* name = const_cast<lldb::SBType&>(key).GetName();
   auto Hasher = std::hash<const char*>();
   { /* Debugging
-    auto &keyAsSP = reinterpret_cast<const lldb::TypeImplSP&>(key);
+    auto& keyAsSP = reinterpret_cast<const lldb::TypeImplSP&>(key);
     fprintf(stderr, "LLDBType::hash(key@0x%08zx = (0x%08zx, %s)) = 0x%08zx\n",
       (uintptr_t)keyAsSP.get(), (uintptr_t)name, name, Hasher(name));
     // Debugging */
@@ -40,14 +41,17 @@ size_t hash<lldb::SBType>::operator()(const lldb::SBType& key) const {
   return Hasher(name);
 }
 
-bool equal_to<lldb::SBType>::operator()(const lldb::SBType& lhs, const lldb::SBType& rhs) const {
+bool equal_to<lldb::SBType>::operator()(const lldb::SBType& lhs,
+                                        const lldb::SBType& rhs) const {
   auto* lhsName = const_cast<lldb::SBType&>(lhs).GetName();
   auto* rhsName = const_cast<lldb::SBType&>(rhs).GetName();
   auto EqualTo = std::equal_to<const char*>();
   { /* Debugging
-    auto &lhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(lhs);
-    auto &rhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(rhs);
-    fprintf(stderr, "LLDBType::equal_to(lhs@0x%08zx = (0x%08zx, %s), rhs@0x%08zx = (0x%08zx, %s)) = %d\n",
+    auto& lhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(lhs);
+    auto& rhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(rhs);
+    fprintf(stderr, "LLDBType::equal_to("
+        "lhs@0x%08zx = (0x%08zx, %s), "
+        "rhs@0x%08zx = (0x%08zx, %s)) = %d\n",
       (uintptr_t)lhsAsSP.get(), (uintptr_t)lhsName, lhsName,
       (uintptr_t)rhsAsSP.get(), (uintptr_t)rhsName, rhsName,
       EqualTo(lhsName, rhsName));
@@ -71,6 +75,7 @@ struct DepthGuard {
   ~DepthGuard() {
     --depth_;
   }
+
  private:
   int& depth_;
 };
@@ -152,10 +157,11 @@ Class& LLDBParser::enumerateClass(lldb::SBType& type) {
       kind = Class::Kind::Union;
       break;
     default:
-      throw LLDBParserError{"Invalid type class for compound type: " + std::to_string(typeClass)};
+      throw LLDBParserError{"Invalid type class for compound type: " +
+                            std::to_string(typeClass)};
   }
 
-  auto &c = makeType<Class>(type, kind, displayName, name, size, virtuality);
+  auto& c = makeType<Class>(type, kind, displayName, name, size, virtuality);
 
   enumerateClassTemplateParams(type, c.templateParams);
   enumerateClassParents(type, c.parents);
@@ -165,7 +171,8 @@ Class& LLDBParser::enumerateClass(lldb::SBType& type) {
   return c;
 }
 
-void LLDBParser::enumerateClassTemplateParams(lldb::SBType &type, std::vector<TemplateParam>& params) {
+void LLDBParser::enumerateClassTemplateParams(
+    lldb::SBType& type, std::vector<TemplateParam>& params) {
   assert(params.empty());
   params.reserve(type.GetNumberOfTemplateArguments());
 
@@ -180,13 +187,15 @@ void LLDBParser::enumerateTemplateParam(lldb::SBType& /*type*/,
                                         uint32_t /*i*/,
                                         std::vector<TemplateParam>& params) {
   QualifierSet qualifiers;
-  qualifiers[Qualifier::Const] = param.GetName() != param.GetUnqualifiedType().GetName(); // TODO: Wonky as hell :/
+  qualifiers[Qualifier::Const] =  // TODO: Wonky as hell :/
+      param.GetName() != param.GetUnqualifiedType().GetName();
   auto& paramType = enumerateType(param);
 
   params.emplace_back(paramType, qualifiers);
 }
 
-void LLDBParser::enumerateClassParents(lldb::SBType& type, std::vector<Parent>& parents) {
+void LLDBParser::enumerateClassParents(lldb::SBType& type,
+                                       std::vector<Parent>& parents) {
   assert(parents.empty());
   parents.reserve(type.GetNumberOfDirectBaseClasses());
 
@@ -198,7 +207,8 @@ void LLDBParser::enumerateClassParents(lldb::SBType& type, std::vector<Parent>& 
   }
 }
 
-void LLDBParser::enumerateClassMembers(lldb::SBType& type, std::vector<Member>& members) {
+void LLDBParser::enumerateClassMembers(lldb::SBType& type,
+                                       std::vector<Member>& members) {
   assert(members.empty());
   members.reserve(type.GetNumberOfFields());
 
@@ -206,7 +216,7 @@ void LLDBParser::enumerateClassMembers(lldb::SBType& type, std::vector<Member>& 
   for (uint32_t i = 0; i < type.GetNumberOfFields(); i++) {
     auto field = type.GetFieldAtIndex(i);
     if (field.GetName() == nullptr)
-      continue; // Skip anonymous fields (TODO: Why?)
+      continue;  // Skip anonymous fields (TODO: Why?)
     auto fieldName = field.GetName();
     auto fieldType = field.GetType();
     auto bitFieldSize = field.GetBitfieldSizeInBits();
@@ -221,7 +231,8 @@ void LLDBParser::enumerateClassMembers(lldb::SBType& type, std::vector<Member>& 
   });
 }
 
-void LLDBParser::enumerateClassFunctions(lldb::SBType &type, std::vector<Function>& functions) {
+void LLDBParser::enumerateClassFunctions(lldb::SBType& type,
+                                         std::vector<Function>& functions) {
   assert(functions.empty());
   functions.reserve(type.GetNumberOfMemberFunctions());
 
@@ -235,7 +246,7 @@ void LLDBParser::enumerateClassFunctions(lldb::SBType &type, std::vector<Functio
 }
 
 Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {
-  const char *typeName = type.GetName();
+  const char* typeName = type.GetName();
   std::string name = typeName ? typeName : "";
   uint64_t size = type.GetByteSize();
 
@@ -260,9 +271,9 @@ Typedef& LLDBParser::enumerateTypedef(lldb::SBType& type) {
 }
 
 Type& LLDBParser::enumeratePointer(lldb::SBType& type) {
- if (!chasePointer()) {
-  return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
- }
+  if (!chasePointer()) {
+    return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
+  }
 
   lldb::SBType pointeeType;
   switch (auto kind = type.GetTypeClass()) {
@@ -273,11 +284,12 @@ Type& LLDBParser::enumeratePointer(lldb::SBType& type) {
       pointeeType = type.GetDereferencedType();
       break;
     default:
-      throw LLDBParserError{"Invalid type class for pointer type: " + std::to_string(kind)};
+      throw LLDBParserError{"Invalid type class for pointer type: " +
+                            std::to_string(kind)};
   }
 
   if (pointeeType.IsFunctionType()) {
-   return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
+    return makeType<Primitive>(type, Primitive::Kind::StubbedPointer);
   }
 
   Type& t = enumerateType(pointeeType);
@@ -291,7 +303,8 @@ bool LLDBParser::chasePointer() const {
   return options_.chaseRawPointers;
 }
 
-Primitive::Kind LLDBParser::primitiveIntKind(lldb::SBType& type, bool is_signed) {
+Primitive::Kind LLDBParser::primitiveIntKind(lldb::SBType& type,
+                                             bool is_signed) {
   switch (auto size = type.GetByteSize()) {
     case 1:
       return is_signed ? Primitive::Kind::Int8 : Primitive::Kind::UInt8;
@@ -376,7 +389,8 @@ Primitive& LLDBParser::enumeratePrimitive(lldb::SBType& type) {
     case lldb::eBasicTypeObjCSel:
     case lldb::eBasicTypeOther:
     default:
-      throw LLDBParserError{"Unhandled primitive type: " + std::to_string(kind)};
+      throw LLDBParserError{"Unhandled primitive type: " +
+                            std::to_string(kind)};
   }
 
   return makeType<Primitive>(type, primitiveKind);
