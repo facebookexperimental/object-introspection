@@ -19,13 +19,19 @@
 
 #include <cassert>
 #include <iterator>
+#include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 
 template <typename T>
 inline constexpr bool always_false_v = false;
 
 namespace oi {
+namespace {
+std::optional<std::string> genNameFromData(
+    const decltype(result::Element::data)&);
+}
 
 IntrospectionResult::const_iterator&
 IntrospectionResult::const_iterator::operator++() {
@@ -45,8 +51,10 @@ IntrospectionResult::const_iterator::operator++() {
       [this](auto&& r) -> IntrospectionResult::const_iterator& {
         using U = std::decay_t<decltype(r)>;
         if constexpr (std::is_same_v<U, exporters::inst::PopTypePath>) {
+          if (!dynamic_type_path_.empty() &&
+              dynamic_type_path_.back().first == type_path_.size())
+            dynamic_type_path_.pop_back();
           type_path_.pop_back();
-          dynamic_type_path_.pop_back();
           return operator++();
         } else if constexpr (std::is_same_v<U, exporters::inst::Repeat>) {
           if (r.n-- != 0) {
@@ -78,37 +86,15 @@ IntrospectionResult::const_iterator::operator++() {
                   *next_, [this](auto i) { stack_.emplace(i); }, parsed);
             }
 
-            std::string& new_name = dynamic_type_path_.emplace_back(std::visit(
-                [](const auto& d) -> std::string {
-                  using V = std::decay_t<decltype(d)>;
-                  if constexpr (std::is_same_v<std::string, V>) {
-                    std::string out = "[";
-                    out.reserve(d.size() + 2);
-                    out += d;
-                    out += "]";
-                    return out;
-                  } else if constexpr (std::is_same_v<result::Element::Pointer,
-                                                      V>) {
-                    std::stringstream out;
-                    out << '[' << reinterpret_cast<void*>(d.p) << ']';
-                    return out.str();
-                  } else if constexpr (std::is_same_v<result::Element::Scalar,
-                                                      V>) {
-                    std::string out = "[";
-                    out += std::to_string(d.n);
-                    out += ']';
-                    return out;
-                  } else if constexpr (std::is_same_v<std::nullopt_t, V>) {
-                    return "";
-                  } else {
-                    static_assert(always_false_v<V>, "missing variant");
-                  }
-                },
-                next_->data));
-            if (!new_name.empty()) {
-              type_path_.back() = new_name;
-              next_->type_path.back() = new_name;
-              next_->name = new_name;
+            if (auto new_name = genNameFromData(next_->data)) {
+              std::string& new_name_ref =
+                  dynamic_type_path_
+                      .emplace_back(type_path_.size(), std::move(*new_name))
+                      .second;
+
+              type_path_.back() = new_name_ref;
+              next_->type_path.back() = new_name_ref;
+              next_->name = new_name_ref;
             }
 
             for (auto it = ty.fields.rbegin(); it != ty.fields.rend(); ++it) {
@@ -124,4 +110,36 @@ IntrospectionResult::const_iterator::operator++() {
       el);
 }
 
+namespace {
+
+std::optional<std::string> genNameFromData(
+    const decltype(result::Element::data)& d) {
+  return std::visit(
+      [](const auto& d) -> std::optional<std::string> {
+        using V = std::decay_t<decltype(d)>;
+        if constexpr (std::is_same_v<std::string, V>) {
+          std::string out = "[";
+          out.reserve(d.size() + 2);
+          out += d;
+          out += "]";
+          return out;
+        } else if constexpr (std::is_same_v<result::Element::Pointer, V>) {
+          std::stringstream out;
+          out << '[' << reinterpret_cast<void*>(d.p) << ']';
+          return out.str();
+        } else if constexpr (std::is_same_v<result::Element::Scalar, V>) {
+          std::string out = "[";
+          out += std::to_string(d.n);
+          out += ']';
+          return out;
+        } else if constexpr (std::is_same_v<std::nullopt_t, V>) {
+          return std::nullopt;
+        } else {
+          static_assert(always_false_v<V>, "missing variant");
+        }
+      },
+      d);
+}
+
+}  // namespace
 }  // namespace oi
