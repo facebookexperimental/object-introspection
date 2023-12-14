@@ -108,6 +108,12 @@ TEST(TypeIdentifierTest, PassThroughTypes) {
 [2]     Container: std::allocator (size: 1)
           Param
             Primitive: int32_t
+          Underlying
+[1]         Class: std::allocator (size: 1)
+              Param
+                Primitive: int32_t
+              Function: allocate
+              Function: deallocate
 )");
 }
 
@@ -137,6 +143,12 @@ TEST(TypeIdentifierTest, PassThroughSameType) {
 [2]     Container: std::allocator (size: 1)
           Param
             Primitive: int32_t
+          Underlying
+[1]         Class: std::allocator (size: 1)
+              Param
+                Primitive: int32_t
+              Function: allocate
+              Function: deallocate
       Param
         [2]
 )");

@@ -86,22 +86,23 @@ std::vector<std::unique_ptr<ContainerInfo>> getContainerInfos() {
 Container getVector(NodeId id) {
   static ContainerInfo info{"std::vector", SEQ_TYPE, "vector"};
   info.stubTemplateParams = {1};
-  return Container{id, info, 24};
+  return Container{id, info, 24, nullptr};
 }
 
 Container getMap(NodeId id) {
   static ContainerInfo info{"std::map", STD_MAP_TYPE, "map"};
   info.stubTemplateParams = {2, 3};
-  return Container{id, info, 48};
+  return Container{id, info, 48, nullptr};
 }
 
 Container getList(NodeId id) {
   static ContainerInfo info{"std::list", LIST_TYPE, "list"};
   info.stubTemplateParams = {1};
-  return Container{id, info, 24};
+  return Container{id, info, 24, nullptr};
 }
 
 Container getPair(NodeId id) {
   static ContainerInfo info{"std::pair", PAIR_TYPE, "utility"};
-  return Container{id, info, 8};  // Nonsense size, shouldn't matter for tests
+  return Container{
+      id, info, 8, nullptr};  // Nonsense size, shouldn't matter for tests
 }

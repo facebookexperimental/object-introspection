@@ -134,8 +134,6 @@ void Flattener::visit(Class& c) {
   //   };
   //    TODO comment about virtual inheritance
 
-  // TODO alignment of parent classes
-
   // Flatten types referenced by template params, parents and members
   for (const auto& param : c.templateParams) {
     accept(param.type());
@@ -204,14 +202,6 @@ void Flattener::visit(Class& c) {
   for (const Class& child : c.children) {
     c.children.insert(
         c.children.end(), child.children.begin(), child.children.end());
-  }
-}
-
-void Flattener::visit(Container& c) {
-  // Containers themselves don't need to be flattened, but their template
-  // parameters might need to be
-  for (const auto& templateParam : c.templateParams) {
-    accept(templateParam.type());
   }
 }
 

@@ -48,6 +48,7 @@ class IdentifyContainers : public RecursiveMutator {
 
   Type& mutate(Type& type) override;
   Type& visit(Class& c) override;
+  Type& visit(Container& c) override;
 
  private:
   ResultTracker<Type*> tracker_;

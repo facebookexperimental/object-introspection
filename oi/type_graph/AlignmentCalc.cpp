@@ -48,15 +48,7 @@ void AlignmentCalc::accept(Type& type) {
 }
 
 void AlignmentCalc::visit(Class& c) {
-  for (const auto& param : c.templateParams) {
-    accept(param.type());
-  }
-  for (const auto& parent : c.parents) {
-    accept(parent.type());
-  }
-  for (const auto& child : c.children) {
-    accept(child);
-  }
+  RecursiveVisitor::visit(c);
 
   uint64_t alignment = 1;
   for (auto& member : c.members) {
@@ -79,6 +71,14 @@ void AlignmentCalc::visit(Class& c) {
   if (c.size() % c.align() != 0) {
     // Mark as packed if there is no tail padding
     c.setPacked();
+  }
+}
+
+void AlignmentCalc::visit(Container& c) {
+  RecursiveVisitor::visit(c);
+
+  if (c.underlying()) {
+    c.setAlign(c.underlying()->align());
   }
 }
 

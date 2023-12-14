@@ -58,16 +58,16 @@ TEST(AlignmentCalcTest, StructInContainer) {
           Member: n (offset: 0)
             Primitive: int8_t
           Member: n (offset: 8)
-            Primitive: int64_t
+            Primitive: int32_t
 )",
        R"(
 [0] Container: std::vector (size: 8)
       Param
-[1]     Class: MyClass (size: 16, align: 8)
+[1]     Class: MyClass (size: 16, align: 4)
           Member: n (offset: 0, align: 1)
             Primitive: int8_t
-          Member: n (offset: 8, align: 8)
-            Primitive: int64_t
+          Member: n (offset: 8, align: 4)
+            Primitive: int32_t
 )");
 }
 
@@ -262,5 +262,35 @@ TEST(AlignmentCalcTest, Typedef) {
 [2]       Class: AlignedClass (size: 1, align: 16, packed)
             Member: b (offset: 0, align: 16)
               Primitive: int8_t
+)");
+}
+
+TEST(AlignmentCalcTest, Container) {
+  test(AlignmentCalc::createPass(),
+       R"(
+[0] Container: std::vector (size: 24)
+      Underlying
+[1]     Class: vector (size: 24)
+          Member: n (offset: 0)
+            Primitive: int8_t
+          Member: s (offset: 4)
+[2]         Struct: MyStruct (size: 8)
+              Member: n1 (offset: 0)
+                Primitive: int32_t
+              Member: n2 (offset: 4)
+                Primitive: int32_t
+)",
+       R"(
+[0] Container: std::vector (size: 24, align: 4)
+      Underlying
+[1]     Class: vector (size: 24, align: 4)
+          Member: n (offset: 0, align: 1)
+            Primitive: int8_t
+          Member: s (offset: 4, align: 4)
+[2]         Struct: MyStruct (size: 8, align: 4)
+              Member: n1 (offset: 0, align: 4)
+                Primitive: int32_t
+              Member: n2 (offset: 4, align: 4)
+                Primitive: int32_t
 )");
 }
