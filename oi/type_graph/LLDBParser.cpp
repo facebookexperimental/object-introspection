@@ -120,6 +120,7 @@ Class& LLDBParser::enumerateClass(lldb::SBType& type) {
   auto &c = makeType<Class>(type, kind, displayName, name, size, virtuality);
 
   enumerateClassMembers(type, c.members);
+  enumerateClassFunctions(type, c.functions);
 
   return c;
 }
@@ -128,6 +129,7 @@ void LLDBParser::enumerateClassMembers(lldb::SBType& type, std::vector<Member>& 
   assert(members.empty());
   members.reserve(type.GetNumberOfFields());
 
+  /* TODO: We are missing the _vptr */
   for (uint32_t i = 0; i < type.GetNumberOfFields(); i++) {
     auto field = type.GetFieldAtIndex(i);
     if (field.GetName() == nullptr)
@@ -144,6 +146,19 @@ void LLDBParser::enumerateClassMembers(lldb::SBType& type, std::vector<Member>& 
   std::sort(members.begin(), members.end(), [](const auto& a, const auto& b) {
     return a.bitOffset < b.bitOffset;
   });
+}
+
+void LLDBParser::enumerateClassFunctions(lldb::SBType &type, std::vector<Function>& functions) {
+  assert(functions.empty());
+  functions.reserve(type.GetNumberOfMemberFunctions());
+
+  /* TODO: We are missing the default constructors */
+  for (uint32_t i = 0; i < type.GetNumberOfMemberFunctions(); i++) {
+    auto function = type.GetMemberFunctionAtIndex(i);
+
+    /* TODO: We don't know if the function is virtual */
+    functions.emplace_back(function.GetName(), false);
+  }
 }
 
 Enum& LLDBParser::enumerateEnum(lldb::SBType& type) {

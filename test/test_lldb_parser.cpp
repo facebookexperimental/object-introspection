@@ -542,7 +542,7 @@ TEST_F(LLDBParserTest, VirtualFunctions) {
   testMultiCompiler("oid_test_case_inheritance_polymorphic_a_as_a",
                     R"(
 [1] Pointer
-[0]   Class: A (size: 16)
+[0]   Class: ns_inheritance_polymorphic::A (size: 16)
         Member: _vptr$A (offset: 0)
           Primitive: StubbedPointer
         Member: int_a (offset: 8)

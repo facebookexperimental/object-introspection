@@ -68,6 +68,7 @@ class LLDBParser {
   Primitive::Kind primitiveFloatKind(lldb::SBType& type);
 
   void enumerateClassMembers(lldb::SBType& type, std::vector<Member>& members);
+  void enumerateClassFunctions(lldb::SBType &type, std::vector<Function>& functions);
 
   bool chasePointer() const;
 
