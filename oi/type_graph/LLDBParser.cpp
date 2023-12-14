@@ -19,6 +19,44 @@
 #include <lldb/API/LLDB.h>
 #include <cassert>
 
+namespace std {
+/* We use the address of the name string for hashing and equality.
+ * This relies on string de-duplication, two objects with the same name
+ * might have different addresses, but their de-duplicated name will
+ * have the same address.
+ *
+ * TODO: Is this correct? How does -fsimple-template-names impact this?
+ *       Is there a better way to do this?
+ */
+size_t hash<lldb::SBType>::operator()(const lldb::SBType& key) const {
+  auto *name = const_cast<lldb::SBType&>(key).GetName();
+  auto Hasher = std::hash<const char*>();
+  { /* Debugging
+    auto &keyAsSP = reinterpret_cast<const lldb::TypeImplSP&>(key);
+    fprintf(stderr, "LLDBType::hash(key@0x%08zx = (0x%08zx, %s)) = 0x%08zx\n",
+      (uintptr_t)keyAsSP.get(), (uintptr_t)name, name, Hasher(name));
+    // Debugging */
+  }
+  return Hasher(name);
+}
+
+bool equal_to<lldb::SBType>::operator()(const lldb::SBType& lhs, const lldb::SBType& rhs) const {
+  auto* lhsName = const_cast<lldb::SBType&>(lhs).GetName();
+  auto* rhsName = const_cast<lldb::SBType&>(rhs).GetName();
+  auto EqualTo = std::equal_to<const char*>();
+  { /* Debugging
+    auto &lhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(lhs);
+    auto &rhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(rhs);
+    fprintf(stderr, "LLDBType::equal_to(lhs@0x%08zx = (0x%08zx, %s), rhs@0x%08zx = (0x%08zx, %s)) = %d\n",
+      (uintptr_t)lhsAsSP.get(), (uintptr_t)lhsName, lhsName,
+      (uintptr_t)rhsAsSP.get(), (uintptr_t)rhsName, rhsName,
+      EqualTo(lhsName, rhsName));
+    // Debugging */
+  }
+  return EqualTo(lhsName, rhsName);
+}
+}  // namespace std
+
 namespace oi::detail::type_graph {
 
 Type& LLDBParser::parse(lldb::SBType& root) {
@@ -119,10 +157,23 @@ Class& LLDBParser::enumerateClass(lldb::SBType& type) {
 
   auto &c = makeType<Class>(type, kind, displayName, name, size, virtuality);
 
+  enumerateClassParents(type, c.parents);
   enumerateClassMembers(type, c.members);
   enumerateClassFunctions(type, c.functions);
 
   return c;
+}
+
+void LLDBParser::enumerateClassParents(lldb::SBType& type, std::vector<Parent>& parents) {
+  assert(parents.empty());
+  parents.reserve(type.GetNumberOfDirectBaseClasses());
+
+  for (uint32_t i = 0; i < type.GetNumberOfDirectBaseClasses(); i++) {
+    auto base = type.GetDirectBaseClassAtIndex(i);
+    auto baseType = base.GetType();
+
+    parents.emplace_back(enumerateType(baseType), base.GetOffsetInBits());
+  }
 }
 
 void LLDBParser::enumerateClassMembers(lldb::SBType& type, std::vector<Member>& members) {

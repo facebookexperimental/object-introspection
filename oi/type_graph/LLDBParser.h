@@ -21,23 +21,17 @@
 #include <lldb/API/SBType.h>
 
 namespace std {
+/* lldb::SBType doesn't provide a hash and equality operators.
+ * So we define our own specialization of them here.
+ */
 template <>
 struct hash<lldb::SBType> {
-  size_t operator()(const lldb::SBType& key) const {
-    auto &keyAsSP = reinterpret_cast<const lldb::TypeImplSP&>(key);
-    auto SPHasher = std::hash<lldb::TypeImplSP>();
-    return SPHasher(keyAsSP);
-  }
+  size_t operator()(const lldb::SBType& type) const;
 };
 
 template <>
 struct equal_to<lldb::SBType> {
-  bool operator()(const lldb::SBType& lhs, const lldb::SBType& rhs) const {
-    auto &lhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(lhs);
-    auto &rhsAsSP = reinterpret_cast<const lldb::TypeImplSP&>(rhs);
-    auto SPEqualTo = std::equal_to<lldb::TypeImplSP>();
-    return SPEqualTo(lhsAsSP, rhsAsSP);
-  }
+  bool operator()(const lldb::SBType& lhs, const lldb::SBType& rhs) const;
 };
 }  // namespace std
 
@@ -67,6 +61,7 @@ class LLDBParser {
   Primitive::Kind primitiveIntKind(lldb::SBType& type, bool is_signed);
   Primitive::Kind primitiveFloatKind(lldb::SBType& type);
 
+  void enumerateClassParents(lldb::SBType& type, std::vector<Parent>& parents);
   void enumerateClassMembers(lldb::SBType& type, std::vector<Member>& members);
   void enumerateClassFunctions(lldb::SBType &type, std::vector<Function>& functions);
 

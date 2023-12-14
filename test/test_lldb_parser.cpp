@@ -169,9 +169,9 @@ TEST_F(LLDBParserTest, SimpleUnion) {
 TEST_F(LLDBParserTest, Inheritance) {
   test("oid_test_case_inheritance_access_public", R"(
 [4] Pointer
-[0]   Class: Public (size: 8)
+[0]   Class: ns_inheritance_access::Public (size: 8)
         Parent (offset: 0)
-[1]       Class: Base (size: 4)
+[1]       Class: ns_inheritance_access::Base (size: 4)
             Member: base_int (offset: 0)
 [3]           Typedef: int32_t
 [2]             Typedef: __int32_t
@@ -184,25 +184,25 @@ TEST_F(LLDBParserTest, Inheritance) {
 TEST_F(LLDBParserTest, InheritanceMultiple) {
   test("oid_test_case_inheritance_multiple_a", R"(
 [6] Pointer
-[0]   Struct: Derived_2 (size: 24)
+[0]   Struct: ns_inheritance_multiple::Derived_2 (size: 24)
         Parent (offset: 0)
-[1]       Struct: Base_1 (size: 4)
+[1]       Struct: ns_inheritance_multiple::Base_1 (size: 4)
             Member: a (offset: 0)
               Primitive: int32_t
         Parent (offset: 4)
-[2]       Struct: Derived_1 (size: 12)
+[2]       Struct: ns_inheritance_multiple::Derived_1 (size: 12)
             Parent (offset: 0)
-[3]           Struct: Base_2 (size: 4)
+[3]           Struct: ns_inheritance_multiple::Base_2 (size: 4)
                 Member: b (offset: 0)
                   Primitive: int32_t
             Parent (offset: 4)
-[4]           Struct: Base_3 (size: 4)
+[4]           Struct: ns_inheritance_multiple::Base_3 (size: 4)
                 Member: c (offset: 0)
                   Primitive: int32_t
             Member: d (offset: 8)
               Primitive: int32_t
         Parent (offset: 16)
-[5]       Struct: Base_4 (size: 4)
+[5]       Struct: ns_inheritance_multiple::Base_4 (size: 4)
             Member: e (offset: 0)
               Primitive: int32_t
         Member: f (offset: 20)
