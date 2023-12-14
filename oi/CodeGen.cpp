@@ -1157,9 +1157,9 @@ void CodeGen::transform(TypeGraph& typeGraph) {
 
   // Simplify the type graph first so there is less work for later passes
   pm.addPass(RemoveTopLevelPointer::createPass());
+  pm.addPass(IdentifyContainers::createPass(containerInfos_));
   pm.addPass(Flattener::createPass());
   pm.addPass(AlignmentCalc::createPass());
-  pm.addPass(IdentifyContainers::createPass(containerInfos_));
   pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
   if (config_.features[Feature::PruneTypeGraph])
     pm.addPass(Prune::createPass());
@@ -1173,9 +1173,9 @@ void CodeGen::transform(TypeGraph& typeGraph) {
     pm.addPass(AddChildren::createPass(drgnParser, symbols_));
 
     // Re-run passes over newly added children
+    pm.addPass(IdentifyContainers::createPass(containerInfos_));
     pm.addPass(Flattener::createPass());
     pm.addPass(AlignmentCalc::createPass());
-    pm.addPass(IdentifyContainers::createPass(containerInfos_));
     pm.addPass(TypeIdentifier::createPass(config_.passThroughTypes));
     if (config_.features[Feature::PruneTypeGraph])
       pm.addPass(Prune::createPass());

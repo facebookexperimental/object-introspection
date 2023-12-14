@@ -106,7 +106,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
                      Function: ~allocator
                      Function: allocate
                      Function: deallocate
-                 *
+*
              Function: ~B (virtual)
              Function: myfunc (virtual)
              Function: B
@@ -159,7 +159,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
                      Function: ~allocator
                      Function: allocate
                      Function: deallocate
-                 *
+*
              Function: operator=
              Function: B
              Function: B

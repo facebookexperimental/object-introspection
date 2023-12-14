@@ -27,6 +27,12 @@ TEST(IdentifyContainers, Container) {
 [1] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
+      Underlying
+[0]     Class: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Member: a (offset: 0)
+            Primitive: int32_t
 )");
 }
 
@@ -52,14 +58,26 @@ TEST(IdentifyContainers, ContainerInClass) {
 [4]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
+          Underlying
+[1]         Class: std::vector (size: 24)
+              Param
+                Primitive: int32_t
       Parent (offset: 0)
 [5]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
+          Underlying
+[2]         Class: std::vector (size: 24)
+              Param
+                Primitive: int32_t
       Member: a (offset: 0)
 [6]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
+          Underlying
+[3]         Class: std::vector (size: 24)
+              Param
+                Primitive: int32_t
 )");
 }
 
@@ -77,6 +95,14 @@ TEST(IdentifyContainers, ContainerInContainer) {
 [3]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
+          Underlying
+[1]         Class: std::vector (size: 24)
+              Param
+                Primitive: int32_t
+      Underlying
+[0]     Class: std::vector (size: 24)
+          Param
+            [1]
 )");
 }
 
@@ -94,6 +120,10 @@ TEST(IdentifyContainers, ContainerInContainer2) {
 [2]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
+          Underlying
+[1]         Class: std::vector (size: 24)
+              Param
+                Primitive: int32_t
 )");
 }
 
@@ -109,6 +139,10 @@ TEST(IdentifyContainers, ContainerInArray) {
 [2]   Container: std::vector (size: 24)
         Param
           Primitive: int32_t
+        Underlying
+[1]       Class: std::vector (size: 24)
+            Param
+              Primitive: int32_t
 )");
 }
 
@@ -124,6 +158,10 @@ TEST(IdentifyContainers, ContainerInTypedef) {
 [2]   Container: std::vector (size: 24)
         Param
           Primitive: int32_t
+        Underlying
+[1]       Class: std::vector (size: 24)
+            Param
+              Primitive: int32_t
 )");
 }
 
@@ -139,6 +177,10 @@ TEST(IdentifyContainers, ContainerInPointer) {
 [2]   Container: std::vector (size: 24)
         Param
           Primitive: int32_t
+        Underlying
+[1]       Class: std::vector (size: 24)
+            Param
+              Primitive: int32_t
 )");
 }
 
@@ -155,6 +197,12 @@ TEST(IdentifyContainers, ContainerDuplicate) {
 [1] Container: std::vector (size: 24)
       Param
         Primitive: int32_t
+      Underlying
+[0]     Class: std::vector (size: 24)
+          Param
+            Primitive: int32_t
+          Member: a (offset: 0)
+            Primitive: int32_t
     [1]
 )");
 }
@@ -190,5 +238,9 @@ TEST(IdentifyContainers, CycleContainer) {
 [2]     Container: std::vector (size: 0)
           Param
             [0]
+          Underlying
+[1]         Class: std::vector (size: 0)
+              Param
+                [0]
 )");
 }

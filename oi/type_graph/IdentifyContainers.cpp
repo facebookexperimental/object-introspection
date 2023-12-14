@@ -57,16 +57,28 @@ Type& IdentifyContainers::visit(Class& c) {
       continue;
     }
 
-    auto& container = typeGraph_.makeType<Container>(*containerInfo, c.size());
+    auto& container =
+        typeGraph_.makeType<Container>(*containerInfo, c.size(), &c);
     container.templateParams = c.templateParams;
 
     tracker_.set(c, &container);
-    RecursiveMutator::visit(container);
+    visit(container);
     return container;
   }
 
   tracker_.set(c, &c);
   RecursiveMutator::visit(c);
+  return c;
+}
+
+Type& IdentifyContainers::visit(Container& c) {
+  for (auto& param : c.templateParams) {
+    param.setType(mutate(param.type()));
+  }
+
+  // Do not mutate the underlying class further here as that would result in it
+  // getting replaced with this Container node
+
   return c;
 }
 

@@ -43,6 +43,7 @@ class Prune : public RecursiveVisitor {
 
   void accept(Type& type) override;
   void visit(Class& c) override;
+  void visit(Container& c) override;
 
  private:
   NodeTracker& tracker_;

@@ -79,7 +79,8 @@ void TypeIdentifier::visit(Container& c) {
               it != passThroughTypeDummys_.end()) {
             dummy = &it->second.get();
           } else {
-            dummy = &typeGraph_.makeType<Container>(info, param.type().size());
+            dummy = &typeGraph_.makeType<Container>(
+                info, param.type().size(), paramClass);
             dummy->templateParams = paramClass->templateParams;
             passThroughTypeDummys_.insert(it,
                                           {paramClass->id(), std::ref(*dummy)});

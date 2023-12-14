@@ -42,7 +42,6 @@ class Flattener : public RecursiveVisitor {
 
   void accept(Type& type) override;
   void visit(Class& c) override;
-  void visit(Container& c) override;
 
   static const inline std::string ParentPrefix = "__oi_parent";
 

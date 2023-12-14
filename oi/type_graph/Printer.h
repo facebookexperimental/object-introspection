@@ -51,7 +51,7 @@ class Printer : public ConstVisitor {
   void print_parent(const Parent& parent);
   void print_member(const Member& member);
   void print_function(const Function& function);
-  void print_child(const Type& child);
+  void print_type(std::string_view header, const Type& type);
   void print_value(const std::string& value);
   void print_qualifiers(const QualifierSet& qualifiers);
   void print_enumerator(int64_t val, const std::string& name);

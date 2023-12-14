@@ -63,3 +63,33 @@ TEST(PruneTest, RecurseClassChild) {
 [1]     Class: ClassA (size: 12)
 )");
 }
+
+TEST(PruneTest, PruneContainer) {
+  test(Prune::createPass(),
+       R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+        Value: "123"
+        Primitive: int32_t
+      Underlying
+[1]     Class: vector<int32_t> (size: 24)
+          Parent (offset: 0)
+[2]         Class: MyParent (size: 4)
+              Member: a (offset: 0)
+                Primitive: int32_t
+          Member: a (offset: 0)
+            Primitive: int32_t
+          Member: b (offset: 4)
+            Primitive: int32_t
+)",
+       R"(
+[0] Container: std::vector (size: 24)
+      Param
+        Primitive: int32_t
+      Param
+        Value: "123"
+        Primitive: int32_t
+)");
+}

@@ -265,10 +265,11 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
 
     auto size = parseNumericAttribute(line, nodeTypeName, "size: ");
 
-    Container& c = typeGraph_.makeType<Container>(id, info, size);
+    Container& c = typeGraph_.makeType<Container>(id, info, size, nullptr);
     nodesById_.insert({id, c});
 
     parseParams(c, input, indent + 2);
+    parseUnderlying(c, input, indent + 2);
 
     type = &c;
   } else if (nodeTypeName == "Primitive") {
@@ -451,4 +452,27 @@ void TypeGraphParser::parseChildren(Class& c,
   }
   // No more children for us - put back the line we just read
   input = origInput;
+}
+
+void TypeGraphParser::parseUnderlying(Container& c,
+                                      std::string_view& input,
+                                      size_t rootIndent) {
+  std::string_view origInput = input;
+  std::string_view line;
+  getline(input, line);
+
+  size_t indent = stripIndent(line);
+  if (indent != rootIndent) {
+    input = origInput;
+    return;
+  }
+
+  // Format: "Underlying"
+  if (!tryRemovePrefix(line, "Underlying")) {
+    input = origInput;
+    return;
+  }
+
+  Type& type = parseType(input, rootIndent + 2);
+  c.setUnderlying(&type);
 }

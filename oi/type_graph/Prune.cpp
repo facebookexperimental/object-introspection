@@ -39,18 +39,7 @@ void Prune::accept(Type& type) {
 }
 
 void Prune::visit(Class& c) {
-  for (const auto& param : c.templateParams) {
-    accept(param.type());
-  }
-  for (const auto& parent : c.parents) {
-    accept(parent.type());
-  }
-  for (const auto& member : c.members) {
-    accept(member.type());
-  }
-  for (const auto& child : c.children) {
-    accept(child);
-  }
+  RecursiveVisitor::visit(c);
 
   c.templateParams.clear();
   c.parents.clear();
@@ -60,6 +49,12 @@ void Prune::visit(Class& c) {
   c.templateParams.shrink_to_fit();
   c.parents.shrink_to_fit();
   c.functions.shrink_to_fit();
+}
+
+void Prune::visit(Container& c) {
+  RecursiveVisitor::visit(c);
+
+  c.setUnderlying(nullptr);
 }
 
 }  // namespace oi::detail::type_graph

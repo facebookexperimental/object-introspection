@@ -34,6 +34,9 @@ class TypeGraphParser {
   void parseMembers(Class& c, std::string_view& input, size_t rootIndent);
   void parseFunctions(Class& c, std::string_view& input, size_t rootIndent);
   void parseChildren(Class& c, std::string_view& input, size_t rootIndent);
+  void parseUnderlying(Container& c,
+                       std::string_view& input,
+                       size_t rootIndent);
 };
 
 class TypeGraphParserError : public std::runtime_error {

@@ -81,7 +81,7 @@ class DrgnParser {
   template <typename T, typename... Args>
   T& makeType(struct drgn_type* drgnType, Args&&... args) {
     auto& newType = typeGraph_.makeType<T>(std::forward<Args>(args)...);
-    drgn_types_.insert({drgnType, newType});
+    drgn_types_.insert_or_assign(drgnType, newType);
     return newType;
   }
   bool chasePointer() const;
