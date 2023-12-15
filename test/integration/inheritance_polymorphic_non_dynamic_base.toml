@@ -44,6 +44,13 @@ definitions = '''
       "members":[
         {"name":"int_a", "staticSize":4, "dynamicSize":0}
       ]}]'''
+    expect_json_v2 = '''[{
+      "typeNames":["ns_inheritance_polymorphic_non_dynamic_base::A"],
+      "staticSize":4,
+      "dynamicSize":0,
+      "members":[
+        {"name":"int_a", "staticSize":4, "dynamicSize":0}
+      ]}]'''
 
   [cases.b_as_a]
     oil_skip = "Polymorphic inheritance disabled in OIL"
