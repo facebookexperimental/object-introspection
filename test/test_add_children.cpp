@@ -39,7 +39,7 @@ TEST_F(AddChildrenTest, SimpleStruct) {
   // Should do nothing
   test("oid_test_case_simple_struct", R"(
 [1] Pointer
-[0]   Struct: SimpleStruct (size: 16)
+[0]   Struct: SimpleStruct [ns_simple::SimpleStruct] (size: 16)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 4)
@@ -53,9 +53,9 @@ TEST_F(AddChildrenTest, InheritanceStatic) {
   // Should do nothing
   test("oid_test_case_inheritance_access_public", R"(
 [4] Pointer
-[0]   Class: Public (size: 8)
+[0]   Class: Public [ns_inheritance_access::Public] (size: 8)
         Parent (offset: 0)
-[1]       Class: Base (size: 4)
+[1]       Class: Base [ns_inheritance_access::Base] (size: 4)
             Member: base_int (offset: 0)
 [3]           Typedef: int32_t
 [2]             Typedef: __int32_t
@@ -69,7 +69,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
   testMultiCompilerGlob("oid_test_case_inheritance_polymorphic_a_as_a",
                         R"(
 [1]  Pointer
-[0]    Class: A (size: 16)
+[0]    Class: A [ns_inheritance_polymorphic::A] (size: 16)
          Member: _vptr$A (offset: 0)
            Primitive: StubbedPointer
          Member: int_a (offset: 8)
@@ -79,20 +79,20 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
          Function: A
          Function: A
          Child
-[17]       Class: B (size: 40)
+[17]       Class: B [ns_inheritance_polymorphic::B] (size: 40)
              Parent (offset: 0)
                [0]
              Member: vec_b (offset: 16)
-[4]            Class: vector<int, std::allocator<int> > (size: 24)
+[4]            Class: vector<int, std::allocator<int> > [std::vector<int, std::allocator<int> >] (size: 24)
                  Param
                    Primitive: int32_t
                  Param
-[5]                Class: allocator<int> (size: 1)
+[5]                Class: allocator<int> [std::allocator<int>] (size: 1)
                      Param
                        Primitive: int32_t
                      Parent (offset: 0)
 [7]                    Typedef: __allocator_base<int>
-[6]                      Class: new_allocator<int> (size: 1)
+[6]                      Class: new_allocator<int> [__gnu_cxx::new_allocator<int>] (size: 1)
                            Param
                              Primitive: int32_t
                            Function: new_allocator
@@ -112,7 +112,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
              Function: B
              Function: B
              Child
-[19]           Class: C (size: 48)
+[19]           Class: C [ns_inheritance_polymorphic::C] (size: 48)
                  Parent (offset: 0)
                    [17]
                  Member: int_c (offset: 40)
@@ -124,7 +124,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
 )",
                         R"(
 [1]  Pointer
-[0]    Class: A (size: 16)
+[0]    Class: A [ns_inheritance_polymorphic::A] (size: 16)
          Member: _vptr.A (offset: 0)
            Primitive: StubbedPointer
          Member: int_a (offset: 8)
@@ -135,17 +135,17 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
          Function: ~A (virtual)
          Function: myfunc (virtual)
          Child
-[13]       Class: B (size: 40)
+[13]       Class: B [ns_inheritance_polymorphic::B] (size: 40)
              Parent (offset: 0)
                [0]
              Member: vec_b (offset: 16)
-[4]            Class: vector<int, std::allocator<int> > (size: 24)
+[4]            Class: vector<int, std::allocator<int> > [std::vector<<int, std::allocator<int> >] (size: 24)
                  Param
                    Primitive: int32_t
                  Param
-[5]                Class: allocator<int> (size: 1)
+[5]                Class: allocator<int> [std::allocator<int>] (size: 1)
                      Parent (offset: 0)
-[6]                    Class: new_allocator<int> (size: 1)
+[6]                    Class: new_allocator<int> [__gnu_cxx::new_allocator<int>] (size: 1)
                          Param
                            Primitive: int32_t
                          Function: new_allocator
@@ -166,7 +166,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
              Function: ~B (virtual)
              Function: myfunc (virtual)
              Child
-[15]           Class: C (size: 48)
+[15]           Class: C [ns_inheritance_polymorphic::C] (size: 48)
                  Parent (offset: 0)
                    [13]
                  Member: int_c (offset: 40)

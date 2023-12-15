@@ -273,12 +273,11 @@ class Class : public Type {
   Class(NodeId id,
         Kind kind,
         std::string name,
-        std::string fqName,
+        std::string inputName,
         size_t size,
         int virtuality = 0)
       : name_(name),
-        inputName_(std::move(name)),
-        fqName_(std::move(fqName)),
+        inputName_(std::move(inputName)),
         size_(size),
         kind_(kind),
         virtuality_(virtuality),
@@ -346,7 +345,7 @@ class Class : public Type {
   }
 
   const std::string& fqName() const {
-    return fqName_;
+    return inputName_;
   }
 
   bool isDynamic() const;
@@ -361,7 +360,6 @@ class Class : public Type {
  private:
   std::string name_;
   std::string inputName_;
-  std::string fqName_;
   size_t size_;
   uint64_t align_ = 0;
   Kind kind_;

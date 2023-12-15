@@ -50,7 +50,7 @@ definitions = '''
         "elementStaticSize":4
     }]}]'''
     expect_json_v2 = '''[{
-      "typeName":"TemplatedClass1<std::vector<int, std::allocator<int> > >",
+      "typeName":"ns_templates::TemplatedClass1<std::vector<int, std::allocator<int> > >",
       "staticSize":24,
       "exclusiveSize":0,
       "members":[{
@@ -87,7 +87,7 @@ definitions = '''
         "elementStaticSize":4
     }]}]'''
     expect_json_v2 = '''[{
-      "typeName":"TemplatedClassVal<3>",
+      "typeName":"ns_templates::TemplatedClassVal<3>",
       "staticSize":12,
       "exclusiveSize":0,
       "members":[{

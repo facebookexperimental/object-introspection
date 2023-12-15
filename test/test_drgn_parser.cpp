@@ -172,7 +172,7 @@ void DrgnParserTest::testMultiCompilerGlob(
 TEST_F(DrgnParserTest, SimpleStruct) {
   test("oid_test_case_simple_struct", R"(
 [1] Pointer
-[0]   Struct: SimpleStruct (size: 16)
+[0]   Struct: SimpleStruct [ns_simple::SimpleStruct] (size: 16)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 4)
@@ -185,7 +185,7 @@ TEST_F(DrgnParserTest, SimpleStruct) {
 TEST_F(DrgnParserTest, SimpleClass) {
   test("oid_test_case_simple_class", R"(
 [1] Pointer
-[0]   Class: SimpleClass (size: 16)
+[0]   Class: SimpleClass [ns_simple::SimpleClass] (size: 16)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 4)
@@ -198,7 +198,7 @@ TEST_F(DrgnParserTest, SimpleClass) {
 TEST_F(DrgnParserTest, SimpleUnion) {
   test("oid_test_case_simple_union", R"(
 [1] Pointer
-[0]   Union: SimpleUnion (size: 8)
+[0]   Union: SimpleUnion [ns_simple::SimpleUnion] (size: 8)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 0)
@@ -211,9 +211,9 @@ TEST_F(DrgnParserTest, SimpleUnion) {
 TEST_F(DrgnParserTest, Inheritance) {
   test("oid_test_case_inheritance_access_public", R"(
 [4] Pointer
-[0]   Class: Public (size: 8)
+[0]   Class: Public [ns_inheritance_access::Public] (size: 8)
         Parent (offset: 0)
-[1]       Class: Base (size: 4)
+[1]       Class: Base [ns_inheritance_access::Base] (size: 4)
             Member: base_int (offset: 0)
 [3]           Typedef: int32_t
 [2]             Typedef: __int32_t
@@ -226,25 +226,25 @@ TEST_F(DrgnParserTest, Inheritance) {
 TEST_F(DrgnParserTest, InheritanceMultiple) {
   test("oid_test_case_inheritance_multiple_a", R"(
 [6] Pointer
-[0]   Struct: Derived_2 (size: 24)
+[0]   Struct: Derived_2 [ns_inheritance_multiple::Derived_2] (size: 24)
         Parent (offset: 0)
-[1]       Struct: Base_1 (size: 4)
+[1]       Struct: Base_1 [ns_inheritance_multiple::Base_1] (size: 4)
             Member: a (offset: 0)
               Primitive: int32_t
         Parent (offset: 4)
-[2]       Struct: Derived_1 (size: 12)
+[2]       Struct: Derived_1 [ns_inheritance_multiple::Derived_1] (size: 12)
             Parent (offset: 0)
-[3]           Struct: Base_2 (size: 4)
+[3]           Struct: Base_2 [ns_inheritance_multiple::Base_2] (size: 4)
                 Member: b (offset: 0)
                   Primitive: int32_t
             Parent (offset: 4)
-[4]           Struct: Base_3 (size: 4)
+[4]           Struct: Base_3 [ns_inheritance_multiple::Base_3] (size: 4)
                 Member: c (offset: 0)
                   Primitive: int32_t
             Member: d (offset: 8)
               Primitive: int32_t
         Parent (offset: 16)
-[5]       Struct: Base_4 (size: 4)
+[5]       Struct: Base_4 [ns_inheritance_multiple::Base_4] (size: 4)
             Member: e (offset: 0)
               Primitive: int32_t
         Member: f (offset: 20)
@@ -256,16 +256,16 @@ TEST_F(DrgnParserTest, Container) {
   testMultiCompilerGlob("oid_test_case_std_vector_int_empty",
                         R"(
 [13] Pointer
-[0]    Class: vector<int, std::allocator<int> > (size: 24)
+[0]    Class: vector<int, std::allocator<int> > [std::vector<int, std::allocator<int> >] (size: 24)
          Param
            Primitive: int32_t
          Param
-[1]        Class: allocator<int> (size: 1)
+[1]        Class: allocator<int> [std::allocator<int>] (size: 1)
              Param
                Primitive: int32_t
              Parent (offset: 0)
 [3]            Typedef: __allocator_base<int>
-[2]              Class: new_allocator<int> (size: 1)
+[2]              Class: new_allocator<int> [__gnu_cxx::new_allocator<int>] (size: 1)
                    Param
                      Primitive: int32_t
                    Function: new_allocator
@@ -284,13 +284,13 @@ TEST_F(DrgnParserTest, Container) {
 )",
                         R"(
 [9]  Pointer
-[0]    Class: vector<int, std::allocator<int> > (size: 24)
+[0]    Class: vector<int, std::allocator<int> > [std::vector<int, std::allocator<int> >] (size: 24)
          Param
            Primitive: int32_t
          Param
-[1]        Class: allocator<int> (size: 1)
+[1]        Class: allocator<int> [std::allocator<int>] (size: 1)
              Parent (offset: 0)
-[2]            Class: new_allocator<int> (size: 1)
+[2]            Class: new_allocator<int> [__gnu_cxx::new_allocator<int>] (size: 1)
                  Param
                    Primitive: int32_t
                  Function: new_allocator
@@ -369,7 +369,7 @@ TEST_F(DrgnParserTest, Using) {
 TEST_F(DrgnParserTest, ArrayMember) {
   test("oid_test_case_arrays_member_int10", R"(
 [2] Pointer
-[0]   Struct: Foo10 (size: 40)
+[0]   Struct: Foo10 [ns_arrays::Foo10] (size: 40)
         Member: arr (offset: 0)
 [1]       Array: (length: 10)
             Primitive: int32_t
@@ -394,7 +394,7 @@ TEST_F(DrgnParserTest, ArrayDirect) {
 TEST_F(DrgnParserTest, Pointer) {
   test("oid_test_case_pointers_struct_primitive_ptrs", R"(
 [3] Pointer
-[0]   Struct: PrimitivePtrs (size: 24)
+[0]   Struct: PrimitivePtrs [ns_pointers::PrimitivePtrs] (size: 24)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 8)
@@ -413,7 +413,7 @@ TEST_F(DrgnParserTest, PointerNoFollow) {
   test("oid_test_case_pointers_struct_primitive_ptrs",
        R"(
 [1] Pointer
-[0]   Struct: PrimitivePtrs (size: 24)
+[0]   Struct: PrimitivePtrs [ns_pointers::PrimitivePtrs] (size: 24)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 8)
@@ -434,7 +434,7 @@ TEST_F(DrgnParserTest, PointerIncomplete) {
 TEST_F(DrgnParserTest, Cycle) {
   test("oid_test_case_cycles_raw_ptr", R"(
 [2] Pointer
-[0]   Struct: RawNode (size: 16)
+[0]   Struct: RawNode [ns_cycles::RawNode] (size: 16)
         Member: value (offset: 0)
           Primitive: int32_t
         Member: next (offset: 8)
@@ -446,7 +446,7 @@ TEST_F(DrgnParserTest, Cycle) {
 TEST_F(DrgnParserTest, ClassTemplateInt) {
   test("oid_test_case_templates_int", R"(
 [1] Pointer
-[0]   Class: TemplatedClass1<int> (size: 4)
+[0]   Class: TemplatedClass1<int> [ns_templates::TemplatedClass1<int>] (size: 4)
         Param
           Primitive: int32_t
         Member: val (offset: 0)
@@ -457,9 +457,9 @@ TEST_F(DrgnParserTest, ClassTemplateInt) {
 TEST_F(DrgnParserTest, ClassTemplateTwo) {
   test("oid_test_case_templates_two", R"(
 [3] Pointer
-[0]   Class: TemplatedClass2<ns_templates::Foo, int> (size: 12)
+[0]   Class: TemplatedClass2<ns_templates::Foo, int> [ns_templates::TemplatedClass2<ns_templates::Foo, int>] (size: 12)
         Param
-[1]       Struct: Foo (size: 8)
+[1]       Struct: Foo [ns_templates::Foo] (size: 8)
             Member: a (offset: 0)
               Primitive: int32_t
             Member: b (offset: 4)
@@ -467,7 +467,7 @@ TEST_F(DrgnParserTest, ClassTemplateTwo) {
         Param
           Primitive: int32_t
         Member: tc1 (offset: 0)
-[2]       Class: TemplatedClass1<ns_templates::Foo> (size: 8)
+[2]       Class: TemplatedClass1<ns_templates::Foo> [ns_templates::TemplatedClass1<ns_templates::Foo>] (size: 8)
             Param
               [1]
             Member: val (offset: 0)
@@ -480,7 +480,7 @@ TEST_F(DrgnParserTest, ClassTemplateTwo) {
 TEST_F(DrgnParserTest, ClassTemplateValue) {
   test("oid_test_case_templates_value", R"(
 [2] Pointer
-[0]   Struct: TemplatedClassVal<3> (size: 12)
+[0]   Struct: TemplatedClassVal<3> [ns_templates::TemplatedClassVal<3>] (size: 12)
         Param
           Value: 3
           Primitive: int32_t
@@ -494,7 +494,7 @@ TEST_F(DrgnParserTest, TemplateEnumValue) {
   testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val",
                         R"(
 [1] Pointer
-[0]   Class: MyClass<ns_enums_params::MyNS::ScopedEnum::One> (size: 4)
+[0]   Class: MyClass<ns_enums_params::MyNS::ScopedEnum::One> [ns_enums_params::MyClass<ns_enums_params::MyNS::ScopedEnum::One>] (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
           Enum: ScopedEnum (size: 4)
@@ -502,7 +502,7 @@ TEST_F(DrgnParserTest, TemplateEnumValue) {
 )",
                         R"(
 [1] Pointer
-[0]   Class: MyClass<(ns_enums_params::MyNS::ScopedEnum)1> (size: 4)
+[0]   Class: MyClass<(ns_enums_params::MyNS::ScopedEnum)1> [ns_enums_params::MyClass<(ns_enums_params::MyNS::ScopedEnum)1>] (size: 4)
         Param
           Value: ns_enums_params::MyNS::ScopedEnum::One
           Enum: ScopedEnum (size: 4)
@@ -514,7 +514,7 @@ TEST_F(DrgnParserTest, TemplateEnumValueGaps) {
   testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val_gaps",
                         R"(
 [1] Pointer
-[0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty> (size: 4)
+[0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty> [ns_enums_params::ClassGaps<ns_enums_params::MyNS::EnumWithGaps::Twenty>] (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
           Enum: EnumWithGaps (size: 4)
@@ -522,7 +522,7 @@ TEST_F(DrgnParserTest, TemplateEnumValueGaps) {
 )",
                         R"(
 [1] Pointer
-[0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)20> (size: 4)
+[0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)20> [ns_enums_params::ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)20>] (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::Twenty
           Enum: EnumWithGaps (size: 4)
@@ -534,7 +534,7 @@ TEST_F(DrgnParserTest, TemplateEnumValueNegative) {
   testMultiCompilerGlob("oid_test_case_enums_params_scoped_enum_val_negative",
                         R"(
 [1] Pointer
-[0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo> (size: 4)
+[0]   Class: ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo> [ns_enums_params::ClassGaps<ns_enums_params::MyNS::EnumWithGaps::MinusTwo>] (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
           Enum: EnumWithGaps (size: 4)
@@ -542,7 +542,7 @@ TEST_F(DrgnParserTest, TemplateEnumValueNegative) {
 )",
                         R"(
 [1] Pointer
-[0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2> (size: 4)
+[0]   Class: ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2> [ns_enums_params::ClassGaps<(ns_enums_params::MyNS::EnumWithGaps)-2>] (size: 4)
         Param
           Value: ns_enums_params::MyNS::EnumWithGaps::MinusTwo
           Enum: EnumWithGaps (size: 4)
@@ -566,7 +566,7 @@ TEST_F(DrgnParserTest, StructAlignment) {
   GTEST_SKIP() << "Alignment not reported by drgn yet";
   test("oid_test_case_alignment_struct", R"(
 [1] Pointer
-[0]   Struct: Align16 (size: 16, align: 16)
+[0]   Struct: Align16 [ns_alignment::Align16] (size: 16, align: 16)
         Member: c (offset: 0)
           Primitive: int8_t
 )");
@@ -576,7 +576,7 @@ TEST_F(DrgnParserTest, MemberAlignment) {
   GTEST_SKIP() << "Alignment not reported by drgn yet";
   test("oid_test_case_alignment_member_alignment", R"(
 [1] Pointer
-[0]   Struct: MemberAlignment (size: 64)
+[0]   Struct: MemberAlignment [ns_alignment::MemberAlignment] (size: 64)
         Member: c (offset: 0)
           Primitive: int8_t
         Member: c32 (offset: 32, align: 32)
@@ -588,7 +588,7 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
   testMultiCompiler("oid_test_case_inheritance_polymorphic_a_as_a",
                     R"(
 [1] Pointer
-[0]   Class: A (size: 16)
+[0]   Class: A [ns_inheritance_polymorphic::A] (size: 16)
         Member: _vptr$A (offset: 0)
           Primitive: StubbedPointer
         Member: int_a (offset: 8)
@@ -600,7 +600,7 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
 )",
                     R"(
 [1] Pointer
-[0]   Class: A (size: 16)
+[0]   Class: A [ns_inheritance_polymorphic::A] (size: 16)
         Member: _vptr.A (offset: 0)
           Primitive: StubbedPointer
         Member: int_a (offset: 8)
@@ -616,7 +616,7 @@ TEST_F(DrgnParserTest, VirtualFunctions) {
 TEST_F(DrgnParserTest, BitfieldsSingle) {
   test("oid_test_case_bitfields_single", R"(
 [1] Pointer
-[0]   Struct: Single (size: 4)
+[0]   Struct: Single [ns_bitfields::Single] (size: 4)
         Member: bitfield (offset: 0, bitsize: 3)
           Primitive: int32_t
 )");
@@ -625,7 +625,7 @@ TEST_F(DrgnParserTest, BitfieldsSingle) {
 TEST_F(DrgnParserTest, BitfieldsWithinBytes) {
   test("oid_test_case_bitfields_within_bytes", R"(
 [1] Pointer
-[0]   Struct: WithinBytes (size: 2)
+[0]   Struct: WithinBytes [ns_bitfields::WithinBytes] (size: 2)
         Member: a (offset: 0, bitsize: 3)
           Primitive: int8_t
         Member: b (offset: 0.375, bitsize: 5)
@@ -638,7 +638,7 @@ TEST_F(DrgnParserTest, BitfieldsWithinBytes) {
 TEST_F(DrgnParserTest, BitfieldsStraddleBytes) {
   test("oid_test_case_bitfields_straddle_bytes", R"(
 [1] Pointer
-[0]   Struct: StraddleBytes (size: 3)
+[0]   Struct: StraddleBytes [ns_bitfields::StraddleBytes] (size: 3)
         Member: a (offset: 0, bitsize: 7)
           Primitive: int8_t
         Member: b (offset: 1, bitsize: 7)
@@ -651,7 +651,7 @@ TEST_F(DrgnParserTest, BitfieldsStraddleBytes) {
 TEST_F(DrgnParserTest, BitfieldsMixed) {
   test("oid_test_case_bitfields_mixed", R"(
 [1] Pointer
-[0]   Struct: Mixed (size: 12)
+[0]   Struct: Mixed [ns_bitfields::Mixed] (size: 12)
         Member: a (offset: 0)
           Primitive: int32_t
         Member: b (offset: 4, bitsize: 4)
@@ -669,7 +669,7 @@ TEST_F(DrgnParserTest, BitfieldsMoreBitsThanType) {
   GTEST_SKIP() << "drgn errors out";
   test("oid_test_case_bitfields_more_bits_than_type", R"(
 [1] Pointer
-[0]   Struct: MoreBitsThanType (size: 4)
+[0]   Struct: MoreBitsThanType [ns_bitfields::MoreBitsThanType] (size: 4)
         Member: a (offset: 0, bitsize: 8)
           Primitive: int8_t
 )");
@@ -678,7 +678,7 @@ TEST_F(DrgnParserTest, BitfieldsMoreBitsThanType) {
 TEST_F(DrgnParserTest, BitfieldsZeroBits) {
   test("oid_test_case_bitfields_zero_bits", R"(
 [1] Pointer
-[0]   Struct: ZeroBits (size: 2)
+[0]   Struct: ZeroBits [ns_bitfields::ZeroBits] (size: 2)
         Member: b1 (offset: 0, bitsize: 3)
           Primitive: int8_t
         Member: b2 (offset: 1, bitsize: 2)
@@ -689,7 +689,7 @@ TEST_F(DrgnParserTest, BitfieldsZeroBits) {
 TEST_F(DrgnParserTest, BitfieldsEnum) {
   test("oid_test_case_bitfields_enum", R"(
 [1] Pointer
-[0]   Struct: Enum (size: 4)
+[0]   Struct: Enum [ns_bitfields::Enum] (size: 4)
         Member: e (offset: 0, bitsize: 2)
           Enum: MyEnum (size: 4)
             Enumerator: 0:One
