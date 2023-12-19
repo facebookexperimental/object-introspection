@@ -36,6 +36,7 @@ class RemoveTopLevelPointer : public LazyVisitor {
 
   void removeTopLevelPointers(std::vector<std::reference_wrapper<Type>>& types);
   void visit(Pointer& p) override;
+  void visit(Reference& r) override;
 
  private:
   Type* topLevelType_ = nullptr;

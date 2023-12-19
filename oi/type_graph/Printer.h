@@ -40,6 +40,7 @@ class Printer : public ConstVisitor {
   void visit(const Array& a) override;
   void visit(const Typedef& td) override;
   void visit(const Pointer& p) override;
+  void visit(const Reference& r) override;
   void visit(const Dummy& d) override;
   void visit(const DummyAllocator& d) override;
   void visit(const CaptureKeys& d) override;

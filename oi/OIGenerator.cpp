@@ -16,130 +16,149 @@
 
 #include "oi/OIGenerator.h"
 
+#include <clang/AST/Mangle.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/CompilerInvocation.h>
+#include <clang/Frontend/FrontendAction.h>
+#include <clang/Sema/Sema.h>
+#include <clang/Tooling/Tooling.h>
 #include <glog/logging.h>
 
-#include <boost/core/demangle.hpp>
 #include <fstream>
-#include <iostream>
-#include <string_view>
+#include <range/v3/core.hpp>
+#include <range/v3/view/drop.hpp>
+#include <range/v3/view/filter.hpp>
+#include <range/v3/view/for_each.hpp>
+#include <range/v3/view/take.hpp>
+#include <range/v3/view/transform.hpp>
+#include <stdexcept>
 #include <unordered_map>
 #include <variant>
 
 #include "oi/CodeGen.h"
 #include "oi/Config.h"
-#include "oi/DrgnUtils.h"
 #include "oi/Headers.h"
+#include "oi/type_graph/ClangTypeParser.h"
+#include "oi/type_graph/TypeGraph.h"
+#include "oi/type_graph/Types.h"
 
 namespace oi::detail {
+namespace {
 
-std::unordered_map<std::string, std::string>
-OIGenerator::oilStrongToWeakSymbolsMap(drgnplusplus::program& prog) {
-  static constexpr std::string_view strongSymbolPrefix =
-      "oi::IntrospectionResult oi::introspect<";
-  static constexpr std::string_view weakSymbolPrefix =
-      "oi::IntrospectionResult oi::introspectImpl<";
+class ConsumerContext;
 
-  std::unordered_map<std::string, std::pair<std::string, std::string>>
-      templateArgsToSymbolsMap;
-
-  auto symbols = prog.find_all_symbols();
-  for (drgn_symbol* sym : *symbols) {
-    auto symName = drgnplusplus::symbol::name(sym);
-    if (symName == nullptr || *symName == '\0')
-      continue;
-    auto demangled = boost::core::demangle(symName);
-
-    if (demangled.starts_with(strongSymbolPrefix)) {
-      auto& matchedSyms = templateArgsToSymbolsMap[demangled.substr(
-          strongSymbolPrefix.length())];
-      if (!matchedSyms.first.empty()) {
-        LOG(WARNING) << "non-unique symbols found: `" << matchedSyms.first
-                     << "` and `" << symName << '`';
-      }
-      matchedSyms.first = symName;
-    } else if (demangled.starts_with(weakSymbolPrefix)) {
-      auto& matchedSyms =
-          templateArgsToSymbolsMap[demangled.substr(weakSymbolPrefix.length())];
-      if (!matchedSyms.second.empty()) {
-        LOG(WARNING) << "non-unique symbols found: `" << matchedSyms.second
-                     << "` and `" << symName << "`";
-      }
-      matchedSyms.second = symName;
-    }
+class CreateTypeGraphConsumer;
+class CreateTypeGraphAction : public clang::ASTFrontendAction {
+ public:
+  CreateTypeGraphAction(ConsumerContext& ctx_) : ctx{ctx_} {
   }
 
-  std::unordered_map<std::string, std::string> strongToWeakSymbols;
-  for (auto& [_, val] : templateArgsToSymbolsMap) {
-    if (val.first.empty() || val.second.empty()) {
-      continue;
-    }
-    strongToWeakSymbols[std::move(val.first)] = std::move(val.second);
+  void ExecuteAction() override;
+  std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(
+      clang::CompilerInstance& CI, clang::StringRef file) override;
+
+ private:
+  ConsumerContext& ctx;
+};
+
+class CreateTypeGraphActionFactory
+    : public clang::tooling::FrontendActionFactory {
+ public:
+  CreateTypeGraphActionFactory(ConsumerContext& ctx_) : ctx{ctx_} {
   }
 
-  return strongToWeakSymbols;
-}
+  std::unique_ptr<clang::FrontendAction> create() override {
+    return std::make_unique<CreateTypeGraphAction>(ctx);
+  }
 
-std::unordered_map<std::string, drgn_qualified_type>
-OIGenerator::findOilTypesAndNames(drgnplusplus::program& prog) {
-  auto strongToWeakSymbols = oilStrongToWeakSymbolsMap(prog);
+ private:
+  ConsumerContext& ctx;
+};
 
-  std::unordered_map<std::string, drgn_qualified_type> out;
+class ConsumerContext {
+ public:
+  ConsumerContext(const std::vector<std::unique_ptr<ContainerInfo>>& cis)
+      : containerInfos{cis} {
+  }
 
-  for (drgn_qualified_type& func : drgnplusplus::func_iterator(prog)) {
-    std::string strongLinkageName;
-    {
-      const char* linkageNameCstr;
-      if (auto err = drgnplusplus::error(
-              drgn_type_linkage_name(func.type, &linkageNameCstr))) {
-        // throw err;
+  type_graph::TypeGraph typeGraph;
+  std::unordered_map<std::string, type_graph::Type*> nameToTypeMap;
+  std::optional<bool> pic;
+  const std::vector<std::unique_ptr<ContainerInfo>>& containerInfos;
+
+ private:
+  clang::Sema* sema = nullptr;
+  friend CreateTypeGraphConsumer;
+  friend CreateTypeGraphAction;
+};
+
+}  // namespace
+
+int OIGenerator::generate(clang::tooling::CompilationDatabase& db,
+                          const std::vector<std::string>& sourcePaths) {
+  std::map<Feature, bool> featuresMap = {
+      {Feature::TypeGraph, true},
+      {Feature::TreeBuilderV2, true},
+      {Feature::Library, true},
+      {Feature::PackStructs, true},
+      {Feature::PruneTypeGraph, true},
+  };
+
+  OICodeGen::Config generatorConfig{};
+  OICompiler::Config compilerConfig{};
+
+  auto features = config::processConfigFiles(
+      configFilePaths, featuresMap, compilerConfig, generatorConfig);
+  if (!features) {
+    LOG(ERROR) << "failed to process config file";
+    return -1;
+  }
+  generatorConfig.features = *features;
+  compilerConfig.features = *features;
+
+  std::vector<std::unique_ptr<ContainerInfo>> containerInfos;
+  containerInfos.reserve(generatorConfig.containerConfigPaths.size());
+  try {
+    for (const auto& path : generatorConfig.containerConfigPaths) {
+      auto info = std::make_unique<ContainerInfo>(path);
+      if (info->requiredFeatures != (*features & info->requiredFeatures)) {
+        VLOG(1) << "Skipping container (feature conflict): " << info->typeName;
         continue;
       }
-      strongLinkageName = linkageNameCstr;
+      containerInfos.emplace_back(std::move(info));
     }
-
-    std::string weakLinkageName;
-    if (auto search = strongToWeakSymbols.find(strongLinkageName);
-        search != strongToWeakSymbols.end()) {
-      weakLinkageName = search->second;
-    } else {
-      continue;  // not an oil strong symbol
-    }
-
-    // IntrospectionResult (*)(const T&)
-    CHECK(drgn_type_has_parameters(func.type)) << "functions have parameters";
-    CHECK(drgn_type_num_parameters(func.type) == 1)
-        << "introspection func has one parameter";
-
-    auto* params = drgn_type_parameters(func.type);
-    drgn_qualified_type tType;
-    if (auto err =
-            drgnplusplus::error(drgn_parameter_type(&params[0], &tType))) {
-      throw err;
-    }
-
-    if (drgn_type_has_name(tType.type)) {
-      LOG(INFO) << "found OIL type: " << drgn_type_name(tType.type);
-    } else {
-      LOG(INFO) << "found OIL type: (no name)";
-    }
-    out.emplace(std::move(weakLinkageName), tType);
+  } catch (const ContainerInfoError& err) {
+    LOG(ERROR) << "Error reading container TOML file " << err.what();
+    return -1;
   }
 
-  return out;
-}
+  ConsumerContext ctx{containerInfos};
+  CreateTypeGraphActionFactory factory{ctx};
 
-fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
-                                      const OICompiler::Config& compilerConfig,
-                                      const drgn_qualified_type& type,
-                                      const std::string& linkageName,
-                                      SymbolService& symbols) {
-  CodeGen codegen{generatorConfig, symbols};
+  clang::tooling::ClangTool tool{db, sourcePaths};
+  if (auto ret = tool.run(&factory); ret != 0) {
+    return ret;
+  }
+
+  if (ctx.nameToTypeMap.size() > 1)
+    throw std::logic_error(
+        "found more than one site to generate for but we can't currently "
+        "handle this case");
+
+  if (ctx.nameToTypeMap.empty()) {
+    LOG(ERROR) << "Nothing to generate!";
+    return failIfNothingGenerated ? -1 : 0;
+  }
+  const auto& linkageName = ctx.nameToTypeMap.begin()->first;
+
+  compilerConfig.usePIC = ctx.pic.value();
+  CodeGen codegen{generatorConfig};
+  for (auto&& ptr : containerInfos)
+    codegen.registerContainer(std::move(ptr));
+  codegen.transform(ctx.typeGraph);
 
   std::string code;
-  if (!codegen.codegenFromDrgn(type.type, linkageName, code)) {
-    LOG(ERROR) << "codegen failed!";
-    return {};
-  }
+  codegen.generate(ctx.typeGraph, code, CodeGen::ExactName{linkageName});
 
   std::string sourcePath = sourceFileDumpPath;
   if (sourceFileDumpPath.empty()) {
@@ -152,78 +171,110 @@ fs::path OIGenerator::generateForType(const OICodeGen::Config& generatorConfig,
   }
 
   OICompiler compiler{{}, compilerConfig};
-
-  // TODO: Revert to outputPath and remove printing when typegraph is done.
-  fs::path tmpObject = outputPath;
-  tmpObject.replace_extension(
-      "." + std::to_string(std::hash<std::string>{}(linkageName)) + ".o");
-
-  if (!compiler.compile(code, sourcePath, tmpObject)) {
-    return {};
-  }
-  return tmpObject;
+  return compiler.compile(code, sourcePath, outputPath) ? 0 : -1;
 }
 
-int OIGenerator::generate(fs::path& primaryObject, SymbolService& symbols) {
-  drgnplusplus::program prog;
+namespace {
 
-  {
-    std::array<const char*, 1> objectPaths = {{primaryObject.c_str()}};
-    if (auto err = drgnplusplus::error(
-            drgn_program_load_debug_info(prog.get(),
-                                         std::data(objectPaths),
-                                         std::size(objectPaths),
-                                         false,
-                                         false))) {
-      LOG(ERROR) << "error loading debug info program: " << err;
-      throw err;
+class CreateTypeGraphConsumer : public clang::ASTConsumer {
+ private:
+  ConsumerContext& ctx;
+
+ public:
+  CreateTypeGraphConsumer(ConsumerContext& ctx_) : ctx(ctx_) {
+  }
+
+  void HandleTranslationUnit(clang::ASTContext& Context) override {
+    auto* tu_decl = Context.getTranslationUnitDecl();
+    auto decls = tu_decl->decls();
+    auto oi_namespaces = decls | ranges::views::transform([](auto* p) {
+                           return llvm::dyn_cast<clang::NamespaceDecl>(p);
+                         }) |
+                         ranges::views::filter([](auto* ns) {
+                           return ns != nullptr && ns->getName() == "oi";
+                         });
+    if (oi_namespaces.empty()) {
+      LOG(WARNING) << "Failed to find `oi` namespace. Does this input "
+                      "include <oi/oi.h>?";
+      return;
     }
-  }
 
-  auto oilTypes = findOilTypesAndNames(prog);
-
-  std::map<Feature, bool> featuresMap = {
-      {Feature::TypeGraph, true},
-      {Feature::TreeBuilderV2, true},
-      {Feature::Library, true},
-      {Feature::PackStructs, true},
-      {Feature::PruneTypeGraph, true},
-  };
-
-  OICodeGen::Config generatorConfig{};
-  OICompiler::Config compilerConfig{};
-  compilerConfig.usePIC = pic;
-
-  auto features = config::processConfigFiles(
-      configFilePaths, featuresMap, compilerConfig, generatorConfig);
-  if (!features) {
-    LOG(ERROR) << "failed to process config file";
-    return -1;
-  }
-  generatorConfig.features = *features;
-  compilerConfig.features = *features;
-
-  size_t failures = 0;
-  for (const auto& [linkageName, type] : oilTypes) {
-    if (auto obj = generateForType(
-            generatorConfig, compilerConfig, type, linkageName, symbols);
-        !obj.empty()) {
-      std::cout << obj.string() << std::endl;
-    } else {
-      LOG(WARNING) << "failed to generate for symbol `" << linkageName
-                   << "`. this is non-fatal but the call will not work.";
-      failures++;
+    auto introspectImpl =
+        std::move(oi_namespaces) |
+        ranges::views::for_each([](auto* ns) { return ns->decls(); }) |
+        ranges::views::transform([](auto* p) {
+          return llvm::dyn_cast<clang::FunctionTemplateDecl>(p);
+        }) |
+        ranges::views::filter([](auto* td) {
+          return td != nullptr && td->getName() == "introspectImpl";
+        }) |
+        ranges::views::take(1) | ranges::to<std::vector>();
+    if (introspectImpl.empty()) {
+      LOG(WARNING)
+          << "Failed to find `oi::introspect` within the `oi` namespace. Did "
+             "you compile with `OIL_AOT_COMPILATION=1`?";
+      return;
     }
-  }
 
-  size_t successes = oilTypes.size() - failures;
-  LOG(INFO) << "object introspection generation complete. " << successes
-            << " successes and " << failures << " failures.";
+    auto nameToClangTypeMap =
+        introspectImpl | ranges::views::for_each([](auto* td) {
+          return td->specializations();
+        }) |
+        ranges::views::transform(
+            [](auto* p) { return llvm::dyn_cast<clang::FunctionDecl>(p); }) |
+        ranges::views::filter([](auto* p) { return p != nullptr; }) |
+        ranges::views::transform(
+            [](auto* fd) -> std::pair<std::string, const clang::Type*> {
+              clang::ASTContext& Ctx = fd->getASTContext();
+              clang::ASTNameGenerator ASTNameGen(Ctx);
+              std::string name = ASTNameGen.getName(fd);
 
-  if (failures > 0 || (failIfNothingGenerated && successes == 0)) {
-    return -1;
+              assert(fd->getNumParams() == 1);
+              const clang::Type* type =
+                  fd->parameters()[0]->getType().getTypePtr();
+              return {name, type};
+            }) |
+        ranges::to<std::unordered_map>();
+    if (nameToClangTypeMap.empty())
+      return;
+
+    type_graph::ClangTypeParserOptions opts;
+    type_graph::ClangTypeParser parser{ctx.typeGraph, ctx.containerInfos, opts};
+
+    auto& Sema = *ctx.sema;
+    auto els = nameToClangTypeMap |
+               ranges::views::transform(
+                   [&parser, &Context, &Sema](
+                       auto& p) -> std::pair<std::string, type_graph::Type*> {
+                     return {p.first, &parser.parse(Context, Sema, *p.second)};
+                   });
+    ctx.nameToTypeMap.insert(els.begin(), els.end());
+
+    for (const auto& [name, type] : ctx.nameToTypeMap)
+      ctx.typeGraph.addRoot(*type);
   }
-  return 0;
+};
+
+void CreateTypeGraphAction::ExecuteAction() {
+  clang::CompilerInstance& CI = getCompilerInstance();
+
+  // Compile the output as position independent if any input is position
+  // independent
+  bool pic = CI.getCodeGenOpts().RelocationModel == llvm::Reloc::PIC_;
+  ctx.pic = ctx.pic.value_or(false) || pic;
+
+  if (!CI.hasSema())
+    CI.createSema(clang::TU_Complete, nullptr);
+  ctx.sema = &CI.getSema();
+
+  clang::ASTFrontendAction::ExecuteAction();
 }
 
+std::unique_ptr<clang::ASTConsumer> CreateTypeGraphAction::CreateASTConsumer(
+    [[maybe_unused]] clang::CompilerInstance& CI,
+    [[maybe_unused]] clang::StringRef file) {
+  return std::make_unique<CreateTypeGraphConsumer>(ctx);
+}
+
+}  // namespace
 }  // namespace oi::detail

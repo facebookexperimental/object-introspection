@@ -49,6 +49,7 @@
   X(Array)           \
   X(Typedef)         \
   X(Pointer)         \
+  X(Reference)       \
   X(Dummy)           \
   X(DummyAllocator)  \
   X(CaptureKeys)
@@ -695,6 +696,66 @@ class Pointer : public Type {
   }
 
   void regenerateName() {
+    name_ = pointeeType_.get().name() + "*";
+  }
+
+  virtual std::string_view inputName() const override {
+    return inputName_;
+  }
+
+  void setInputName(std::string name) {
+    inputName_ = std::move(name);
+  }
+
+  virtual size_t size() const override {
+    return sizeof(uintptr_t);
+  }
+
+  virtual uint64_t align() const override {
+    return size();
+  }
+
+  virtual NodeId id() const override {
+    return id_;
+  }
+
+  Type& pointeeType() const {
+    return pointeeType_;
+  }
+
+  void setPointeeType(Type& type) {
+    pointeeType_ = type;
+  }
+
+ private:
+  std::reference_wrapper<Type> pointeeType_;
+  std::string inputName_;
+  NodeId id_ = -1;
+
+  std::string name_;
+};
+
+class Reference : public Type {
+ public:
+  explicit Reference(NodeId id, Type& pointeeType)
+      : pointeeType_(pointeeType), id_(id) {
+    regenerateName();
+  }
+
+  static inline constexpr bool has_node_id = true;
+
+  DECLARE_ACCEPT
+
+  virtual const std::string& name() const override {
+    return name_;
+  }
+
+  void regenerateName() {
+    // Following a reference wouldn't trigger cycle checking, as it would look
+    // like anything else we're sure is there. Generate as a pointer. It will be
+    // followed regardless of `ChaseRawPointers` because that affects whether a
+    // type becomes a `StubbedPointer` and not whether pointers are followed in
+    // the generated code.
     name_ = pointeeType_.get().name() + "*";
   }
 

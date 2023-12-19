@@ -46,6 +46,7 @@ class NameGen final : public RecursiveVisitor {
   void visit(Array& a) override;
   void visit(Typedef& td) override;
   void visit(Pointer& p) override;
+  void visit(Reference& r) override;
   void visit(DummyAllocator& d) override;
   void visit(CaptureKeys& d) override;
 

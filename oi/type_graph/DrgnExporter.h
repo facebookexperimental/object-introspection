@@ -54,6 +54,7 @@ class DrgnExporter : public Visitor<drgn_type*> {
   drgn_type* visit(Array&) override;
   drgn_type* visit(Typedef&) override;
   drgn_type* visit(Pointer&) override;
+  drgn_type* visit(Reference&) override;
   drgn_type* visit(Dummy&) override;
   drgn_type* visit(DummyAllocator&) override;
   drgn_type* visit(CaptureKeys&) override;

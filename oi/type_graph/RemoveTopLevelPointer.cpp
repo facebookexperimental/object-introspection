@@ -42,4 +42,8 @@ void RemoveTopLevelPointer::visit(Pointer& p) {
   topLevelType_ = &p.pointeeType();
 }
 
+void RemoveTopLevelPointer::visit(Reference& r) {
+  topLevelType_ = &r.pointeeType();
+}
+
 }  // namespace oi::detail::type_graph
