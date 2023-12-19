@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstring>
 #include <fstream>
+#include <lldb/API/LLDB.h>
 
 #include "oi/DrgnUtils.h"
 #include "oi/OIParser.h"
@@ -106,7 +107,8 @@ static bool isExecutableAddr(
   return it != end(exeAddrs) && addr >= it->first;
 }
 
-SymbolService::SymbolService(pid_t pid) : target{pid} {
+SymbolService::SymbolService(pid_t pid, Backend back)
+    : target{pid}, backend{back} {
   // Update target processes memory map
   LoadExecutableAddressRange(pid, executableAddrs);
   if (!loadModules()) {
@@ -115,8 +117,8 @@ SymbolService::SymbolService(pid_t pid) : target{pid} {
   }
 }
 
-SymbolService::SymbolService(fs::path executablePath)
-    : target{std::move(executablePath)} {
+SymbolService::SymbolService(fs::path executablePath, Backend back)
+    : target{std::move(executablePath)}, backend{back} {
   if (!loadModules()) {
     throw std::runtime_error("Failed to load modules for executable " +
                              executablePath.string());
@@ -130,6 +132,15 @@ SymbolService::~SymbolService() {
 
   if (prog != nullptr) {
     drgn_program_destroy(prog);
+  }
+
+  if (lldbTarget) {
+    lldbDebugger.DeleteTarget(lldbTarget);
+  }
+
+  if (lldbDebugger) {
+    lldb::SBDebugger::Destroy(lldbDebugger);
+    lldb::SBDebugger::Terminate();
   }
 }
 
@@ -432,7 +443,12 @@ std::optional<std::string> SymbolService::locateBuildID() {
 
 struct drgn_program* SymbolService::getDrgnProgram() {
   if (hardDisableDrgn) {
-    LOG(ERROR) << "drgn is disabled, refusing to initialize";
+    LOG(ERROR) << "drgn/LLDB is disabled, refusing to initialize";
+    return nullptr;
+  }
+
+  if (backend != Backend::DRGN) {
+    LOG(ERROR) << "drgn is not the selected backend, refusing to initialize";
     return nullptr;
   }
 
@@ -482,6 +498,53 @@ struct drgn_program* SymbolService::getDrgnProgram() {
   }
 
   return prog;
+}
+
+lldb::SBTarget SymbolService::getLLDBTarget() {
+  if (hardDisableDrgn) {
+    LOG(ERROR) << "drgn/LLDB is disabled, refusing to initialize";
+    return lldb::SBTarget();
+  }
+
+  if (backend != Backend::LLDB) {
+    LOG(ERROR) << "LLDB is not the selected backend, refusing to initialize";
+    return lldb::SBTarget();
+  }
+
+  bool success = false;
+
+  lldb::SBDebugger::Initialize();
+  lldbDebugger = lldb::SBDebugger::Create(false);
+  BOOST_SCOPE_EXIT_ALL(&) {
+    if (!success) {
+      lldb::SBDebugger::Destroy(lldbDebugger);
+      lldb::SBDebugger::Terminate();
+    }
+  };
+
+  switch (target.index()) {
+    case 0: {
+      auto pid = std::get<pid_t>(target);
+      lldbTarget = lldbDebugger.FindTargetWithProcessID(pid);
+      if (!lldbTarget) {
+        LOG(ERROR) << "Failed to find target with PID " << pid;
+        return lldb::SBTarget();
+      }
+      break;
+    }
+    case 1: {
+      auto path = std::get<fs::path>(target);
+      lldbTarget = lldbDebugger.CreateTarget(path.c_str());
+      if (!lldbTarget) {
+        LOG(ERROR) << "Failed to create target from " << path;
+        return lldb::SBTarget();
+      }
+      break;
+    }
+  }
+
+  success = true;
+  return lldbTarget;
 }
 
 /*

@@ -17,6 +17,7 @@ add_library(symbol_service
   SymbolService.cpp
 )
 target_link_libraries(symbol_service
+  LLDB
   drgn_utils
 
   Boost::headers

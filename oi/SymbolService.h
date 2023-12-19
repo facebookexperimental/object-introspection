@@ -16,6 +16,9 @@
 #pragma once
 
 #include <filesystem>
+#include <lldb/API/SBDebugger.h>
+#include <lldb/API/SBTarget.h>
+#include <lldb/API/SBType.h>
 #include <memory>
 #include <optional>
 #include <string>
@@ -38,14 +41,16 @@ struct SymbolInfo {
 };
 
 class SymbolService {
+  enum class Backend { DRGN, LLDB };
  public:
-  SymbolService(pid_t);
-  SymbolService(std::filesystem::path);
+  SymbolService(pid_t, Backend = Backend::DRGN);
+  SymbolService(std::filesystem::path, Backend = Backend::DRGN);
   SymbolService(const SymbolService&) = delete;
   SymbolService& operator=(const SymbolService&) = delete;
   ~SymbolService();
 
   struct drgn_program* getDrgnProgram();
+  lldb::SBTarget getLLDBTarget();
 
   std::optional<std::string> locateBuildID();
   std::optional<SymbolInfo> locateSymbol(const std::string&,
@@ -70,8 +75,11 @@ class SymbolService {
 
  private:
   std::variant<pid_t, std::filesystem::path> target;
+  Backend backend;
   struct Dwfl* dwfl{nullptr};
   struct drgn_program* prog{nullptr};
+  lldb::SBDebugger lldbDebugger{};
+  lldb::SBTarget lldbTarget{};
 
   bool loadModules();
   bool loadModulesFromPid(pid_t);
