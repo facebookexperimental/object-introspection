@@ -45,6 +45,14 @@ class CodeGen {
       : config_(config), symbols_(symbols) {
   }
 
+  struct ExactName {
+    std::string name;
+  };
+  struct HashedComponent {
+    std::string name;
+  };
+  using RootFunctionName = std::variant<ExactName, HashedComponent>;
+
   /*
    * Helper function to perform all the steps required for code generation for a
    * single drgn_type.
@@ -64,9 +72,7 @@ class CodeGen {
   void transform(type_graph::TypeGraph& typeGraph);
   void generate(type_graph::TypeGraph& typeGraph,
                 std::string& code,
-                struct drgn_type*
-                    drgnType /* TODO: this argument should not be required */
-  );
+                RootFunctionName rootName);
 
  private:
   type_graph::TypeGraph typeGraph_;
@@ -76,7 +82,10 @@ class CodeGen {
   std::unordered_set<const ContainerInfo*> definedContainers_;
   std::unordered_map<const type_graph::Class*, const type_graph::Member*>
       thriftIssetMembers_;
-  std::string linkageName_;
+
+  bool codegenFromDrgn(struct drgn_type* drgnType,
+                       std::string& code,
+                       RootFunctionName name);
 
   void genDefsThrift(const type_graph::TypeGraph& typeGraph, std::string& code);
   void addGetSizeFuncDefs(const type_graph::TypeGraph& typeGraph,
