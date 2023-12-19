@@ -15,6 +15,7 @@
  */
 #include "LLDBParser.h"
 
+#include <boost/scope_exit.hpp>
 #include <glog/logging.h>
 #include <lldb/API/LLDB.h>
 
@@ -68,26 +69,13 @@ Type& LLDBParser::parse(lldb::SBType& root) {
   return enumerateType(root);
 }
 
-struct DepthGuard {
-  explicit DepthGuard(int& depth) : depth_(depth) {
-    ++depth_;
-  }
-  ~DepthGuard() {
-    --depth_;
-  }
-
- private:
-  int& depth_;
-};
-
 Type& LLDBParser::enumerateType(lldb::SBType& type) {
   // Avoid re-enumerating an already-processsed type
   if (auto it = lldb_types_.find(type); it != lldb_types_.end())
     return it->second;
 
-  DepthGuard guard(depth_);
-
-  bool isTypeIncomplete = !type.IsTypeComplete();
+  ++depth_;
+  BOOST_SCOPE_EXIT_ALL(&) { --depth_; };
 
   std::optional<std::reference_wrapper<Type>> t;
   try {
@@ -128,11 +116,11 @@ Type& LLDBParser::enumerateType(lldb::SBType& type) {
         throw LLDBParserError{"Unhandled type class: " + std::to_string(kind)};
     }
   } catch (const LLDBParserError& e) {
-    if (!isTypeIncomplete)
+    if (type.IsTypeComplete())
       throw;
   }
 
-  if (isTypeIncomplete) {
+  if (!type.IsTypeComplete()) {
     return makeType<Incomplete>(type, *t);
   }
 
