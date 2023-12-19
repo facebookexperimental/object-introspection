@@ -43,6 +43,9 @@
 #include "type_graph/TypeIdentifier.h"
 #include "type_graph/Types.h"
 
+template <typename T>
+inline constexpr bool always_false_v = false;
+
 namespace oi::detail {
 
 using type_graph::AddChildren;
@@ -1101,11 +1104,17 @@ void CodeGen::addTypeHandlers(const TypeGraph& typeGraph, std::string& code) {
 bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType,
                               std::string linkageName,
                               std::string& code) {
-  linkageName_ = std::move(linkageName);
-  return codegenFromDrgn(drgnType, code);
+  return codegenFromDrgn(drgnType, code, ExactName{std::move(linkageName)});
 }
 
 bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
+  return codegenFromDrgn(
+      drgnType, code, HashedComponent{SymbolService::getTypeName(drgnType)});
+}
+
+bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType,
+                              std::string& code,
+                              RootFunctionName name) {
   try {
     containerInfos_.reserve(config_.containerConfigPaths.size());
     for (const auto& path : config_.containerConfigPaths) {
@@ -1124,7 +1133,7 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
   }
 
   transform(typeGraph_);
-  generate(typeGraph_, code, drgnType);
+  generate(typeGraph_, code, std::move(name));
   return true;
 }
 
@@ -1213,11 +1222,9 @@ void CodeGen::transform(TypeGraph& typeGraph) {
   };
 }
 
-void CodeGen::generate(
-    TypeGraph& typeGraph,
-    std::string& code,
-    struct drgn_type* drgnType /* TODO: this argument should not be required */
-) {
+void CodeGen::generate(TypeGraph& typeGraph,
+                       std::string& code,
+                       RootFunctionName rootName) {
   code = headers::oi_OITraceCode_cpp;
   if (!config_.features[Feature::Library]) {
     FuncGen::DeclareExterns(code);
@@ -1296,22 +1303,33 @@ void CodeGen::generate(
   code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
   code += "} // namespace\n} // namespace OIInternal\n";
 
-  const auto typeName = SymbolService::getTypeName(drgnType);
+  const auto& typeToHash = std::visit(
+      [](const auto& v) -> const std::string& {
+        using T = std::decay_t<decltype(v)>;
+        if constexpr (std::is_same_v<ExactName, T> ||
+                      std::is_same_v<HashedComponent, T>) {
+          return v.name;
+        } else {
+          static_assert(always_false_v<T>, "missing visit");
+        }
+      },
+      rootName);
+
   if (config_.features[Feature::TreeBuilderV2]) {
-    FuncGen::DefineTopLevelIntrospect(code, typeName);
+    FuncGen::DefineTopLevelIntrospect(code, typeToHash);
   } else {
-    FuncGen::DefineTopLevelGetSizeRef(code, typeName, config_.features);
+    FuncGen::DefineTopLevelGetSizeRef(code, typeToHash, config_.features);
   }
 
   if (config_.features[Feature::TreeBuilderV2]) {
     FuncGen::DefineTreeBuilderInstructions(code,
-                                           typeName,
+                                           typeToHash,
                                            calculateExclusiveSize(rootType),
                                            enumerateTypeNames(rootType));
   }
 
-  if (!linkageName_.empty())
-    FuncGen::DefineTopLevelIntrospectNamed(code, typeName, linkageName_);
+  if (auto* n = std::get_if<ExactName>(&rootName))
+    FuncGen::DefineTopLevelIntrospectNamed(code, typeToHash, n->name);
 
   if (VLOG_IS_ON(3)) {
     VLOG(3) << "Generated trace code:\n";
