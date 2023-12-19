@@ -54,7 +54,7 @@ class SymbolService {
   std::shared_ptr<FuncDesc> findFuncDesc(const irequest&);
   std::shared_ptr<GlobalDesc> findGlobalDesc(const std::string&);
   static std::string getTypeName(struct drgn_type*);
-  std::optional<RootInfo> getRootType(const irequest&);
+  std::optional<RootInfo> getDrgnRootType(const irequest&);
 
   static std::optional<drgn_qualified_type> findTypeOfSymbol(
       drgn_program*, const std::string& symbolName);

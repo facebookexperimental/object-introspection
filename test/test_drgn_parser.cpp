@@ -35,7 +35,7 @@ DrgnParser DrgnParserTest::getDrgnParser(TypeGraph& typeGraph,
 
 drgn_type* DrgnParserTest::getDrgnRoot(std::string_view function) {
   irequest req{"entry", std::string{function}, "arg0"};
-  auto* drgnRoot = symbols_->getRootType(req)->type.type;
+  auto* drgnRoot = symbols_->getDrgnRootType(req)->type.type;
   return drgnRoot;
 }
 

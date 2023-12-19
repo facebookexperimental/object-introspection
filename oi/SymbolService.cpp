@@ -804,7 +804,7 @@ std::string SymbolService::getTypeName(struct drgn_type* type) {
   return drgn_utils::typeToName(type);
 }
 
-std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
+std::optional<RootInfo> SymbolService::getDrgnRootType(const irequest& req) {
   if (req.type == "global") {
     /*
      * This is super simple as all we have to do is locate assign the

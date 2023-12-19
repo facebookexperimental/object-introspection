@@ -2962,17 +2962,24 @@ bool OIDebugger::processTargetData() {
 }
 
 std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
-  auto root = symbols->getRootType(req);
-  if (!root.has_value()) {
-    return std::nullopt;
-  }
 
   std::string code(headers::oi_OITraceCode_cpp);
 
   if (generatorConfig.features[Feature::TypeGraph]) {
     // CodeGen v2
+    std::string rootVariableName;
     CodeGen codegen2{generatorConfig, *symbols};
-    codegen2.codegenFromDrgn(root->type.type, code);
+    if (generatorConfig.features[Feature::LLDB]) {
+      throw std::runtime_error{"LLDB is not implemented yet"};
+    } else {
+      auto root = symbols->getDrgnRootType(req);
+      if (!root.has_value()) {
+        return std::nullopt;
+      }
+
+      rootVariableName = std::move(root->varName);
+      codegen2.codegenFromDrgn(root->type.type, code);
+    }
 
     TypeHierarchy th;
     // Make this static as a big hack to extend the fake drgn_types' lifetimes
@@ -2981,10 +2988,15 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
     drgn_type* rootType;
     codegen2.exportDrgnTypes(th, drgnTypes, &rootType);
 
-    typeInfos[req] = {RootInfo{root->varName, {rootType, drgn_qualifiers{}}},
+    typeInfos[req] = {RootInfo{rootVariableName, {rootType, drgn_qualifiers{}}},
                       th,
                       std::map<std::string, PaddingInfo>{}};
   } else {
+    auto root = symbols->getDrgnRootType(req);
+    if (!root.has_value()) {
+      return std::nullopt;
+    }
+
     // OICodeGen (v1)
     auto codegen = OICodeGen::buildFromConfig(generatorConfig, *symbols);
     if (!codegen) {
