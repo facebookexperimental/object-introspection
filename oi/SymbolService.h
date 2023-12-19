@@ -60,6 +60,7 @@ class SymbolService {
   std::shared_ptr<GlobalDesc> findGlobalDesc(const std::string&);
   static std::string getTypeName(struct drgn_type*);
   std::optional<RootInfo> getDrgnRootType(const irequest&);
+  std::optional<lldb::SBType> getLLDBRootType(const irequest&);
 
   static std::optional<drgn_qualified_type> findTypeOfSymbol(
       drgn_program*, const std::string& symbolName);

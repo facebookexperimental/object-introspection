@@ -975,4 +975,81 @@ std::optional<RootInfo> SymbolService::getDrgnRootType(const irequest& req) {
   return RootInfo{paramName, paramType};
 }
 
+std::optional<lldb::SBType> SymbolService::getLLDBRootType(const irequest& req) {
+  auto lldbTarget = getLLDBTarget();
+
+  if (req.type == "global") {
+    /*
+     * This is super simple as all we have to do is locate assign the
+     * type of the provided global variable.
+     */
+    VLOG(1) << "Processing global: " << req.func;
+
+    auto globalDesc = findGlobalDesc(req.func);
+    if (!globalDesc) {
+      return std::nullopt;
+    }
+
+    auto globalVariable = lldbTarget.FindFirstGlobalVariable(req.func.c_str());
+    if (!globalVariable.IsValid()) {
+      LOG(ERROR) << "Failed to lookup global variable '" << req.func << "'";
+      return std::nullopt;
+    }
+
+    return globalVariable.GetType();
+  }
+
+  VLOG(1) << "Passing : " << req.func;
+  auto fd = findFuncDesc(req);
+  if (!fd) {
+    VLOG(1) << "Failed to lookup function " << req.func;
+    return std::nullopt;
+  }
+
+  auto functions = lldbTarget.FindFunctions(req.func.c_str());
+  if (functions.GetSize() != 1) {
+    LOG(ERROR) << "Failed to lookup function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  auto function = functions.GetContextAtIndex(0).GetFunction();
+  if (!function.IsValid()) {
+    LOG(ERROR) << "Failed to lookup function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  if (req.isReturnRetVal()) {
+    VLOG(1) << "Processing return retval";
+    return function.GetType().GetFunctionReturnType();
+  }
+
+  if (req.arg == "this") {
+    VLOG(1) << "Processing this pointer";
+    auto vars = function.GetBlock().GetVariables(lldbTarget, true, true, true);
+    for (uint32_t i = 0; i < vars.GetSize(); ++i) {
+      auto var = vars.GetValueAtIndex(i);
+      if (strcmp(var.GetName(), "this"))
+        return var.GetType();
+    }
+
+    LOG(ERROR) << "This pointer not found in function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  auto argIdx = fd->getArgumentIndex(req.arg);
+  if (!argIdx.has_value()) {
+    LOG(ERROR) << "Failed to lookup argument " << req.arg << " in function '"
+               << req.func << "'";
+    return std::nullopt;
+  }
+
+  auto args = function.GetBlock().GetVariables(lldbTarget, true, false, false);
+  if (!args.IsValid() || args.GetSize() <= argIdx.value()) {
+    LOG(ERROR) << "Failed to lookup arguments in function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  return args.GetValueAtIndex(*argIdx).GetType();
+}
+
 }  // namespace oi::detail
