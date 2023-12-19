@@ -35,3 +35,34 @@ void getSizeType(const %1%<T, Traits, Allocator> &container, size_t& returnArg)
     );
 }
 """
+
+traversal_func = """
+    bool sso = ((uintptr_t)container.data() <
+                (uintptr_t)(&container + sizeof(std::__cxx11::basic_string<T0>))) &&
+               ((uintptr_t)container.data() >= (uintptr_t)&container);
+
+    return returnArg.write(container.capacity())
+        .write(sso)
+        .write(container.size());
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+uint64_t capacity = std::get<ParsedData::VarInt>(d.val).value;
+el.container_stats.emplace(result::Element::ContainerStats { .capacity = capacity });
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+bool sso = std::get<ParsedData::VarInt>(d.val).value;
+if (!sso)
+  el.exclusive_size += el.container_stats->capacity * sizeof(T0);
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.container_stats->length = std::get<ParsedData::VarInt>(d.val).value;
+"""

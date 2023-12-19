@@ -23,11 +23,19 @@
 #include "oi/OICodeGen.h"
 #include "oi/OICompiler.h"
 
+namespace clang::tooling {
+class CompilationDatabase;
+}
+
 namespace oi::detail {
+namespace type_graph {
+class Type;
+}
 
 class OIGenerator {
  public:
-  int generate(fs::path& primaryObject, SymbolService& symbols);
+  int generate(clang::tooling::CompilationDatabase&,
+               const std::vector<std::string>&);
 
   void setOutputPath(fs::path _outputPath) {
     outputPath = std::move(_outputPath);
@@ -41,8 +49,8 @@ class OIGenerator {
   void setFailIfNothingGenerated(bool fail) {
     failIfNothingGenerated = fail;
   }
-  void setUsePIC(bool pic_) {
-    pic = pic_;
+  void setClangArgs(std::vector<std::string> args_) {
+    clangArgs = std::move(args_);
   }
 
  private:
@@ -50,20 +58,7 @@ class OIGenerator {
   std::vector<std::filesystem::path> configFilePaths;
   std::filesystem::path sourceFileDumpPath;
   bool failIfNothingGenerated = false;
-  bool pic = false;
-
-  std::unordered_map<std::string, std::string> oilStrongToWeakSymbolsMap(
-      drgnplusplus::program& prog);
-
-  std::unordered_map<std::string, drgn_qualified_type> findOilTypesAndNames(
-      drgnplusplus::program& prog);
-
-  std::filesystem::path generateForType(
-      const OICodeGen::Config& generatorConfig,
-      const OICompiler::Config& compilerConfig,
-      const drgn_qualified_type& type,
-      const std::string& linkageName,
-      SymbolService& symbols);
+  std::vector<std::string> clangArgs;
 };
 
 }  // namespace oi::detail

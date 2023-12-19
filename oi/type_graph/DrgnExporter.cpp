@@ -200,6 +200,14 @@ drgn_type* DrgnExporter::visit(Pointer& p) {
   return drgnType;
 }
 
+drgn_type* DrgnExporter::visit(Reference& p) {
+  auto* drgnType =
+      makeDrgnType(DRGN_TYPE_POINTER, false, DRGN_NOT_PRIMITIVE_TYPE, p);
+  auto* pointeeType = accept(p.pointeeType());
+  th_.pointerToTypeMap[drgnType] = pointeeType;
+  return drgnType;
+}
+
 drgn_type* DrgnExporter::visit(Dummy& d) {
   return makeDrgnType(DRGN_TYPE_VOID, false, DRGN_C_TYPE_VOID, d);
 }

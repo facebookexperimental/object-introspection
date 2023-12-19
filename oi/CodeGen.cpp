@@ -299,6 +299,11 @@ void genDefsThriftClass(const Class& c, std::string& code) {
 
 }  // namespace
 
+CodeGen::CodeGen(const OICodeGen::Config& config) : config_(config) {
+  DCHECK(!config.features[Feature::PolymorphicInheritance])
+      << "polymorphic inheritance requires symbol service!";
+}
+
 void CodeGen::genDefsThrift(const TypeGraph& typeGraph, std::string& code) {
   for (const Type& t : typeGraph.finalTypes) {
     if (const auto* c = dynamic_cast<const Class*>(&t)) {
@@ -542,7 +547,7 @@ void CodeGen::getClassSizeFuncDef(const Class& c, std::string& code) {
     std::string childVtableName = "vtable for ";
     childVtableName += fqChildName;
 
-    auto optVtableSym = symbols_.locateSymbol(childVtableName, true);
+    auto optVtableSym = symbols_->locateSymbol(childVtableName, true);
     if (!optVtableSym) {
       //        LOG(ERROR) << "Failed to find vtable address for '" <<
       //        childVtableName; LOG(ERROR) << "Falling back to non dynamic
@@ -1115,15 +1120,8 @@ bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType, std::string& code) {
 bool CodeGen::codegenFromDrgn(struct drgn_type* drgnType,
                               std::string& code,
                               RootFunctionName name) {
-  try {
-    containerInfos_.reserve(config_.containerConfigPaths.size());
-    for (const auto& path : config_.containerConfigPaths) {
-      registerContainer(path);
-    }
-  } catch (const ContainerInfoError& err) {
-    LOG(ERROR) << "Error reading container TOML file " << err.what();
+  if (!registerContainers())
     return false;
-  }
 
   try {
     addDrgnRoot(drgnType, typeGraph_);
@@ -1145,6 +1143,19 @@ void CodeGen::exportDrgnTypes(TypeHierarchy& th,
   type_graph::DrgnExporter drgnExporter{th, drgnTypes};
   for (auto& type : typeGraph_.rootTypes()) {
     *rootType = drgnExporter.accept(type);
+  }
+}
+
+bool CodeGen::registerContainers() {
+  try {
+    containerInfos_.reserve(config_.containerConfigPaths.size());
+    for (const auto& path : config_.containerConfigPaths) {
+      registerContainer(path);
+    }
+    return true;
+  } catch (const ContainerInfoError& err) {
+    LOG(ERROR) << "Error reading container TOML file " << err.what();
+    return false;
   }
 }
 
@@ -1189,7 +1200,7 @@ void CodeGen::transform(TypeGraph& typeGraph) {
         .chaseRawPointers = config_.features[Feature::ChaseRawPointers],
     };
     DrgnParser drgnParser{typeGraph, options};
-    pm.addPass(AddChildren::createPass(drgnParser, symbols_));
+    pm.addPass(AddChildren::createPass(drgnParser, *symbols_));
 
     // Re-run passes over newly added children
     pm.addPass(IdentifyContainers::createPass(containerInfos_));

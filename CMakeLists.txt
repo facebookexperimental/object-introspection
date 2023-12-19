@@ -289,7 +289,7 @@ add_library(oicore
   oi/Serialize.cpp
 )
 add_dependencies(oicore libdrgn)
-target_include_directories(oicore SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
+target_include_directories(oicore SYSTEM PUBLIC ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
 target_include_directories(oicore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -365,6 +365,7 @@ add_executable(oilgen
 target_link_libraries(oilgen
   drgn_utils
   oicore
+  clangTooling
 )
 
 ### Object Introspection cache Printer (OIP)

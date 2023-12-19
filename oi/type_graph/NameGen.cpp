@@ -200,6 +200,15 @@ void NameGen::visit(Pointer& p) {
   p.setInputName(inputName);
 }
 
+void NameGen::visit(Reference& r) {
+  RecursiveVisitor::visit(r);
+
+  r.regenerateName();
+  std::string inputName{r.pointeeType().inputName()};
+  inputName += '&';
+  r.setInputName(inputName);
+}
+
 void NameGen::visit(DummyAllocator& d) {
   RecursiveVisitor::visit(d);
   d.regenerateName();
