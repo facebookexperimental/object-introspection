@@ -294,6 +294,7 @@ void ClangTypeParser::enumerateClassMembers(const clang::RecordType& ty,
 
     auto& mtype = enumerateType(*qualType);
     Member m{mtype, std::move(member_name), offset_in_bits, size_in_bits};
+    m.align = decl->getASTContext().getTypeAlign(qualType) / 8;
     members.push_back(m);
   }
 
