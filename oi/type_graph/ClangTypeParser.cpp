@@ -410,8 +410,17 @@ ContainerInfo* ClangTypeParser::getContainerInfo(
 namespace {
 
 bool requireCompleteType(clang::Sema& sema, const clang::Type& ty) {
-  if (ty.isSpecificBuiltinType(clang::BuiltinType::Void))
-    return true;  // treat as complete
+  switch (ty.getTypeClass()) {
+    case clang::Type::Builtin: {
+      if (ty.isSpecificBuiltinType(clang::BuiltinType::Void))
+        return true;  // treat as complete
+      break;
+    }
+    case clang::Type::IncompleteArray:
+      return false;  // would fail completion
+    default:
+      break;
+  }
 
   // TODO: This is a terrible warning.
   return !sema.RequireCompleteType(
