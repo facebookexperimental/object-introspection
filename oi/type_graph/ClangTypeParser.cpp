@@ -183,7 +183,12 @@ Type& ClangTypeParser::enumerateClass(const clang::RecordType& ty) {
 
   std::string name = decl->getNameAsString();
 
-  auto kind = Class::Kind::Struct;  // TODO: kind
+  auto kind = Class::Kind::Struct;
+  if (ty.isUnionType()) {
+    kind = Class::Kind::Union;
+  } else if (ty.isClassType()) {
+    kind = Class::Kind::Class;
+  }
 
   int virtuality = 0;
 
