@@ -39,3 +39,34 @@ void getSizeType(const %1% &container, size_t& returnArg)
     SAVE_SIZE(fullCapacity);
 }
 """
+
+traversal_func = """
+// We calculate the length of all IOBufs in the chain manually.
+// IOBuf has built-in computeChainCapacity()/computeChainLength()
+// functions which do this for us. But dead code optimization in TAO
+// caused these functions to be removed which causes relocation
+// errors.
+
+std::size_t fullLength = container.length();
+std::size_t fullCapacity = container.capacity();
+for (const folly::IOBuf* current = container.next(); current != &container;
+    current = current->next()) {
+  fullLength += current->length();
+  fullCapacity += current->capacity();
+}
+
+return returnArg.write(fullCapacity).write(fullLength);
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.container_stats.emplace(result::Element::ContainerStats{ .capacity = std::get<ParsedData::VarInt>(d.val).value });
+el.exclusive_size += el.container_stats->capacity;
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.container_stats->length = std::get<ParsedData::VarInt>(d.val).value;
+"""
