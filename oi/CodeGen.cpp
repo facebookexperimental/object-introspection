@@ -213,8 +213,12 @@ template <typename T>
 struct NameProvider {};
 )";
 
+  // TODO: stop types being duplicated at this point and remove this check
+  std::unordered_set<std::string_view> emittedTypes;
   for (const Type& t : typeGraph.finalTypes) {
     if (dynamic_cast<const Typedef*>(&t))
+      continue;
+    if (!emittedTypes.emplace(t.name()).second)
       continue;
 
     code += "template <> struct NameProvider<";
