@@ -33,9 +33,11 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize":40,
       "exclusiveSize":0,
+      "size":40,
       "members":[{
         "staticSize":40,
         "exclusiveSize":0,
+        "size":40,
         "length":10,
         "capacity":10
       }]}]'''
@@ -56,9 +58,11 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize":1,
       "exclusiveSize":1,
+      "size":1,
       "members":[{
         "staticSize":0,
-        "exclusiveSize":0
+        "exclusiveSize":0,
+        "size":1
       }]}]'''
   [cases.multidim_legacy] # Test for legacy behaviour. Remove with OICodeGen
     oil_disable = 'oil only runs on codegen v2'
@@ -86,10 +90,10 @@ definitions = '''
           {"staticSize":12, "dynamicSize":0, "exclusiveSize":12, "length":3, "capacity":3, "elementStaticSize":4}]
       }]}]'''
     expect_json_v2 = '''[
-      {"staticSize":24, "exclusiveSize":0, "members":[
-        {"staticSize":24, "exclusiveSize":0, "length":2, "capacity":2, "members":[
-          {"staticSize":12, "exclusiveSize":0, "length":3, "capacity":3},
-          {"staticSize":12, "exclusiveSize":0, "length":3, "capacity":3}]
+      {"staticSize":24, "exclusiveSize":0, "size":24, "members":[
+        {"staticSize":24, "exclusiveSize":0, "size":24, "length":2, "capacity":2, "members":[
+          {"staticSize":12, "exclusiveSize":0, "size":12, "length":3, "capacity":3},
+          {"staticSize":12, "exclusiveSize":0, "size":12, "length":3, "capacity":3}]
       }]}]'''
   [cases.direct_int10]
     skip = "Direct array arguments don't work"

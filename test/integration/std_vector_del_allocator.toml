@@ -60,18 +60,19 @@ includes = ["vector"]
     expect_json_v2 = '''[{
       "staticSize":48,
       "exclusiveSize":0,
+      "size":60,
       "members":[
-        {"name":"v1", "staticSize":24, "exclusiveSize":24, "length":1, "capacity":1, "members":[
-          {"name":"[]", "staticSize":4, "exclusiveSize":0, "members":[
-            {"name":"a", "staticSize":4, "exclusiveSize":4, "members":[]}
+        {"name":"v1", "staticSize":24, "exclusiveSize":24, "size": 28, "length":1, "capacity":1, "members":[
+          {"name":"[]", "staticSize":4, "exclusiveSize":0, "size": 4, "members":[
+            {"name":"a", "staticSize":4, "exclusiveSize":4, "size": 4, "members":[]}
           ]}
         ]},
-        {"name":"v2", "staticSize":24, "exclusiveSize":24, "length":2, "capacity":2, "members":[
-          {"name":"[]", "staticSize":4, "exclusiveSize":0, "members":[
-            {"name":"b", "staticSize":4, "exclusiveSize":4, "members":[]}
+        {"name":"v2", "staticSize":24, "exclusiveSize":24, "size": 32, "length":2, "capacity":2, "members":[
+          {"name":"[]", "staticSize":4, "exclusiveSize":0, "size": 4, "members":[
+            {"name":"b", "staticSize":4, "exclusiveSize":4, "size": 4, "members":[]}
           ]},
-          {"name":"[]", "staticSize":4, "exclusiveSize":0, "members":[
-            {"name":"b", "staticSize":4, "exclusiveSize":4, "members":[]}
+          {"name":"[]", "staticSize":4, "exclusiveSize":0, "size": 4, "members":[
+            {"name":"b", "staticSize":4, "exclusiveSize":4, "size": 4, "members":[]}
           ]}
         ]}
       ]

@@ -39,20 +39,20 @@ definitions = '''
     param_types = ["const std::array<int, static_cast<size_t>(MyNS::ScopedEnum::Two)>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":8, "length":2, "capacity":2, "elementStaticSize":4}]'
-    expect_json_v2 = '[{"staticSize":8, "dynamicSize":0, "length":2, "capacity":2}]'
+    expect_json_v2 = '[{"staticSize":8, "exclusiveSize":0, "size":8, "length":2, "capacity":2}]'
 
   [cases.scoped_enum_val]
     param_types = ["const MyClass<MyNS::ScopedEnum::One>&"]
     setup = "return {};"
-    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "size":4}]'
   [cases.scoped_enum_val_gaps]
     param_types = ["const ClassGaps<MyNS::EnumWithGaps::Twenty>&"]
     setup = "return {};"
-    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "size":4}]'
   [cases.scoped_enum_val_negative]
     param_types = ["const ClassGaps<MyNS::EnumWithGaps::MinusTwo>&"]
     setup = "return {};"
-    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "size":4}]'
 
   [cases.unscoped_enum_type]
     param_types = ["const std::vector<MyNS::UNSCOPED_ENUM>&"]
@@ -61,4 +61,4 @@ definitions = '''
     param_types = ["const std::array<int, MyNS::ONE>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":4, "length":1, "capacity":1, "elementStaticSize":4}]'
-    expect_json_v2 = '[{"staticSize":4, "length":1, "capacity":1}]'
+    expect_json_v2 = '[{"staticSize":4, "exclusiveSize":0, "size":4, "length":1, "capacity":1}]'

@@ -30,9 +30,10 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize":48,
       "exclusiveSize":0,
+      "size":80,
       "members":[
-        {"name":"a", "staticSize":24, "exclusiveSize":24, "length":3, "capacity":3},
-        {"name":"b", "staticSize":24, "exclusiveSize":24, "length":5, "capacity":5}
+        {"name":"a", "staticSize":24, "exclusiveSize":24, "length":3, "capacity":3, "size":36},
+        {"name":"b", "staticSize":24, "exclusiveSize":24, "length":5, "capacity":5, "size":44}
       ]}]'''
   [cases.multilevel_typedef_parent]
     param_types = ["const Bar_2&"]
@@ -50,7 +51,8 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize":48,
       "exclusiveSize":0,
+      "size":80,
       "members":[
-        {"name":"a", "staticSize":24, "exclusiveSize":24, "length":3, "capacity":3},
-        {"name":"c", "staticSize":24, "exclusiveSize":24, "length":5, "capacity":5}
+        {"name":"a", "staticSize":24, "exclusiveSize":24, "length":3, "capacity":3, "size":36},
+        {"name":"c", "staticSize":24, "exclusiveSize":24, "length":5, "capacity":5, "size":44}
       ]}]'''

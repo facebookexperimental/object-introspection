@@ -75,9 +75,10 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize":96,
       "exclusiveSize": 0,
+      "size": 304,
       "members":[
-        {"name":"m1", "staticSize":24, "exclusiveSize": 44, "length": 3, "capacity": 3},
-        {"name":"m2", "staticSize":24, "exclusiveSize": 48, "length": 5, "capacity": 5},
-        {"name":"m3", "staticSize":24, "exclusiveSize": 44, "length": 7, "capacity": 7},
-        {"name":"m4", "staticSize":24, "exclusiveSize": 52, "length": 9, "capacity": 9}
+        {"name":"m1", "staticSize":24, "exclusiveSize": 44, "size": 56, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":24, "exclusiveSize": 48, "size": 88, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":24, "exclusiveSize": 44, "size": 72, "length": 7, "capacity": 7},
+        {"name":"m4", "staticSize":24, "exclusiveSize": 52, "size": 88, "length": 9, "capacity": 9}
       ]}]'''

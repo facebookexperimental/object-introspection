@@ -37,11 +37,12 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize":24,
       "exclusiveSize":0,
+      "size":24,
       "members":[
-        {"name":"a", "staticSize":4, "exclusiveSize":4},
-        {"name":"b", "staticSize":4, "exclusiveSize":4},
-        {"name":"c", "staticSize":4, "exclusiveSize":4},
-        {"name":"d", "staticSize":4, "exclusiveSize":4},
-        {"name":"e", "staticSize":4, "exclusiveSize":4},
-        {"name":"f", "staticSize":4, "exclusiveSize":4}
+        {"name":"a", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"b", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"c", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"d", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"e", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"f", "staticSize":4, "exclusiveSize":4, "size":4}
       ]}]'''

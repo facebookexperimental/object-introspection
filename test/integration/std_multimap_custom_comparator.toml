@@ -38,16 +38,18 @@ includes = ["map"]
     expect_json_v2 = '''[{
       "staticSize":96,
       "exclusiveSize":0,
+      "size":440,
       "members":[
         {"name":"m1",
          "staticSize":48,
          "exclusiveSize":48,
+         "size":192,
          "length":3,
          "capacity":3,
          "members": [
-          {"name":"[]", "staticSize":48, "exclusiveSize":36},
+          {"name":"[]", "staticSize":48, "exclusiveSize":36, "size":48},
           {},
           {}
          ]},
-        {"name":"m2", "staticSize":48, "exclusiveSize":48, "length":5, "capacity":5}
+        {"name":"m2", "staticSize":48, "exclusiveSize":48, "size":248, "length":5, "capacity":5}
       ]}]'''

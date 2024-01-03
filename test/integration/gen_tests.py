@@ -40,6 +40,7 @@ def add_headers(f, custom_headers, thrift_headers):
 
 #include <oi/oi.h>
 #include <oi/exporters/Json.h>
+#include <oi/result/SizedResult.h>
 
 """
     )
@@ -145,8 +146,8 @@ def add_test_setup(f, config):
         oil_func_body += "    auto pr = oi::exporters::Json(std::cout);\n"
         oil_func_body += "    pr.setPretty(true);\n"
         for i in range(len(case["param_types"])):
-            oil_func_body += f"    auto ret{i} = oi::setupAndIntrospect(a{i}, opts);\n"
-            oil_func_body += f"    pr.print(*ret{i});\n"
+            oil_func_body += f"    auto ret{i} = oi::result::SizedResult(*oi::setupAndIntrospect(a{i}, opts));\n"
+            oil_func_body += f"    pr.print(ret{i});\n"
 
         f.write(
             define_traceable_func(

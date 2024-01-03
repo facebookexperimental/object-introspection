@@ -66,9 +66,11 @@ includes = ["unordered_map"]
       ]}]'''
     expect_json_v2 = '''[{
       "staticSize":480,
+      "exclusiveSize": 0,
+      "size": 1952,
       "members":[
-        {"name":"m1", "staticSize":56, "exclusiveSize":220, "length":3, "capacity":3},
-        {"name":"m2", "staticSize":120, "exclusiveSize":324, "length":5, "capacity":5},
-        {"name":"m3", "staticSize":120, "exclusiveSize":364, "length":7, "capacity":7},
-        {"name":"m4", "staticSize":184, "exclusiveSize":468, "length":9, "capacity":9}
+        {"name":"m1", "staticSize":56, "exclusiveSize":220, "size":292, "length":3, "capacity":3},
+        {"name":"m2", "staticSize":120, "exclusiveSize":324, "size":444,  "length":5, "capacity":5},
+        {"name":"m3", "staticSize":120, "exclusiveSize":364, "size":532,  "length":7, "capacity":7},
+        {"name":"m4", "staticSize":184, "exclusiveSize":468, "size":684,  "length":9, "capacity":9}
       ]}]'''

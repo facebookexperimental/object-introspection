@@ -12,8 +12,10 @@ definitions = '''
     expect_json = '''[{
       "staticSize":17,
       "dynamicSize":0,
+      "exclusiveSize":0,
+      "size":17,
       "members":[
-        {"name":"p", "staticSize":8, "dynamicSize":0},
-        {"name":"c", "staticSize":1, "dynamicSize":0},
-        {"name":"x", "staticSize":8, "dynamicSize":0}
+        {"name":"p", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8},
+        {"name":"c", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1},
+        {"name":"x", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''

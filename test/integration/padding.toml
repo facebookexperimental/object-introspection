@@ -65,10 +65,11 @@ definitions = '''
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":0,
+      "exclusiveSize": 7,
       "members":[
-        { "name":"a", "staticSize":8, "dynamicSize":0 },
-        { "name":"b", "staticSize":1, "dynamicSize":0 },
-        { "name":"c", "staticSize":8, "dynamicSize":0 }
+        { "name":"a", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8 },
+        { "name":"b", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1 },
+        { "name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8 }
       ]}]'''
 
   [cases.nested_padding]
@@ -77,18 +78,22 @@ definitions = '''
     expect_json = '''[{
       "staticSize":48,
       "dynamicSize":0,
+      "exclusiveSize":7,
+      "size":48,
       "members":[
-        { "name":"a", "staticSize":8, "dynamicSize":0 },
-        { "name":"b", "staticSize":1, "dynamicSize":0 },
-        { "name":"c", "staticSize":8, "dynamicSize":0 },
+        { "name":"a", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8 },
+        { "name":"b", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1 },
+        { "name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8 },
         {
           "name":"d",
           "staticSize":24,
           "dynamicSize":0,
+          "exclusiveSize":7,
+          "size":24,
           "members": [
-            { "name":"a", "staticSize":8, "dynamicSize":0 },
-            { "name":"b", "staticSize":1, "dynamicSize":0 },
-            { "name":"c", "staticSize":8, "dynamicSize":0 }
+            { "name":"a", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8 },
+            { "name":"b", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1 },
+            { "name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8 }
         ]}
       ]}]'''
 
@@ -103,5 +108,6 @@ definitions = '''
     }]'''
     expect_json_v2 = '''[{
       "staticSize": 104,
-      "exclusiveSize": 32
+      "exclusiveSize": 32,
+      "size": 104
     }]'''

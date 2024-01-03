@@ -45,17 +45,17 @@ definitions = '''
     param_types = ["const MyUnion&"]
     setup = "return 123;"
     expect_json = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}]'
-    expect_json_v2 = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "members":[]}]'
+    expect_json_v2 = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "size":56, "members":[]}]'
   [cases.vector]
     param_types = ["const MyUnion&"]
     setup = "return std::vector{1,2,3};"
     expect_json = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}]'
-    expect_json_v2 = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "members":[]}]'
+    expect_json_v2 = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "size":56, "members":[]}]'
   [cases.unordered_map]
     param_types = ["const MyUnion&"]
     setup = 'return std::unordered_map<std::string, std::string>{{"a", "b"}, {"c","d"}};'
     expect_json = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}]'
-    expect_json_v2 = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "members":[]}]'
+    expect_json_v2 = '[{"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "size":56, "members":[]}]'
 
   [cases.alignment]
     # Wrap the union in a pair as a way of inferring its alignment
@@ -67,9 +67,9 @@ definitions = '''
         {"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "NOT":"members"}
       ]}]'''
     expect_json_v2 = '''[
-      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
-        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1},
-        {"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "members":[]}
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "size":64, "members":[
+        {"staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1},
+        {"staticSize":56, "dynamicSize":0, "exclusiveSize":56, "size":56, "members":[]}
       ]}]'''
 
   [cases.tagged_int]
@@ -81,9 +81,9 @@ definitions = '''
         {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "NOT":"members"}
       ]}]'''
     expect_json_v2 = '''[
-      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
-        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "members":[]},
-        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "members":[]}
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "size":64, "members":[
+        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "size":56, "members":[]},
+        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1, "members":[]}
       ]}]'''
   [cases.tagged_vector]
     param_types = ["const TaggedUnion&"]
@@ -94,9 +94,9 @@ definitions = '''
         {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "NOT":"members"}
       ]}]'''
     expect_json_v2 = '''[
-      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
-        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "members":[]},
-        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "members":[]}
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "size":64, "members":[
+        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "size":56, "members":[]},
+        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1, "members":[]}
       ]}]'''
   [cases.tagged_unordered_map]
     param_types = ["const TaggedUnion&"]
@@ -107,7 +107,7 @@ definitions = '''
         {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "NOT":"members"}
       ]}]'''
     expect_json_v2 = '''[
-      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "members":[
-        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "members":[]},
-        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "members":[]}
+      {"staticSize":64, "dynamicSize":0, "exclusiveSize":7, "size":64, "members":[
+        {"name":"storage", "staticSize":56, "dynamicSize":0, "exclusiveSize":56, "size":56, "members":[]},
+        {"name":"tag", "staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1, "members":[]}
       ]}]'''

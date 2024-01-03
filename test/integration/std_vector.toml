@@ -13,24 +13,24 @@ definitions = '''
     param_types = ["const std::vector<int>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":24, "dynamicSize":0, "length":0, "capacity":0, "elementStaticSize":4}]'
-    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "length":0, "capacity":0, "members":[]}]'
+    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "size": 24, "length":0, "capacity":0, "members":[]}]'
   [cases.int_some]
     param_types = ["const std::vector<int>&"]
     setup = "return {{1,2,3}};"
     expect_json = '[{"staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}]'
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "length":3, "capacity":3, "members":[
-      {"staticSize":4, "exclusiveSize":4},
-      {"staticSize":4, "exclusiveSize":4},
-      {"staticSize":4, "exclusiveSize":4}
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "size":36,"length":3, "capacity":3, "members":[
+      {"staticSize":4, "exclusiveSize":4, "size":4},
+      {"staticSize":4, "exclusiveSize":4, "size":4},
+      {"staticSize":4, "exclusiveSize":4, "size":4}
     ]}]'''
   [cases.struct_some]
     param_types = ["const std::vector<SimpleStruct>&"]
     setup = "return {{{}, {}, {}}};"
     expect_json = '[{"staticSize":24, "dynamicSize":48, "length":3, "capacity":3, "elementStaticSize":16}]'
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "length":3, "capacity":3, "members":[
-      {"staticSize":16, "exclusiveSize":3},
-      {"staticSize":16, "exclusiveSize":3},
-      {"staticSize":16, "exclusiveSize":3}
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "size":72, "length":3, "capacity":3, "members":[
+      {"staticSize":16, "exclusiveSize":3, "size":16},
+      {"staticSize":16, "exclusiveSize":3, "size":16},
+      {"staticSize":16, "exclusiveSize":3, "size":16}
     ]}]'''
   [cases.bool_empty]
     skip = true # https://github.com/facebookexperimental/object-introspection/issues/14
@@ -46,7 +46,7 @@ definitions = '''
     param_types = ["const std::vector<std::vector<int>>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":24, "dynamicSize":0, "length":0, "capacity":0, "elementStaticSize":24}]'
-    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "length":0, "capacity":0, "members":[]}]'
+    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "size":24, "length":0, "capacity":0, "members":[]}]'
   [cases.vector_int_some]
     param_types = ["const std::vector<std::vector<int>>&"]
     setup = "return {{{1,2,3},{4},{5,6}}};"
@@ -62,10 +62,10 @@ definitions = '''
         {"staticSize":24, "dynamicSize":4, "exclusiveSize":28, "length":1, "capacity":1, "elementStaticSize":4},
         {"staticSize":24, "dynamicSize":8, "exclusiveSize":32, "length":2, "capacity":2, "elementStaticSize":4}
       ]}]'''
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "length":3, "capacity": 3, "members":[
-      {"staticSize":24, "exclusiveSize":24, "length":3, "capacity": 3, "members":[]},
-      {"staticSize":24, "exclusiveSize":24, "length":1, "capacity": 1, "members":[]},
-      {"staticSize":24, "exclusiveSize":24, "length":2, "capacity": 2, "members":[]}
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "size":120, "length":3, "capacity": 3, "members":[
+      {"staticSize":24, "exclusiveSize":24, "size":36, "length":3, "capacity": 3, "members":[]},
+      {"staticSize":24, "exclusiveSize":24, "size":28, "length":1, "capacity": 1, "members":[]},
+      {"staticSize":24, "exclusiveSize":24, "size":32, "length":2, "capacity": 2, "members":[]}
     ]}]'''
   [cases.reserve]
     param_types = ["const std::vector<int>&"]
@@ -75,8 +75,8 @@ definitions = '''
       return ret;
     '''
     expect_json = '[{"staticSize":24, "dynamicSize":40, "exclusiveSize":64, "length":3, "capacity":10, "elementStaticSize":4}]'
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":52, "length":3, "capacity":10, "members":[
-      {"staticSize":4, "exclusiveSize":4},
-      {"staticSize":4, "exclusiveSize":4},
-      {"staticSize":4, "exclusiveSize":4}
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":52, "size":64, "length":3, "capacity":10, "members":[
+      {"staticSize":4, "exclusiveSize":4, "size":4},
+      {"staticSize":4, "exclusiveSize":4, "size":4},
+      {"staticSize":4, "exclusiveSize":4, "size":4}
     ]}]'''
