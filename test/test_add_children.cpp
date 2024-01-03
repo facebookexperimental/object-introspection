@@ -139,7 +139,7 @@ TEST_F(AddChildrenTest, InheritancePolymorphic) {
              Parent (offset: 0)
                [0]
              Member: vec_b (offset: 16)
-[4]            Class: vector<int, std::allocator<int> > [std::vector<<int, std::allocator<int> >] (size: 24)
+[4]            Class: vector<int, std::allocator<int> > [std::vector<int, std::allocator<int> >] (size: 24)
                  Param
                    Primitive: int32_t
                  Param
