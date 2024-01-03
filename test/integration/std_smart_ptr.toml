@@ -26,6 +26,7 @@ definitions = '''
       {
         "staticSize": 8,
         "exclusiveSize": 8,
+        "size": 8,
         "length": 0,
         "capacity": 1
       }
@@ -50,6 +51,7 @@ definitions = '''
       {
         "staticSize": 8,
         "exclusiveSize": 8,
+        "size": 16,
         "length": 1,
         "capacity": 1
       }
@@ -74,6 +76,7 @@ definitions = '''
       {
         "staticSize": 8,
         "exclusiveSize": 8,
+        "size": 8,
         "length": 0,
         "capacity": 1
       }
@@ -106,6 +109,7 @@ definitions = '''
       {
         "staticSize": 8,
         "exclusiveSize": 8,
+        "size": 72,
         "length": 1,
         "capacity": 1,
         "members": [
@@ -134,7 +138,8 @@ definitions = '''
     [
       {
         "staticSize": 16,
-        "exclusiveSize": 16
+        "exclusiveSize": 16,
+        "size": 16
       }
     ]
     '''
@@ -153,7 +158,8 @@ definitions = '''
     [
       {
         "staticSize": 16,
-        "exclusiveSize": 16
+        "exclusiveSize": 16,
+        "size": 16
       }
     ]
     '''
@@ -176,6 +182,7 @@ definitions = '''
       {
         "staticSize": 16,
         "exclusiveSize": 16,
+        "size": 16,
         "length": 0,
         "capacity": 1
       }
@@ -200,6 +207,7 @@ definitions = '''
       {
         "staticSize": 16,
         "exclusiveSize": 16,
+        "size": 24,
         "length": 1,
         "capacity": 1,
         "members": [
@@ -227,6 +235,7 @@ definitions = '''
       {
         "staticSize": 16,
         "exclusiveSize": 16,
+        "size": 16,
         "length": 0,
         "capacity": 1
       }
@@ -257,12 +266,14 @@ definitions = '''
       {
         "staticSize": 16,
         "exclusiveSize": 16,
+        "size": 80,
         "length": 1,
         "capacity": 1,
         "members": [
           {
             "staticSize": 24,
             "exclusiveSize": 24,
+            "size": 64,
             "length": 5,
             "capacity": 5
           }
@@ -278,7 +289,8 @@ definitions = '''
       {
         "staticSize": 16,
         "dynamicSize": 0,
-        "exclusiveSize": 16
+        "exclusiveSize": 16,
+        "size": 16
       }
     ]
     '''
@@ -290,7 +302,8 @@ definitions = '''
       {
         "staticSize": 16,
         "dynamicSize": 0,
-        "exclusiveSize": 16
+        "exclusiveSize": 16,
+        "size": 16
       }
     ]
     '''
@@ -307,7 +320,7 @@ definitions = '''
       }
     ]
     '''
-    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "size": 16, "members":[]}]'''
   [cases.weak_ptr_int64_void_empty]
     param_types = ["std::weak_ptr<void>&"]
     setup = "return std::weak_ptr<void>();"
@@ -321,7 +334,7 @@ definitions = '''
       }
     ]
     '''
-    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "size": 16, "members":[]}]'''
   [cases.weak_ptr_int64_present]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     setup = '''
@@ -339,7 +352,7 @@ definitions = '''
       }
     ]
     '''
-    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "size": 16, "members":[]}]'''
   [cases.weak_ptr_int64_expired]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     setup = '''
@@ -357,7 +370,7 @@ definitions = '''
       }
     ]
     '''
-    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "size": 16, "members":[]}]'''
   [cases.weak_ptr_int64_present_chase]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     cli_options = ["-fchase-raw-pointers"]
@@ -376,7 +389,7 @@ definitions = '''
       }
     ]
     '''
-    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "size": 16, "members":[]}]'''
   [cases.weak_ptr_int64_expired_chase]
     param_types = ["std::weak_ptr<std::uint64_t>&"]
     cli_options = ["-fchase-raw-pointers"]
@@ -393,4 +406,4 @@ definitions = '''
       }
     ]
     '''
-    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "members":[]}]'''
+    expect_json_v2 = '''[{ "staticSize": 16, "exclusiveSize": 16, "size": 16, "members":[]}]'''

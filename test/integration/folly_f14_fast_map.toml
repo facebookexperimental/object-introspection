@@ -70,26 +70,28 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize":96,
       "exclusiveSize": 0,
+      "size": 464,
       "members":[
-        {"name":"m1", "staticSize":24, "exclusiveSize": 48, "length": 3, "capacity": 3},
-        {"name":"m2", "staticSize":24, "exclusiveSize": 44, "length": 5, "capacity": 5},
-        {"name":"m3", "staticSize":24, "exclusiveSize": 48, "length": 7, "capacity": 7},
+        {"name":"m1", "staticSize":24, "exclusiveSize": 48, "size": 72, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":24, "exclusiveSize": 44, "size": 104, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":24, "exclusiveSize": 48, "size": 104,"length": 7, "capacity": 7},
         {
           "name":"m4",
           "staticSize":24,
           "exclusiveSize": 40,
+          "size": 184,
           "length": 9,
           "capacity": 9,
           "members":[
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4},
-            {"staticSize":16, "exclusiveSize": 4}
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16},
+            {"staticSize":16, "exclusiveSize": 4, "size":16}
           ]
         }]
       }]'''

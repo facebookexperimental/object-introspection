@@ -53,10 +53,12 @@ definitions = '''
       "typeName":"ns_templates::TemplatedClass1<std::vector<int, std::allocator<int> > >",
       "staticSize":24,
       "exclusiveSize":0,
+      "size":24,
       "members":[{
         "typeName":"std::vector<int32_t, std::allocator<int32_t>>",
         "staticSize":24,
         "exclusiveSize":24,
+        "size":24,
         "length":0,
         "capacity":0
     }]}]'''
@@ -90,9 +92,11 @@ definitions = '''
       "typeName":"ns_templates::TemplatedClassVal<3>",
       "staticSize":12,
       "exclusiveSize":0,
+      "size":12,
       "members":[{
         "staticSize":12,
         "exclusiveSize":0,
+        "size":12,
         "length":3,
         "capacity":3
     }]}]'''

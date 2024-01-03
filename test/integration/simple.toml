@@ -23,10 +23,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
+      "exclusiveSize": 3,
+      "size": 16,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0},
-        {"name":"b", "staticSize":1, "dynamicSize":0},
-        {"name":"c", "staticSize":8, "dynamicSize":0}
+        {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize": 4, "size": 4},
+        {"name":"b", "staticSize":1, "dynamicSize":0, "exclusiveSize": 1, "size": 1},
+        {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize": 8, "size": 8}
       ]}]'''
   [cases.class]
     param_types = ["const SimpleClass&"]
@@ -34,15 +36,19 @@ definitions = '''
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
+      "exclusiveSize": 3,
+      "size": 16,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0},
-        {"name":"b", "staticSize":1, "dynamicSize":0},
-        {"name":"c", "staticSize":8, "dynamicSize":0}
+        {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize": 4, "size": 4},
+        {"name":"b", "staticSize":1, "dynamicSize":0, "exclusiveSize": 1, "size": 1},
+        {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize": 8, "size": 8}
       ]}]'''
   [cases.union]
     param_types = ["const SimpleUnion&"]
     setup = "return {};"
     expect_json = '''[{
       "staticSize":8,
-      "dynamicSize":0
+      "dynamicSize":0,
+      "exclusiveSize":8,
+      "size":8
     }]'''

@@ -65,9 +65,10 @@ includes = ["set", "functional"]
     expect_json_v2 = '''[{
       "staticSize":8184,
       "exclusiveSize": 0,
+      "size":9144,
       "members":[
-        {"name":"m1", "staticSize":48, "exclusiveSize": 156, "length": 3, "capacity": 3},
-        {"name":"m2", "staticSize":48, "exclusiveSize": 228, "length": 5, "capacity": 5},
-        {"name":"m3", "staticSize":48, "exclusiveSize": 300, "length": 7, "capacity": 7},
-        {"name":"m4", "staticSize":8040, "exclusiveSize": 8364, "length": 9, "capacity": 9}
+        {"name":"m1", "staticSize":48, "exclusiveSize": 156, "size": 168, "length": 3, "capacity": 3},
+        {"name":"m2", "staticSize":48, "exclusiveSize": 228, "size": 248, "length": 5, "capacity": 5},
+        {"name":"m3", "staticSize":48, "exclusiveSize": 300, "size": 328, "length": 7, "capacity": 7},
+        {"name":"m4", "staticSize":8040, "exclusiveSize": 8364, "size": 8400, "length": 9, "capacity": 9}
       ]}]'''

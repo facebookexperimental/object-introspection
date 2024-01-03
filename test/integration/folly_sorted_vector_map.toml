@@ -4,19 +4,19 @@ includes = ["folly/sorted_vector_types.h", "vector"]
     param_types = ["const folly::sorted_vector_map<int, int>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":24, "dynamicSize":0, "exclusiveSize":24, "length":0, "capacity":0, "elementStaticSize":8}]'
-    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "length":0, "capacity":0, "members":[]}]'
+    expect_json_v2 = '[{"staticSize":24, "exclusiveSize":24, "size":24, "length":0, "capacity":0, "members":[]}]'
   [cases.int_int_some]
     param_types = ["const folly::sorted_vector_map<int, int>&"]
     setup = "return {{ {1,2}, {3,4} }};"
     expect_json = '[{"staticSize":24, "dynamicSize":16, "exclusiveSize":40, "length":2, "capacity":2, "elementStaticSize":8}]'
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "length":2, "capacity":2, "members":[
-      {"staticSize":8, "exclusiveSize":0, "members": [
-        {"name":"key", "staticSize":4, "exclusiveSize":4},
-        {"name":"value", "staticSize":4, "exclusiveSize":4}
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "size":40, "length":2, "capacity":2, "members":[
+      {"staticSize":8, "exclusiveSize":0, "size":8, "members": [
+        {"name":"key", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"value", "staticSize":4, "exclusiveSize":4, "size":4}
       ]},
-      {"staticSize":8, "exclusiveSize":0, "members": [
-        {"name":"key", "staticSize":4, "exclusiveSize":4},
-        {"name":"value", "staticSize":4, "exclusiveSize":4}
+      {"staticSize":8, "exclusiveSize":0, "size":8, "members": [
+        {"name":"key", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"value", "staticSize":4, "exclusiveSize":4, "size":4}
       ]}
     ]}]'''
   [cases.int_int_reserve]
@@ -27,14 +27,14 @@ includes = ["folly/sorted_vector_types.h", "vector"]
       return m;
     '''
     expect_json = '[{"staticSize":24, "dynamicSize":80, "exclusiveSize":104, "length":2, "capacity":10, "elementStaticSize":8}]'
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":88, "length":2, "capacity":10, "members":[
-      {"staticSize":8, "exclusiveSize":0, "members": [
-        {"name":"key", "staticSize":4, "exclusiveSize":4},
-        {"name":"value", "staticSize":4, "exclusiveSize":4}
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":88, "size":104, "length":2, "capacity":10, "members":[
+      {"staticSize":8, "exclusiveSize":0, "size":8, "members": [
+        {"name":"key", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"value", "staticSize":4, "exclusiveSize":4, "size":4}
       ]},
-      {"staticSize":8, "exclusiveSize":0, "members": [
-        {"name":"key", "staticSize":4, "exclusiveSize":4},
-        {"name":"value", "staticSize":4, "exclusiveSize":4}
+      {"staticSize":8, "exclusiveSize":0, "size":8, "members": [
+        {"name":"key", "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"value", "staticSize":4, "exclusiveSize":4, "size":4}
       ]}
     ]}]'''
 

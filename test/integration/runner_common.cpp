@@ -365,6 +365,8 @@ void IntegrationBase::compare_json(const bpt::ptree& expected_json,
         }
       } else if (key == "dynamicSize" && val.get_value<size_t>() == 0) {
         continue;
+      } else if (key == "size") {
+        continue;
       }
 
       ADD_FAILURE() << "Expected key not found in output: " << curr_key;

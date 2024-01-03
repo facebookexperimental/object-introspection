@@ -28,6 +28,7 @@ includes = ["folly/FBString.h", "utility"]
       "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
       "staticSize": 24,
       "exclusiveSize": 24,
+      "size": 24,
       "length": 0,
       "capacity": 23
     }]'''
@@ -60,6 +61,7 @@ includes = ["folly/FBString.h", "utility"]
       "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
       "staticSize": 24,
       "exclusiveSize": 24,
+      "size": 24,
       "length": 6,
       "capacity": 23
     }]'''
@@ -92,6 +94,7 @@ includes = ["folly/FBString.h", "utility"]
       "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
       "staticSize": 24,
       "exclusiveSize": 50,
+      "size": 50,
       "length": 26,
       "capacity": 26
     }]'''
@@ -124,6 +127,7 @@ includes = ["folly/FBString.h", "utility"]
       "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
       "staticSize": 24,
       "exclusiveSize": 1056,
+      "size": 1056,
       "length": 1024,
       "capacity": 1024
     }]'''
@@ -137,17 +141,20 @@ includes = ["folly/FBString.h", "utility"]
     expect_json_v2 = '''[{
       "staticSize": 48,
       "exclusiveSize": 0,
+      "size": 1080,
       "members": [
         {
           "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
           "staticSize": 24,
           "exclusiveSize": 1056,
+          "size": 1056,
           "length": 1024,
           "capacity": 1024
         }, {
           "typeNames": ["folly::basic_fbstring<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>, folly::fbstring_core<int8_t>>"],
           "staticSize": 24,
           "exclusiveSize": 24,
+          "size": 24,
           "length": 1024,
           "capacity": 1024
         }

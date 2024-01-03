@@ -153,10 +153,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":0,
+      "exclusiveSize":4,
+      "size":24,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0},
-        {"name":"b", "staticSize":8, "dynamicSize":0},
-        {"name":"c", "staticSize":8, "dynamicSize":0}
+        {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4},
+        {"name":"b", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8},
+        {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.struct_primitive_ptrs_null]
     param_types = ["const PrimitivePtrs&"]
@@ -165,10 +167,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":0,
+      "exclusiveSize":4,
+      "size":24,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0},
-        {"name":"b", "staticSize":8, "dynamicSize":0},
-        {"name":"c", "staticSize":8, "dynamicSize":0}
+        {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4},
+        {"name":"b", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8},
+        {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
 
 
@@ -189,8 +193,10 @@ definitions = '''
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":0,
+      "exclusiveSize":0,
+      "size":8,
       "members":[
-        {"name":"vec", "staticSize":8, "dynamicSize":0}
+        {"name":"vec", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.struct_vector_ptr_null]
     param_types = ["const VectorPtr&"]
@@ -199,8 +205,10 @@ definitions = '''
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":0,
+      "exclusiveSize":0,
+      "size":8,
       "members":[
-        {"name":"vec", "staticSize":8, "dynamicSize":0}
+        {"name":"vec", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
 
 
@@ -242,10 +250,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":0,
+      "exclusiveSize":4,
+      "size":24,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0},
-        {"name":"b", "staticSize":8, "dynamicSize":0},
-        {"name":"c", "staticSize":8, "dynamicSize":0}
+        {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4},
+        {"name":"b", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8},
+        {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.feature_config]
     oil_disable = "oil can't chase raw pointers safely"

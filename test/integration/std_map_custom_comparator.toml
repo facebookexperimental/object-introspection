@@ -70,10 +70,12 @@ includes = ["map", "functional"]
     expect_json_v2 = '''[{
       "staticSize":8184,
       "exclusiveSize":0,
+      "size":9168,
       "members":[
         {"name":"m1",
          "staticSize":48,
          "exclusiveSize":48,
+         "size":192,
          "length":3,
          "capacity":3,
          "members": [
@@ -81,7 +83,7 @@ includes = ["map", "functional"]
           {},
           {}
          ]},
-        {"name":"m2", "staticSize":48, "exclusiveSize":48, "length":5, "capacity":5},
-        {"name":"m3", "staticSize":48, "exclusiveSize":48, "length":7, "capacity":7},
-        {"name":"m4", "staticSize":8040, "exclusiveSize":8040, "length":9, "capacity":9}
+        {"name":"m2", "staticSize":48, "exclusiveSize":48, "size":248, "length":5, "capacity":5},
+        {"name":"m3", "staticSize":48, "exclusiveSize":48, "size":328, "length":7, "capacity":7},
+        {"name":"m4", "staticSize":8040, "exclusiveSize":8040, "size":8400, "length":9, "capacity":9}
       ]}]'''

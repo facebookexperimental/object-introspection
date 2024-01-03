@@ -4,23 +4,23 @@ includes = ["folly/small_vector.h", "vector"]
     param_types = ["const folly::small_vector<int>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "length":0, "capacity":2, "elementStaticSize":4}]'
-    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":16, "length":0, "capacity":2}]'
+    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":16, "size":16, "length":0, "capacity":2}]'
   [cases.int_default_inlined]
     param_types = ["const folly::small_vector<int>&"]
     setup = "return {{1,2}};"
     expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "length":2, "capacity":2, "elementStaticSize":4}]'
-    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":8, "length":2, "capacity":2}]'
+    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":8, "size":16, "length":2, "capacity":2}]'
   [cases.int_default_overflow]
     param_types = ["const folly::small_vector<int>&"]
     setup = "return {{1,2,3,4}};"
     expect_json = '[{"staticSize":16, "dynamicSize":24, "exclusiveSize":40, "length":4, "capacity":6, "elementStaticSize":4}]'
-    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":24, "length":4, "capacity":6}]'
+    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":24, "size":40, "length":4, "capacity":6}]'
 
   [cases.vector_3_empty]
     param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
     setup = "return {};"
     expect_json = '[{"staticSize":80, "dynamicSize":0, "exclusiveSize":80, "length":0, "capacity":3, "elementStaticSize":24}]'
-    expect_json_v2 = '[{"staticSize":80, "exclusiveSize":80, "length":0, "capacity":3}]'
+    expect_json_v2 = '[{"staticSize":80, "exclusiveSize":80, "size":80, "length":0, "capacity":3}]'
   [cases.vector_3_inlined]
     param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
     setup = "return {{ {1,2,3}, {4}, {5,6} }};"
@@ -31,10 +31,10 @@ includes = ["folly/small_vector.h", "vector"]
         {"staticSize":24, "dynamicSize":8, "exclusiveSize":32, "length":2, "capacity":2, "elementStaticSize":4}
     ]}]'''
     expect_json_v2 = '''[
-      {"staticSize":80, "length":3, "exclusiveSize":8, "capacity":3, "members":[
-        {"staticSize":24, "exclusiveSize":24, "length":3, "capacity":3},
-        {"staticSize":24, "exclusiveSize":24, "length":1, "capacity":1},
-        {"staticSize":24, "exclusiveSize":24, "length":2, "capacity":2}
+      {"staticSize":80, "length":3, "exclusiveSize":8, "size":104, "capacity":3, "members":[
+        {"staticSize":24, "exclusiveSize":24, "size":36, "length":3, "capacity":3},
+        {"staticSize":24, "exclusiveSize":24, "size":28, "length":1, "capacity":1},
+        {"staticSize":24, "exclusiveSize":24, "size":32, "length":2, "capacity":2}
     ]}]'''
   [cases.vector_3_overflow]
     param_types = ["const folly::small_vector<std::vector<int>, 3>&"]
@@ -47,15 +47,15 @@ includes = ["folly/small_vector.h", "vector"]
         {"staticSize":24, "dynamicSize":4, "exclusiveSize":28, "length":1, "capacity":1, "elementStaticSize":4}
     ]}]'''
     expect_json_v2 = '''[
-      {"staticSize":80, "exclusiveSize":104, "length":4, "capacity":5, "members":[
-        {"staticSize":24, "exclusiveSize":24, "length":3, "capacity":3},
-        {"staticSize":24, "exclusiveSize":24, "length":1, "capacity":1},
-        {"staticSize":24, "exclusiveSize":24, "length":2, "capacity":2},
-        {"staticSize":24, "exclusiveSize":24, "length":1, "capacity":1}
+      {"staticSize":80, "exclusiveSize":104, "size":228, "length":4, "capacity":5, "members":[
+        {"staticSize":24, "exclusiveSize":24, "size":36, "length":3, "capacity":3},
+        {"staticSize":24, "exclusiveSize":24, "size":28, "length":1, "capacity":1},
+        {"staticSize":24, "exclusiveSize":24, "size":32, "length":2, "capacity":2},
+        {"staticSize":24, "exclusiveSize":24, "size":28, "length":1, "capacity":1}
     ]}]'''
 
   [cases.int_always_heap]
     param_types = ["const folly::small_vector<int, 0>&"]
     setup = "return {{1}};"
     expect_json = '[{"staticSize":16, "dynamicSize":4, "exclusiveSize":20, "length":1, "capacity":1, "elementStaticSize":4}]'
-    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":16, "length":1, "capacity":1}]'
+    expect_json_v2 = '[{"staticSize":16, "exclusiveSize":16, "size":20, "length":1, "capacity":1}]'

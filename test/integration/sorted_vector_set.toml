@@ -23,6 +23,7 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize": 24,
       "exclusiveSize": 24,
+      "size": 24,
       "length": 0,
       "capacity": 0
     }]'''
@@ -56,6 +57,7 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize": 24,
       "exclusiveSize": 28,
+      "size": 40,
       "length": 3,
       "capacity": 4
     }]'''

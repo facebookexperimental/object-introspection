@@ -88,10 +88,12 @@ definitions = '''
     expect_json = '''[{
       "staticSize":12,
       "dynamicSize":0,
+      "exclusiveSize":0,
+      "size": 12,
       "members":[
-        {"name":"a", "staticSize":4, "dynamicSize":0},
-        {"name":"b", "staticSize":4, "dynamicSize":0},
-        {"name":"c", "staticSize":4, "dynamicSize":0}
+        {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4},
+        {"name":"b", "staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4},
+        {"name":"c", "staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}
       ]}]'''
 
   [cases.anon_struct]
@@ -207,10 +209,11 @@ definitions = '''
     expect_json_v2 = '''[{
       "staticSize": 24,
       "exclusiveSize": 10,
+      "size": 24,
       "members": [
-        {"name":"__oi_anon_0", "staticSize":2, "exclusiveSize":2},
-        {"name":"__oi_anon_2", "staticSize":8, "exclusiveSize":8},
-        {"name":"e", "staticSize":4, "exclusiveSize":4, "typeNames":["int32_t"]}
+        {"name":"__oi_anon_0", "staticSize":2, "exclusiveSize":2, "size":2},
+        {"name":"__oi_anon_2", "staticSize":8, "exclusiveSize":8, "size":8},
+        {"name":"e", "staticSize":4, "exclusiveSize":4, "size":4, "typeNames":["int32_t"]}
       ]
     }]'''
 

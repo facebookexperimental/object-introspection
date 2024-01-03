@@ -55,10 +55,6 @@ target_link_libraries(codegen
   glog::glog
 )
 
-add_library(exporters_json exporters/Json.cpp)
-target_include_directories(exporters_json PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(exporters_json oil)
-
 add_library(exporters_csv exporters/CSV.cpp)
 target_include_directories(exporters_csv PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(exporters_csv oil)

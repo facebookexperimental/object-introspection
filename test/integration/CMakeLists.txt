@@ -50,7 +50,7 @@ add_executable(integration_test_target
   ${INTEGRATION_TEST_TARGET_SRC}
   folly_shims.cpp)
 target_compile_options(integration_test_target PRIVATE -O1)
-target_link_libraries(integration_test_target PRIVATE oil_jit exporters_json Boost::headers ${Boost_LIBRARIES})
+target_link_libraries(integration_test_target PRIVATE oil_jit Boost::headers ${Boost_LIBRARIES})
 
 add_executable(integration_test_runner ${INTEGRATION_TEST_RUNNER_SRC} runner_common.cpp)
 target_include_directories(integration_test_runner PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})

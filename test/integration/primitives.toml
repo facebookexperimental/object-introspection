@@ -2,76 +2,76 @@
   [cases.short]
     param_types = ["short"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":2, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":2, "dynamicSize":0, "exclusiveSize":2, "size":2}]'
   [cases.ushort]
     param_types = ["unsigned short"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":2, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":2, "dynamicSize":0, "exclusiveSize":2, "size":2}]'
   [cases.int]
     param_types = ["int"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}]'
   [cases.uint]
     param_types = ["unsigned int"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}]'
   [cases.long]
     param_types = ["long"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":8, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}]'
   [cases.ulong]
     param_types = ["unsigned long"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":8, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}]'
   [cases.longlong]
     param_types = ["long long"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":8, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}]'
   [cases.ulonglong]
     param_types = ["unsigned long long"]
     setup = "return 123;"
-    expect_json = '[{"staticSize":8, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}]'
   [cases.bool]
     param_types = ["bool"]
     setup = "return true;"
-    expect_json = '[{"staticSize":1, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1}]'
   [cases.char]
     param_types = ["char"]
     setup = "return 'a';"
-    expect_json = '[{"staticSize":1, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1}]'
   [cases.uchar]
     param_types = ["unsigned char"]
     setup = "return 'a';"
-    expect_json = '[{"staticSize":1, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1}]'
   [cases.schar]
     param_types = ["signed char"]
     setup = "return 'a';"
-    expect_json = '[{"staticSize":1, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1}]'
   [cases.wchar_t]
     param_types = ["wchar_t"]
     setup = "return 'a';"
-    expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}]'
   [cases.char8_t]
     param_types = ["char8_t"]
     setup = "return 'a';"
-    expect_json = '[{"staticSize":1, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":1, "dynamicSize":0, "exclusiveSize":1, "size":1}]'
   [cases.char16_t]
     param_types = ["char16_t"]
     setup = "return 'a';"
-    expect_json = '[{"staticSize":2, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":2, "dynamicSize":0, "exclusiveSize":2, "size":2}]'
   [cases.char32_t]
     param_types = ["char32_t"]
     setup = "return 'a';"
-    expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}]'
   [cases.float]
     param_types = ["float"]
     setup = "return 3.14;"
-    expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}]'
   [cases.double]
     param_types = ["double"]
     setup = "return 3.14;"
-    expect_json = '[{"staticSize":8, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}]'
   [cases.long_double]
     param_types = ["long double"]
     setup = "return 3.14;"
-    expect_json = '[{"staticSize":16, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "size":16}]'

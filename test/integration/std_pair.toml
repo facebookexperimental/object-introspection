@@ -14,9 +14,9 @@ includes = ["vector", "utility", "cstdint"]
     ]
     '''
     expect_json_v2 = '''[
-      {"staticSize": 16, "exclusiveSize": 0, "members": [
-        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8},
-        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8}
+      {"staticSize": 16, "exclusiveSize": 0, "size": 16, "members": [
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8, "size": 8},
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8, "size": 8}
       ]}
     ]'''
   [cases.uint64_uint32]
@@ -34,9 +34,9 @@ includes = ["vector", "utility", "cstdint"]
     ]
     '''
     expect_json_v2 = '''[
-      {"staticSize": 16, "exclusiveSize": 4, "members": [
-        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8},
-        {"typeNames": ["uint32_t"], "staticSize": 4, "exclusiveSize": 4}
+      {"staticSize": 16, "exclusiveSize": 4, "size": 16, "members": [
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8, "size": 8},
+        {"typeNames": ["uint32_t"], "staticSize": 4, "exclusiveSize": 4, "size": 4}
       ]}
     ]'''
 
@@ -48,9 +48,9 @@ includes = ["vector", "utility", "cstdint"]
     param_types = ["std::pair<uint64_t, uint64_t*>&"]
     setup = "return {{0, nullptr}};"
     expect_json_v2 = '''[
-      {"staticSize": 16, "exclusiveSize": 0, "members": [
-        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8},
-        {"typeNames": ["uintptr_t (stubbed)"], "staticSize": 8, "exclusiveSize": 8}
+      {"staticSize": 16, "exclusiveSize": 0, "size": 16, "members": [
+        {"typeNames": ["uint64_t"], "staticSize": 8, "exclusiveSize": 8, "size": 8},
+        {"typeNames": ["uintptr_t (stubbed)"], "staticSize": 8, "exclusiveSize": 8, "size": 8}
       ]}
     ]'''
 
@@ -82,8 +82,8 @@ includes = ["vector", "utility", "cstdint"]
     ]
     '''
     expect_json_v2 = '''[
-      {"staticSize": 48, "exclusiveSize": 0, "members": [
-        {"typeNames": ["std::vector<uint64_t, std::allocator<uint64_t>>"], "staticSize": 24, "exclusiveSize": 24},
-        {"typeNames": ["std::vector<uint64_t, std::allocator<uint64_t>>"], "staticSize": 24, "exclusiveSize": 24}
+      {"staticSize": 48, "exclusiveSize": 0, "size": 104, "members": [
+        {"typeNames": ["std::vector<uint64_t, std::allocator<uint64_t>>"], "staticSize": 24, "exclusiveSize": 24, "size": 48},
+        {"typeNames": ["std::vector<uint64_t, std::allocator<uint64_t>>"], "staticSize": 24, "exclusiveSize": 24, "size": 56}
       ]}
     ]'''

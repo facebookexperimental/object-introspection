@@ -36,31 +36,31 @@ definitions = '''
     param_types = ["ScopedEnum"]
     setup = "return {};"
     expect_json = '[{"staticSize":4, "dynamicSize":0}]'
-    expect_json_v2 = '[{"typeNames": ["ScopedEnum"], "staticSize":4, "exclusiveSize":4}]'
+    expect_json_v2 = '[{"typeNames": ["ScopedEnum"], "staticSize":4, "exclusiveSize":4, "size":4}]'
   [cases.scoped_uint8]
     param_types = ["ScopedEnumUint8"]
     setup = "return {};"
     expect_json = '[{"staticSize":1, "dynamicSize":0}]'
-    expect_json_v2 = '[{"typeNames": ["ScopedEnumUint8"], "staticSize":1, "exclusiveSize":1}]'
+    expect_json_v2 = '[{"typeNames": ["ScopedEnumUint8"], "staticSize":1, "exclusiveSize":1, "size":1}]'
   [cases.unscoped]
     param_types = ["UNSCOPED_ENUM"]
     setup = "return {};"
-    expect_json = '[{"staticSize":4, "dynamicSize":0}]'
+    expect_json = '[{"staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}]'
   [cases.anonymous]
     skip = "TreeBuilder crashes" # https://github.com/facebookexperimental/object-introspection/issues/232
     param_types = ["Holder&"]
     setup = "return {};"
     expect_json = '''[
-      {"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "members":[
-        {"name":"e", "staticSize":4, "dynamicSize":0, "exclusiveSize":4}
+      {"staticSize":4, "dynamicSize":0, "exclusiveSize":0, "size":4, "members":[
+        {"name":"e", "staticSize":4, "dynamicSize":0, "exclusiveSize":4, "size":4}
     ]}]'''
   [cases.paired_with_element]
     param_types = ["Pair<ScopedEnumUint8, uint8_t>"]
     setup = "return {};"
     expect_json = '[{"staticSize":2, "dynamicSize":0}]'
     expect_json_v2 = '''[
-      {"staticSize": 2, "exclusiveSize": 0, "members": [
-        {"typeNames": ["ScopedEnumUint8"], "staticSize":1, "exclusiveSize":1},
-        {"typeNames": ["uint8_t"], "staticSize":1, "exclusiveSize":1}
+      {"staticSize": 2, "exclusiveSize": 0, "size":2, "members": [
+        {"typeNames": ["ScopedEnumUint8"], "staticSize":1, "exclusiveSize":1, "size":1},
+        {"typeNames": ["uint8_t"], "staticSize":1, "exclusiveSize":1, "size":1}
       ]}
     ]'''

@@ -20,6 +20,7 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 16,
         "exclusiveSize": 16,
+        "size": 16,
         "length": 0,
         "capacity": 1,
         "members": []
@@ -46,6 +47,7 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 16,
         "exclusiveSize": 8,
+        "size": 16,
         "length": 1,
         "capacity": 1,
         "members": [
@@ -77,6 +79,7 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 32,
         "exclusiveSize": 32,
+        "size": 32,
         "length": 0,
         "capacity": 1,
         "members": []
@@ -111,12 +114,14 @@ includes = ["optional", "cstdint", "vector"]
       {
         "staticSize": 32,
         "exclusiveSize": 8,
+        "size": 72,
         "length": 1,
         "capacity": 1,
         "members": [
           {
             "staticSize": 24,
             "exclusiveSize": 24,
+            "size": 64,
             "length": 5,
             "capacity": 5
           }
