@@ -501,3 +501,16 @@ TEST(NameGenTest, AnonymousMembers) {
   EXPECT_EQ(myclass.members[0].inputName, "__oi_anon_0");
   EXPECT_EQ(myclass.members[1].inputName, "__oi_anon_1");
 }
+
+TEST(NameGenTest, IncompleteTypes) {
+  auto myincompletevector = Incomplete{0, "std::vector<int>"};
+
+  auto myint = Primitive{Primitive::Kind::Int32};
+  auto myincompleteint = Incomplete{1, myint};
+
+  NameGen nameGen;
+  nameGen.generateNames({myincompletevector, myincompleteint});
+
+  EXPECT_EQ(myincompletevector.name(), "Incomplete<struct std__vector_int_>");
+  EXPECT_EQ(myincompleteint.name(), "Incomplete<struct int32_t>");
+}

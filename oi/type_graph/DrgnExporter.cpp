@@ -100,6 +100,8 @@ drgn_type* DrgnExporter::visit(Container& c) {
     if (auto* p = dynamic_cast<const Primitive*>(&paramType);
         p && p->kind() == Primitive::Kind::Void) {
       return drgnType;
+    } else if (auto* i = dynamic_cast<const Incomplete*>(&paramType)) {
+      return drgnType;
     }
   }
 
