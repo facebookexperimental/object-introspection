@@ -215,10 +215,11 @@ Type& TypeGraphParser::parseType(std::string_view& input, size_t rootIndent) {
       auto nameEndPos = line.find(']', nameStartPos);
       auto underlyingTypeName =
           line.substr(nameStartPos, nameEndPos - nameStartPos);
-      type = &typeGraph_.makeType<Incomplete>(std::string(underlyingTypeName));
+      type =
+          &typeGraph_.makeType<Incomplete>(id, std::string(underlyingTypeName));
     } else {
       auto& underlyingType = parseType(input, indent + 2);
-      type = &typeGraph_.makeType<Incomplete>(underlyingType);
+      type = &typeGraph_.makeType<Incomplete>(id, underlyingType);
     }
   } else if (nodeTypeName == "Class" || nodeTypeName == "Struct" ||
              nodeTypeName == "Union") {

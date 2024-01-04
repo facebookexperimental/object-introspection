@@ -60,6 +60,7 @@ using type_graph::EnforceCompatibility;
 using type_graph::Enum;
 using type_graph::Flattener;
 using type_graph::IdentifyContainers;
+using type_graph::Incomplete;
 using type_graph::KeyCapture;
 using type_graph::Member;
 using type_graph::NameGen;
@@ -415,8 +416,6 @@ void addStandardGetSizeFuncDecls(std::string& code) {
     template<typename T>
     void getSizeType(/*const*/ T* s_ptr, size_t& returnArg);
 
-    void getSizeType(/*const*/ void *s_ptr, size_t& returnArg);
-
     template <typename T, int N>
     void getSizeType(const OIArray<T,N>& container, size_t& returnArg);
   )";
@@ -438,22 +437,22 @@ void addStandardGetSizeFuncDefs(std::string& code) {
     template<typename T>
     void getSizeType(/*const*/ T* s_ptr, size_t& returnArg)
     {
-      JLOG("ptr val @");
-      JLOGPTR(s_ptr);
-      StoreData((uintptr_t)(s_ptr), returnArg);
-      if (s_ptr && ctx.pointers.add((uintptr_t)s_ptr)) {
-        StoreData(1, returnArg);
-        getSizeType(*(s_ptr), returnArg);
+      if constexpr (!oi_is_complete<T>) {
+        JLOG("incomplete ptr @");
+        JLOGPTR(s_ptr);
+        StoreData((uintptr_t)(s_ptr), returnArg);
+        return;
       } else {
-        StoreData(0, returnArg);
+        JLOG("ptr val @");
+        JLOGPTR(s_ptr);
+        StoreData((uintptr_t)(s_ptr), returnArg);
+        if (s_ptr && ctx.pointers.add((uintptr_t)s_ptr)) {
+          StoreData(1, returnArg);
+          getSizeType(*(s_ptr), returnArg);
+        } else {
+          StoreData(0, returnArg);
+        }
       }
-    }
-
-    void getSizeType(/*const*/ void *s_ptr, size_t& returnArg)
-    {
-      JLOG("void ptr @");
-      JLOGPTR(s_ptr);
-      StoreData((uintptr_t)(s_ptr), returnArg);
     }
 
     template <typename T, int N>

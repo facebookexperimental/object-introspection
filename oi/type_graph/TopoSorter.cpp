@@ -139,6 +139,10 @@ void TopoSorter::visit(CaptureKeys& c) {
   sortedTypes_.push_back(c);
 }
 
+void TopoSorter::visit(Incomplete& i) {
+  sortedTypes_.push_back(i);
+}
+
 /*
  * A type graph may contain cycles, so we need to slightly tweak the standard
  * topological sorting algorithm. Cycles can only be introduced by certain

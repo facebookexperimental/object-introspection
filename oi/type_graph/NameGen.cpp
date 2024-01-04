@@ -219,4 +219,27 @@ void NameGen::visit(CaptureKeys& c) {
   c.regenerateName();
 }
 
+void NameGen::visit(Incomplete& i) {
+  constexpr std::string_view kPrefix{"Incomplete<struct "};
+
+  RecursiveVisitor::visit(i);
+
+  std::string_view inputName = i.inputName();
+
+  std::string name;
+  name.reserve(kPrefix.size() + inputName.size() + 2);
+  name = kPrefix;
+
+  for (const unsigned char c : inputName) {
+    if (std::isalnum(c)) {
+      name += c;
+    } else {
+      name += '_';
+    }
+  }
+  name += ">";
+
+  i.setName(name);
+}
+
 }  // namespace oi::detail::type_graph

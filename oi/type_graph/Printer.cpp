@@ -37,7 +37,9 @@ void Printer::print(const Type& type) {
 }
 
 void Printer::visit(const Incomplete& i) {
-  prefix();
+  if (prefix(i))
+    return;
+
   out_ << "Incomplete";
   if (auto underlyingType = i.underlyingType()) {
     out_ << std::endl;

@@ -191,7 +191,7 @@ TEST(RemoveMembersTest, Incomplete) {
       Member: a (offset: 0)
         Primitive: int32_t
       Member: b (offset: 4)
-        Incomplete: [MyIncompleteType]
+[1]     Incomplete: [MyIncompleteType]
       Member: c (offset: 8)
         Primitive: int32_t
 )",

@@ -182,3 +182,19 @@ bool isStorageInline(const auto& c) {
   return (uintptr_t)std::data(c) < (uintptr_t)(&c + sizeof(c)) &&
          (uintptr_t)std::data(c) >= (uintptr_t)&c;
 }
+
+namespace OIInternal {
+namespace {
+
+template <typename T>
+struct Incomplete;
+
+template <typename T>
+constexpr bool oi_is_complete = true;
+template <>
+constexpr bool oi_is_complete<void> = false;
+template <typename T>
+constexpr bool oi_is_complete<Incomplete<T>> = false;
+
+}  // namespace
+}  // namespace OIInternal

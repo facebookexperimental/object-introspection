@@ -48,6 +48,7 @@ class TopoSorter : public RecursiveVisitor {
   void visit(Pointer& p) override;
   void visit(Primitive& p) override;
   void visit(CaptureKeys& p) override;
+  void visit(Incomplete& i) override;
 
  private:
   std::unordered_set<Type*> visited_;

@@ -21,7 +21,7 @@ void getSizeType(const %1%<T> &s_ptr, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<T>));
 
-    if constexpr (!std::is_void<T>::value) {
+    if constexpr (oi_is_complete<T>) {
         SAVE_DATA((uintptr_t)(s_ptr.get()));
 
         if (s_ptr && ctx.pointers.add((uintptr_t)(s_ptr.get()))) {
@@ -37,7 +37,7 @@ void getSizeType(const %1%<T> &s_ptr, size_t& returnArg)
 traversal_func = """
 auto tail = returnArg.write((uintptr_t)container.get());
 
-if constexpr (std::is_void<T0>::value) {
+if constexpr (!oi_is_complete<T0>) {
   return tail.template delegate<0>(std::identity());
 } else {
   bool do_visit = container && ctx.pointers.add((uintptr_t)container.get());
@@ -85,7 +85,7 @@ el.container_stats.emplace(result::Element::ContainerStats {
 });
 
 // Must be in a `if constexpr` or the compiler will complain about make_field<Ctx, void>
-if constexpr (!std::is_void<T0>::value) {
+if constexpr (oi_is_complete<T0>) {
   if (sum.index == 1) {
     static constexpr auto element = make_field<Ctx, T0>("ptr_val");
     stack_ins(element);
