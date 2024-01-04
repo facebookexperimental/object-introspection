@@ -4,11 +4,13 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/process.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <range/v3/view/split.hpp>
 #include <string>
 #include <utility>
 
@@ -446,4 +448,167 @@ Proc OilIntegration::runOilTarget(OilOpts opts,
               std::move(targetProcess),
               std::move(std_out),
               std::move(std_err)};
+}
+
+std::string OilgenIntegration::TmpDirStr() {
+  return std::string("/tmp/oilgen-integration-XXXXXX");
+}
+
+Proc OilgenIntegration::runOilgenTarget(OilgenOpts opts,
+                                        std::string configPrefix,
+                                        std::string configSuffix) {
+  // Run an oilgen test in three stages.
+  // 1. Fake up a compilation database from the real CMake one.
+  // 1. Generate the OIL implementation .o from the input source.
+  // 2. Compile the input source and link to the implementation.
+  // 3. Run the now complete target.
+
+  static constexpr std::string_view InputPath = "input_src.cpp";
+  static constexpr std::string_view ObjectPath = "oil_generated.o";
+  static constexpr std::string_view TargetPath = "generated_target";
+  static const std::string CompileCommandsOutPath = "compile_commands.json";
+
+  static const char* CompileCommandsInPath = "/data/users/jakehillion/object-introspection-sl/build/compile_commands.json";
+
+  {
+    std::ofstream file{std::string(InputPath), std::ios_base::app};
+    file << opts.targetSrc;
+  }
+
+  bpt::ptree compile_commands_in;
+  bpt::ptree compile_commands_out;
+  bpt::read_json(CompileCommandsInPath, compile_commands_in);
+  for (bpt::ptree::value_type& entry : compile_commands_in) {
+    if (!entry.second.get<std::string>("file").ends_with("integration_test_target.cpp"))
+      continue;
+
+    auto input = std::filesystem::absolute(InputPath).string();
+    entry.second.put("file", input);
+    compile_commands_out.add_child(bpt::ptree::path_type(input, ':'), entry.second);
+    break;
+  }
+  bpt::write_json(CompileCommandsOutPath, compile_commands_out);
+
+  std::string generatorExe{OILGEN_EXE_PATH};
+  generatorExe += " ";
+  generatorExe += InputPath;
+  generatorExe += " --output=";
+  generatorExe += ObjectPath;
+  generatorExe += " --debug-level=3";
+  if (auto prefix = writeCustomConfig("prefix", configPrefix)) {
+    generatorExe += " --config-file ";
+    generatorExe += *prefix;
+  }
+  generatorExe += " --config-file ";
+  generatorExe += configFile;
+  if (auto suffix = writeCustomConfig("suffix", configSuffix)) {
+    generatorExe += " --config-file ";
+    generatorExe += *suffix;
+  }
+
+
+  std::vector<std::string> clangArgs{
+      "-DOIL_AOT_COMPILATION=1",
+      "--std=c++20",
+      "-resource-dir",
+      "/usr/lib64/clang/15.0.7",
+  };
+
+  for(auto&& rng : TARGET_INCLUDE_DIRECTORIES | ranges::views::split(':')) {
+    clangArgs.emplace_back("-I");
+    clangArgs.emplace_back(&*rng.begin(), ranges::distance(rng));
+  }
+
+  for (const auto& arg : clangArgs) {
+    generatorExe += " --extra-arg=";
+    generatorExe += arg;
+  }
+
+  if (verbose) {
+    std::cerr << "Running: " << generatorExe << std::endl;
+  }
+
+  bp::child generatorProc{generatorExe, opts.ctx};
+  generatorProc.wait();
+  if (generatorProc.exit_code() != 0)
+    throw std::runtime_error("generation failed!");
+
+  std::string compilerExe{CXX};
+  compilerExe += " input_src.cpp ";
+  compilerExe += ObjectPath;
+  compilerExe += " -o ";
+  compilerExe += TargetPath;
+  compilerExe += " /data/users/jakehillion/object-introspection-sl/oi/IntrospectionResult.cpp";
+  compilerExe += " /data/users/jakehillion/object-introspection-sl/oi/exporters/ParsedData.cpp";
+
+  compilerExe += " -Wl,-rpath,/data/users/jakehillion/object-introspection-sl/extern/drgn/build/.libs:/data/users/jakehillion/object-introspection-sl/extern/drgn/build/velfutils/libdw:/data/users/jakehillion/object-introspection-sl/extern/drgn/build/velfutils/libelf:/data/users/jakehillion/object-introspection-sl/extern/drgn/build/velfutils/libdwelf:/home/jakehillion/fbsource/fbcode/third-party-buck/platform010/build/icu/lib:/home/jakehillion/fbsource/fbcode/third-party-buck/platform010/build/gflags/lib";
+  for (const auto& arg : clangArgs) {
+    compilerExe += ' ';
+    compilerExe += arg;
+  }
+
+  if (verbose) {
+    std::cerr << "Running: " << compilerExe << std::endl;
+  }
+
+  bp::child compilerProc{compilerExe, opts.ctx};
+  compilerProc.wait();
+  if (compilerProc.exit_code() != 0)
+    throw std::runtime_error("compilation failed");
+
+  std::string targetExe = "./";
+  targetExe += TargetPath;
+
+  if (verbose) {
+    std::cerr << "Running: " << targetExe << std::endl;
+  }
+
+  // Use tee to write the output to files. If verbose is on, also redirect the
+  // output to stderr.
+  bp::async_pipe std_out_pipe(opts.ctx), std_err_pipe(opts.ctx);
+  bp::child std_out, std_err;
+  if (verbose) {
+    // clang-format off
+    std_out = bp::child(bp::search_path("tee"),
+                        (workingDir / "stdout").string(),
+                        bp::std_in < std_out_pipe,
+                        bp::std_out > stderr,
+                        opts.ctx);
+    std_err = bp::child(bp::search_path("tee"),
+                        (workingDir / "stderr").string(),
+                        bp::std_in < std_err_pipe,
+                        bp::std_out > stderr,
+                        opts.ctx);
+    // clang-format on
+  } else {
+    // clang-format off
+    std_out = bp::child(bp::search_path("tee"),
+                        (workingDir / "stdout").string(),
+                        bp::std_in < std_out_pipe,
+                        bp::std_out > bp::null,
+                        opts.ctx);
+    std_err = bp::child(bp::search_path("tee"),
+                        (workingDir / "stderr").string(),
+                        bp::std_in < std_err_pipe,
+                        bp::std_out > bp::null,
+                        opts.ctx);
+    // clang-format on
+  }
+
+  /* Spawn `oid` with tracing on and IOs redirected */
+  // clang-format off
+  bp::child targetProc(
+      targetExe,
+      bp::std_in  < bp::null,
+      bp::std_out > std_out_pipe,
+      bp::std_err > std_err_pipe,
+      opts.ctx);
+  // clang-format on
+
+  return Proc{
+      opts.ctx,
+      std::move(targetProc),
+      std::move(std_out),
+      std::move(std_err),
+  };
 }

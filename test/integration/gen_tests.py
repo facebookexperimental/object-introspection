@@ -51,6 +51,41 @@ def add_headers(f, custom_headers, thrift_headers):
         f.write(f'#include "{header}"\n')
 
 
+def add_test_getters(f, case_name, case):
+    param_types = ", ".join(
+        f"std::remove_cvref_t<{param}>" for param in case["param_types"]
+    )
+    if "arg_types" in case:
+        arg_types = ", ".join(case["arg_types"])
+    else:
+        arg_types = param_types
+
+    f.write(
+        f"\n"
+        f"  std::tuple<{arg_types}> get_{case_name}() {{\n"
+        f'{case["setup"]}\n'
+        f"  }}\n"
+    )
+
+
+def get_param_str(param, i):
+    if "]" in param:
+        # Array param
+
+        if ")" in param:
+            # "int(&)[5]" ->  "int (&a0)[5]"
+            start, end = param.split(")")
+            return f"{start}a{i}){end}"
+
+        # "int[5]" -> "int a0[5]"
+        # "int[5][10]" -> "int a0[5][10]"
+        type_name, array_size = param.split("[", 1)
+        return f"{type_name} a{i}[{array_size}"
+
+    # Non-array param, e.g. "int&" -> "int& a0"
+    return f"{param} a{i}"
+
+
 def add_test_setup(f, config):
     ns = get_namespace(config["suite"])
     # fmt: off
@@ -64,23 +99,6 @@ def add_test_setup(f, config):
         f"#pragma clang diagnostic pop\n"
     )
     # fmt: on
-
-    def get_param_str(param, i):
-        if "]" in param:
-            # Array param
-
-            if ")" in param:
-                # "int(&)[5]" ->  "int (&a0)[5]"
-                start, end = param.split(")")
-                return f"{start}a{i}){end}"
-
-            # "int[5]" -> "int a0[5]"
-            # "int[5][10]" -> "int a0[5][10]"
-            type_name, array_size = param.split("[", 1)
-            return f"{type_name} a{i}[{array_size}"
-
-        # Non-array param, e.g. "int&" -> "int& a0"
-        return f"{param} a{i}"
 
     def define_traceable_func(name, params, body):
         return (
@@ -99,21 +117,7 @@ def add_test_setup(f, config):
             # target func for it
             continue
 
-        # generate getter for an object of this type
-        param_types = ", ".join(
-            f"std::remove_cvref_t<{param}>" for param in case["param_types"]
-        )
-        if "arg_types" in case:
-            arg_types = ", ".join(case["arg_types"])
-        else:
-            arg_types = param_types
-
-        f.write(
-            f"\n"
-            f"  std::tuple<{arg_types}> get_{case_name}() {{\n"
-            f'{case["setup"]}\n'
-            f"  }}\n"
-        )
+        add_test_getters(f, case_name, case)
 
         # generate oid and oil targets
         params_str = ", ".join(
@@ -266,6 +270,7 @@ def add_tests(f, config):
     for case_name, case in config["cases"].items():
         add_oid_integration_test(f, config, case_name, case)
         add_oil_integration_test(f, config, case_name, case)
+        add_oilgen_integration_test(f, config, case_name, case)
 
 
 def add_oid_integration_test(f, config, case_name, case):
@@ -369,6 +374,90 @@ def add_oil_integration_test(f, config, case_name, case):
         f"  auto target = runOilTarget({{\n"
         f"    .ctx = ctx,\n"
         f'    .targetArgs = "oil {case_str}",\n'
+        f"  }}, std::move(configPrefix), std::move(configSuffix));\n\n"
+        f"  ASSERT_EQ(exit_code(target), {exit_code});\n"
+    )
+
+    key = "expect_json"
+    if "expect_json_v2" in case:
+        key = "expect_json_v2"
+    if key in case:
+        try:
+            json.loads(case[key])
+        except json.decoder.JSONDecodeError as error:
+            print(
+                f"\x1b[31m`expect_json` value for test case {config['suite']}.{case_name} was invalid JSON: {error}\x1b[0m",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        f.write(
+            f"\n"
+            f"  std::stringstream expected_json_ss;\n"
+            f'  expected_json_ss << R"--({case[key]})--";\n'
+            f"  auto result_json_ss = std::stringstream(stdout_);\n"
+            f"  bpt::ptree expected_json, actual_json;\n"
+            f"  bpt::read_json(expected_json_ss, expected_json);\n"
+            f"  bpt::read_json(result_json_ss, actual_json);\n"
+            f"  compare_json(expected_json, actual_json);\n"
+        )
+
+    f.write(f"}}\n")
+
+
+def add_oilgen_integration_test(f, config, case_name, case):
+    case_str = get_case_name(config["suite"], case_name)
+    exit_code = case.get("expect_oil_exit_code", 0)
+
+    if "oil_disable" in case or "target_function" in case:
+        return
+
+    config_prefix = case.get("config_prefix", "")
+    config_suffix = case.get("config_suffix", "")
+
+    f.write(
+        f"\n"
+        f"TEST_F(OilgenIntegration, {case_str}) {{\n"
+        f"{generate_skip(case, 'oil')}"
+    )
+
+    f.write('  constexpr std::string_view targetSrc = R"--(')
+    headers = set(config.get("includes", []))
+    thrift_headers = [f"thrift/annotation/gen-cpp2/{config['suite']}_types.h"] if is_thrift_test(config) else []
+    add_headers(f, sorted(headers), thrift_headers)
+
+    f.write(
+        f"\n"
+        f'{config.get("raw_definitions", "")}\n'
+        f"#pragma clang diagnostic push\n"
+        f'#pragma clang diagnostic ignored "-Wunused-private-field"\n'
+        f'{config.get("definitions", "")}\n'
+        f"#pragma clang diagnostic pop\n"
+    )
+    add_test_getters(f, case_name, case)
+
+    main = "int main() {\n"
+    main += "  auto pr = oi::exporters::Json(std::cout);\n"
+    main += "  pr.setPretty(true);\n"
+    main += f"  auto val = get_{case_name}();\n"
+    for i in range(len(case["param_types"])):
+        main += f"  auto ret{i} = oi::result::SizedResult(oi::introspect"
+        if "arg_types" in case:
+            main += f"<std::decay_t<{case['param_types'][i]}>>"
+        main += f"(std::get<{i}>(val)));\n"
+        main += f"  pr.print(ret{i});\n"
+    main += "}\n"
+
+    f.write(main)
+    f.write(')--";\n')
+
+    f.write(
+        f'  std::string configPrefix = R"--({config_prefix})--";\n'
+        f'  std::string configSuffix = R"--({config_suffix})--";\n'
+        f"  ba::io_context ctx;\n"
+        f"  auto target = runOilgenTarget({{\n"
+        f"    .ctx = ctx,\n"
+        f"    .targetSrc = targetSrc,\n"
         f"  }}, std::move(configPrefix), std::move(configSuffix));\n\n"
         f"  ASSERT_EQ(exit_code(target), {exit_code});\n"
     )

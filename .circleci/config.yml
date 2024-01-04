@@ -14,7 +14,7 @@ workflows:
           name: test-gcc
           requires:
             - build-gcc
-          exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0"
+          exclude_regex: "OilgenIntegration\\..*|.*inheritance_polymorphic.*|.*arrays_member_int0"
       - coverage:
           name: coverage
           requires:

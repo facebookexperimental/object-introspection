@@ -350,6 +350,7 @@ Primitive& ClangTypeParser::enumeratePrimitive(const clang::BuiltinType& ty) {
     case clang::BuiltinType::WChar_U:
       return makeType<Primitive>(ty, Primitive::Kind::UInt32);
 
+    case clang::BuiltinType::Char8:
     case clang::BuiltinType::Char_S:
     case clang::BuiltinType::SChar:
       return makeType<Primitive>(ty, Primitive::Kind::Int8);
@@ -380,8 +381,9 @@ Primitive& ClangTypeParser::enumeratePrimitive(const clang::BuiltinType& ty) {
     case clang::BuiltinType::Float:
       return makeType<Primitive>(ty, Primitive::Kind::Float32);
     case clang::BuiltinType::Double:
-    case clang::BuiltinType::LongDouble:
       return makeType<Primitive>(ty, Primitive::Kind::Float64);
+    case clang::BuiltinType::LongDouble:
+      return makeType<Primitive>(ty, Primitive::Kind::Float128);
 
     case clang::BuiltinType::UInt128:
     case clang::BuiltinType::Int128:

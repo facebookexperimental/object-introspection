@@ -592,7 +592,7 @@ class Primitive : public Type {
     Float32,
     Float64,
     Float80,   // TODO worth including?
-    Float128,  // TODO can we generate this?
+    Float128,
     Bool,
 
     StubbedPointer,

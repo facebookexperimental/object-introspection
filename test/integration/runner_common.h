@@ -22,6 +22,11 @@ struct OilOpts {
   std::string targetArgs;
 };
 
+struct OilgenOpts {
+  boost::asio::io_context& ctx;
+  std::string_view targetSrc;
+};
+
 struct Proc {
   boost::asio::io_context& ctx;
   boost::process::child proc;
@@ -80,4 +85,13 @@ class OilIntegration : public IntegrationBase {
   Proc runOilTarget(OilOpts opts,
                     std::string configPrefix,
                     std::string configSuffix);
+};
+
+class OilgenIntegration : public IntegrationBase {
+ protected:
+  std::string TmpDirStr() override;
+
+  Proc runOilgenTarget(OilgenOpts opts,
+                       std::string configPrefix,
+                       std::string configSuffix);
 };
