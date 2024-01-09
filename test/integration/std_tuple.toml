@@ -9,7 +9,6 @@ struct Bar {
 '''
 [cases]
   [cases.uint64_uint64]
-    oil_skip = "std::tuple is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/304
     param_types = ["Bar&"]
     setup = '''
       Foo f;
@@ -35,3 +34,15 @@ struct Bar {
       }
     ]
     '''
+    expect_json_v2 = '''[
+      { "size":24, "staticSize":24, "exclusiveSize":0, "members":[
+        {"size":24, "staticSize":24, "exclusiveSize":8, "members":[
+          {"size":16, "staticSize":16, "exclusiveSize":0, "members": [
+            {"size":16, "staticSize":16, "exclusiveSize":0, "members": [
+              {"size":8, "staticSize":8, "exclusiveSize":8, "members":[]},
+              {"size":8, "staticSize":8, "exclusiveSize":8, "members":[]}
+            ]}
+          ]}
+        ]}
+      ]}
+    ]'''
