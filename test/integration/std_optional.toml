@@ -18,6 +18,7 @@ includes = ["optional", "cstdint", "vector"]
     expect_json_v2 = '''
     [
       {
+        "typeNames": ["std::optional<uint64_t>"],
         "staticSize": 16,
         "exclusiveSize": 16,
         "size": 16,
@@ -45,6 +46,7 @@ includes = ["optional", "cstdint", "vector"]
     expect_json_v2 = '''
     [
       {
+        "typeNames": ["std::optional<uint64_t>"],
         "staticSize": 16,
         "exclusiveSize": 8,
         "size": 16,
@@ -52,6 +54,7 @@ includes = ["optional", "cstdint", "vector"]
         "capacity": 1,
         "members": [
           {
+            "typeNames": ["uint64_t"],
             "staticSize": 8,
             "exclusiveSize": 8
           }
@@ -77,6 +80,7 @@ includes = ["optional", "cstdint", "vector"]
     expect_json_v2 = '''
     [
       {
+        "typeNames": ["std::optional<std::vector<uint64_t, std::allocator<uint64_t>>>"],
         "staticSize": 32,
         "exclusiveSize": 32,
         "size": 32,
@@ -112,6 +116,7 @@ includes = ["optional", "cstdint", "vector"]
     expect_json_v2 = '''
     [
       {
+        "typeNames": ["std::optional<std::vector<uint64_t, std::allocator<uint64_t>>>"],
         "staticSize": 32,
         "exclusiveSize": 8,
         "size": 72,
@@ -119,6 +124,7 @@ includes = ["optional", "cstdint", "vector"]
         "capacity": 1,
         "members": [
           {
+            "typeNames": ["std::vector<uint64_t, std::allocator<uint64_t>>"],
             "staticSize": 24,
             "exclusiveSize": 24,
             "size": 64,

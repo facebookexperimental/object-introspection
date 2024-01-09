@@ -41,14 +41,7 @@ if (container.has_value()) {
 [[codegen.processor]]
 type = "types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<Ctx, T0>::type>"
 func = """
-static constexpr std::array<std::string_view, 1> names{"TODO"};
-static constexpr auto elementField = inst::Field{
-  sizeof(T0),
-  "el",
-  names,
-  TypeHandler<Ctx, T0>::fields,
-  TypeHandler<Ctx, T0>::processors,
-};
+static constexpr auto elementField = make_field<Ctx, T0>("el");
 
 auto sum = std::get<ParsedData::Sum>(d.val);
 
