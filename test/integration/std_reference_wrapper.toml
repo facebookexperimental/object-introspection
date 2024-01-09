@@ -1,12 +1,14 @@
 includes = ["functional"]
 [cases]
   [cases.int]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/307
     param_types = ["const std::reference_wrapper<int>&"]
     setup = "return std::ref(*new int(1));"
     expect_json = '[{"staticSize":8, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4}]'
+    expect_json_v2 = '''[{
+      "size":12, "staticSize":8, "exclusiveSize":8, "length":1, "capacity":1, "members":[
+        {"size":4, "staticSize":4, "exclusiveSize":4, "members":[]}
+    ]}]'''
   [cases.vector]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/307
     param_types = ["const std::vector<std::reference_wrapper<int>>&"]
     setup = "return {{std::ref(*new int(1)), std::ref(*new int(2)), std::ref(*new int(3))}};"
     expect_json = '''[{
@@ -20,3 +22,21 @@ includes = ["functional"]
         {"staticSize":8, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4},
         {"staticSize":8, "dynamicSize":4, "length":1, "capacity":1, "elementStaticSize":4}
       ]}]'''
+    expect_json_v2 = '''[{
+      "size":60,
+      "staticSize":24,
+      "exclusiveSize":24,
+      "length":3,
+      "capacity":3,
+      "members":[
+        {"size":12, "staticSize":8, "exclusiveSize":8, "length":1, "capacity":1, "members":[
+          {"size":4, "staticSize":4, "exclusiveSize":4, "members":[]}
+        ]},
+        {"size":12, "staticSize":8, "exclusiveSize":8, "length":1, "capacity":1, "members":[
+          {"size":4, "staticSize":4, "exclusiveSize":4, "members":[]}
+        ]},
+        {"size":12, "staticSize":8, "exclusiveSize":8, "length":1, "capacity":1, "members":[
+          {"size":4, "staticSize":4, "exclusiveSize":4, "members":[]}
+        ]}
+      ]
+    }]'''
