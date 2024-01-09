@@ -29,3 +29,42 @@ void getSizeType(const %1%<T> &ref, size_t& returnArg)
     }
 }
 """
+
+traversal_func = """
+auto tail = returnArg.write((uintptr_t)&(container.get()));
+
+if (ctx.pointers.add((uintptr_t)&container.get())) {
+  return tail.template delegate<1>([&ctx, &container](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, container.get(), ret);
+  });
+} else {
+  return tail.template delegate<0>(std::identity());
+}
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = """
+types::st::Sum<DB,
+  types::st::Unit<DB>,
+  typename TypeHandler<Ctx, T0>::type>
+"""
+func = """
+auto sum = std::get<ParsedData::Sum>(d.val);
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = 1,
+  .length = sum.index, // 0 if in a cycle, 1 otherwise
+});
+
+if constexpr (oi_is_complete<T0>) {
+  if (sum.index == 1) {
+    static constexpr auto element = make_field<Ctx, T0>("ref_val");
+    stack_ins(element);
+  }
+}
+"""
