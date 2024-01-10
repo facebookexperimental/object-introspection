@@ -378,9 +378,20 @@ uint64_t TreeBuilder::next() {
 }
 
 bool TreeBuilder::isContainer(const Variable& variable) {
-  return th->containerTypeMap.contains(variable.type) ||
-         (drgn_type_kind(variable.type) == DRGN_TYPE_ARRAY &&
-          drgn_type_length(variable.type) > 0);
+  if (th->containerTypeMap.contains(variable.type)) {
+    return true;
+  }
+
+  if (drgn_type_kind(variable.type) == DRGN_TYPE_ARRAY) {
+    /* CodeGen v1 does not consider zero-length array as containers,
+     * but CodeGen v2 does. This discrepancy is handled here.
+     * TODO: Cleanup this workaround once CodeGen v1 is gone. See #453
+     */
+    return config.features[Feature::TypeGraph] ||
+           drgn_type_length(variable.type) > 0;
+  }
+
+  return false;
 }
 
 bool TreeBuilder::isPrimitive(struct drgn_type* type) {
