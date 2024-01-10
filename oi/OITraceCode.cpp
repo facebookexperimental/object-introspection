@@ -160,15 +160,14 @@ template <typename T, int32_t Id>
 struct DummyAllocator<T, 0, 1, Id>
     : DummyAllocatorBase<DummyAllocator, T, 0, 1, Id> {};
 
-template <typename Type, size_t ExpectedSize, size_t ActualSize = 0>
-struct validate_size {
+template <typename Type, size_t ExpectedSize, size_t ActualSize>
+struct validate_size_eq {
   static constexpr bool value = true;
   static_assert(ExpectedSize == ActualSize);
 };
 
 template <typename Type, size_t ExpectedSize>
-struct validate_size<Type, ExpectedSize>
-    : validate_size<Type, ExpectedSize, sizeof(Type)> {};
+struct validate_size : validate_size_eq<Type, ExpectedSize, sizeof(Type)> {};
 
 template <size_t ExpectedOffset, size_t ActualOffset>
 struct validate_offset {
