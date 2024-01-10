@@ -36,7 +36,7 @@ definitions = '''
     arg_types = ["Root"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName":"Root",
+      "typeName":"ns_inheritance_polymorphic_diamond::Root",
       "staticSize":16,
       "dynamicSize":0,
       "members":[
@@ -55,7 +55,7 @@ definitions = '''
       return m;
     '''
     expect_json = '''[{
-      "typeName":"Middle1",
+      "typeName":"ns_inheritance_polymorphic_diamond::Middle1",
       "staticSize":40,
       "dynamicSize":12,
       "members":[
@@ -67,14 +67,14 @@ definitions = '''
     oil_skip = "Polymorphic inheritance disabled in OIL"
     cli_options = ["-fpolymorphic-inheritance"]
     param_types = ["const Middle1&"]
-    arg_types = ["Middle1"]
+    arg_types = ["ns_inheritance_polymorphic_diamond::Middle1"]
     setup = '''
       Middle1 m;
       m.vec_middle1 = {1,2,3};
       return m;
     '''
     expect_json = '''[{
-      "typeName":"Middle1",
+      "typeName":"ns_inheritance_polymorphic_diamond::Middle1",
       "staticSize":40,
       "dynamicSize":12,
       "members":[
@@ -94,7 +94,7 @@ definitions = '''
       return m;
     '''
     expect_json = '''[{
-      "typeName":"Middle2",
+      "typeName":"ns_inheritance_polymorphic_diamond::Middle2",
       "staticSize":40,
       "dynamicSize":8,
       "members":[
@@ -113,7 +113,7 @@ definitions = '''
       return m;
     '''
     expect_json = '''[{
-      "typeName":"Middle2",
+      "typeName":"ns_inheritance_polymorphic_diamond::Middle2",
       "staticSize":40,
       "dynamicSize":8,
       "members":[
@@ -136,7 +136,7 @@ definitions = '''
       return static_cast<Middle1&>(*c);
     '''
     expect_json = '''[{
-      "typeName":"Child",
+      "typeName":"ns_inheritance_polymorphic_diamond::Child",
       "staticSize":88,
       "dynamicSize":20,
       "members":[
@@ -162,7 +162,7 @@ definitions = '''
       return static_cast<Middle2&>(*c);
     '''
     expect_json = '''[{
-      "typeName":"Child",
+      "typeName":"ns_inheritance_polymorphic_diamond::Child",
       "staticSize":88,
       "dynamicSize":20,
       "members":[
@@ -186,7 +186,7 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"Child",
+      "typeName":"ns_inheritance_polymorphic_diamond::Child",
       "staticSize":88,
       "dynamicSize":20,
       "members":[
@@ -210,7 +210,7 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"Child",
+      "typeName":"ns_inheritance_polymorphic_diamond::Child",
       "staticSize":88,
       "dynamicSize":20,
       "members":[
@@ -234,7 +234,7 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"Child",
+      "typeName":"ns_inheritance_polymorphic_diamond::Child",
       "staticSize":88,
       "dynamicSize":20,
       "members":[

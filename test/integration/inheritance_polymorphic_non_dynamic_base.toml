@@ -27,7 +27,7 @@ definitions = '''
     arg_types = ["A"]
     setup = "return {};"
     expect_json = '''[{
-      "typeName":"A",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::A",
       "staticSize":4,
       "dynamicSize":0,
       "members":[
@@ -38,7 +38,7 @@ definitions = '''
     arg_types = ["A"]
     setup = 'return {};'
     expect_json = '''[{
-      "typeName":"A",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::A",
       "staticSize":4,
       "dynamicSize":0,
       "members":[
@@ -63,7 +63,7 @@ definitions = '''
       return b;
     '''
     expect_json = '''[{
-      "typeName":"A",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::A",
       "staticSize":4,
       "dynamicSize":0,
       "members":[
@@ -80,7 +80,7 @@ definitions = '''
       return b;
     '''
     expect_json = '''[{
-      "typeName":"B",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::B",
       "staticSize":40,
       "dynamicSize":12,
       "members":[
@@ -98,7 +98,7 @@ definitions = '''
       return b;
     '''
     expect_json = '''[{
-      "typeName":"B",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::B",
       "staticSize":40,
       "dynamicSize":12,
       "members":[
@@ -118,7 +118,7 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"A",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::A",
       "staticSize":4,
       "dynamicSize":0,
       "members":[
@@ -135,7 +135,7 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"C",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::C",
       "staticSize":48,
       "dynamicSize":12,
       "members":[
@@ -155,7 +155,7 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"C",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::C",
       "staticSize":48,
       "dynamicSize":12,
       "members":[
@@ -174,7 +174,7 @@ definitions = '''
       return c;
     '''
     expect_json = '''[{
-      "typeName":"C",
+      "typeName":"ns_inheritance_polymorphic_non_dynamic_base::C",
       "staticSize":48,
       "dynamicSize":12,
       "members":[
@@ -184,7 +184,7 @@ definitions = '''
         {"name":"int_c", "staticSize":4, "dynamicSize":0}
       ]}]'''
     expect_json_v2 = '''[{
-      "typeNames": ["C"],
+      "typeNames": ["ns_inheritance_polymorphic_non_dynamic_base::C"],
       "staticSize": 48,
       "exclusiveSize": 8,
       "members": [
