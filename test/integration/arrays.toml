@@ -42,10 +42,6 @@ definitions = '''
         "capacity":10
       }]}]'''
   [cases.member_int0]
-    oil_skip = 'zero length arrays fail codegen v2' # https://github.com/facebookexperimental/object-introspection/issues/295
-    # WARNING: zero-length arrays are handled differently to non-empty arrays.
-    # They end up not being treated as containers. This should probably change
-    # in the future.
     param_types = ["const Foo0&"]
     setup = "return {};"
     expect_json = '''[{
@@ -56,13 +52,13 @@ definitions = '''
         "dynamicSize":0
       }]}]'''
     expect_json_v2 = '''[{
-      "staticSize":1,
-      "exclusiveSize":1,
-      "size":1,
+      "staticSize":0,
+      "exclusiveSize":0,
+      "size":0,
       "members":[{
         "staticSize":0,
         "exclusiveSize":0,
-        "size":1
+        "size":0
       }]}]'''
   [cases.multidim_legacy] # Test for legacy behaviour. Remove with OICodeGen
     oil_disable = 'oil only runs on codegen v2'
