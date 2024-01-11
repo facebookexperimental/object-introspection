@@ -211,7 +211,10 @@ TEST(TopoSorterTest, Arrays) {
   auto myclass = Class{0, Class::Kind::Class, "MyClass", 69};
   auto myarray = Array{1, myclass, 10};
 
-  test({myarray}, "MyClass\n");
+  test({myarray}, R"(
+MyClass
+OIArray<MyClass, 10>
+)");
 }
 
 TEST(TopoSorterTest, Typedef) {
