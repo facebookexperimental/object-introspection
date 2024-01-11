@@ -18,7 +18,7 @@ definitions = '''
     param_types = ["const std::list<int>&"]
     setup = "return {{1,2,3}};"
     expect_json = '[{"staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}]'
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "size":36, "length":3, "capacity":3, "members":[
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":84, "size":96, "length":3, "capacity":3, "members":[
       {"staticSize":4, "exclusiveSize":4, "size":4},
       {"staticSize":4, "exclusiveSize":4, "size":4},
       {"staticSize":4, "exclusiveSize":4, "size":4}
@@ -27,7 +27,7 @@ definitions = '''
     param_types = ["const std::list<SimpleStruct>&"]
     setup = "return {{{}, {}, {}}};"
     expect_json = '[{"staticSize":24, "dynamicSize":48, "length":3, "capacity":3, "elementStaticSize":16}]'
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "size":72, "length":3, "capacity":3, "members":[
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":72, "size":120, "length":3, "capacity":3, "members":[
       {"staticSize":16, "exclusiveSize":3, "size":16},
       {"staticSize":16, "exclusiveSize":3, "size":16},
       {"staticSize":16, "exclusiveSize":3, "size":16}
@@ -52,8 +52,8 @@ definitions = '''
         {"staticSize":24, "dynamicSize":4, "exclusiveSize":28, "length":1, "capacity":1, "elementStaticSize":4},
         {"staticSize":24, "dynamicSize":8, "exclusiveSize":32, "length":2, "capacity":2, "elementStaticSize":4}
       ]}]'''
-    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":24, "size":120, "length":3, "capacity": 3, "members":[
-      {"staticSize":24, "exclusiveSize":24, "size":36, "length":3, "capacity": 3},
-      {"staticSize":24, "exclusiveSize":24, "size":28, "length":1, "capacity": 1},
-      {"staticSize":24, "exclusiveSize":24, "size":32, "length":2, "capacity": 2}
+    expect_json_v2 = '''[{"staticSize":24, "exclusiveSize":72, "size":288, "length":3, "capacity": 3, "members":[
+      {"staticSize":24, "exclusiveSize":84, "size":96, "length":3, "capacity": 3},
+      {"staticSize":24, "exclusiveSize":44, "size":48, "length":1, "capacity": 1},
+      {"staticSize":24, "exclusiveSize":64, "size":72, "length":2, "capacity": 2}
     ]}]'''
