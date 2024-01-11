@@ -742,14 +742,7 @@ return tail.finish();
   oiArray.codegen.processors.emplace_back(ContainerInfo::Processor{
       .type = "types::st::List<DB, typename TypeHandler<Ctx, T0>::type>",
       .func = R"(
-static constexpr std::array<std::string_view, 1> names{"TODO"};
-static constexpr auto childField = inst::Field{
-  sizeof(T0),
-  "[]",
-  names,
-  TypeHandler<Ctx, T0>::fields,
-  TypeHandler<Ctx, T0>::processors,
-};
+static constexpr auto childField = make_field<Ctx, T0>("[]");
 
 el.exclusive_size = 0;
 el.container_stats.emplace(result::Element::ContainerStats{ .capacity = N0, .length = N0 });

@@ -88,8 +88,8 @@ definitions = '''
     expect_json_v2 = '''[
       {"staticSize":24, "exclusiveSize":0, "size":24, "members":[
         {"staticSize":24, "exclusiveSize":0, "size":24, "length":2, "capacity":2, "members":[
-          {"staticSize":12, "exclusiveSize":0, "size":12, "length":3, "capacity":3},
-          {"staticSize":12, "exclusiveSize":0, "size":12, "length":3, "capacity":3}]
+          {"typeNames":["int32_t[3]"], "staticSize":12, "exclusiveSize":0, "size":12, "length":3, "capacity":3},
+          {"typeNames":["int32_t[3]"], "staticSize":12, "exclusiveSize":0, "size":12, "length":3, "capacity":3}]
       }]}]'''
   [cases.direct_int10]
     skip = "Direct array arguments don't work"
