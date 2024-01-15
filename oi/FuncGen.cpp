@@ -399,7 +399,8 @@ const std::array<std::string_view, )";
       ", OIInternal::TypeHandler<FakeContext, "
       "OIInternal::__ROOT_TYPE__>::fields, "
       "OIInternal::TypeHandler<FakeContext, "
-      "OIInternal::__ROOT_TYPE__>::processors};\n";
+      "OIInternal::__ROOT_TYPE__>::processors, "
+      "std::is_fundamental_v<OIInternal::__ROOT_TYPE__>};\n";
   code += "} // namespace\n";
   code +=
       "extern const exporters::inst::Inst __attribute__((used, retain)) "
@@ -640,13 +641,7 @@ void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
         }
         static void process_pointer_content(result::Element& el, std::function<void(inst::Inst)> stack_ins, ParsedData d) {
           static constexpr std::array<std::string_view, 1> names{"TODO"};
-          static constexpr auto childField = inst::Field{
-            sizeof(T),
-            "*",
-            names,
-            TypeHandler<Ctx, T>::fields,
-            TypeHandler<Ctx, T>::processors,
-          };
+          static constexpr auto childField = make_field<Ctx, T>("*");
 
           const ParsedData::Sum& sum = std::get<ParsedData::Sum>(d.val);
 

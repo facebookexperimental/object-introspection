@@ -78,6 +78,7 @@ IntrospectionResult::const_iterator::operator++() {
                 .exclusive_size = ty.exclusive_size,
                 .container_stats = std::nullopt,
                 .is_set_stats = std::nullopt,
+                .is_primitive = ty.is_primitive,
             };
 
             for (const auto& [dy, handler] : ty.processors) {

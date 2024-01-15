@@ -798,12 +798,15 @@ void CodeGen::genClassTreeBuilderInstructions(const Class& c,
     if (m.name.starts_with(AddPadding::MemberPrefix))
       continue;
     std::string fullName = c.name() + "::" + m.name;
+    bool isPrimitive = dynamic_cast<const Primitive*>(&m.type());
     code += "      inst::Field{sizeof(" + fullName + "), " +
             std::to_string(calculateExclusiveSize(m.type())) + ",\"" +
             m.inputName + "\", member_" + std::to_string(index) +
             "_type_names, TypeHandler<Ctx, decltype(" + fullName +
             ")>::fields, TypeHandler<Ctx, decltype(" + fullName +
-            ")>::processors},\n";
+            ")>::processors, ";
+    code += isPrimitive ? "true" : "false";
+    code += "},\n";
   }
   code += "  };\n";
   code +=
@@ -1074,6 +1077,7 @@ constexpr inst::Field make_field(std::string_view name) {
     NameProvider<T>::names,
     TypeHandler<Ctx, T>::fields,
     TypeHandler<Ctx, T>::processors,
+    std::is_fundamental_v<T>
   };
 }
 )";

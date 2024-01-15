@@ -98,8 +98,8 @@ inline void Json::printStringField(std::string_view name,
 inline void Json::printBoolField(std::string_view name,
                                  bool value,
                                  std::string_view indent) {
-  out_ << tab() << '"' << name << "\":" << space() << value << ',' << endl()
-       << indent;
+  out_ << tab() << '"' << name << "\":" << space() << (value ? "true" : "false")
+       << ',' << endl() << indent;
 }
 inline void Json::printUnsignedField(std::string_view name,
                                      uint64_t value,
@@ -159,6 +159,7 @@ inline void Json::printFields(const result::Element& el,
   }
   if (el.is_set_stats.has_value())
     printUnsignedField("is_set", el.is_set_stats->is_set, indent);
+  printBoolField("is_primitive", el.is_primitive, indent);
 }
 
 template <typename It>

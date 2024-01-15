@@ -135,6 +135,7 @@ static constexpr inst::Field element{
   std::array<std::string_view, 0>{},
   element_fields,
   processors,
+  element_fields[0].is_primitive && element_fields[1].is_primitive,
 };
 
 auto list = std::get<ParsedData::List>(d.val);

@@ -24,11 +24,20 @@ definitions = '''
       "staticSize":16,
       "dynamicSize":0,
       "exclusiveSize": 3,
-      "size": 16,
       "members":[
         {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize": 4, "size": 4},
         {"name":"b", "staticSize":1, "dynamicSize":0, "exclusiveSize": 1, "size": 1},
         {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize": 8, "size": 8}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":16,
+      "exclusiveSize": 3,
+      "size": 16,
+      "is_primitive": false,
+      "members":[
+        {"name":"a", "staticSize":4, "exclusiveSize": 4, "size": 4, "is_primitive": true},
+        {"name":"b", "staticSize":1, "exclusiveSize": 1, "size": 1, "is_primitive": true},
+        {"name":"c", "staticSize":8, "exclusiveSize": 8, "size": 8, "is_primitive": true}
       ]}]'''
   [cases.class]
     param_types = ["const SimpleClass&"]
@@ -37,11 +46,20 @@ definitions = '''
       "staticSize":16,
       "dynamicSize":0,
       "exclusiveSize": 3,
-      "size": 16,
       "members":[
         {"name":"a", "staticSize":4, "dynamicSize":0, "exclusiveSize": 4, "size": 4},
         {"name":"b", "staticSize":1, "dynamicSize":0, "exclusiveSize": 1, "size": 1},
         {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize": 8, "size": 8}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":16,
+      "exclusiveSize": 3,
+      "size": 16,
+      "is_primitive": false,
+      "members":[
+        {"name":"a", "staticSize":4, "exclusiveSize": 4, "size": 4, "is_primitive": true},
+        {"name":"b", "staticSize":1, "exclusiveSize": 1, "size": 1, "is_primitive": true},
+        {"name":"c", "staticSize":8, "exclusiveSize": 8, "size": 8, "is_primitive": true}
       ]}]'''
   [cases.union]
     param_types = ["const SimpleUnion&"]
@@ -49,6 +67,11 @@ definitions = '''
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":0,
+      "exclusiveSize":8
+    }]'''
+    expect_json_v2 = '''[{
+      "staticSize":8,
       "exclusiveSize":8,
-      "size":8
+      "size":8,
+      "is_primitive":false
     }]'''
