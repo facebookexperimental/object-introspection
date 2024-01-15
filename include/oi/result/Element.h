@@ -52,6 +52,7 @@ struct Element {
       std::nullopt};
   std::optional<ContainerStats> container_stats;
   std::optional<IsSetStats> is_set_stats;
+  bool is_primitive;
 };
 
 }  // namespace oi::result

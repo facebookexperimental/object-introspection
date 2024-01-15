@@ -58,19 +58,22 @@ struct Field {
                   std::string_view name_,
                   const std::array<std::string_view, N0>& type_names_,
                   const std::array<Field, N1>& fields_,
-                  const std::array<ProcessorInst, N2>& processors_);
+                  const std::array<ProcessorInst, N2>& processors_,
+                  bool is_primitive_);
   template <size_t N0, size_t N1, size_t N2>
   constexpr Field(size_t static_size_,
                   std::string_view name_,
                   const std::array<std::string_view, N0>& type_names_,
                   const std::array<Field, N1>& fields_,
-                  const std::array<ProcessorInst, N2>& processors_)
+                  const std::array<ProcessorInst, N2>& processors_,
+                  bool is_primitive_)
       : Field(static_size_,
               static_size_,
               name_,
               type_names_,
               fields_,
-              processors_) {
+              processors_,
+              is_primitive_) {
   }
   constexpr Field(const Field&) = default;  // no idea why this is needed
 
@@ -80,6 +83,7 @@ struct Field {
   std::span<const std::string_view> type_names;
   std::span<const Field> fields;
   std::span<const ProcessorInst> processors;
+  bool is_primitive;
 };
 
 template <size_t N0, size_t N1, size_t N2>
@@ -88,13 +92,15 @@ constexpr Field::Field(size_t static_size_,
                        std::string_view name_,
                        const std::array<std::string_view, N0>& type_names_,
                        const std::array<Field, N1>& fields_,
-                       const std::array<ProcessorInst, N2>& processors_)
+                       const std::array<ProcessorInst, N2>& processors_,
+                       bool is_primitive_)
     : static_size(static_size_),
       exclusive_size(exclusive_size_),
       name(name_),
       type_names(type_names_),
       fields(fields_),
-      processors(processors_) {
+      processors(processors_),
+      is_primitive(is_primitive_) {
 }
 
 }  // namespace oi::exporters::inst

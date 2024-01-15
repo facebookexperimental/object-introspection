@@ -91,6 +91,7 @@ static constexpr auto entry = inst::Field {
   std::array<std::string_view, 0>{},
   entryFields,
   processors,
+  entryFields[0].is_primitive && entryFields[1].is_primitive,
 };
 
 auto list = std::get<ParsedData::List>(d.val);
