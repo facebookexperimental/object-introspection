@@ -68,7 +68,7 @@ raw_definitions = '''
       ret.__isset.at(2) = true;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
@@ -89,7 +89,7 @@ raw_definitions = '''
       ret.__isset.at(2) = true;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
@@ -117,7 +117,7 @@ raw_definitions = '''
 
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":32,
       "dynamicSize":0,

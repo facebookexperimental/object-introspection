@@ -84,7 +84,7 @@ definitions = '''
   [cases.regular_struct]
     param_types = ["const Node&"]
     setup = "return Node{1, 2, 3};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize":12,
       "dynamicSize":0,
@@ -97,7 +97,7 @@ definitions = '''
       ]}]'''
 
   [cases.anon_struct]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const AnonStructContainer&"]
     setup = '''
       return AnonStructContainer{
@@ -106,7 +106,7 @@ definitions = '''
         }
       };
     '''
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 8,
       "dynamicSize": 12,
@@ -143,10 +143,10 @@ definitions = '''
           new Node{1, 2, 3}
         }
       };'''
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
 
   [cases.anon_typedef]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const AnonTypedefContainer&"]
     setup = '''
       return AnonTypedefContainer{
@@ -154,7 +154,7 @@ definitions = '''
           .node = new Node{1, 2, 3}
         }
       };'''
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 8,
       "dynamicSize": 12,
@@ -196,7 +196,6 @@ definitions = '''
   [cases.anon_union]
     param_types = ["const AnonUnionContainer&"]
     setup = 'return AnonUnionContainer{ .a = 3 };'
-    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 24,
       "dynamicSize": 0,
@@ -218,10 +217,10 @@ definitions = '''
     }]'''
 
   [cases.nested_anon_struct]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const NestedAnonContainer&"]
+    features = ["chase-raw-pointers"]
     setup = 'return NestedAnonContainer{.m = { .v = {.as = {new Node{1, 2, 3}}}}};'
-    cli_options = ["-fchase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 80,
       "dynamicSize": 12,
@@ -290,7 +289,7 @@ definitions = '''
   #     result.ns[3].nodes.resize(22);
   #     return result;
   #   '''
-  #   cli_options = ["-fchase-raw-pointers"]
+  #   features = ["chase-raw-pointers"]
   #   expect_json = '''[{
   #     "staticSize": 104,
   #     "dynamicSize": 556,

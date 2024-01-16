@@ -23,7 +23,7 @@ definitions = '''
 '''
 [cases]
   [cases.raw_ptr]
-    oil_disable = "oil can't chase pointers safely"
+    oil_skip = "cycles are broken" # https://github.com/facebookexperimental/object-introspection/issues/293
     param_types = ["RawNode*"]
     setup = '''
       RawNode *first  = new RawNode{1, nullptr};
@@ -34,7 +34,7 @@ definitions = '''
       third->next = first;
       return first;
     '''
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''
     [
       {
@@ -96,7 +96,7 @@ definitions = '''
     '''
 
   [cases.raw_ptr_wrapped]
-    oil_disable = "oil can't chase pointers safely"
+    oil_skip = "cycles are broken" # https://github.com/facebookexperimental/object-introspection/issues/293
     param_types = ["Wrapper<RawNode*>&"]
     setup = '''
       RawNode *first  = new RawNode{1, nullptr};
@@ -107,7 +107,7 @@ definitions = '''
       third->next = first;
       return Wrapper<RawNode*>(first);
     '''
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 8,
       "dynamicSize": 48,

@@ -16,7 +16,7 @@ thrift_definitions = '''
       namespaceA::namespaceB::TTTTT ret;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,

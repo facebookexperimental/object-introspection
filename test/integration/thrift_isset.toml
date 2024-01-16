@@ -85,7 +85,7 @@ namespace cpp2 {
       ret.c_ref() = 1;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
@@ -109,7 +109,7 @@ namespace cpp2 {
       ret.j_ref() = 1;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":44,
       "dynamicSize":0,
@@ -136,7 +136,7 @@ namespace cpp2 {
       ret.c_ref() = 1;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":20,
       "dynamicSize":0,
@@ -156,7 +156,7 @@ namespace cpp2 {
       ret.b_ref() = 1;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":16,
       "dynamicSize":0,
@@ -176,7 +176,7 @@ namespace cpp2 {
       ret.f_ref() = 1;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":28,
       "dynamicSize":0,
@@ -199,7 +199,7 @@ namespace cpp2 {
       ret.e_ref() = 1;
       return ret;
     '''
-    cli_options = ["-fcapture-thrift-isset"]
+    features = ["capture-thrift-isset"]
     expect_json = '''[{
       "staticSize":32,
       "dynamicSize":0,

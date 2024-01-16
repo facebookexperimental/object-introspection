@@ -268,6 +268,19 @@ def add_tests(f, config):
         add_oil_integration_test(f, config, case_name, case)
 
 
+def get_config_strings(case):
+    config_prefix = case.get("config_prefix", "")
+    if "features" in case:
+        feature_config = "features = ["
+        for f in case.get("features", []):
+            feature_config += '"' + f + '"'
+        feature_config += "]\n"
+        config_prefix = feature_config + config_prefix
+    config_suffix = case.get("config_suffix", "")
+
+    return (config_prefix, config_suffix)
+
+
 def add_oid_integration_test(f, config, case_name, case):
     probe_type = case.get("type", "entry")
     args = case.get("args", "arg0")
@@ -283,8 +296,7 @@ def add_oid_integration_test(f, config, case_name, case):
         "{" + ", ".join(f'"{option}"' for option in case.get("cli_options", ())) + "}"
     )
 
-    config_prefix = case.get("config_prefix", "")
-    config_suffix = case.get("config_suffix", "")
+    config_prefix, config_suffix = get_config_strings(case)
 
     f.write(
         f"\n"
@@ -356,8 +368,7 @@ def add_oil_integration_test(f, config, case_name, case):
     if "oil_disable" in case or "target_function" in case:
         return
 
-    config_prefix = case.get("config_prefix", "")
-    config_suffix = case.get("config_suffix", "")
+    config_prefix, config_suffix = get_config_strings(case)
 
     f.write(
         f"\n"

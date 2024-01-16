@@ -76,7 +76,7 @@ definitions = '''
         "elementStaticSize":4
       }]}]'''
   [cases.multidim]
-    cli_options = ["-ftype-graph"]
+    
     param_types = ["const MultiDim&"]
     setup = "return {};"
     expect_json = '''[
