@@ -77,7 +77,6 @@ namespace cpp2 {
 
 [cases]
   [cases.unpacked]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const cpp2::MyThriftStructUnpacked&"]
     setup = '''
       cpp2::MyThriftStructUnpacked ret;
@@ -95,9 +94,19 @@ namespace cpp2 {
         {"name":"__fbthrift_field_c", "staticSize":4, "isset":true},
         {"name":"__isset", "staticSize":3}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":16,
+      "exclusiveSize":1,
+      "size":16,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_b", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":true},
+        {"name":"__isset", "staticSize":3, "NOT":"is_set"}
+      ]
+    }]'''
 
   [cases.packed]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const cpp2::MyThriftStructPacked&"]
     setup = '''
       cpp2::MyThriftStructPacked ret;
@@ -126,9 +135,25 @@ namespace cpp2 {
         {"name":"__fbthrift_field_j", "staticSize":4, "isset":true},
         {"name":"__isset", "staticSize":2}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":44,
+      "exclusiveSize":2,
+      "size":44,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_b", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_d", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_e", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_f", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_g", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_h", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_i", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_j", "staticSize":4, "is_set":true},
+        {"name":"__isset", "staticSize":2, "NOT":"is_set"}
+      ]}]'''
 
   [cases.packed_non_atomic]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const cpp2::MyThriftStructPackedNonAtomic&"]
     setup = '''
       cpp2::MyThriftStructPackedNonAtomic ret;
@@ -147,9 +172,19 @@ namespace cpp2 {
         {"name":"__fbthrift_field_d", "staticSize":4, "isset":false},
         {"name":"__isset", "staticSize":1}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":20,
+      "exclusiveSize":3,
+      "size":20,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_b", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_d", "staticSize":4, "is_set":false},
+        {"name":"__isset", "staticSize":1, "NOT":"is_set"}
+      ]}]'''
 
   [cases.out_of_order]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const cpp2::MyThriftStructOutOfOrder&"]
     setup = '''
       cpp2::MyThriftStructOutOfOrder ret;
@@ -166,9 +201,18 @@ namespace cpp2 {
         {"name":"__fbthrift_field_c", "staticSize":4, "isset":false},
         {"name":"__isset", "staticSize":3}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":16,
+      "exclusiveSize":1,
+      "size":16,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_b", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":false},
+        {"name":"__isset", "staticSize":3, "NOT":"is_set"}
+      ]}]'''
 
   [cases.required]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const cpp2::MyThriftStructRequired&"]
     setup = '''
       cpp2::MyThriftStructRequired ret;
@@ -189,9 +233,21 @@ namespace cpp2 {
         {"name":"__fbthrift_field_f", "staticSize":4, "isset":true},
         {"name":"__isset", "staticSize":3}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":28,
+      "exclusiveSize":1,
+      "size":28,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "NOT":"is_set"},
+        {"name":"__fbthrift_field_b", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_d", "staticSize":4, "NOT":"is_set"},
+        {"name":"__fbthrift_field_e", "staticSize":4, "NOT":"is_set"},
+        {"name":"__fbthrift_field_f", "staticSize":4, "is_set":true},
+        {"name":"__isset", "staticSize":3, "NOT":"is_set"}
+      ]}]'''
 
   [cases.box]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const cpp2::MyThriftStructBoxed&"]
     setup = '''
       cpp2::MyThriftStructBoxed ret;
@@ -210,6 +266,18 @@ namespace cpp2 {
         {"name":"__fbthrift_field_d", "staticSize":4, "isset":true},
         {"name":"__fbthrift_field_e", "staticSize":4, "isset":true},
         {"name":"__isset", "staticSize":3}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":32,
+      "exclusiveSize":1,
+      "size":32,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":8, "NOT":"is_set"},
+        {"name":"__fbthrift_field_b", "staticSize":8, "NOT":"is_set"},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_d", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_e", "staticSize":4, "is_set":true},
+        {"name":"__isset", "staticSize":3, "NOT":"is_set"}
       ]}]'''
 
   [cases.no_capture]
@@ -230,4 +298,16 @@ namespace cpp2 {
         {"name":"__fbthrift_field_d", "staticSize":4, "NOT":"isset"},
         {"name":"__fbthrift_field_e", "staticSize":4, "NOT":"isset"},
         {"name":"__isset", "staticSize":3}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":32,
+      "exclusiveSize":1,
+      "size":32,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":8, "NOT":"is_set"},
+        {"name":"__fbthrift_field_b", "staticSize":8, "NOT":"is_set"},
+        {"name":"__fbthrift_field_c", "staticSize":4, "NOT":"is_set"},
+        {"name":"__fbthrift_field_d", "staticSize":4, "NOT":"is_set"},
+        {"name":"__fbthrift_field_e", "staticSize":4, "NOT":"is_set"},
+        {"name":"__isset", "staticSize":3, "NOT":"is_set"}
       ]}]'''

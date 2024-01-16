@@ -158,7 +158,7 @@ inline void Json::printFields(const result::Element& el,
     printUnsignedField("capacity", el.container_stats->capacity, indent);
   }
   if (el.is_set_stats.has_value())
-    printUnsignedField("is_set", el.is_set_stats->is_set, indent);
+    printBoolField("is_set", el.is_set_stats->is_set, indent);
   printBoolField("is_primitive", el.is_primitive, indent);
 }
 

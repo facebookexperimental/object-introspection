@@ -477,13 +477,19 @@ class Container : public Type {
 class Enum : public Type {
  public:
   explicit Enum(std::string name,
+                std::string inputName,
                 size_t size,
                 std::map<int64_t, std::string> enumerators = {})
-      : name_(name),
-        inputName_(std::move(name)),
+      : name_(std::move(name)),
+        inputName_(std::move(inputName)),
         size_(size),
         enumerators_(std::move(enumerators)) {
   }
+
+  explicit Enum(std::string name,
+                size_t size,
+                std::map<int64_t, std::string> enumerators = {})
+      : Enum{name, std::move(name), size, std::move(enumerators)} {};
 
   static inline constexpr bool has_node_id = false;
 
