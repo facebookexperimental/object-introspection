@@ -195,7 +195,12 @@ void genDecls(const TypeGraph& typeGraph, std::string& code) {
 namespace {
 
 size_t calculateExclusiveSize(const Type& t) {
-  if (const auto* c = dynamic_cast<const Class*>(&t)) {
+  const Type* finalType = &t;
+  while (const auto* td = dynamic_cast<const Typedef*>(finalType)) {
+    finalType = &td->underlyingType();
+  }
+
+  if (const auto* c = dynamic_cast<const Class*>(finalType)) {
     return std::accumulate(
         c->members.cbegin(), c->members.cend(), 0, [](size_t a, const auto& m) {
           if (m.name.starts_with(AddPadding::MemberPrefix))
@@ -203,7 +208,7 @@ size_t calculateExclusiveSize(const Type& t) {
           return a;
         });
   }
-  return t.size();
+  return finalType->size();
 }
 
 }  // namespace
@@ -211,7 +216,7 @@ size_t calculateExclusiveSize(const Type& t) {
 void genNames(const TypeGraph& typeGraph, std::string& code) {
   code += R"(
 template <typename T>
-struct NameProvider {};
+struct NameProvider;
 )";
 
   // TODO: stop types being duplicated at this point and remove this check
@@ -239,6 +244,9 @@ struct ExclusiveSizeProvider {
 )";
 
   for (const Type& t : typeGraph.finalTypes) {
+    if (dynamic_cast<const Typedef*>(&t))
+      continue;
+
     size_t exclusiveSize = calculateExclusiveSize(t);
     if (exclusiveSize != t.size()) {
       code += "template <> struct ExclusiveSizeProvider<";
@@ -1120,23 +1128,6 @@ void addStandardTypeHandlers(TypeGraph& typeGraph,
     }
 )";
 
-  if (features[Feature::TreeBuilderV2]) {
-    code += R"(
-template <typename Ctx, typename T>
-constexpr inst::Field make_field(std::string_view name) {
-  return inst::Field{
-    sizeof(T),
-    ExclusiveSizeProvider<T>::size,
-    name,
-    NameProvider<T>::names,
-    TypeHandler<Ctx, T>::fields,
-    TypeHandler<Ctx, T>::processors,
-    std::is_fundamental_v<T>
-  };
-}
-)";
-  }
-
   // TODO: bit of a hack - making ContainerInfo a node in the type graph and
   // traversing for it would remove the need for this set altogether.
   std::unordered_set<const ContainerInfo*> used{};
@@ -1318,9 +1309,6 @@ void CodeGen::generate(TypeGraph& typeGraph,
     code += "using namespace oi::detail;\n";
     code += "using oi::exporters::ParsedData;\n";
     code += "using namespace oi::exporters;\n";
-    code += "namespace OIInternal {\nnamespace {\n";
-    FuncGen::DefineBasicTypeHandlers(code, config_.features);
-    code += "} // namespace\n} // namespace OIInternal\n";
   }
 
   if (config_.features[Feature::CaptureThriftIsset]) {
@@ -1360,6 +1348,7 @@ void CodeGen::generate(TypeGraph& typeGraph,
   }
 
   if (config_.features[Feature::TreeBuilderV2]) {
+    FuncGen::DefineBasicTypeHandlers(code);
     addStandardTypeHandlers(typeGraph, config_.features, code);
     addTypeHandlers(typeGraph, code);
   } else {

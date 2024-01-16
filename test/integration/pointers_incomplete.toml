@@ -86,7 +86,6 @@ definitions = '''
     expect_json_v2 = '[{"staticSize":16, "exclusiveSize":16}]'
 
   [cases.containing_struct]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const IncompleteTypeContainer&"]
     setup = "return IncompleteTypeContainer{};"
     features = ["chase-raw-pointers"]
@@ -112,6 +111,32 @@ definitions = '''
           "length": 0,
           "capacity": 1,
           "elementStaticSize": 8
+        }
+      ]
+    }]'''
+    expect_json_v2 = '''[{
+      "staticSize": 88,
+      "exclusiveSize": 21,
+      "size": 88,
+      "members": [
+        { "name": "ptrundef", "staticSize": 8, "exclusiveSize": 8, "size": 8 },
+        { "name": "__makePad1", "staticSize": 1, "exclusiveSize": 1, "size": 1 },
+        { "name": "shundef", "staticSize": 16, "exclusiveSize": 16, "size": 16 },
+        { "name": "__makePad2", "staticSize": 1, "exclusiveSize": 1, "size": 1 },
+        { "name": "shoptundef",
+          "staticSize": 24,
+          "exclusiveSize": 24,
+          "size": 24,
+          "length": 0,
+          "capacity": 1
+        },
+        { "name": "__makePad3", "staticSize": 1, "exclusiveSize": 1, "size": 1 },
+        { "name": "optundef",
+          "staticSize": 16,
+          "exclusiveSize": 16,
+          "size": 16,
+          "length": 0,
+          "capacity": 1
         }
       ]
     }]'''

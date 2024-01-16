@@ -134,7 +134,6 @@ definitions = '''
 
 
   [cases.struct_primitive_ptrs]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const PrimitivePtrs&"]
     setup = "return PrimitivePtrs{0, new int(0), new int(0)};"
     features = ["chase-raw-pointers"]
@@ -147,6 +146,16 @@ definitions = '''
         {"name":"b", "staticSize":8, "exclusiveSize":8, "dynamicSize":4},
         {"name":"c", "staticSize":8, "exclusiveSize":8, "dynamicSize":0}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":24,
+      "exclusiveSize":4,
+      "size":28,
+      "members":[
+        {"name":"a", "typeNames":["int32_t"], "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"b", "typeNames":["int32_t*"], "staticSize":8, "exclusiveSize":8, "size":12, "capacity":1, "length":1},
+        {"name":"c", "typeNames":["void*"], "staticSize":8, "exclusiveSize":8, "size":8, "capacity":1, "length":1}
+      ]
+    }]'''
   [cases.struct_primitive_ptrs_no_follow]
     param_types = ["const PrimitivePtrs&"]
     setup = "return PrimitivePtrs{0, new int(0), new int(0)};"
@@ -161,7 +170,6 @@ definitions = '''
         {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.struct_primitive_ptrs_null]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const PrimitivePtrs&"]
     setup = "return PrimitivePtrs{0, nullptr, nullptr};"
     features = ["chase-raw-pointers"]
@@ -175,10 +183,19 @@ definitions = '''
         {"name":"b", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8},
         {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":24,
+      "exclusiveSize":4,
+      "size":24,
+      "members":[
+        {"name":"a", "typeNames":["int32_t"], "staticSize":4, "exclusiveSize":4, "size":4},
+        {"name":"b", "typeNames":["int32_t*"], "staticSize":8, "exclusiveSize":8, "size":8, "capacity":1, "length":0},
+        {"name":"c", "typeNames":["void*"], "staticSize":8, "exclusiveSize":8, "size":8, "capacity":1, "length":0}
+      ]
+    }]'''
 
 
   [cases.struct_vector_ptr]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const VectorPtr&"]
     setup = "return VectorPtr{new std::vector<int>{1,2,3}};"
     features = ["chase-raw-pointers"]
@@ -188,6 +205,22 @@ definitions = '''
       "members":[
         {"name":"vec", "staticSize":8, "dynamicSize":36}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":8,
+      "exclusiveSize":0,
+      "size":44,
+      "members": [
+        {
+          "typeNames":["std::vector<int32_t, std::allocator<int32_t>>*"],
+          "staticSize":8,
+          "exclusiveSize":8,
+          "size":44,
+          "length":1,
+          "capacity":1,
+          "members":[{ "staticSize":24, "exclusiveSize":24, "size":36 }]
+        }
+      ]
+    }]'''
   [cases.struct_vector_ptr_no_follow]
     param_types = ["const VectorPtr&"]
     setup = "return VectorPtr{new std::vector<int>{1,2,3}};"
@@ -200,7 +233,6 @@ definitions = '''
         {"name":"vec", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.struct_vector_ptr_null]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const VectorPtr&"]
     setup = "return VectorPtr{nullptr};"
     features = ["chase-raw-pointers"]
@@ -212,10 +244,25 @@ definitions = '''
       "members":[
         {"name":"vec", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":8,
+      "exclusiveSize":0,
+      "size":8,
+      "members": [
+        {
+          "typeNames":["std::vector<int32_t, std::allocator<int32_t>>*"],
+          "staticSize":8,
+          "exclusiveSize":8,
+          "size":8,
+          "length":0,
+          "capacity":1,
+          "members":[]
+        }
+      ]
+    }]'''
 
 
   [cases.vector_of_pointers]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const std::vector<int*>&"]
     setup = "return {{new int(1), nullptr, new int(3)}};"
     features = ["chase-raw-pointers"]
@@ -230,6 +277,18 @@ definitions = '''
         {"staticSize":8, "dynamicSize":0, "pointer":0},
         {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":24,
+      "exclusiveSize":24,
+      "size":56,
+      "length":3,
+      "capacity":3,
+      "members":[
+        {"staticSize":8, "exclusiveSize":8, "size":12, "NOT": {"pointer":0}},
+        {"staticSize":8, "exclusiveSize":8, "size":8, "pointer":0},
+        {"staticSize":8, "exclusiveSize":8, "size":12, "NOT": {"pointer":0}}
+      ]
+    }]'''
   [cases.vector_of_pointers_no_follow]
     skip = "pointer field is missing from results" # https://github.com/facebookexperimental/object-introspection/issues/21
     param_types = ["const std::vector<int*>&"]
@@ -260,7 +319,6 @@ definitions = '''
         {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.feature_config]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const std::vector<int*>&"]
     setup = "return {{new int(1), nullptr, new int(3)}};"
     config_prefix = 'features = ["chase-raw-pointers"]'
@@ -275,3 +333,15 @@ definitions = '''
         {"staticSize":8, "dynamicSize":0, "pointer":0},
         {"staticSize":8, "dynamicSize":4, "NOT": {"pointer":0}}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":24,
+      "exclusiveSize":24,
+      "size":56,
+      "length":3,
+      "capacity":3,
+      "members":[
+        {"staticSize":8, "exclusiveSize":8, "size":12, "NOT": {"pointer":0}},
+        {"staticSize":8, "exclusiveSize":8, "size":8, "pointer":0},
+        {"staticSize":8, "exclusiveSize":8, "size":12, "NOT": {"pointer":0}}
+      ]
+    }]'''

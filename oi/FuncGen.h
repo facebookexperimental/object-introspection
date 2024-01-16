@@ -76,7 +76,7 @@ class FuncGen {
 
   static void DefineDataSegmentDataBuffer(std::string& testCode);
   static void DefineBackInserterDataBuffer(std::string& code);
-  static void DefineBasicTypeHandlers(std::string& code, FeatureSet features);
+  static void DefineBasicTypeHandlers(std::string& code);
 
   static ContainerInfo GetOiArrayContainerInfo();
 };

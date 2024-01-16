@@ -236,6 +236,22 @@ TEST(TopoSorterTest, Pointers) {
   myclass.members.push_back(Member{mypointer, "ptr", 0});
 
   test({myclass}, R"(
+ClassA*
+MyClass
+ClassA
+)");
+}
+
+TEST(TopoSorterTest, References) {
+  // References do not require pointee types to be defined first
+  auto classA = Class{0, Class::Kind::Class, "ClassA", 69};
+  auto myreference = Reference{1, classA};
+
+  auto myclass = Class{2, Class::Kind::Class, "MyClass", 69};
+  myclass.members.push_back(Member{myreference, "ref", 0});
+
+  test({myclass}, R"(
+ClassA*
 MyClass
 ClassA
 )");
@@ -258,6 +274,7 @@ TEST(TopoSorterTest, PointerCycle) {
   // the same sorted order for ClassA and ClassB.
   for (const auto& input : inputs) {
     test(input, R"(
+ClassA*
 ClassB
 ClassA
 )");
@@ -276,6 +293,7 @@ TEST(TopoSorterTest, PointerToTypedef) {
   test({myclass}, R"(
 ClassA
 aliasA
+aliasA*
 MyClass
 )");
 }

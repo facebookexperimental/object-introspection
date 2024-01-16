@@ -126,12 +126,27 @@ void TopoSorter::visit(Pointer& p) {
     // Typedefs can not be forward declared, so we must sort them before
     // pointers which reference them
     accept(p.pointeeType());
-    return;
+  } else {
+    // Pointers do not create a dependency, but we do still care about the types
+    // they point to, so delay them until the end.
+    acceptAfter(p.pointeeType());
   }
 
-  // Pointers do not create a dependency, but we do still care about the types
-  // they point to, so delay them until the end.
-  acceptAfter(p.pointeeType());
+  sortedTypes_.push_back(p);
+}
+
+void TopoSorter::visit(Reference& r) {
+  if (dynamic_cast<Typedef*>(&r.pointeeType())) {
+    // Typedefs can not be forward declared, so we must sort them before
+    // pointers which reference them
+    accept(r.pointeeType());
+  } else {
+    // Pointers do not create a dependency, but we do still care about the types
+    // they point to, so delay them until the end.
+    acceptAfter(r.pointeeType());
+  }
+
+  sortedTypes_.push_back(r);
 }
 
 void TopoSorter::visit(CaptureKeys& c) {
