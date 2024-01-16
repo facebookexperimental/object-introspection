@@ -29,11 +29,10 @@ definitions = '''
       }]
     }]'''
   [cases.raw_chase] # We should never chase function pointers
-    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
-    oil_disable = "oil can't chase raw pointers safely"
+    skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     param_types = ["const FuncPtrStruct&"]
     setup = "return {{myFunction}};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 8,
       "dynamicSize": 0,
@@ -73,11 +72,10 @@ definitions = '''
       "NOT": "members"
     }]'''
   [cases.std_function_chase] # We should never chase function pointers
-    oid_skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
-    oil_disable = "oil can't chase raw pointers safely"
+    skip = "function pointers are not handled correctly" # https://github.com/facebookexperimental/object-introspection/issues/22
     param_types = ["std::function<void(int)> &"]
     setup = "return myFunction;"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "typeName": "function<void (int)>",
       "staticSize": 32,

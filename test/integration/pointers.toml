@@ -17,7 +17,7 @@ definitions = '''
     skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["int*"]
     setup = "return new int(1);"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "typeName": "int *",
       "staticSize": 8,
@@ -59,7 +59,7 @@ definitions = '''
     skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["void*"]
     setup = "return new int(1);"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "typeName": "void *",
       "staticSize": 8,
@@ -95,7 +95,7 @@ definitions = '''
     skip = "top-level pointers are skipped over" # https://github.com/facebookexperimental/object-introspection/issues/19
     param_types = ["std::vector<int>*"]
     setup = "return new std::vector<int>{1,2,3};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "typeName": "std::vector<int> *",
       "staticSize": 8,
@@ -134,10 +134,10 @@ definitions = '''
 
 
   [cases.struct_primitive_ptrs]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const PrimitivePtrs&"]
     setup = "return PrimitivePtrs{0, new int(0), new int(0)};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":4,
@@ -161,9 +161,10 @@ definitions = '''
         {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.struct_primitive_ptrs_null]
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const PrimitivePtrs&"]
     setup = "return PrimitivePtrs{0, nullptr, nullptr};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":0,
@@ -177,10 +178,10 @@ definitions = '''
 
 
   [cases.struct_vector_ptr]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const VectorPtr&"]
     setup = "return VectorPtr{new std::vector<int>{1,2,3}};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":36,
@@ -199,9 +200,10 @@ definitions = '''
         {"name":"vec", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.struct_vector_ptr_null]
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const VectorPtr&"]
     setup = "return VectorPtr{nullptr};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize":8,
       "dynamicSize":0,
@@ -213,10 +215,10 @@ definitions = '''
 
 
   [cases.vector_of_pointers]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const std::vector<int*>&"]
     setup = "return {{new int(1), nullptr, new int(3)}};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize":24,
       "dynamicSize":32,
@@ -258,7 +260,7 @@ definitions = '''
         {"name":"c", "staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}
       ]}]'''
   [cases.feature_config]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const std::vector<int*>&"]
     setup = "return {{new int(1), nullptr, new int(3)}};"
     config_prefix = 'features = ["chase-raw-pointers"]'

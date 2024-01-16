@@ -201,13 +201,23 @@ definitions = '''
 
     Implies `oil_disable`.
 
+  - `features`
+
+    Append this list of features to the configuration. This works for all types
+    of test.
+
+    Example:
+    ```
+    features = ["chase-raw-pointers"]
+    ```
+
   - `cli_options`
 
     Additional command line arguments passed to oid.
 
     Example:
     ```
-    cli_options = ["-fchase-raw-pointers"]
+    cli_options = ["-Ftype-graph"]
     ```
 
   - `skip`, `oid_skip`, `oil_skip`

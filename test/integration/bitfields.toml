@@ -53,7 +53,7 @@ definitions = '''
 # if they were regular primitives.
 [cases]
   [cases.single]
-    cli_options = ["-ftype-graph"]
+    
     oil_skip = "not implemented"
     param_types = ["Single&"]
     setup = "return {};"
@@ -62,7 +62,7 @@ definitions = '''
         {"staticSize":4, "dynamicSize":0, "exclusiveSize":4}
     ]}]'''
   [cases.within_bytes]
-    cli_options = ["-ftype-graph"]
+    
     oil_skip = "not implemented"
     param_types = ["WithinBytes&"]
     setup = "return {};"
@@ -73,7 +73,7 @@ definitions = '''
         {"staticSize":1, "dynamicSize":0, "exclusiveSize":1}
     ]}]'''
   [cases.straddle_bytes]
-    cli_options = ["-ftype-graph"]
+    
     oil_skip = "not implemented"
     param_types = ["StraddleBytes&"]
     setup = "return {};"
@@ -84,7 +84,7 @@ definitions = '''
         {"staticSize":1, "dynamicSize":0, "exclusiveSize":1}
     ]}]'''
   [cases.mixed]
-    cli_options = ["-ftype-graph"]
+    
     oil_skip = "not implemented"
     param_types = ["Mixed&"]
     setup = "return {};"
@@ -98,13 +98,13 @@ definitions = '''
     ]}]'''
   [cases.more_bits_than_type] # TODO member sizes are wrong
     skip = "drgn errors out"
-    cli_options = ["-ftype-graph"]
+    
     oil_skip = "not implemented"
     param_types = ["MoreBitsThanType&"]
     setup = "return {};"
     expect_json = '"TODO"'
   [cases.zero_bits]
-    cli_options = ["-ftype-graph"]
+    
     oil_skip = "not implemented"
     param_types = ["ZeroBits&"]
     setup = "return {};"
@@ -114,7 +114,7 @@ definitions = '''
         {"staticSize":1, "dynamicSize":0, "exclusiveSize":1}
     ]}]'''
   [cases.enum]
-    cli_options = ["-ftype-graph"]
+    
     oil_skip = "not implemented"
     param_types = ["Enum&"]
     setup = "return {};"

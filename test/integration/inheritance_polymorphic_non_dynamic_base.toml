@@ -22,7 +22,7 @@ definitions = '''
 [cases]
   [cases.a_as_a]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const A&"]
     arg_types = ["A"]
     setup = "return {};"
@@ -54,7 +54,7 @@ definitions = '''
 
   [cases.b_as_a]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const A&"]
     arg_types = ["B"]
     setup = '''
@@ -71,7 +71,7 @@ definitions = '''
       ]}]'''
   [cases.b_as_b]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const B&"]
     arg_types = ["B"]
     setup = '''
@@ -109,7 +109,7 @@ definitions = '''
 
   [cases.c_as_a]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const A&"]
     arg_types = ["C"]
     setup = '''
@@ -126,7 +126,7 @@ definitions = '''
       ]}]'''
   [cases.c_as_b]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const B&"]
     arg_types = ["C"]
     setup = '''
@@ -146,7 +146,7 @@ definitions = '''
       ]}]'''
   [cases.c_as_c]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const C&"]
     arg_types = ["C"]
     setup = '''

@@ -31,7 +31,7 @@ definitions = '''
 [cases]
   [cases.root_as_root]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Root&"]
     arg_types = ["Root"]
     setup = "return {};"
@@ -46,7 +46,7 @@ definitions = '''
 
   [cases.middle1_as_root]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Root&"]
     arg_types = ["Middle1"]
     setup = '''
@@ -65,7 +65,7 @@ definitions = '''
       ]}]'''
   [cases.middle1_as_middle1]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Middle1&"]
     arg_types = ["ns_inheritance_polymorphic_diamond::Middle1"]
     setup = '''
@@ -85,7 +85,7 @@ definitions = '''
 
   [cases.middle2_as_root]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Root&"]
     arg_types = ["Middle2"]
     setup = '''
@@ -104,7 +104,7 @@ definitions = '''
       ]}]'''
   [cases.middle2_as_middle2]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Middle2&"]
     arg_types = ["Middle2"]
     setup = '''
@@ -124,7 +124,7 @@ definitions = '''
 
   [cases.child_as_middle1_root]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     # We need to explicitly cast from Child to Middle1 before going to root to
     # resolve the diamond problem
     param_types = ["const Root&"]
@@ -150,7 +150,7 @@ definitions = '''
       ]}]'''
   [cases.child_as_middle2_root]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     # We need to explicitly cast from Child to Middle2 before going to root to
     # resolve the diamond problem
     param_types = ["const Root&"]
@@ -176,7 +176,7 @@ definitions = '''
       ]}]'''
   [cases.child_as_middle1]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Middle1&"]
     arg_types = ["Child"]
     setup = '''
@@ -200,7 +200,7 @@ definitions = '''
       ]}]'''
   [cases.child_as_middle2]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Middle2&"]
     arg_types = ["Child"]
     setup = '''
@@ -224,7 +224,7 @@ definitions = '''
       ]}]'''
   [cases.child_as_child]
     oil_skip = "Polymorphic inheritance disabled in OIL"
-    cli_options = ["-fpolymorphic-inheritance"]
+    features = ["polymorphic-inheritance"]
     param_types = ["const Child&"]
     arg_types = ["Child"]
     setup = '''

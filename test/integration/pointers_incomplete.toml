@@ -19,38 +19,37 @@ definitions = '''
 '''
 [cases]
   [cases.raw]
-    oil_disable = "oil can't chase raw pointers safely"
     oid_skip = "oid codegen fails on this" # https://github.com/facebookexperimental/object-introspection/issues/17
+    oil_skip = "oil codegen fails on top level incomplete objects" # https://github.com/facebookexperimental/object-introspection/issues/459
     param_types = ["IncompleteType*"]
     setup = "return static_cast<IncompleteType*>(::operator new(5));"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
-      "typeName": "IncompleteType *",
-      "staticSize": 8,
+      "typeName": "IncompleteType",
+      "staticSize": 0,
       "dynamicSize": 0,
-      "NOT": {"pointer": 0},
       "NOT": "members"
     }]'''
   [cases.raw_no_follow]
-    skip = "oid codegen fails on this" # https://github.com/facebookexperimental/object-introspection/issues/17
+    oid_skip = "oid codegen fails on this" # https://github.com/facebookexperimental/object-introspection/issues/17
+    oil_skip = "oil codegen fails on top level incomplete objects" # https://github.com/facebookexperimental/object-introspection/issues/459
     param_types = ["IncompleteType*"]
     setup = "return static_cast<IncompleteType*>(::operator new(5));"
     expect_json = '''[{
-      "typeName": "IncompleteType *",
-      "staticSize": 8,
+      "typeName": "IncompleteType",
+      "staticSize": 0,
       "dynamicSize": 0,
-      "NOT": {"pointer": 0},
       "NOT": "members"
     }]'''
   [cases.raw_null]
-    skip = "oid codegen fails on this" # https://github.com/facebookexperimental/object-introspection/issues/17
+    oid_skip = "oid codegen fails on this" # https://github.com/facebookexperimental/object-introspection/issues/17
+    oil_skip = "oil codegen fails on top level incomplete objects" # https://github.com/facebookexperimental/object-introspection/issues/459
     param_types = ["IncompleteType*"]
     setup = "return nullptr;"
     expect_json = '''[{
-      "typeName": "IncompleteType *",
-      "staticSize": 8,
+      "typeName": "IncompleteType",
+      "staticSize": 0,
       "dynamicSize": 0,
-      "pointer": 0,
       "NOT": "members"
     }]'''
 
@@ -87,10 +86,10 @@ definitions = '''
     expect_json_v2 = '[{"staticSize":16, "exclusiveSize":16}]'
 
   [cases.containing_struct]
-    oil_disable = "oil can't chase raw pointers safely"
+    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const IncompleteTypeContainer&"]
     setup = "return IncompleteTypeContainer{};"
-    cli_options = ["-fchase-raw-pointers"]
+    features = ["chase-raw-pointers"]
     expect_json = '''[{
       "staticSize": 88,
       "dynamicSize": 0,
