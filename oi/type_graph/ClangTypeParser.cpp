@@ -137,6 +137,8 @@ Typedef& ClangTypeParser::enumerateTypedef(const clang::TypedefType& ty) {
 }
 
 Enum& ClangTypeParser::enumerateEnum(const clang::EnumType& ty) {
+  std::string fqName = clang::TypeName::getFullyQualifiedName(
+      clang::QualType(&ty, 0), *ast, {ast->getLangOpts()});
   std::string name = ty.getDecl()->getNameAsString();
   auto size = ast->getTypeSize(clang::QualType(&ty, 0)) / 8;
 
@@ -148,7 +150,8 @@ Enum& ClangTypeParser::enumerateEnum(const clang::EnumType& ty) {
     }
   }
 
-  return makeType<Enum>(ty, std::move(name), size, std::move(enumeratorMap));
+  return makeType<Enum>(
+      ty, std::move(name), std::move(fqName), size, std::move(enumeratorMap));
 }
 
 Array& ClangTypeParser::enumerateArray(const clang::ConstantArrayType& ty) {

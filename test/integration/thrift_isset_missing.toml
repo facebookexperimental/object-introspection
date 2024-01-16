@@ -58,7 +58,6 @@ raw_definitions = '''
 '''
 [cases]
   [cases.present]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const FakeThriftWithData&"]
     setup = '''
       FakeThriftWithData ret;
@@ -78,8 +77,17 @@ raw_definitions = '''
         {"name":"__fbthrift_field_c", "staticSize":4, "isset":true},
         {"name":"__isset", "staticSize":3}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":16,
+      "exclusiveSize":1,
+      "size":16,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_b", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":true},
+        {"name":"__isset", "staticSize":3, "NOT":"is_set"}
+      ]}]'''
   [cases.missing]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const FakeThriftWithoutData&"]
     setup = '''
       FakeThriftWithoutData ret;
@@ -99,8 +107,17 @@ raw_definitions = '''
         {"name":"__fbthrift_field_c", "staticSize":4, "NOT":"isset"},
         {"name":"__isset", "staticSize":3}
       ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":16,
+      "exclusiveSize":1,
+      "size":16,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "NOT":"is_set"},
+        {"name":"__fbthrift_field_b", "staticSize":4, "NOT":"is_set"},
+        {"name":"__fbthrift_field_c", "staticSize":4, "NOT":"is_set"},
+        {"name":"__isset", "staticSize":3, "NOT":"is_set"}
+      ]}]'''
   [cases.mixed]
-    oil_skip = 'oil does not support thrift isset yet' # https://github.com/facebookexperimental/object-introspection/issues/296
     param_types = ["const Mixed&"]
     setup = '''
       Mixed ret;
@@ -140,6 +157,34 @@ raw_definitions = '''
             {"name":"__fbthrift_field_b", "staticSize":4, "NOT":"isset"},
             {"name":"__fbthrift_field_c", "staticSize":4, "NOT":"isset"},
             {"name":"__isset", "staticSize":3}
+          ]
+        }
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":32,
+      "exclusiveSize":0,
+      "size":32,
+      "members":[
+        {
+          "staticSize":16,
+          "exclusiveSize":1,
+          "size":16,
+          "members":[
+            {"name":"__fbthrift_field_a", "staticSize":4, "is_set":true},
+            {"name":"__fbthrift_field_b", "staticSize":4, "is_set":false},
+            {"name":"__fbthrift_field_c", "staticSize":4, "is_set":true},
+            {"name":"__isset", "staticSize":3, "NOT":"is_set"}
+          ]
+        },
+        {
+          "staticSize":16,
+          "exclusiveSize":1,
+          "size":16,
+          "members":[
+            {"name":"__fbthrift_field_a", "staticSize":4, "NOT":"is_set"},
+            {"name":"__fbthrift_field_b", "staticSize":4, "NOT":"is_set"},
+            {"name":"__fbthrift_field_c", "staticSize":4, "NOT":"is_set"},
+            {"name":"__isset", "staticSize":3, "NOT":"is_set"}
           ]
         }
       ]}]'''

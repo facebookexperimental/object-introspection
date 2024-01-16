@@ -73,6 +73,8 @@ void warnForDrgnError(struct drgn_type* type,
                       const std::string& msg,
                       struct drgn_error* err);
 
+std::string getDrgnFullyQualifiedName(struct drgn_type* type);
+
 }  // namespace
 
 Type& DrgnParser::parse(struct drgn_type* root) {
@@ -150,6 +152,8 @@ Class& DrgnParser::enumerateClass(struct drgn_type* type) {
   std::string fqName;
   char* nameStr = nullptr;
   size_t length = 0;
+  // HACK: Leak this error. Freeing it causes a SEGV which suggests our
+  // underlying implementation is bad.
   auto* err = drgn_type_fully_qualified_name(type, &nameStr, &length);
   if (err == nullptr && nameStr != nullptr) {
     fqName = nameStr;
@@ -307,14 +311,7 @@ void DrgnParser::enumerateTemplateParam(struct drgn_type* type,
     // This template parameter is a value
     std::string value;
 
-    if (drgn_type_kind(obj->type) == DRGN_TYPE_ENUM) {
-      char* nameStr = nullptr;
-      size_t length = 0;
-      err = drgn_type_fully_qualified_name(obj->type, &nameStr, &length);
-      if (err != nullptr || nameStr == nullptr) {
-        throw DrgnParserError{"Failed to get enum's fully qualified name", err};
-      }
-
+    if (const auto* e = dynamic_cast<const Enum*>(&ttype)) {
       uint64_t enumVal;
       switch (obj->encoding) {
         case DRGN_OBJECT_ENCODING_SIGNED:
@@ -333,7 +330,9 @@ void DrgnParser::enumerateTemplateParam(struct drgn_type* type,
       size_t numEnumerators = drgn_type_num_enumerators(obj->type);
       for (size_t j = 0; j < numEnumerators; j++) {
         if (enumerators[j].uvalue == enumVal) {
-          value = std::string{nameStr} + "::" + enumerators[j].name;
+          value = e->inputName();
+          value += "::";
+          value += enumerators[j].name;
           break;
         }
       }
@@ -416,6 +415,8 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type* type,
 }
 
 Enum& DrgnParser::enumerateEnum(struct drgn_type* type) {
+  std::string fqName = getDrgnFullyQualifiedName(type);
+
   const char* typeTag = drgn_type_tag(type);
   std::string name = typeTag ? typeTag : "";
   uint64_t size = get_drgn_type_size(type);
@@ -432,7 +433,8 @@ Enum& DrgnParser::enumerateEnum(struct drgn_type* type) {
     }
   }
 
-  return makeType<Enum>(type, name, size, std::move(enumeratorMap));
+  return makeType<Enum>(
+      type, std::move(name), std::move(fqName), size, std::move(enumeratorMap));
 }
 
 Typedef& DrgnParser::enumerateTypedef(struct drgn_type* type) {
@@ -528,6 +530,18 @@ void warnForDrgnError(struct drgn_type* type,
                << ": " << err->code << " " << err->message;
   drgn_error_destroy(err);
 }
+
+std::string getDrgnFullyQualifiedName(drgn_type* type) {
+  char* nameStr = nullptr;
+  size_t length = 0;
+  auto* err = drgn_type_fully_qualified_name(type, &nameStr, &length);
+  if (err != nullptr)
+    throw DrgnParserError("failed to get fully qualified name!", err);
+  if (nameStr != nullptr)
+    return nameStr;
+  return {};
+}
+
 }  // namespace
 
 }  // namespace oi::detail::type_graph

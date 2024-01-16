@@ -40,6 +40,13 @@ constexpr int oidMagicId = 0x01DE8;
 
 namespace {
 
+template <typename T, size_t N>
+constexpr std::array<T, N + 1> arrayPrepend(std::array<T, N> a, T t);
+template <typename T, size_t N, size_t... I>
+constexpr std::array<T, N + 1> arrayPrependHelper(std::array<T, N> a,
+                                                  T t,
+                                                  std::index_sequence<I...>);
+
 template <size_t Size = (1 << 20) / sizeof(uintptr_t)>
 class PointerHashSet {
  private:
@@ -181,6 +188,22 @@ bool isStorageInline(const auto& c) {
   return (uintptr_t)std::data(c) < (uintptr_t)(&c + sizeof(c)) &&
          (uintptr_t)std::data(c) >= (uintptr_t)&c;
 }
+
+namespace {
+
+template <typename T, size_t N, size_t... I>
+constexpr std::array<T, N + 1> arrayPrependHelper(std::array<T, N> a,
+                                                  T t,
+                                                  std::index_sequence<I...>) {
+  return {t, a[I]...};
+}
+
+template <typename T, size_t N>
+constexpr std::array<T, N + 1> arrayPrepend(std::array<T, N> a, T t) {
+  return arrayPrependHelper(a, t, std::make_index_sequence<N>());
+}
+
+}  // namespace
 
 namespace OIInternal {
 namespace {

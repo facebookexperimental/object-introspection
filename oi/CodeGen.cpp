@@ -687,7 +687,9 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
     }
 
     if (thriftIssetMember != nullptr && thriftIssetMember != &member) {
-      code += "\n  .write(getThriftIsset(t, " + std::to_string(i) + "))";
+      code += "\n      .write(getThriftIsset(t, ";
+      code += std::to_string(i);
+      code += "))";
     }
 
     code += "\n      .";
@@ -765,6 +767,12 @@ void CodeGen::genClassStaticType(const Class& c, std::string& code) {
 
 void CodeGen::genClassTreeBuilderInstructions(const Class& c,
                                               std::string& code) {
+  const Member* thriftIssetMember = nullptr;
+  if (const auto it = thriftIssetMembers_.find(&c);
+      it != thriftIssetMembers_.end()) {
+    thriftIssetMember = it->second;
+  }
+
   code += " private:\n";
   size_t index = 0;
   for (const auto& m : c.members) {
@@ -799,12 +807,29 @@ void CodeGen::genClassTreeBuilderInstructions(const Class& c,
       continue;
     std::string fullName = c.name() + "::" + m.name;
     bool isPrimitive = dynamic_cast<const Primitive*>(&m.type());
-    code += "      inst::Field{sizeof(" + fullName + "), " +
-            std::to_string(calculateExclusiveSize(m.type())) + ",\"" +
-            m.inputName + "\", member_" + std::to_string(index) +
-            "_type_names, TypeHandler<Ctx, decltype(" + fullName +
-            ")>::fields, TypeHandler<Ctx, decltype(" + fullName +
-            ")>::processors, ";
+    code += "      inst::Field{sizeof(";
+    code += fullName;
+    code += "), ";
+    code += std::to_string(calculateExclusiveSize(m.type()));
+    code += ",\"";
+    code += m.inputName;
+    code += "\", member_";
+    code += std::to_string(index);
+    code += "_type_names, TypeHandler<Ctx, decltype(";
+    code += fullName;
+    code += ")>::fields, ";
+
+    if (thriftIssetMember != nullptr && thriftIssetMember != &m) {
+      code += "ThriftIssetHandler<";
+    }
+    code += "TypeHandler<Ctx, decltype(";
+    code += fullName;
+    code += ")>";
+    if (thriftIssetMember != nullptr && thriftIssetMember != &m) {
+      code += '>';
+    }
+    code += "::processors, ";
+
     code += isPrimitive ? "true" : "false";
     code += "},\n";
   }
@@ -825,10 +850,10 @@ void CodeGen::genClassTypeHandler(const Class& c, std::string& code) {
   static int getThriftIsset(const %1%& t, size_t i) {
     using thrift_data = apache::thrift::TStructDataStorage<%2%>;
 
-    if (&thrift_data::isset_indexes == nullptr) return -1;
+    if (&thrift_data::isset_indexes == nullptr) return 2;
 
     auto idx = thrift_data::isset_indexes[i];
-    if (idx == -1) return -1;
+    if (idx == -1) return 2;
 
     return t.%3%.get(idx);
   }
@@ -900,7 +925,15 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   for (const auto& p : templateParams) {
     if (p.value) {
       code += ", ";
-      code += p.type().name();
+
+      // HACK: forward all enums directly. this might turn out to be a problem
+      // if there are enums we should be regenerating/use in the body.
+      if (const auto* e = dynamic_cast<const Enum*>(&p.type())) {
+        code += e->inputName();
+      } else {
+        code += p.type().name();
+      }
+
       code += " N" + std::to_string(values++);
     } else {
       code += ", typename T" + std::to_string(types++);
@@ -1048,11 +1081,32 @@ void addCaptureKeySupport(std::string& code) {
   )";
 }
 
+void addThriftIssetSupport(std::string& code) {
+  code += R"(
+void processThriftIsset(result::Element& el, std::function<void(inst::Inst)> stack_ins, ParsedData d) {
+  auto v = std::get<ParsedData::VarInt>(d.val).value;
+  if (v <= 1) {
+    el.is_set_stats.emplace(result::Element::IsSetStats { v == 1 });
+  }
+}
+static constexpr exporters::inst::ProcessorInst thriftIssetProcessor{
+  types::st::VarInt<int>::describe,
+  &processThriftIsset,
+};
+
+template <typename Handler>
+struct ThriftIssetHandler {
+  static constexpr auto processors = arrayPrepend(Handler::processors, thriftIssetProcessor);
+};
+)";
+}
+
 void addStandardTypeHandlers(TypeGraph& typeGraph,
                              FeatureSet features,
                              std::string& code) {
-  if (features[Feature::TreeBuilderV2])
-    addCaptureKeySupport(code);
+  addCaptureKeySupport(code);
+  if (features[Feature::CaptureThriftIsset])
+    addThriftIssetSupport(code);
 
   // Provide a wrapper function, getSizeType, to infer T instead of having to
   // explicitly specify it with TypeHandler<Ctx, T>::getSizeType every time.
