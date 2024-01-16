@@ -46,6 +46,7 @@ class TopoSorter : public RecursiveVisitor {
   void visit(Enum& e) override;
   void visit(Typedef& td) override;
   void visit(Pointer& p) override;
+  void visit(Reference& r) override;
   void visit(Primitive& p) override;
   void visit(CaptureKeys& p) override;
   void visit(Incomplete& i) override;

@@ -614,110 +614,127 @@ class BackInserter {
  * pointer's value always, then the value of the pointer if it is unique. void
  * is of type Unit and always stores nothing.
  */
-void FuncGen::DefineBasicTypeHandlers(std::string& code, FeatureSet features) {
+void FuncGen::DefineBasicTypeHandlers(std::string& code) {
   code += R"(
-    template <typename Ctx, typename T>
-    struct TypeHandler {
-        using DB = typename Ctx::DataBuffer;
-      private:
-        static auto choose_type() {
-            if constexpr(std::is_pointer_v<T>) {
-                return std::type_identity<types::st::Pair<DB,
-                  types::st::VarInt<DB>,
-                  types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<Ctx, std::remove_pointer_t<T>>::type>
-                >>();
-            } else {
-                return std::type_identity<types::st::Unit<DB>>();
-            }
-        }
-
-      public:
-        using type = typename decltype(choose_type())::type;
+template <typename Ctx, typename T>
+struct TypeHandler;
 )";
-  if (features[Feature::TreeBuilderV2]) {
-    code += R"(private:
-        static void process_pointer(result::Element& el, std::function<void(inst::Inst)> stack_ins, ParsedData d) {
-          el.pointer = std::get<ParsedData::VarInt>(d.val).value;
-        }
-        static void process_pointer_content(result::Element& el, std::function<void(inst::Inst)> stack_ins, ParsedData d) {
-          static constexpr std::array<std::string_view, 1> names{"TODO"};
-          static constexpr auto childField = make_field<Ctx, T>("*");
 
-          const ParsedData::Sum& sum = std::get<ParsedData::Sum>(d.val);
-
-          el.container_stats.emplace(result::Element::ContainerStats{ .capacity = 1 });
-
-          if (sum.index == 0)
-            return;
-
-          el.container_stats->length = 1;
-          stack_ins(childField);
-        }
-
-        static constexpr auto choose_fields() {
-          if constexpr(std::is_pointer_v<T>) {
-            return std::array<exporters::inst::Field, 0>{};
-          } else {
-            return std::array<exporters::inst::Field, 0>{};
-          }
-        }
-        static constexpr auto choose_processors() {
-          if constexpr(std::is_pointer_v<T>) {
-            return std::array<inst::ProcessorInst, 2>{
-              {types::st::VarInt<DB>::describe, &process_pointer},
-              {types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<Ctx, std::remove_pointer_t<T>>::type>::describe, &process_pointer_content},
-            };
-          } else {
-            return std::array<inst::ProcessorInst, 0>{};
-          }
-        }
-      public:
-        static constexpr auto fields = choose_fields();
-        static constexpr auto processors = choose_processors();
+  code += R"(
+template <typename Ctx, typename T>
+constexpr inst::Field make_field(std::string_view name) {
+  return inst::Field{
+      sizeof(T),
+      ExclusiveSizeProvider<T>::size,
+      name,
+      NameProvider<T>::names,
+      TypeHandler<Ctx, T>::fields,
+      TypeHandler<Ctx, T>::processors,
+      std::is_fundamental_v<T>,
+  };
+}
 )";
+  code += R"(
+template <typename Ctx, typename T>
+struct TypeHandler {
+  using DB = typename Ctx::DataBuffer;
+
+ private:
+  static void process_pointer(result::Element& el,
+                              std::function<void(inst::Inst)> stack_ins,
+                              ParsedData d) {
+    el.pointer = std::get<ParsedData::VarInt>(d.val).value;
   }
-  code += R"(
-        static types::st::Unit<DB> getSizeType(
-          Ctx& ctx,
-          const T& t,
-          typename TypeHandler<Ctx, T>::type returnArg) {
-              if constexpr(std::is_pointer_v<T>) {
-                JLOG("ptr val @");
-                JLOGPTR(t);
-                auto r0 = returnArg.write((uintptr_t)t);
-                if (t && ctx.pointers.add((uintptr_t)t)) {
-                  return r0.template delegate<1>([&t](auto ret) {
-                    if constexpr (!std::is_void<std::remove_pointer_t<T>>::value) {
-                      return TypeHandler<Ctx, std::remove_pointer_t<T>>::getSizeType(*t, ret);
-                    } else {
-                      return ret;
-                    }
-                  });
-                } else {
-                  return r0.template delegate<0>(std::identity());
-                }
-              } else {
-                return returnArg;
-              }
-        }
-    };
-  )";
+  static void process_pointer_content(result::Element& el,
+                                      std::function<void(inst::Inst)> stack_ins,
+                                      ParsedData d) {
+    using U = std::decay_t<std::remove_pointer_t<T>>;
+    const ParsedData::Sum& sum = std::get<ParsedData::Sum>(d.val);
+
+    el.container_stats.emplace(result::Element::ContainerStats{ .capacity = 1, .length = 0 });
+    if (sum.index == 0)
+      return;
+    el.container_stats->length = 1;
+
+    if constexpr (oi_is_complete<U>) {
+      static constexpr auto childField = make_field<Ctx, U>("*");
+      stack_ins(childField);
+    }
+  }
+
+  static auto choose_type() {
+    if constexpr (std::is_pointer_v<T>) {
+      return std::type_identity<types::st::Pair<
+          DB,
+          types::st::VarInt<DB>,
+          types::st::Sum<
+              DB,
+              types::st::Unit<DB>,
+              typename TypeHandler<Ctx, std::remove_pointer_t<T>>::type>>>();
+    } else {
+      return std::type_identity<types::st::Unit<DB>>();
+    }
+  }
+  static constexpr auto choose_processors() {
+    if constexpr (std::is_pointer_v<T>) {
+      return std::array<inst::ProcessorInst, 2>{
+          exporters::inst::ProcessorInst{types::st::VarInt<DB>::describe,
+                                         &process_pointer},
+          exporters::inst::ProcessorInst{
+              types::st::Sum<
+                  DB,
+                  types::st::Unit<DB>,
+                  typename TypeHandler<Ctx, std::remove_pointer_t<T>>::type>::
+                  describe,
+              &process_pointer_content},
+      };
+    } else {
+      return std::array<inst::ProcessorInst, 0>{};
+    }
+  }
+
+ public:
+  using type = typename decltype(choose_type())::type;
+
+  static constexpr std::array<exporters::inst::Field, 0> fields{};
+  static constexpr auto processors = choose_processors();
+
+  static types::st::Unit<DB> getSizeType(
+      Ctx& ctx, const T& t, typename TypeHandler<Ctx, T>::type returnArg) {
+    if constexpr (std::is_pointer_v<T>) {
+      JLOG("ptr val @");
+      JLOGPTR(t);
+      auto r0 = returnArg.write((uintptr_t)t);
+      if (t && ctx.pointers.add((uintptr_t)t)) {
+        return r0.template delegate<1>([&ctx, &t](auto ret) {
+          using U = std::decay_t<std::remove_pointer_t<T>>;
+          if constexpr (oi_is_complete<U>) {
+            return TypeHandler<Ctx, U>::getSizeType(ctx, *t, ret);
+          } else {
+            return ret;
+          }
+        });
+      } else {
+        return r0.template delegate<0>(std::identity());
+      }
+    } else {
+      return returnArg;
+    }
+  }
+};
+)";
 
   code += R"(
-    template <typename Ctx>
-    class TypeHandler<Ctx, void> {
-        using DB = typename Ctx::DataBuffer;
-      public:
-        using type = types::st::Unit<DB>;
+template <typename Ctx>
+class TypeHandler<Ctx, void> {
+  using DB = typename Ctx::DataBuffer;
+
+ public:
+  using type = types::st::Unit<DB>;
+  static constexpr std::array<exporters::inst::Field, 0> fields{};
+  static constexpr std::array<exporters::inst::ProcessorInst, 0> processors{};
+};
 )";
-  if (features[Feature::TreeBuilderV2]) {
-    code +=
-        "static constexpr std::array<exporters::inst::Field, 0> fields{};\n";
-    code +=
-        "static constexpr std::array<exporters::inst::ProcessorInst, 0> "
-        "processors{};\n";
-  }
-  code += "};\n";
 }
 
 ContainerInfo FuncGen::GetOiArrayContainerInfo() {

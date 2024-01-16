@@ -97,7 +97,6 @@ definitions = '''
       ]}]'''
 
   [cases.anon_struct]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const AnonStructContainer&"]
     setup = '''
       return AnonStructContainer{
@@ -133,6 +132,40 @@ definitions = '''
         }]
       }]
     }]'''
+    expect_json_v2 = '''[{
+      "name":"a0",
+      "typeNames":["ns_anonymous::AnonStructContainer"],
+      "staticSize":8,
+      "exclusiveSize":0,
+      "size":20,
+      "members":[{
+        "name":"anon",
+        "typeNames":["__oi_anon_1"],
+        "staticSize":8,
+        "exclusiveSize":0,
+        "size":20,
+        "members":[{
+          "name":"node",
+          "typeNames":["ns_anonymous::Node*"],
+          "staticSize":8,
+          "exclusiveSize":8,
+          "size":20,
+          "length":1,
+          "capacity":1,
+          "members":[{
+            "name":"*",
+            "typeNames":["ns_anonymous::Node"],
+            "staticSize":12,
+            "exclusiveSize":0,
+            "size":12,
+            "members":[
+              { "name": "a", "staticSize": 4, "exclusiveSize": 4, "size": 4 },
+              { "name": "b", "staticSize": 4, "exclusiveSize": 4, "size": 4 },
+              { "name": "c", "staticSize": 4, "exclusiveSize": 4, "size": 4 }
+            ]
+        }]
+      }]}
+    ]}]'''
 
   [cases.anon_struct_ptr]
     skip = "We don't support pointer to anon-structs yet" # https://github.com/facebookexperimental/object-introspection/issues/20
@@ -146,7 +179,6 @@ definitions = '''
     features = ["chase-raw-pointers"]
 
   [cases.anon_typedef]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const AnonTypedefContainer&"]
     setup = '''
       return AnonTypedefContainer{
@@ -192,6 +224,34 @@ definitions = '''
         }]
       }]
     }]'''
+    expect_json_v2 = '''[{
+      "staticSize": 8,
+      "exclusiveSize": 0,
+      "size": 20,
+      "members": [{
+        "typeNames":["AnonStruct", "__oi_anon_2"],
+        "staticSize": 8,
+        "exclusiveSize": 0,
+        "size": 20,
+        "members": [{
+          "typeNames": ["ns_anonymous::Node*"],
+          "staticSize": 8,
+          "exclusiveSize": 8,
+          "size": 20,
+          "members": [{
+            "typeNames": ["ns_anonymous::Node"],
+            "staticSize": 12,
+            "exclusiveSize": 0,
+            "size": 12,
+            "members": [
+              { "name": "a", "staticSize": 4, "exclusiveSize": 4, "size": 4 },
+              { "name": "b", "staticSize": 4, "exclusiveSize": 4, "size": 4 },
+              { "name": "c", "staticSize": 4, "exclusiveSize": 4, "size": 4 }
+            ]
+          }]
+        }]
+      }]
+    }]'''
 
   [cases.anon_union]
     param_types = ["const AnonUnionContainer&"]
@@ -217,7 +277,6 @@ definitions = '''
     }]'''
 
   [cases.nested_anon_struct]
-    oil_skip = "pointers are broken in tbv2" # https://github.com/facebookexperimental/object-introspection/issues/458
     param_types = ["const NestedAnonContainer&"]
     features = ["chase-raw-pointers"]
     setup = 'return NestedAnonContainer{.m = { .v = {.as = {new Node{1, 2, 3}}}}};'
@@ -271,6 +330,64 @@ definitions = '''
         "staticSize": 8,
         "dynamicSize": 0
       }]
+    }]'''
+    expect_json_v2 = '''[{
+      "staticSize":80,
+      "exclusiveSize":0,
+      "size":92,
+      "members":[
+        {
+          "name":"m",
+          "typeNames": ["__oi_anon_1"],
+          "staticSize": 48,
+          "exclusiveSize":0,
+          "size": 60,
+          "members":[
+            {"name":"__oi_anon_0", "typeNames":["__oi_anon_2"], "staticSize":16, "exclusiveSize":16, "size":16},
+            {
+              "name":"v",
+              "typeNames":["__oi_anon_3"],
+              "staticSize":32,
+              "exclusiveSize":4,
+              "size":44,
+              "members":[
+                {"name":"a", "typeNames":["int32_t"], "staticSize":4, "exclusiveSize":4, "size":4},
+                {"name":"b", "typeNames":["int32_t"], "staticSize":4, "exclusiveSize":4, "size":4},
+                {"name":"c", "typeNames":["int32_t"], "staticSize":4, "exclusiveSize":4, "size":4},
+                {"name":"__oi_anon_4", "typeNames":["__oi_anon_4"], "staticSize":8, "exclusiveSize":8, "size":8},
+                {
+                  "name":"as",
+                  "typeNames":["AnonStruct", "__oi_anon_6"],
+                  "staticSize":8,
+                  "exclusiveSize":0,
+                  "size":20,
+                  "members":[{
+                    "name":"node",
+                    "typeNames":["ns_anonymous::Node*"],
+                    "staticSize":8,
+                    "exclusiveSize":8,
+                    "size":20,
+                    "members":[{
+                      "name":"*",
+                      "typeNames":["ns_anonymous::Node"],
+                      "staticSize":12,
+                      "exclusiveSize":0,
+                      "size":12,
+                      "members":[
+                        { "name": "a", "staticSize": 4, "exclusiveSize": 4, "size": 4 },
+                        { "name": "b", "staticSize": 4, "exclusiveSize": 4, "size": 4 },
+                        { "name": "c", "staticSize": 4, "exclusiveSize": 4, "size": 4 }
+                      ]
+                    }]
+                  }]
+                }
+              ]
+            }
+          ]
+        },
+        {"name":"__oi_anon_1", "typeNames": ["__oi_anon_8"], "staticSize":24, "exclusiveSize":24, "size":24},
+        {"name":"__oi_anon_2", "typeNames": ["__oi_anon_9"], "staticSize":8, "exclusiveSize":8, "size":8}
+      ]
     }]'''
 
   # This test is disabled due to GCC not supporting it
