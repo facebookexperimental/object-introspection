@@ -235,9 +235,29 @@ std::optional<TemplateParam> ClangTypeParser::enumerateTemplateParam(
     }
     case clang::TemplateArgument::Integral: {
       auto& ty = enumerateType(*p.getIntegralType());
-      llvm::SmallString<32> val;
-      p.getAsIntegral().toString(val);
-      return TemplateParam{ty, std::string(val)};
+
+      std::string value;
+      if (const auto* e = dynamic_cast<const Enum*>(&ty)) {
+        const auto& eTy =
+            llvm::cast<const clang::EnumType>(*p.getIntegralType());
+        for (const auto* enumerator : eTy.getDecl()->enumerators()) {
+          if (enumerator->getInitVal() == p.getAsIntegral()) {
+            value = e->inputName();
+            value += "::";
+            value += enumerator->getName();
+            break;
+          }
+        }
+        if (value.empty()) {
+          throw std::runtime_error("unable to find enum name for value");
+        }
+      } else {
+        llvm::SmallString<32> val;
+        p.getAsIntegral().toString(val);
+        value = std::string{val};
+      }
+
+      return TemplateParam{ty, value};
     }
     case clang::TemplateArgument::Template: {
       return enumerateTemplateTemplateParam(p.getAsTemplate());
