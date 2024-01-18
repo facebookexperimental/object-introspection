@@ -50,23 +50,25 @@ void AlignmentCalc::accept(Type& type) {
 void AlignmentCalc::visit(Class& c) {
   RecursiveVisitor::visit(c);
 
-  uint64_t alignment = 1;
-  for (auto& member : c.members) {
-    if (member.align == 0) {
-      // If the member does not have an explicit alignment, calculate it from
-      // the member's type.
-      accept(member.type());
-      member.align = member.type().align();
-    }
-    alignment = std::max(alignment, member.align);
+  if (c.align() == 0) {
+    uint64_t alignment = 1;
+    for (auto& member : c.members) {
+      if (member.align == 0) {
+        // If the member does not have an explicit alignment, calculate it from
+        // the member's type.
+        accept(member.type());
+        member.align = member.type().align();
+      }
+      alignment = std::max(alignment, member.align);
 
-    if (member.align != 0 && (member.bitOffset / 8) % member.align != 0) {
-      // Mark as packed if members are not aligned
-      c.setPacked();
+      if (member.align != 0 && (member.bitOffset / 8) % member.align != 0) {
+        // Mark as packed if members are not aligned
+        c.setPacked();
+      }
     }
+
+    c.setAlign(alignment);
   }
-
-  c.setAlign(alignment);
 
   if (c.size() % c.align() != 0) {
     // Mark as packed if there is no tail padding
