@@ -505,6 +505,7 @@ void CodeGen::getClassSizeFuncConcrete(std::string_view funcName,
             c.fqName() + ">;\n";
   }
 
+  size_t thriftFieldIdx = 0;
   for (size_t i = 0; i < c.members.size(); i++) {
     const auto& member = c.members[i];
     if (member.name.starts_with(AddPadding::MemberPrefix))
@@ -513,8 +514,8 @@ void CodeGen::getClassSizeFuncConcrete(std::string_view funcName,
     if (thriftIssetMember && thriftIssetMember != &member) {
       // Capture Thrift's isset value for each field, except for __isset
       // itself
-      std::string issetIdxStr =
-          "thrift_data::isset_indexes[" + std::to_string(i) + "]";
+      std::string issetIdxStr = "thrift_data::isset_indexes[" +
+                                std::to_string(thriftFieldIdx++) + "]";
       code += "  if (&thrift_data::isset_indexes != nullptr && " + issetIdxStr +
               " != -1) {\n";
       code += "    SAVE_DATA(t." + thriftIssetMember->name + ".get(" +
@@ -684,6 +685,7 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
 
   size_t emptySize = code.size();
   size_t lastNonPaddingElement = getLastNonPaddingMemberIndex(c.members);
+  size_t thriftFieldIdx = 0;
   for (size_t i = 0; i < lastNonPaddingElement + 1; i++) {
     const auto& member = c.members[i];
     if (member.name.starts_with(AddPadding::MemberPrefix)) {
@@ -696,7 +698,7 @@ void CodeGen::genClassTraversalFunction(const Class& c, std::string& code) {
 
     if (thriftIssetMember != nullptr && thriftIssetMember != &member) {
       code += "\n      .write(getThriftIsset(t, ";
-      code += std::to_string(i);
+      code += std::to_string(thriftFieldIdx++);
       code += "))";
     }
 

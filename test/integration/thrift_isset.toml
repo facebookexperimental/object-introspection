@@ -1,4 +1,6 @@
 thrift_definitions = '''
+  namespace cpp2 ns_thrift_isset
+
   include "thrift/annotation/cpp.thrift"
   include "thrift/annotation/thrift.thrift"
 
@@ -6,6 +8,18 @@ thrift_definitions = '''
     1: optional i32 a;
     2: optional i32 b;
     3: optional i32 c;
+  }
+
+  struct MyThriftStructUnpackedPadded {
+    1: optional i32 a;
+    2: optional i64 b;
+    3: optional i32 c;
+    4: optional i64 d;
+    5: optional i32 e;
+    6: optional i64 f;
+    7: optional i32 g;
+    8: optional i64 h;
+    13: optional i32 i;
   }
 
   @cpp.PackIsset
@@ -56,7 +70,7 @@ thrift_definitions = '''
   }
 '''
 raw_definitions = '''
-namespace cpp2 {
+namespace ns_thrift_isset {
   MyThriftStructBoxed::MyThriftStructBoxed() :
         __fbthrift_field_b(),
         __fbthrift_field_c(),
@@ -64,7 +78,7 @@ namespace cpp2 {
         __fbthrift_field_e() {
   }
   MyThriftStructBoxed::~MyThriftStructBoxed() {}
-  MyThriftStructBoxed::MyThriftStructBoxed(::cpp2::MyThriftStructBoxed&& other) noexcept :
+  MyThriftStructBoxed::MyThriftStructBoxed(MyThriftStructBoxed&& other) noexcept :
       __fbthrift_field_a(std::move(other.__fbthrift_field_a)),
       __fbthrift_field_b(std::move(other.__fbthrift_field_b)),
       __fbthrift_field_c(std::move(other.__fbthrift_field_c)),
@@ -72,14 +86,14 @@ namespace cpp2 {
       __fbthrift_field_e(std::move(other.__fbthrift_field_e)),
       __isset(other.__isset) {
   }
-} // namespace cpp2
+} // namespace ns_thrift_isset
 '''
 
 [cases]
   [cases.unpacked]
-    param_types = ["const cpp2::MyThriftStructUnpacked&"]
+    param_types = ["const MyThriftStructUnpacked&"]
     setup = '''
-      cpp2::MyThriftStructUnpacked ret;
+      MyThriftStructUnpacked ret;
       ret.a_ref() = 1;
       ret.c_ref() = 1;
       return ret;
@@ -106,10 +120,52 @@ namespace cpp2 {
       ]
     }]'''
 
-  [cases.packed]
-    param_types = ["const cpp2::MyThriftStructPacked&"]
+  [cases.unpacked_padded]
+    param_types = ["const MyThriftStructUnpackedPadded&"]
     setup = '''
-      cpp2::MyThriftStructPacked ret;
+      MyThriftStructUnpackedPadded ret;
+      ret.a_ref() = 1;
+      ret.c_ref() = 1;
+      return ret;
+    '''
+    features = ["capture-thrift-isset"]
+    expect_json = '''[{
+      "staticSize":80,
+      "dynamicSize":0,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "isset":true},
+        {"name":"__fbthrift_field_b", "staticSize":8, "isset":false},
+        {"name":"__fbthrift_field_c", "staticSize":4, "isset":true},
+        {"name":"__fbthrift_field_d", "staticSize":8, "isset":false},
+        {"name":"__fbthrift_field_e", "staticSize":4, "isset":false},
+        {"name":"__fbthrift_field_f", "staticSize":8, "isset":false},
+        {"name":"__fbthrift_field_g", "staticSize":4, "isset":false},
+        {"name":"__fbthrift_field_h", "staticSize":8, "isset":false},
+        {"name":"__fbthrift_field_i", "staticSize":4, "isset":false},
+        {"name":"__isset", "staticSize":9}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "staticSize":80,
+      "exclusiveSize":19,
+      "size":80,
+      "members":[
+        {"name":"__fbthrift_field_a", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_b", "staticSize":8, "is_set":false},
+        {"name":"__fbthrift_field_c", "staticSize":4, "is_set":true},
+        {"name":"__fbthrift_field_d", "staticSize":8, "is_set":false},
+        {"name":"__fbthrift_field_e", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_f", "staticSize":8, "is_set":false},
+        {"name":"__fbthrift_field_g", "staticSize":4, "is_set":false},
+        {"name":"__fbthrift_field_h", "staticSize":8, "is_set":false},
+        {"name":"__fbthrift_field_i", "staticSize":4, "is_set":false},
+        {"name":"__isset", "staticSize":9, "NOT":"is_set"}
+      ]
+    }]'''
+
+  [cases.packed]
+    param_types = ["const MyThriftStructPacked&"]
+    setup = '''
+      MyThriftStructPacked ret;
       ret.a_ref() = 1;
       ret.c_ref() = 1;
       ret.d_ref() = 1;
@@ -154,9 +210,9 @@ namespace cpp2 {
       ]}]'''
 
   [cases.packed_non_atomic]
-    param_types = ["const cpp2::MyThriftStructPackedNonAtomic&"]
+    param_types = ["const MyThriftStructPackedNonAtomic&"]
     setup = '''
-      cpp2::MyThriftStructPackedNonAtomic ret;
+      MyThriftStructPackedNonAtomic ret;
       ret.a_ref() = 1;
       ret.c_ref() = 1;
       return ret;
@@ -185,9 +241,9 @@ namespace cpp2 {
       ]}]'''
 
   [cases.out_of_order]
-    param_types = ["const cpp2::MyThriftStructOutOfOrder&"]
+    param_types = ["const MyThriftStructOutOfOrder&"]
     setup = '''
-      cpp2::MyThriftStructOutOfOrder ret;
+      MyThriftStructOutOfOrder ret;
       ret.b_ref() = 1;
       return ret;
     '''
@@ -213,9 +269,9 @@ namespace cpp2 {
       ]}]'''
 
   [cases.required]
-    param_types = ["const cpp2::MyThriftStructRequired&"]
+    param_types = ["const MyThriftStructRequired&"]
     setup = '''
-      cpp2::MyThriftStructRequired ret;
+      MyThriftStructRequired ret;
       ret.b_ref() = 1;
       ret.f_ref() = 1;
       return ret;
@@ -248,9 +304,9 @@ namespace cpp2 {
       ]}]'''
 
   [cases.box]
-    param_types = ["const cpp2::MyThriftStructBoxed&"]
+    param_types = ["const MyThriftStructBoxed&"]
     setup = '''
-      cpp2::MyThriftStructBoxed ret;
+      MyThriftStructBoxed ret;
       ret.d_ref() = 1;
       ret.e_ref() = 1;
       return ret;
@@ -281,9 +337,9 @@ namespace cpp2 {
       ]}]'''
 
   [cases.no_capture]
-    param_types = ["const cpp2::MyThriftStructBoxed&"]
+    param_types = ["const MyThriftStructBoxed&"]
     setup = '''
-      cpp2::MyThriftStructBoxed ret;
+      MyThriftStructBoxed ret;
       ret.d_ref() = 1;
       ret.e_ref() = 1;
       return ret;
