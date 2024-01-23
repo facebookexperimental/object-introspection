@@ -33,3 +33,95 @@ void getSizeType(const %1%<T, Allocator> &container, size_t& returnArg)
 }
 """
 
+traversal_func = """
+#ifdef __GLIBCXX__
+/* The std::deque container is a sequence of blocks, each of which is a contiguous
+ * array of elements. The adresses of the blocks are stored within their own array
+ * of pointers and is called the `map`.
+ * So the formula to compute the exclusive size of a std::deque is:
+ *   `static size` + `total map size` + `total block size` - `total element size`
+ *     `static size` = sizeof(std::deque<T>)
+ *     `total map size` = `map capacity` * `pointer size`
+ *     `total block size` = `block count` * `block size`
+ *     `total element size` = `element count` * `element size`
+ * Also see: https://godbolt.org/z/4znaz4hcd
+ *
+ * We don't have access to the map_capacity of the std::deque container, so we manually
+ * re-create the layout of the container to access it.
+ *
+ * https://gcc.gnu.org/onlinedocs/libstdc++/latest-doxygen/a00686_source.html#l00509
+ * From the source of <bits/stl_deque.h>, a std::deque has the following members:
+ */
+struct OI_Deque_impl_data {
+  std::nullptr_t map;
+  size_t map_capacity;
+  typename container_type::const_iterator start;
+  typename container_type::const_iterator finish;
+};
+
+const auto *rc = reinterpret_cast<const OI_Deque_impl_data*>(&container);
+const auto map_capacity = rc->map_capacity;
+
+const auto begin = container.begin();
+const auto end = container.end();
+const auto block_count = 1 + std::distance(begin._M_node, end._M_node);
+const auto block_size = (uintptr_t)begin._M_last - (uintptr_t)begin._M_first;
+
+constexpr auto static_size = sizeof(container_type);
+const auto total_map_size = map_capacity * sizeof(std::nullptr_t);
+const auto total_block_size = block_count * block_size;
+const auto total_element_size = container.size() * sizeof(typename container_type::value_type);
+
+const auto exclusive_size = static_size + total_map_size + total_block_size - total_element_size;
+const auto capacity = total_block_size / sizeof(typename container_type::value_type);
+#elif _LIBCPP_VERSION
+static_assert(false, "libc++ is currently not supported");
+#else
+static_assert(false, "Unsupported STL container. Seet types/deque_list_type.toml");
+#endif
+
+auto tail = returnArg
+  .write((uintptr_t)&container)
+  .write(exclusive_size)
+  .write(capacity)
+  .write(container.size());
+
+for (auto&& it: container) {
+  tail = tail.delegate([&ctx, &it](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, it, ret);
+  });
+}
+
+return tail.finish();
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.pointer = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.exclusive_size = std::get<ParsedData::VarInt>(d.val).value;
+"""
+
+[[codegen.processor]]
+type = "types::st::VarInt<DB>"
+func = """
+el.container_stats.emplace(result::Element::ContainerStats {
+  .capacity = std::get<ParsedData::VarInt>(d.val).value,
+});
+"""
+
+[[codegen.processor]]
+type = "types::st::List<DB, typename TypeHandler<Ctx, T0>::type>"
+func = """
+static constexpr auto childField = make_field<Ctx, T0>("[]");
+
+auto list = std::get<ParsedData::List>(d.val);
+el.container_stats->length = list.length;
+
+stack_ins(inst::Repeat{ list.length, childField });
+"""
