@@ -15,8 +15,6 @@
  */
 #include "IdentifyContainers.h"
 
-#include <regex>
-
 #include "TypeGraph.h"
 #include "oi/ContainerInfo.h"
 
@@ -53,7 +51,7 @@ Type& IdentifyContainers::mutate(Type& type) {
 
 Type& IdentifyContainers::visit(Class& c) {
   for (const auto& containerInfo : containers_) {
-    if (!std::regex_search(c.fqName(), containerInfo->matcher)) {
+    if (!containerInfo->matches(c.fqName())) {
       continue;
     }
 

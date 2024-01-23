@@ -71,7 +71,7 @@ void TypeIdentifier::visit(Container& c) {
     if (Class* paramClass = dynamic_cast<Class*>(&param.type())) {
       bool replaced = false;
       for (const auto& info : passThroughTypes_) {
-        if (std::regex_search(paramClass->fqName(), info.matcher)) {
+        if (info.matches(paramClass->fqName())) {
           // Create dummy containers. Use a map so previously deduplicated nodes
           // remain deduplicated.
           Container* dummy;
