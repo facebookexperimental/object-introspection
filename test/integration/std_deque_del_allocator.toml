@@ -24,7 +24,6 @@ includes = ["deque"]
 
 [cases]
   [cases.a]
-    oil_skip = 'not implemented for treebuilder v2' # https://github.com/facebookexperimental/object-introspection/issues/316
     param_types = ["const Foo&"]
     setup = '''
       Foo foo;
@@ -52,6 +51,30 @@ includes = ["deque"]
             {"name":"", "staticSize":4, "dynamicSize":0,
               "members":[
                 {"name":"b", "staticSize":4, "dynamicSize":0}
+              ]}
+          ]}
+      ]}]'''
+    expect_json_v2 = '''[{
+      "size":1312,
+      "staticSize":160,
+      "exclusiveSize":0,
+      "members":[
+        {"name":"v1", "size":656, "staticSize":80, "exclusiveSize":652, "length":1, "capacity":128,
+          "members":[
+            {"name":"[]", "staticSize":4, "exclusiveSize":0,
+              "members":[
+                {"name":"a", "staticSize":4, "exclusiveSize":4}
+              ]}
+          ]},
+        {"name":"v2", "size":656, "staticSize":80, "exclusiveSize":648, "length":2, "capacity":128,
+          "members":[
+            {"name":"[]", "staticSize":4, "exclusiveSize":0,
+              "members":[
+                {"name":"b", "staticSize":4, "exclusiveSize":4}
+              ]},
+            {"name":"[]", "staticSize":4, "exclusiveSize":0,
+              "members":[
+                {"name":"b", "staticSize":4, "exclusiveSize":4}
               ]}
           ]}
       ]}]'''
