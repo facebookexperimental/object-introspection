@@ -75,12 +75,12 @@ const char* containerTypeEnumToStr(ContainerTypeEnum ty) {
     return nullptr;
   }
 
-  std::regex matcher;
+  boost::regex matcher;
   if (std::optional<std::string> str =
           (*info)["matcher"].value<std::string>()) {
-    matcher = std::regex(*str, std::regex_constants::grep);
+    matcher = boost::regex(*str, boost::regex_constants::grep);
   } else {
-    matcher = std::regex("^" + typeName, std::regex_constants::grep);
+    matcher = boost::regex("^" + typeName, boost::regex_constants::grep);
   }
 
   std::optional<size_t> numTemplateParams =
@@ -194,8 +194,9 @@ namespace {
  *
  * The type name "name" should match "name" and "name<xxx>".
  */
-std::regex getMatcher(const std::string& typeName) {
-  return std::regex("^" + typeName + "$|^" + typeName + "<.*>$");
+boost::regex getMatcher(const std::string& typeName) {
+  return boost::regex("^" + typeName + "$|^" + typeName + "<.*>$",
+                      boost::regex_constants::extended);
 }
 }  // namespace
 
@@ -225,7 +226,7 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     throw ContainerInfoError(path, "`info.type_name` is a required field");
   }
 
-  matcher = getMatcher(typeName);
+  matcher_ = getMatcher(typeName);
 
   if (std::optional<std::string> str = info["ctype"].value<std::string>()) {
     ctype = containerTypeEnumFromStr(*str);
@@ -334,9 +335,9 @@ ContainerInfo::ContainerInfo(std::string typeName_,
                              ContainerTypeEnum ctype_,
                              std::string header_)
     : typeName(std::move(typeName_)),
-      matcher(getMatcher(typeName)),
       ctype(ctype_),
       header(std::move(header_)),
       codegen(Codegen{
-          "// DummyDecl %1%\n", "// DummyFunc %1%\n", "// DummyFunc\n"}) {
+          "// DummyDecl %1%\n", "// DummyFunc %1%\n", "// DummyFunc\n"}),
+      matcher_(getMatcher(typeName)) {
 }

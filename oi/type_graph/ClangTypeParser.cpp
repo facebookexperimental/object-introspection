@@ -24,7 +24,6 @@
 #include <clang/Sema/Sema.h>
 #include <glog/logging.h>
 
-#include <regex>
 #include <stdexcept>
 
 #include "oi/type_graph/Types.h"
@@ -423,7 +422,7 @@ bool ClangTypeParser::chasePointer() const {
 ContainerInfo* ClangTypeParser::getContainerInfo(
     const std::string& fqName) const {
   for (const auto& containerInfo : containers_) {
-    if (std::regex_search(fqName, containerInfo->matcher)) {
+    if (containerInfo->matches(fqName)) {
       return containerInfo.get();
     }
   }

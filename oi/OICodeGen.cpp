@@ -150,7 +150,7 @@ OICodeGen::getContainerInfo(drgn_type* type) {
   for (auto it = containerInfoList.rbegin(); it != containerInfoList.rend();
        ++it) {
     const ContainerInfo& info = **it;
-    if (std::regex_search(nameStr, info.matcher)) {
+    if (info.matches(nameStr)) {
       return info;
     }
   }

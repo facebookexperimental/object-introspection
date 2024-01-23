@@ -34,6 +34,8 @@ add_library(container_info
 )
 target_link_libraries(container_info
   features
+
+  Boost::regex
   glog::glog
   toml
 )

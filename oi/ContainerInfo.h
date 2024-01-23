@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 #pragma once
+#include <boost/regex.hpp>
 #include <filesystem>
 #include <optional>
-#include <regex>
 #include <set>
 #include <string>
 #include <vector>
@@ -49,7 +49,7 @@ struct ContainerInfo {
   // Old ctors, remove with OICodeGen:
   ContainerInfo() = default;
   ContainerInfo(std::string typeName_,
-                std::regex matcher_,
+                boost::regex matcher,
                 std::optional<size_t> numTemplateParams_,
                 ContainerTypeEnum ctype_,
                 std::string header_,
@@ -61,7 +61,6 @@ struct ContainerInfo {
                 oi::detail::FeatureSet requiredFeatures,
                 ContainerInfo::Codegen codegen_)
       : typeName(std::move(typeName_)),
-        matcher(std::move(matcher_)),
         numTemplateParams(numTemplateParams_),
         ctype(ctype_),
         header(std::move(header_)),
@@ -71,7 +70,8 @@ struct ContainerInfo {
         underlyingContainerIndex(underlyingContainerIndex_),
         stubTemplateParams(std::move(stubTemplateParams_)),
         requiredFeatures(requiredFeatures),
-        codegen(std::move(codegen_)) {
+        codegen(std::move(codegen_)),
+        matcher_(std::move(matcher)) {
   }
 
   ContainerInfo(ContainerInfo&&) = default;
@@ -83,8 +83,11 @@ struct ContainerInfo {
     return copy;
   }
 
+  bool matches(std::string_view sv) const {
+    return boost::regex_search(sv.begin(), sv.end(), matcher_);
+  }
+
   std::string typeName;
-  std::regex matcher;
   std::optional<size_t> numTemplateParams;
   ContainerTypeEnum ctype = UNKNOWN_TYPE;
   std::string header;
@@ -110,6 +113,8 @@ struct ContainerInfo {
  private:
   ContainerInfo(const ContainerInfo&) = default;
   ContainerInfo& operator=(const ContainerInfo& other) = default;
+
+  boost::regex matcher_;
 };
 
 class ContainerInfoError : public std::runtime_error {
