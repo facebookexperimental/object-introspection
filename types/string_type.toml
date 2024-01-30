@@ -37,8 +37,7 @@ void getSizeType(const %1%<T, Traits, Allocator> &container, size_t& returnArg)
 """
 
 traversal_func = """
-    bool sso = ((uintptr_t)container.data() <
-                (uintptr_t)(&container + sizeof(std::__cxx11::basic_string<T0>))) &&
+    bool sso = ((uintptr_t)container.data() < (uintptr_t)(&container + 1)) &&
                ((uintptr_t)container.data() >= (uintptr_t)&container);
 
     return returnArg.write(container.capacity())

@@ -55,8 +55,7 @@ class CaptureKeyHandler<Ctx, std::__cxx11::basic_string<CharT, Traits, Allocator
 """
 
 traversal_func = """
-    bool sso = ((uintptr_t)container.data() <
-                (uintptr_t)(&container + sizeof(std::__cxx11::basic_string<T0>))) &&
+    bool sso = ((uintptr_t)container.data() < (uintptr_t)(&container + 1)) &&
                ((uintptr_t)container.data() >= (uintptr_t)&container);
 
     return returnArg.write(container.capacity())
