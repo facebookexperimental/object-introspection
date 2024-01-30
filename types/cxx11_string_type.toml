@@ -28,7 +28,7 @@ void getSizeType(const %1%<T, Traits, Allocator> &container, size_t& returnArg)
     // Test for small string optimisation - whether the underlying string is
     // contained within the string object.
     SAVE_SIZE(
-      (((uintptr_t)container.data() < (uintptr_t)(&container + sizeof(%1%<T>)))
+      (((uintptr_t)container.data() < (uintptr_t)(&container + 1))
         &&
       ((uintptr_t)container.data() >= (uintptr_t)&container))
         ? 0 : (container.capacity() * sizeof(T))
