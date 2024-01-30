@@ -48,7 +48,7 @@ traversal_func = """
 // TODO: Is there an API to get this information?
 bool uses_intern_storage =
   (uintptr_t)&container <= (uintptr_t)container.data() &&
-  (uintptr_t)container.data() < ((uintptr_t)&container + 1);
+  (uintptr_t)container.data() < (uintptr_t)(&container + 1);
 
 auto tail = returnArg
   .write((uintptr_t)uses_intern_storage)
