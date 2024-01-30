@@ -28,17 +28,13 @@ void getSizeType(const %1%<T, Traits, Allocator> &container, size_t& returnArg)
     // Test for small string optimisation - whether the underlying string is
     // contained within the string object.
     SAVE_SIZE(
-      ((uintptr_t)container.data() < (uintptr_t)(&container + 1))
-        &&
-      ((uintptr_t)container.data() >= (uintptr_t)&container)
-        ? 0 : (container.capacity() * sizeof(T))
+      isStorageInline(container) ? 0 : (container.capacity() * sizeof(T))
     );
 }
 """
 
 traversal_func = """
-    bool sso = ((uintptr_t)container.data() < (uintptr_t)(&container + 1)) &&
-               ((uintptr_t)container.data() >= (uintptr_t)&container);
+    bool sso = isStorageInline(container);
 
     return returnArg.write(container.capacity())
         .write(sso)
