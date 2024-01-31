@@ -185,8 +185,10 @@ struct validate_offset {
 enum class StubbedPointer : uintptr_t {};
 
 bool isStorageInline(const auto& c) {
-  return (uintptr_t)std::data(c) < (uintptr_t)(&c + sizeof(c)) &&
-         (uintptr_t)std::data(c) >= (uintptr_t)&c;
+  uintptr_t data_p = (uintptr_t)std::data(c);
+  uintptr_t container_p = (uintptr_t)&c;
+
+  return data_p >= container_p && data_p < container_p + sizeof(c);
 }
 
 namespace {

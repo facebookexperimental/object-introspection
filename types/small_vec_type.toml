@@ -22,8 +22,8 @@ void getSizeType(const %1%<V, N, P> &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<V, N, P>));
 
-    bool dataInlined = ((uintptr_t)container.data() >= (uintptr_t)&container) &&
-                       ((uintptr_t)container.data() < (uintptr_t)(&container + sizeof(%1%<V, N, P>)));
+    bool dataInlined = isStorageInline(container);
+
     if (dataInlined) {
       // Don't double count inlined elements
       SAVE_SIZE(-(container.size() * sizeof(V)));
@@ -43,12 +43,7 @@ void getSizeType(const %1%<V, N, P> &container, size_t& returnArg)
 """
 
 traversal_func = """
-// If `container.data()` pointer is within the container struct,
-// then the container's storage is inlined and doesn't uses the heap.
-// TODO: Is there an API to get this information?
-bool uses_intern_storage =
-  (uintptr_t)&container <= (uintptr_t)container.data() &&
-  (uintptr_t)container.data() < ((uintptr_t)&container + sizeof(container));
+bool uses_intern_storage = isStorageInline(container);
 
 auto tail = returnArg
   .write((uintptr_t)uses_intern_storage)

@@ -25,9 +25,7 @@ void getSizeType(const %1%<E, T, A, Storage> &container, size_t& returnArg)
     SAVE_DATA((uintptr_t)container.capacity());
     SAVE_DATA((uintptr_t)container.size());
 
-    bool inlined = ((uintptr_t)container.data() < (uintptr_t)(&container + sizeof(%1%<E, T, A, Storage>)))
-        &&
-      ((uintptr_t)container.data() >= (uintptr_t)&container);
+    bool inlined = isStorageInline(container);
 
     if (!inlined && ctx.pointers.add((uintptr_t)container.data())) {
       SAVE_SIZE(container.capacity() * sizeof(T));
