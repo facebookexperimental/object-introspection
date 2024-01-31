@@ -150,7 +150,7 @@ void TopoSorter::visit(Reference& r) {
 }
 
 void TopoSorter::visit(CaptureKeys& c) {
-  accept(c.container());
+  accept(c.underlyingType());
   sortedTypes_.push_back(c);
 }
 

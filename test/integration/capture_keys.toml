@@ -8,6 +8,11 @@ struct MapHolder {
   std::map<int, int> dontCaptureKeysHere;
 };
 
+using MyIntMap = std::map<int,int>;
+struct MyTypedefIntMapHolder {
+  MyIntMap captureMyKeys;
+};
+
 enum class MyEnum {
   One = 1,
   Two = 2,
@@ -313,6 +318,48 @@ class FixedAllocator {
               "members": [
                 {"name": "key", "typePath": ["a0","dontCaptureKeysHere","[]","key"]},
                 {"name": "value", "typePath": ["a0","dontCaptureKeysHere","[]","value"]}
+              ]
+            }
+          ]
+        }
+      ]
+    }]'''
+
+
+  [cases.typedef]
+    oid_skip = "Requires TreeBuilderV2"
+    param_types = ["const MyTypedefIntMapHolder&"]
+    setup = '''return {MyTypedefIntMapHolder{
+      .captureMyKeys{ {1,2},{3,4} },
+    }};'''
+    config_suffix = '''
+      [[codegen.capture_keys]]
+      type = "MyTypedefIntMapHolder"
+      members = ["captureMyKeys"]
+    '''
+    expect_json_v2 = '''[{
+      "members": [
+        {
+          "name": "captureMyKeys",
+          "typePath": ["a0","captureMyKeys"],
+          "typeNames": ["MyIntMap", "std::map<int32_t, int32_t, less<int>, std::allocator<std::pair<int32_t const, int32_t>>>"],
+          "members": [
+            {
+              "name": "[1]",
+              "typePath": ["a0","captureMyKeys","[1]"],
+              "data": 1,
+              "members": [
+                {"name": "key", "typePath": ["a0","captureMyKeys","[1]","key"]},
+                {"name": "value", "typePath": ["a0","captureMyKeys","[1]","value"]}
+              ]
+            },
+            {
+              "name": "[3]",
+              "typePath": ["a0","captureMyKeys","[3]"],
+              "data": 3,
+              "members": [
+                {"name": "key", "typePath": ["a0","captureMyKeys","[3]","key"]},
+                {"name": "value", "typePath": ["a0","captureMyKeys","[3]","value"]}
               ]
             }
           ]

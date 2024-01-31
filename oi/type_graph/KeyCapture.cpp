@@ -99,7 +99,7 @@ void KeyCapture::visit(Class& c) {
  *         [VAL]
  */
 Type& KeyCapture::captureKey(Type& type) {
-  auto* container = dynamic_cast<Container*>(&type);
+  auto* container = dynamic_cast<Container*>(&(stripTypedefs(type)));
   if (!container)  // We only want to capture keys from containers
     return type;
 
@@ -114,7 +114,9 @@ Type& KeyCapture::captureKey(Type& type) {
   auto infoPtr = std::make_unique<ContainerInfo>(std::move(newContainerInfo));
   const auto& info = containerInfos_.emplace_back(std::move(infoPtr));
 
-  auto& captureKeysNode = typeGraph_.makeType<CaptureKeys>(*container, *info);
+  // auto& captureKeysNode = typeGraph_.makeType<CaptureKeys>(*container,
+  // *info);
+  auto& captureKeysNode = typeGraph_.makeType<CaptureKeys>(type, *info);
   return captureKeysNode;
 }
 
