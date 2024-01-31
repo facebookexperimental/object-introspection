@@ -32,6 +32,31 @@ definitions = '''
       }
     ]
     '''
+  [cases.unique_ptr_const_uint64_empty]
+    param_types = ["std::unique_ptr<const std::uint64_t>&"]
+    setup = "return {nullptr};"
+    expect_json = '''
+    [
+      {
+        "staticSize": 8,
+        "dynamicSize": 0,
+        "exclusiveSize": 8,
+        "length": 0,
+        "capacity": 1,
+        "elementStaticSize": 8
+      }
+    ]
+    '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 8,
+        "exclusiveSize": 8,
+        "length": 0,
+        "capacity": 1
+      }
+    ]
+    '''
   [cases.unique_ptr_uint64_present]
     param_types = ["std::unique_ptr<std::uint64_t>&"]
     setup = "return {std::make_unique<std::uint64_t>(64)};"
@@ -77,6 +102,30 @@ definitions = '''
         "staticSize": 8,
         "exclusiveSize": 8,
         "size": 8,
+        "length": 0,
+        "capacity": 1
+      }
+    ]
+    '''
+  [cases.unique_ptr_const_vector_empty]
+    param_types = ["std::unique_ptr<const std::vector<std::uint64_t>>&"]
+    setup = "return {nullptr};"
+    expect_json = '''
+    [
+      {
+        "staticSize": 8,
+        "dynamicSize": 0,
+        "length": 0,
+        "capacity": 1,
+        "elementStaticSize": 24
+      }
+    ]
+    '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 8,
+        "exclusiveSize": 8,
         "length": 0,
         "capacity": 1
       }
@@ -188,6 +237,30 @@ definitions = '''
       }
     ]
     '''
+  [cases.shared_ptr_const_uint64_empty]
+    param_types = ["std::shared_ptr<const std::uint64_t>&"]
+    setup = "return {nullptr};"
+    expect_json = '''
+    [
+      {
+        "staticSize": 16,
+        "dynamicSize": 0,
+        "length": 0,
+        "capacity": 1,
+        "elementStaticSize": 8
+      }
+    ]
+    '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 16,
+        "exclusiveSize": 16,
+        "length": 0,
+        "capacity": 1
+      }
+    ]
+    '''
   [cases.shared_ptr_uint64_present]
     param_types = ["std::shared_ptr<std::uint64_t>&"]
     setup = "return std::make_shared<std::uint64_t>(64);"
@@ -236,6 +309,30 @@ definitions = '''
         "staticSize": 16,
         "exclusiveSize": 16,
         "size": 16,
+        "length": 0,
+        "capacity": 1
+      }
+    ]
+    '''
+  [cases.shared_ptr_const_vector_empty]
+    param_types = ["std::shared_ptr<const std::vector<std::uint64_t>>&"]
+    setup = "return {nullptr};"
+    expect_json = '''
+    [
+      {
+        "staticSize": 16,
+        "dynamicSize": 0,
+        "length": 0,
+        "capacity": 1,
+        "elementStaticSize": 24
+      }
+    ]
+    '''
+    expect_json_v2 = '''
+    [
+      {
+        "staticSize": 16,
+        "exclusiveSize": 16,
         "length": 0,
         "capacity": 1
       }
