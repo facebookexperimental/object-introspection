@@ -183,7 +183,7 @@ void Printer::visit(const DummyAllocator& d) {
 void Printer::visit(const CaptureKeys& d) {
   prefix();
   out_ << "CaptureKeys" << std::endl;
-  print(d.container());
+  print(d.underlyingType());
 }
 
 void Printer::prefix() {

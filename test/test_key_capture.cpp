@@ -76,6 +76,35 @@ TEST(KeyCaptureTest, MapInMap) {
 )");
 }
 
+TEST(KeyCaptureTest, Typedef) {
+  std::vector<OICodeGen::Config::KeyToCapture> keysToCapture = {
+      {"MyClass", "a"},
+  };
+  std::vector<std::unique_ptr<ContainerInfo>> containerInfos;
+  test(KeyCapture::createPass(keysToCapture, containerInfos),
+       R"(
+[0] Class: MyClass (size: 12)
+      Member: a (offset: 8)
+[1]     Typedef: MyTypeDef 
+[2]       Container: std::map (size: 24)
+            Param
+              Primitive: int32_t
+            Param
+              Primitive: int32_t
+)",
+       R"(
+[0] Class: MyClass (size: 12)
+      Member: a (offset: 8)
+        CaptureKeys
+[1]       Typedef: MyTypeDef 
+[2]         Container: std::map (size: 24)
+              Param
+                Primitive: int32_t
+              Param
+                Primitive: int32_t
+)");
+}
+
 TEST(KeyCaptureTest, TopLevel) {
   std::vector<OICodeGen::Config::KeyToCapture> keysToCapture = {
       {{}, {}, true},

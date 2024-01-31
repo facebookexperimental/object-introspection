@@ -79,6 +79,9 @@ class ConstVisitor;
   Type& accept(Visitor<Type&>& m) override;           \
   void accept(ConstVisitor& v) const override;
 
+class Type;
+Type& stripTypedefs(Type& type);
+
 // TODO delete copy and move ctors
 
 /*
@@ -934,8 +937,8 @@ class DummyAllocator : public Type {
  */
 class CaptureKeys : public Type {
  public:
-  explicit CaptureKeys(Container& c, const ContainerInfo& info)
-      : container_(c), containerInfo_(info) {
+  explicit CaptureKeys(Type& t, const ContainerInfo& info)
+      : underlyingType_(t), containerInfo_(info) {
     regenerateName();
   }
 
@@ -948,19 +951,19 @@ class CaptureKeys : public Type {
   }
 
   virtual std::string_view inputName() const override {
-    return container_.get().inputName();
+    return underlyingType_.get().inputName();
   }
 
   void regenerateName() {
-    name_ = "OICaptureKeys<" + container_.get().name() + ">";
+    name_ = "OICaptureKeys<" + underlyingType_.get().name() + ">";
   }
 
   virtual size_t size() const override {
-    return container_.get().size();
+    return underlyingType_.get().size();
   }
 
   virtual uint64_t align() const override {
-    return container_.get().align();
+    return underlyingType_.get().align();
   }
 
   virtual NodeId id() const override {
@@ -971,21 +974,19 @@ class CaptureKeys : public Type {
     return containerInfo_;
   }
 
-  Container& container() const {
-    return container_;
+  Type& underlyingType() const {
+    return underlyingType_;
   }
 
-  void setContainer(Container& container) {
-    container_ = container;
+  void setUnderlyingType(Type& t) {
+    underlyingType_ = t;
   }
 
  private:
-  std::reference_wrapper<Container> container_;
+  std::reference_wrapper<Type> underlyingType_;
   const ContainerInfo& containerInfo_;
   std::string name_;
 };
-
-Type& stripTypedefs(Type& type);
 
 }  // namespace oi::detail::type_graph
 

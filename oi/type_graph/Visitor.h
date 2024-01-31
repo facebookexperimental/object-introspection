@@ -117,7 +117,7 @@ class RecursiveVisitor : public Visitor<void> {
     accept(d.allocType());
   }
   virtual void visit(CaptureKeys& c) {
-    accept(c.container());
+    accept(c.underlyingType());
   }
 };
 
@@ -190,8 +190,7 @@ class RecursiveMutator : public Visitor<Type&> {
     return d;
   }
   virtual Type& visit(CaptureKeys& c) {
-    auto& newContainer = dynamic_cast<Container&>(mutate(c.container()));
-    c.setContainer(newContainer);
+    c.setUnderlyingType(mutate(c.underlyingType()));
     return c;
   }
 };
