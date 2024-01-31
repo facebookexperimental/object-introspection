@@ -60,7 +60,7 @@ el.pointer = std::get<ParsedData::VarInt>(d.val).value;
 type = """
 types::st::Sum<DB,
   types::st::Unit<DB>,
-  typename TypeHandler<Ctx, T0>::type>
+  typename TypeHandler<Ctx, std::decay_t<T0>>::type>
 """
 func = """
 #ifdef __GLIBCXX__
