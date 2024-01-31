@@ -405,10 +405,15 @@ Primitive& ClangTypeParser::enumeratePrimitive(const clang::BuiltinType& ty) {
     case clang::BuiltinType::LongDouble:
       return makeType<Primitive>(ty, Primitive::Kind::Float64);
 
+    case clang::BuiltinType::NullPtr:
+      return makeType<Primitive>(ty, Primitive::Kind::StubbedPointer);
+
     case clang::BuiltinType::UInt128:
     case clang::BuiltinType::Int128:
     default:
-      throw std::logic_error(std::string("unsupported BuiltinType::Kind"));
+      throw std::logic_error(std::string("unsupported BuiltinType::Kind") +
+                             " " +
+                             ty.getNameAsCString(ast->getPrintingPolicy()));
   }
 }
 
