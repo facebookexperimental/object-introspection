@@ -50,6 +50,7 @@ class Array;
 class Class;
 class Enum;
 class Member;
+struct Parent;
 class Primitive;
 class Reference;
 class Type;
@@ -114,6 +115,7 @@ class ClangTypeParser {
   std::optional<TemplateParam> enumerateTemplateTemplateParam(
       const clang::TemplateName&);
 
+  void enumerateClassParents(const clang::RecordType&, std::vector<Parent>&);
   void enumerateClassMembers(const clang::RecordType&, std::vector<Member>&);
 
   ContainerInfo* getContainerInfo(const std::string& fqName) const;
