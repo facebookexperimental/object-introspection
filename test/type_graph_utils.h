@@ -28,3 +28,9 @@ type_graph::Container getVector(type_graph::NodeId id = 0);
 type_graph::Container getMap(type_graph::NodeId id = 0);
 type_graph::Container getList(type_graph::NodeId id = 0);
 type_graph::Container getPair(type_graph::NodeId id = 0);
+
+std::pair<size_t, size_t> globMatch(std::string_view pattern,
+                                    std::string_view str);
+std::string prefixLines(std::string_view str,
+                        std::string_view prefix,
+                        size_t maxLen);

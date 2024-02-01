@@ -45,6 +45,7 @@ add_executable(test_type_graph
   test_flattener.cpp
   test_identify_containers.cpp
   test_key_capture.cpp
+  test_lldb_parser.cpp
   test_name_gen.cpp
   test_node_tracker.cpp
   test_prune.cpp

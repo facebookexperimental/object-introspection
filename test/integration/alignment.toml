@@ -41,6 +41,21 @@ definitions = '''
   };
 '''
 [cases]
+  [cases.struct]
+    param_types = ["const Align16&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 16, "exclusiveSize": 15, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
+    ]}]'''
+  [cases.member_alignment]
+    param_types = ["const MemberAlignment&"]
+    setup = "return {};"
+    expect_json = '''[
+      {"staticSize": 64, "exclusiveSize": 32, "members": [
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1},
+        {"typeName": "int8_t", "staticSize": 1, "exclusiveSize": 1}
+    ]}]'''
   [cases.wrapper_struct]
     param_types = ["const Wrapper<Align16>&"]
     setup = "return {};"

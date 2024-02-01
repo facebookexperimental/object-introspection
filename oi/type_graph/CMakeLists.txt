@@ -9,6 +9,7 @@ add_library(type_graph
   Flattener.cpp
   IdentifyContainers.cpp
   KeyCapture.cpp
+  LLDBParser.cpp
   NameGen.cpp
   PassManager.cpp
   Printer.cpp
@@ -24,7 +25,9 @@ add_dependencies(type_graph libdrgn)
 target_link_libraries(type_graph
   container_info
   symbol_service
+  Boost::headers
 
+  LLDB
   "-L${DRGN_PATH}/.libs"
   drgn
 )
