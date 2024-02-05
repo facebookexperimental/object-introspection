@@ -223,6 +223,13 @@ template <typename T>
 struct NameProvider;
 )";
 
+  code += R"(
+template <unsigned int N, unsigned int align, int32_t Id>
+struct NameProvider<DummySizedOperator<N, align, Id>> {
+  static constexpr std::array<std::string_view, 0> names = { };
+};
+)";
+
   // TODO: stop types being duplicated at this point and remove this check
   std::unordered_set<std::string_view> emittedTypes;
   for (const Type& t : typeGraph.finalTypes) {
