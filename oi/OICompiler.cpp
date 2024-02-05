@@ -499,6 +499,7 @@ bool OICompiler::compile(const std::string& code,
   compInv->getLangOpts()->Exceptions = true;
   compInv->getLangOpts()->CXXExceptions = true;
   compInv->getLangOpts()->Coroutines = true;
+  compInv->getLangOpts()->AlignedAllocation = true;
 
   compInv->getPreprocessorOpts();
   compInv->getPreprocessorOpts().addRemappedFile(
