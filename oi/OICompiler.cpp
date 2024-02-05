@@ -577,6 +577,7 @@ bool OICompiler::compile(const std::string& code,
   if (config.features[Feature::GenJitDebug]) {
     compInv->getCodeGenOpts().setDebugInfo(codegenoptions::FullDebugInfo);
   }
+  compInv->getDiagnosticOpts().TemplateBacktraceLimit = 0;
 
   CompilerInstance compInstance;
   compInstance.setInvocation(compInv);
