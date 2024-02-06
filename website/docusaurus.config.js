@@ -85,6 +85,10 @@ const config = {
                 label: 'Getting Started',
                 to: 'docs/intro',
               },
+              {
+                label: 'CppCon 2023 Presentation',
+                to: 'https://youtu.be/6IlTs8YRne0',
+              },
             ],
           },
           {
