@@ -1,6 +1,7 @@
 # object-introspection
 
 [![Matrix Chat](https://img.shields.io/matrix/object-introspection:matrix.org.svg)](https://matrix.to/#/#object-introspection:matrix.org)
+[![CppCon 2023 Presentation](https://img.shields.io/youtube/views/6IlTs8YRne0?label=CppCon%202023)](https://youtu.be/6IlTs8YRne0)
 
 ![OI Logo](/website/static/img/OIBrandmark.svg)
 
