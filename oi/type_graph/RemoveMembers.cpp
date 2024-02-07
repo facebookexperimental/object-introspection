@@ -61,7 +61,7 @@ void RemoveMembers::visit(Class& c) {
   }
 
   std::erase_if(c.members, [this, &c](Member member) {
-    if (ignoreMember(c.name(), member.name))
+    if (ignoreMember(c.inputName(), member.name))
       return true;
     if (dynamic_cast<Incomplete*>(&member.type()))
       return true;
@@ -69,10 +69,11 @@ void RemoveMembers::visit(Class& c) {
   });
 }
 
-bool RemoveMembers::ignoreMember(const std::string& typeName,
+bool RemoveMembers::ignoreMember(std::string_view typeName,
                                  const std::string& memberName) const {
   for (const auto& [ignoredType, ignoredMember] : membersToIgnore_) {
-    if (typeName == ignoredType && memberName == ignoredMember) {
+    if (typeName == ignoredType &&
+        (memberName == ignoredMember || ignoredMember == "*")) {
       return true;
     }
   }

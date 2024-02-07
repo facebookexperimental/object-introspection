@@ -47,7 +47,7 @@ class RemoveMembers : public RecursiveVisitor {
   void visit(Class& c) override;
 
  private:
-  bool ignoreMember(const std::string& typeName,
+  bool ignoreMember(std::string_view typeName,
                     const std::string& memberName) const;
 
   std::unordered_set<Type*> visited_;
