@@ -6,11 +6,15 @@ definitions = '''
   struct Bar {
     std::string a, b, c;
   };
+
+  struct FooBar {
+    Foo a;
+    Bar b;
+  };
 '''
 
 [cases]
-  [cases.a]
-    skip = 'v2 hides the member entirely when it should show it with static size' # todo: github issue
+  [cases.roottype]
     param_types = ["const Bar&"]
     setup = """
       return Bar{
@@ -21,18 +25,208 @@ definitions = '''
     """
     config_suffix = """
     [[codegen.ignore]]
-    type = "Foo"
+    type = "ns_ignored::Bar"
+
+    """
+    expect_json_v2 = '''[{
+      "staticSize":96,
+      "exclusiveSize":96,
+      "members":[]
+      }]'''
+
+    expect_json =''' 
+[
+  {
+    "name": "a0",
+    "typePath": "a0",
+    "typeName": "ns_ignored::Bar",
+    "isTypedef": false,
+    "staticSize": 96,
+    "dynamicSize": 0,
+    "exclusiveSize": 96
+  }
+]
+'''
+
+  [cases.subtype]
+    param_types = ["const FooBar&"]
+    setup = """
+      return FooBar{
+        { 1, 2, 3}, {
+        "The first member of the struct Bar",
+        "The second member of the struct Bar",
+        "The 3rd member of the struct Bar"
+      }} ;
+    """
+    config_suffix = """
+    [[codegen.ignore]]
+    type = "ns_ignored::Bar"
+
+    """
+    expect_json_v2 = '''[{
+      "staticSize":112,
+      "exclusiveSize":4,
+      "members":[
+        {
+          "name": "a",
+          "staticSize": 12,
+          "exclusiveSize": 0,
+          "members": [
+            { "name":"a", "staticSize":4, "exclusiveSize":4 },
+            { "name":"b", "staticSize":4, "exclusiveSize":4 },
+            { "name":"c", "staticSize":4, "exclusiveSize":4 }
+          ]
+        },
+        {
+          "name":"b",
+          "staticSize":96,
+          "exclusiveSize":96
+        }
+      ]}]'''
+
+    expect_json = '''
+[
+  {
+    "name": "a0",
+    "typePath": "a0",
+    "typeName": "ns_ignored::FooBar",
+    "isTypedef": false,
+    "staticSize": 112,
+    "dynamicSize": 0,
+    "exclusiveSize": 4,
+    "members": [
+      {
+        "name": "a",
+        "typePath": "a",
+        "typeName": "ns_ignored::Foo",
+        "isTypedef": false,
+        "staticSize": 12,
+        "dynamicSize": 0,
+        "exclusiveSize": 0,
+        "members": [
+          {
+            "name": "a",
+            "typePath": "a",
+            "typeName": "int32_t",
+            "isTypedef": false,
+            "staticSize": 4,
+            "dynamicSize": 0,
+            "exclusiveSize": 4
+          },
+          {
+            "name": "b",
+            "typePath": "b",
+            "typeName": "int32_t",
+            "isTypedef": false,
+            "staticSize": 4,
+            "dynamicSize": 0,
+            "exclusiveSize": 4
+          },
+          {
+            "name": "c",
+            "typePath": "c",
+            "typeName": "int32_t",
+            "isTypedef": false,
+            "staticSize": 4,
+            "dynamicSize": 0,
+            "exclusiveSize": 4
+          }
+        ]
+      },
+      {
+        "name": "b",
+        "typePath": "b",
+        "typeName": "ns_ignored::Bar",
+        "isTypedef": false,
+        "staticSize": 96,
+        "dynamicSize": 0,
+        "exclusiveSize": 96
+      }
+    ]
+  }
+]
+    '''
+
+
+  [cases.member]
+    param_types = ["const Bar&"]
+    setup = """
+      return Bar{
+        "The first member of the struct Bar",
+        "The second member of the struct Bar",
+        "The 3rd member of the struct Bar"
+      };
+    """
+    config_suffix = """
+    [[codegen.ignore]]
+    type = "ns_ignored::Bar"
     members = ["a"]
 
-    [[codegen.ignore]]
-    type = "Bar"
-    members = ["b"]
     """
-    expect_json = '''[{
+    expect_json_v2 = '''[{
       "staticSize":96,
-      "dynamicSize":66,
+      "exclusiveSize":32,
       "members":[
-        {"name":"a", "staticSize":32, "dynamicSize":34},
-        {"name":"b", "staticSize":32, "dynamicSize":0},
-        {"name":"c", "staticSize":32, "dynamicSize":32}
+        { "name":"b", "staticSize":32, "exclusiveSize":67 },
+        { "name":"c", "staticSize":32, "exclusiveSize":64 }
       ]}]'''
+
+    expect_json = '''
+[
+  {
+    "staticSize": 96,
+    "dynamicSize": 67,
+    "exclusiveSize": 32,
+    "members": [
+      {
+        "name": "b",
+        "typePath": "b",
+        "typeName": "string",
+        "isTypedef": true,
+        "staticSize": 32,
+        "dynamicSize": 35,
+        "exclusiveSize": 0,
+        "members": [
+          {
+            "name": "",
+            "typePath": "",
+            "typeName": "std::__cxx11::basic_string<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>>",
+            "isTypedef": false,
+            "staticSize": 32,
+            "dynamicSize": 35,
+            "exclusiveSize": 67,
+            "length": 35,
+            "capacity": 35,
+            "elementStaticSize": 1
+          }
+        ]
+      },
+      {
+        "name": "c",
+        "typePath": "c",
+        "typeName": "string",
+        "isTypedef": true,
+        "staticSize": 32,
+        "dynamicSize": 32,
+        "exclusiveSize": 0,
+        "members": [
+          {
+            "name": "",
+            "typePath": "",
+            "typeName": "std::__cxx11::basic_string<int8_t, std::char_traits<int8_t>, std::allocator<int8_t>>",
+            "isTypedef": false,
+            "staticSize": 32,
+            "dynamicSize": 32,
+            "exclusiveSize": 64,
+            "length": 32,
+            "capacity": 32,
+            "elementStaticSize": 1
+          }
+        ]
+      }
+    ]
+  }
+]
+      '''
+
+
