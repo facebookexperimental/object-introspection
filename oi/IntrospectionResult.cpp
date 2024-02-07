@@ -70,7 +70,7 @@ IntrospectionResult::const_iterator::operator++() {
           if constexpr (std::is_same_v<T, exporters::inst::Field>) {
             type_path_.emplace_back(ty.name);
             stack_.emplace(exporters::inst::PopTypePath{});
-            next_ = result::Element{
+            next_.emplace(result::Element{
                 .name = ty.name,
                 .type_path = type_path_,
                 .type_names = ty.type_names,
@@ -79,7 +79,7 @@ IntrospectionResult::const_iterator::operator++() {
                 .container_stats = std::nullopt,
                 .is_set_stats = std::nullopt,
                 .is_primitive = ty.is_primitive,
-            };
+            });
 
             for (const auto& [dy, handler] : ty.processors) {
               auto parsed = exporters::ParsedData::parse(data_, dy);
@@ -94,7 +94,6 @@ IntrospectionResult::const_iterator::operator++() {
                       .second;
 
               type_path_.back() = new_name_ref;
-              next_->type_path.back() = new_name_ref;
               next_->name = new_name_ref;
             }
 

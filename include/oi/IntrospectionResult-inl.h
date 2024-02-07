@@ -45,7 +45,9 @@ inline IntrospectionResult::const_iterator IntrospectionResult::begin() const {
   return cbegin();
 }
 inline IntrospectionResult::const_iterator IntrospectionResult::cbegin() const {
-  return ++const_iterator{buf_.cbegin(), inst_};
+  auto it = const_iterator{buf_.cbegin(), inst_};
+  ++it;
+  return it;
 }
 inline IntrospectionResult::const_iterator IntrospectionResult::end() const {
   return cend();
@@ -68,6 +70,18 @@ inline const result::Element& IntrospectionResult::const_iterator::operator*()
 inline const result::Element* IntrospectionResult::const_iterator::operator->()
     const {
   return &*next_;
+}
+
+inline IntrospectionResult::const_iterator
+IntrospectionResult::const_iterator::clone() const {
+  auto ret{*this};
+
+  // Fix the self referential type_path_ field in next_
+  if (ret.next_.has_value()) {
+    ret.next_->type_path = ret.type_path_;
+  }
+
+  return ret;
 }
 
 inline bool IntrospectionResult::const_iterator::operator==(

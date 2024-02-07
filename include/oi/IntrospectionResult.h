@@ -44,6 +44,16 @@ class IntrospectionResult {
     const_iterator operator++(int);
 
    private:
+    const_iterator(const const_iterator&) = default;
+    const_iterator& operator=(const const_iterator& other) = default;
+
+   public:
+    const_iterator(const_iterator&&) = default;
+    const_iterator& operator=(const_iterator&&) = default;
+    // Explicit interface for copying
+    const_iterator clone() const;
+
+   private:
     using stack_t =
         std::stack<exporters::inst::Inst, std::vector<exporters::inst::Inst>>;
 

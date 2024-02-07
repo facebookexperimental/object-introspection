@@ -41,8 +41,7 @@ struct Element {
   };
 
   std::string_view name;
-  std::vector<std::string_view>
-      type_path;  // TODO: should be span<const std::string_view>
+  std::span<const std::string_view> type_path;
   std::span<const std::string_view> type_names;
   size_t static_size;
   size_t exclusive_size;
