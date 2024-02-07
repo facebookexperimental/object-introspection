@@ -35,7 +35,9 @@ SizedResult<Res>::SizedResult(Res res) : res_{std::move(res)} {
 
 template <typename Res>
 typename SizedResult<Res>::const_iterator SizedResult<Res>::begin() const {
-  return ++const_iterator{res_.begin(), res_.end()};
+  const_iterator it{res_.begin(), res_.end()};
+  ++it;
+  return it;
 }
 template <typename Res>
 typename SizedResult<Res>::const_iterator SizedResult<Res>::end() const {
@@ -44,7 +46,7 @@ typename SizedResult<Res>::const_iterator SizedResult<Res>::end() const {
 
 template <typename Res>
 SizedResult<Res>::const_iterator::const_iterator(It it, const It& end)
-    : data_{it} {
+    : data_{it.clone()} {
   struct StackEntry {
     size_t index;
     size_t depth;
@@ -75,7 +77,8 @@ SizedResult<Res>::const_iterator::const_iterator(It it, const It& end)
 }
 
 template <typename Res>
-SizedResult<Res>::const_iterator::const_iterator(It end) : data_{end} {
+SizedResult<Res>::const_iterator::const_iterator(It end)
+    : data_{std::move(end)} {
 }
 
 template <typename Res>
