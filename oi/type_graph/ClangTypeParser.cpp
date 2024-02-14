@@ -19,6 +19,7 @@
 #include <clang/AST/Decl.h>
 #include <clang/AST/DeclTemplate.h>
 #include <clang/AST/QualTypeNames.h>
+#include <clang/AST/RecordLayout.h>
 #include <clang/AST/Type.h>
 #include <clang/Basic/DiagnosticSema.h>
 #include <clang/Sema/Sema.h>
@@ -71,6 +72,7 @@ Type& ClangTypeParser::enumerateType(const clang::Type& ty) {
   if (!requireCompleteType(*sema, ty)) {
     std::string fqName = clang::TypeName::getFullyQualifiedName(
         clang::QualType(&ty, 0), *ast, {ast->getLangOpts()});
+    VLOG(3) << "Returning incomplete type for " << fqName;
     return makeType<Incomplete>(ty, std::move(fqName));
   }
 
@@ -194,12 +196,23 @@ Type& ClangTypeParser::enumerateClass(const clang::RecordType& ty) {
 
   int virtuality = 0;
 
+  std::string fqnWithoutTemplateParams = decl->getQualifiedNameAsString();
+
+  if (options_.typesToStub.contains(fqnWithoutTemplateParams)) {
+    uint64_t alignment = decl->getASTContext()
+                             .getASTRecordLayout(decl)
+                             .getAlignment()
+                             .getQuantity();
+    auto& c = makeType<Dummy>(ty, size, alignment, fqName);
+    return c;
+  }
+
   auto& c = makeType<Class>(
       ty, kind, std::move(name), std::move(fqName), size, virtuality);
   c.setAlign(ast->getTypeAlign(clang::QualType(&ty, 0)) / 8);
 
   enumerateClassTemplateParams(ty, c.templateParams);
-  // enumerateClassParents(type, c.parents);
+  // enumerateClassParents(ty, c.parents);
   enumerateClassMembers(ty, c.members);
   // enumerateClassFunctions(type, c.functions);
 
