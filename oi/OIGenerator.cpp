@@ -31,7 +31,9 @@
 #include <range/v3/view/for_each.hpp>
 #include <range/v3/view/take.hpp>
 #include <range/v3/view/transform.hpp>
+#include <set>
 #include <stdexcept>
+#include <string>
 #include <unordered_map>
 #include <variant>
 
@@ -85,6 +87,7 @@ class ConsumerContext {
   std::unordered_map<std::string, type_graph::Type*> nameToTypeMap;
   std::optional<bool> pic;
   const std::vector<std::unique_ptr<ContainerInfo>>& containerInfos;
+  std::set<std::string_view> typesToStub;
 
  private:
   clang::Sema* sema = nullptr;
@@ -133,6 +136,12 @@ int OIGenerator::generate(clang::tooling::CompilationDatabase& db,
   }
 
   ConsumerContext ctx{containerInfos};
+
+  for (const auto& [stubType, stubMember] : generatorConfig.membersToStub) {
+    if (stubMember == "*")
+      ctx.typesToStub.insert(stubType);
+  }
+
   CreateTypeGraphActionFactory factory{ctx};
 
   clang::tooling::ClangTool tool{db, sourcePaths};
@@ -239,6 +248,8 @@ class CreateTypeGraphConsumer : public clang::ASTConsumer {
       return;
 
     type_graph::ClangTypeParserOptions opts;
+    opts.typesToStub = ctx.typesToStub;
+
     type_graph::ClangTypeParser parser{ctx.typeGraph, ctx.containerInfos, opts};
 
     auto& Sema = *ctx.sema;
