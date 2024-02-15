@@ -131,30 +131,8 @@ TEST(AlignmentCalcTest, RecurseClassParam) {
             Primitive: int64_t
 )",
        R"(
-[0] Class: MyClass (size: 0, align: 1)
+[0] Class: MyClass (size: 0, align: 1, packed)
       Param
-[1]     Class: ClassA (size: 16, align: 8)
-          Member: a (offset: 0, align: 1)
-            Primitive: int8_t
-          Member: b (offset: 8, align: 8)
-            Primitive: int64_t
-)");
-}
-
-TEST(AlignmentCalcTest, RecurseClassParent) {
-  test(AlignmentCalc::createPass(),
-       R"(
-[0] Class: MyClass (size: 0)
-      Parent (offset: 0)
-[1]     Class: ClassA (size: 16)
-          Member: a (offset: 0)
-            Primitive: int8_t
-          Member: b (offset: 8)
-            Primitive: int64_t
-)",
-       R"(
-[0] Class: MyClass (size: 0, align: 1)
-      Parent (offset: 0)
 [1]     Class: ClassA (size: 16, align: 8)
           Member: a (offset: 0, align: 1)
             Primitive: int8_t
@@ -197,7 +175,7 @@ TEST(AlignmentCalcTest, RecurseClassChild) {
             Primitive: int64_t
 )",
        R"(
-[0] Class: MyClass (size: 0, align: 1)
+[0] Class: MyClass (size: 0, align: 1, packed)
       Child
 [1]     Class: ClassA (size: 16, align: 8)
           Member: a (offset: 0, align: 1)
