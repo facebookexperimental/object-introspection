@@ -88,6 +88,7 @@ class ConsumerContext {
   std::optional<bool> pic;
   const std::vector<std::unique_ptr<ContainerInfo>>& containerInfos;
   std::set<std::string_view> typesToStub;
+  std::set<std::string_view> mustProcessTemplateParams;
 
  private:
   clang::Sema* sema = nullptr;
@@ -141,6 +142,9 @@ int OIGenerator::generate(clang::tooling::CompilationDatabase& db,
     if (stubMember == "*")
       ctx.typesToStub.insert(stubType);
   }
+
+  for (const auto& cInfo : generatorConfig.passThroughTypes)
+    ctx.mustProcessTemplateParams.insert(cInfo.typeName);
 
   CreateTypeGraphActionFactory factory{ctx};
 
@@ -249,6 +253,7 @@ class CreateTypeGraphConsumer : public clang::ASTConsumer {
 
     type_graph::ClangTypeParserOptions opts;
     opts.typesToStub = ctx.typesToStub;
+    opts.mustProcessTemplateParams = ctx.mustProcessTemplateParams;
 
     type_graph::ClangTypeParser parser{ctx.typeGraph, ctx.containerInfos, opts};
 
