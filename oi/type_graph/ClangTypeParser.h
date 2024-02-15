@@ -61,6 +61,7 @@ struct ClangTypeParserOptions {
   bool chaseRawPointers = false;
   bool readEnumValues = false;
   std::set<std::string_view> typesToStub;
+  std::set<std::string_view> mustProcessTemplateParams;
 };
 
 /*

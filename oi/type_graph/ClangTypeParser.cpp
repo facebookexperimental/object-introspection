@@ -211,10 +211,11 @@ Type& ClangTypeParser::enumerateClass(const clang::RecordType& ty) {
       ty, kind, std::move(name), std::move(fqName), size, virtuality);
   c.setAlign(ast->getTypeAlign(clang::QualType(&ty, 0)) / 8);
 
-  enumerateClassTemplateParams(ty, c.templateParams);
+  if (options_.mustProcessTemplateParams.contains(fqnWithoutTemplateParams))
+    enumerateClassTemplateParams(ty, c.templateParams);
+
   // enumerateClassParents(ty, c.parents);
   enumerateClassMembers(ty, c.members);
-  // enumerateClassFunctions(type, c.functions);
 
   return c;
 }
