@@ -17,6 +17,7 @@
 
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/Decl.h>
+#include <clang/AST/DeclCXX.h>
 #include <clang/AST/DeclTemplate.h>
 #include <clang/AST/QualTypeNames.h>
 #include <clang/AST/RecordLayout.h>
@@ -214,7 +215,7 @@ Type& ClangTypeParser::enumerateClass(const clang::RecordType& ty) {
   if (options_.mustProcessTemplateParams.contains(fqnWithoutTemplateParams))
     enumerateClassTemplateParams(ty, c.templateParams);
 
-  // enumerateClassParents(ty, c.parents);
+  enumerateClassParents(ty, c.parents);
   enumerateClassMembers(ty, c.members);
 
   return c;
@@ -309,6 +310,31 @@ std::optional<TemplateParam> ClangTypeParser::enumerateTemplateTemplateParam(
       X(SubstTemplateTemplateParmPack)
       X(UsingTemplate)
 #undef X
+  }
+}
+
+void ClangTypeParser::enumerateClassParents(const clang::RecordType& ty,
+                                            std::vector<Parent>& parents) {
+  assert(parents.empty());
+
+  auto* decl = ty.getDecl();
+  auto* cxxDecl = llvm::dyn_cast<clang::CXXRecordDecl>(decl);
+  if (cxxDecl == nullptr)
+    return;
+
+  const auto& layout = decl->getASTContext().getASTRecordLayout(cxxDecl);
+  for (const auto& base : cxxDecl->bases()) {
+    auto baseType = base.getType();
+    if (baseType.isNull())
+      continue;
+
+    auto* baseCxxDecl = baseType->getAsCXXRecordDecl();
+    if (baseCxxDecl == nullptr)
+      continue;
+
+    auto offset = layout.getBaseClassOffset(baseCxxDecl).getQuantity();
+    auto& ptype = enumerateType(*baseType);
+    parents.emplace_back(Parent{ptype, static_cast<uint64_t>(offset)});
   }
 }
 
