@@ -70,7 +70,7 @@ void AlignmentCalc::visit(Class& c) {
     c.setAlign(alignment);
   }
 
-  if (c.size() % c.align() != 0) {
+  if (c.align() == 1 || c.size() % c.align() != 0) {
     // Mark as packed if there is no tail padding
     c.setPacked();
   }
