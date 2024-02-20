@@ -28,7 +28,7 @@ add_link_options(-no-pie)
 set(INTEGRATION_TEST_TARGET_SRC integration_test_target.cpp)
 set(INTEGRATION_TEST_RUNNER_SRC integration_test_runner.cpp)
 
-find_program(PYTHON_CMD NAMES python3.6 python3)
+find_program(PYTHON_CMD NAMES python3.9 python3)
 
 set(INTEGRATION_TEST_THRIFT_SRCS ${THRIFT_TESTS})
 list(TRANSFORM INTEGRATION_TEST_THRIFT_SRCS APPEND ".thrift")

@@ -152,7 +152,7 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/drgn")
 endif()
 
 ### Select Python version
-find_program(PYTHON NAMES python3.8 python3)
+find_program(PYTHON NAMES python3.9 python3)
 
 add_library(folly_headers INTERFACE)
 target_include_directories(folly_headers SYSTEM INTERFACE ${folly_SOURCE_DIR})
@@ -218,7 +218,7 @@ find_package(zstd REQUIRED)
 # clang-12 does NOT work. clang fails with the following error :-
 # configure: error: gcc with GNU99 support required
 
-set(DRGN_CONFIGURE_FLAGS "--with-libkdumpfile=no")
+set(DRGN_CONFIGURE_FLAGS "--with-libkdumpfile=no" "--disable-libdebuginfod")
 if (ASAN)
   list(APPEND DRGN_CONFIGURE_FLAGS "--enable-asan=yes")
 endif()
@@ -252,7 +252,28 @@ set(CMAKE_BUILD_RPATH
 )
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
-include_directories(SYSTEM "${DRGN_PATH}")
+# This header from elfutils is not in the right place. Fake the path manually.
+add_custom_command(TARGET libdrgn POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy
+${CMAKE_CURRENT_SOURCE_DIR}/extern/drgn/libdrgn/velfutils/libdw/known-dwarf.h
+${CMAKE_CURRENT_BINARY_DIR}/elfutils/known-dwarf.h)
+
+add_library(drgn INTERFACE)
+add_dependencies(drgn libdrgn)
+target_include_directories(drgn SYSTEM INTERFACE
+  "${DRGN_PATH}"
+  "${DRGN_PATH}/include"
+  "${PROJECT_SOURCE_DIR}/extern/drgn/libdrgn/velfutils"
+)
+target_link_options(drgn INTERFACE
+  "-L${DRGN_PATH}/.libs"
+  "-L${DRGN_PATH}/velfutils/libdw"
+)
+target_link_libraries(drgn INTERFACE
+  "-ldrgn"
+  "-ldw"
+)
+
+
 
 if (STATIC_LINK)
   # glog links against the `gflags` target, which is an alias for `gflags_shared`
@@ -288,7 +309,6 @@ add_library(oicore
   oi/PaddingHunter.cpp
   oi/Serialize.cpp
 )
-add_dependencies(oicore libdrgn)
 target_include_directories(oicore SYSTEM PUBLIC ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
 target_include_directories(oicore PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -299,6 +319,7 @@ target_link_libraries(oicore
 
   ${Boost_LIBRARIES}
   Boost::headers
+  drgn
   glog::glog
   range-v3
   resources
@@ -322,9 +343,6 @@ else()
 endif()
 
 target_link_libraries(oicore
-  "-L${DRGN_PATH}/.libs"
-  drgn
-  dw
   pthread
 )
 
@@ -365,8 +383,12 @@ add_executable(oilgen
 target_link_libraries(oilgen
   drgn_utils
   oicore
-  clangTooling
 )
+if (FORCE_LLVM_STATIC)
+  target_link_libraries(oilgen
+    clangTooling
+  )
+endif()
 
 ### Object Introspection cache Printer (OIP)
 add_executable(oip tools/OIP.cpp)

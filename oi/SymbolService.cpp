@@ -31,7 +31,7 @@ extern "C" {
 #include <elfutils/libdwfl.h>
 
 #include "drgn.h"
-#include "dwarf.h"
+#include "libdw/dwarf.h"
 }
 
 namespace fs = std::filesystem;
