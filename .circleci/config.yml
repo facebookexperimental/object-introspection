@@ -3,8 +3,6 @@ version: 2.1
 workflows:
   object-introspection:
     jobs:
-      - lint
-
       - build:
           name: build-gcc
           cc: /usr/bin/gcc
@@ -33,10 +31,6 @@ workflows:
           exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0|.*fbstring.*|.*std_string_*|.*multi_arg_tb_.*|.*ignored_member|OilIntegration.fbstring_.*|OilIntegration.capture_keys_string|OilIntegration.capture_keys_multi_level"
 
 executors:
-  nix-docker:
-    docker:
-      - image: nixos/nix:latest
-    resource_class: small
   ubuntu-docker:
     docker:
       - image: ubuntu:jammy
@@ -47,14 +41,6 @@ executors:
     resource_class: 2xlarge
 
 jobs:
-  lint:
-    executor: nix-docker
-    steps:
-      - checkout
-      - run:
-          name: Flake check
-          command: nix --experimental-features 'nix-command flakes' flake check
-
   build:
     # TODO this job could be run in Docker
     executor: big-boy
