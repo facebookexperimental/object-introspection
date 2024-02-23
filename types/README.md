@@ -55,6 +55,11 @@ This document describes the format of the container definition files contained i
   `static types::st::Unit<DB> getSizeType(const T& container, ST returnArg)`
   where `ST` defines the combined static type of each supplied processor.
 
+- `scoped_extra`
+
+  Extra C++ code to be included in the generated `TypeHandler` for this
+  container.
+
 - `extra`
 
   Any extra C++ code to be included directly. This code is not automatically

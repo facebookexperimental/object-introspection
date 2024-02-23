@@ -9,7 +9,6 @@ definitions = '''
 
 [cases]
   [cases.char_int64_1]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<char, int64_t>&"]
     setup = "return 'a';"
     expect_json = '''[{
@@ -22,8 +21,17 @@ definitions = '''
       "members":[
         {"typeName":"int8_t", "staticSize":1, "exclusiveSize":1, "dynamicSize":0}
       ]}]'''
+    expect_json_v2 = '''[{
+      "size":16,
+      "staticSize":16,
+      "exclusiveSize":15,
+      "length":1,
+      "capacity":1,
+      "members":[
+        {"typeNames":["int8_t"], "size":1, "staticSize":1, "exclusiveSize":1}
+      ]
+    }]'''
   [cases.char_int64_2]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<char, int64_t>&"]
     setup = "return 1234;"
     expect_json = '''[{
@@ -36,9 +44,18 @@ definitions = '''
       "members":[
         {"typeName":"int64_t", "staticSize":8, "exclusiveSize":8, "dynamicSize":0}
       ]}]'''
+    expect_json_v2 = '''[{
+      "size":16,
+      "staticSize":16,
+      "exclusiveSize":8,
+      "length":1,
+      "capacity":1,
+      "members":[
+        {"typeNames":["int64_t"], "size":8, "staticSize":8, "exclusiveSize":8}
+      ]
+    }]'''
 
   [cases.vector_int_1]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<std::vector<int>, int>&"]
     setup = "return std::vector<int>{1,2,3};"
     expect_json = '''[{
@@ -59,8 +76,21 @@ definitions = '''
           "elementStaticSize":4
         }
       ]}]'''
+    expect_json_v2 = '''[{
+      "size":44,
+      "staticSize":32,
+      "exclusiveSize":8,
+      "length":1,
+      "capacity":1,
+      "members":[
+        {"typeNames":["std::vector<int32_t, std::allocator<int32_t>>"], "size":36, "staticSize":24, "exclusiveSize":24, "members":[
+          {"typeNames":["int32_t"], "size":4, "staticSize":4, "exclusiveSize":4},
+          {"typeNames":["int32_t"], "size":4, "staticSize":4, "exclusiveSize":4},
+          {"typeNames":["int32_t"], "size":4, "staticSize":4, "exclusiveSize":4}
+        ]}
+      ]
+    }]'''
   [cases.vector_int_2]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<std::vector<int>, int>&"]
     setup = "return 123;"
     expect_json = '''[{
@@ -76,9 +106,18 @@ definitions = '''
           "dynamicSize":0
         }
       ]}]'''
+    expect_json_v2 = '''[{
+      "size":32,
+      "staticSize":32,
+      "exclusiveSize":28,
+      "length":1,
+      "capacity":1,
+      "members":[
+        {"typeNames":["int32_t"], "size":4, "staticSize":4, "exclusiveSize":4}
+      ]
+    }]'''
 
   [cases.optional]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     # This test case ensures that the alignment of std::variant is set
     # correctly, as otherwise the size of the std::optional would be wrong
     param_types = ["const std::optional<std::variant<char, int64_t>>&"]
@@ -103,9 +142,25 @@ definitions = '''
           ]
         }
       ]}]'''
+    expect_json_v2 = '''[{
+      "size":24,
+      "staticSize":24,
+      "exclusiveSize":8,
+      "length":1,
+      "capacity":1,
+      "members":[{
+        "size":16,
+        "staticSize":16,
+        "exclusiveSize":8,
+        "length":1,
+        "capacity":1,
+        "members":[
+          {"typeNames":["int64_t"], "size":8, "staticSize":8, "exclusiveSize":8}
+        ]
+      }]
+    }]'''
 
   [cases.empty]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     # https://en.cppreference.com/w/cpp/utility/variant/valueless_by_exception
     param_types = ["const std::variant<int, Thrower>&"]
     setup = '''
@@ -127,13 +182,20 @@ definitions = '''
       "elementStaticSize":4,
       "NOT":"members"
       }]'''
+    expect_json_v2 = '''[{
+      "size":8,
+      "staticSize":8,
+      "exclusiveSize":8,
+      "length":0,
+      "capacity":1,
+      "members":[]
+    }]'''
 
   # With less than 256 options, parameter indexes are stored in a uint8_t and
   # the invalid index value is 0xff. These tests check that we regonise that
   # 0xff can be a valid index if there are at least 256 parameters, and that
   # the invalid index value is raised to 0xffff.
   [cases.256_params_256]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char>&"]
     setup = "return 'a';"
     expect_json = '''[{
@@ -146,8 +208,17 @@ definitions = '''
       "members":[
         {"typeName":"int8_t", "staticSize":1, "exclusiveSize":1, "dynamicSize":0}
       ]}]'''
+    expect_json_v2 = '''[{
+      "size":8,
+      "staticSize":8,
+      "exclusiveSize":7,
+      "length":1,
+      "capacity":1,
+      "members":[
+        {"typeNames":["int8_t"], "size":1, "staticSize":1, "exclusiveSize":1}
+      ]
+    }]'''
   [cases.256_params_empty]
-    oil_skip = "std::variant is not implemented for treebuilder v2" # https://github.com/facebookexperimental/object-introspection/issues/298
     param_types = ["const std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char>&"]
     setup = '''
       std::variant<Thrower,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,char> var{'a'};
@@ -167,3 +238,11 @@ definitions = '''
       "elementStaticSize":4,
       "NOT":"members"
       }]'''
+    expect_json_v2 = '''[{
+      "size":8,
+      "staticSize":8,
+      "exclusiveSize":8,
+      "length":0,
+      "capacity":1,
+      "members":[]
+    }]'''

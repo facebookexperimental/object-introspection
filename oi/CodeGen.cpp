@@ -941,29 +941,45 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
     containerWithTypes = "OICaptureKeys<" + containerWithTypes + ">";
   }
 
-  code += "template <typename Ctx";
-  types = 0, values = 0;
-  for (const auto& p : templateParams) {
-    if (p.value) {
-      code += ", ";
+  // TODO: This is tech debt. This should be moved to a field in the container
+  // spec/`.toml` called something like `codegen.handler_header` or have an
+  // explicit option for variable template parameters. However I'm landing it
+  // anyway to demonstrate how to handle tagged unions in TreeBuilder-v2.
+  if (c.typeName == "std::variant") {
+    code += R"(
+template <typename Ctx, typename... Types>
+struct TypeHandler<Ctx, std::variant<Types...>> {
+  using container_type = std::variant<Types...>;
+)";
+  } else {
+    code += "template <typename Ctx";
+    types = 0, values = 0;
+    for (const auto& p : templateParams) {
+      if (p.value) {
+        code += ", ";
 
-      // HACK: forward all enums directly. this might turn out to be a problem
-      // if there are enums we should be regenerating/use in the body.
-      if (const auto* e = dynamic_cast<const Enum*>(&p.type())) {
-        code += e->inputName();
+        // HACK: forward all enums directly. this might turn out to be a problem
+        // if there are enums we should be regenerating/use in the body.
+        if (const auto* e = dynamic_cast<const Enum*>(&p.type())) {
+          code += e->inputName();
+        } else {
+          code += p.type().name();
+        }
+
+        code += " N" + std::to_string(values++);
       } else {
-        code += p.type().name();
+        code += ", typename T" + std::to_string(types++);
       }
-
-      code += " N" + std::to_string(values++);
-    } else {
-      code += ", typename T" + std::to_string(types++);
     }
+    code += ">\n";
+    code += "struct TypeHandler<Ctx, ";
+    code += containerWithTypes;
+    code += "> {\n";
+    code += "  using container_type = ";
+    code += containerWithTypes;
+    code += ";\n";
   }
-  code += ">\n";
-  code += "struct TypeHandler<Ctx, ";
-  code += containerWithTypes;
-  code += "> {\n";
+
   code += "  using DB = typename Ctx::DataBuffer;\n";
 
   if (c.captureKeys) {
@@ -971,10 +987,6 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   } else {
     code += "  static constexpr bool captureKeys = false;\n";
   }
-
-  code += "  using container_type = ";
-  code += containerWithTypes;
-  code += ";\n";
 
   code += "  using type = ";
   if (processors.empty()) {
@@ -991,14 +1003,13 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
   }
   code += ";\n";
 
+  code += c.codegen.scopedExtra;
+
   code += "  static types::st::Unit<DB> getSizeType(\n";
   code += "      Ctx& ctx,\n";
-  code += "      const ";
-  code += containerWithTypes;
-  code += "& container,\n";
-  code += "      typename TypeHandler<Ctx, ";
-  code += containerWithTypes;
-  code += ">::type returnArg) {\n";
+  code += "      const container_type& container,\n";
+  code +=
+      "      typename TypeHandler<Ctx, container_type>::type returnArg) {\n";
   code += func;  // has rubbish indentation
   code += "  }\n";
 
@@ -1029,7 +1040,6 @@ void genContainerTypeHandler(std::unordered_set<const ContainerInfo*>& used,
     code += "},\n";
   }
   code += "  };\n";
-
   code += "};\n\n";
 }
 
