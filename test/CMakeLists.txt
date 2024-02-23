@@ -69,6 +69,31 @@ target_link_libraries(test_type_graph
 include(GoogleTest)
 gtest_discover_tests(test_type_graph)
 
+add_executable(test_clang_type_parser
+  main.cpp
+  ../oi/type_graph/ClangTypeParserTest.cpp
+)
+add_dependencies(test_clang_type_parser integration_test_target)
+target_compile_definitions(test_clang_type_parser PRIVATE
+  TARGET_CPP_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration/integration_test_target.cpp"
+  BUILD_DIR="${CMAKE_BINARY_DIR}"
+)
+target_link_libraries(test_clang_type_parser
+  codegen
+  container_info
+  type_graph
+
+  range-v3
+
+  GTest::gmock_main
+)
+if (FORCE_LLVM_STATIC)
+  target_link_libraries(test_clang_type_parser clangTooling ${llvm_libs})
+else()
+  target_link_libraries(test_clang_type_parser clang-cpp LLVM)
+endif()
+gtest_discover_tests(test_clang_type_parser)
+
 cpp_unittest(
   NAME test_parser
   SRCS test_parser.cpp

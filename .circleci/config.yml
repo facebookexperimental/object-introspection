@@ -12,7 +12,7 @@ workflows:
           name: test-gcc
           requires:
             - build-gcc
-          exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0"
+          exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0|ClangTypeParserTest.*"
       - coverage:
           name: coverage
           requires:
@@ -104,6 +104,7 @@ jobs:
           paths:
             - build/*
             - extern/*
+            - include/*
             - types/*
 
   test:
