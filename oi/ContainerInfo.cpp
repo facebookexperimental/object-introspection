@@ -298,6 +298,10 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
           codegenToml["extra"].value<std::string>()) {
     codegen.extra = std::move(*str);
   }
+  if (std::optional<std::string> str =
+          codegenToml["scoped_extra"].value<std::string>()) {
+    codegen.scopedExtra = std::move(*str);
+  }
 
   if (toml::array* arr = codegenToml["processor"].as_array()) {
     codegen.processors.reserve(arr->size());

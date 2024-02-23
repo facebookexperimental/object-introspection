@@ -36,5 +36,54 @@ void getSizeType(const %1%<Types...> &container, size_t& returnArg)
 }
 """
 
-# TODO: Add tbv2 definitions. The removed intermediate handler is a good
-# template for this, find it in the git logs.
+scoped_extra = """
+template <size_t I = 0>
+static types::st::Unit<DB>
+getSizeTypeRecursive(
+    Ctx& ctx,
+    const container_type& container,
+    typename TypeHandler<Ctx, container_type>::type returnArg
+) {
+  if constexpr (I < sizeof...(Types)) {
+    if (I == container.index()) {
+      return returnArg.template delegate<I>([&ctx, &container](auto ret) {
+        return OIInternal::getSizeType<Ctx>(ctx, std::get<I>(container), ret);
+      });
+    } else {
+      return getSizeTypeRecursive<I+1>(ctx, container, returnArg);
+    }
+  } else {
+    return returnArg.template delegate<sizeof...(Types)>(std::identity());
+  }
+}
+"""
+
+handler_header = """
+template <typename Ctx, typename... Types>
+struct TypeHandler<Ctx, std::variant<Types...>>
+"""
+
+traversal_func = """
+return getSizeTypeRecursive(ctx, container, returnArg);
+"""
+
+[[codegen.processor]]
+type = "types::st::Sum<DB, typename TypeHandler<Ctx, Types>::type..., types::st::Unit<DB>>"
+func = """
+static constexpr std::array<inst::Field, sizeof...(Types)> children{
+  make_field<Ctx, Types>("*")...,
+};
+
+auto sum = std::get<ParsedData::Sum>(d.val);
+
+el.container_stats = result::Element::ContainerStats {
+  .capacity = 1,
+  .length = sum.index == sizeof...(Types) ? 0u : 1u,
+};
+
+if (el.container_stats->length == 0)
+  return;
+
+el.exclusive_size -= children[sum.index].static_size;
+stack_ins(children[sum.index]);
+"""

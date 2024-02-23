@@ -38,6 +38,7 @@ struct ContainerInfo {
     std::string func;
     std::string traversalFunc = "";
     std::string extra = "";
+    std::string scopedExtra = "";
     std::vector<Processor> processors{};
   };
 
