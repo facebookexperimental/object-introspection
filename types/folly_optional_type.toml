@@ -29,3 +29,31 @@ void getSizeType(const %1%<T>& container, size_t& returnArg) {
   }
 }
 """
+
+traversal_func = """
+if (container.has_value()) {
+  return returnArg.template delegate<1>([&ctx, &container](auto ret) {
+    return OIInternal::getSizeType<Ctx>(ctx, *container, ret);
+  });
+} else {
+  return returnArg.template delegate<0>(std::identity());
+}
+"""
+
+[[codegen.processor]]
+type = "types::st::Sum<DB, types::st::Unit<DB>, typename TypeHandler<Ctx, T0>::type>"
+func = """
+static constexpr auto elementField = make_field<Ctx, T0>("el");
+
+auto sum = std::get<ParsedData::Sum>(d.val);
+
+el.container_stats = result::Element::ContainerStats {
+  .capacity = 1,
+  .length = sum.index,
+};
+
+if (sum.index == 1) {
+  el.exclusive_size -= sizeof(T0);
+  stack_ins(elementField);
+}
+"""
