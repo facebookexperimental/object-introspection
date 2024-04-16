@@ -152,7 +152,7 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/extern/drgn")
 endif()
 
 ### Select Python version
-find_program(PYTHON NAMES python3.8 python3)
+find_program(PYTHON NAMES python3.9 python3)
 
 add_library(folly_headers INTERFACE)
 target_include_directories(folly_headers SYSTEM INTERFACE ${folly_SOURCE_DIR})
