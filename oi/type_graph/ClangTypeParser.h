@@ -29,6 +29,7 @@ class DecltypeType;
 class ElaboratedType;
 class EnumType;
 class LValueReferenceType;
+class MemberPointerType;
 class PointerType;
 class RecordType;
 class Sema;
@@ -97,6 +98,7 @@ class ClangTypeParser {
   Type& enumerateClass(const clang::RecordType&);
   Type& enumerateReference(const clang::LValueReferenceType&);
   Type& enumeratePointer(const clang::PointerType&);
+  Type& enumerateMemberPointer(const clang::MemberPointerType&);
   Type& enumerateSubstTemplateTypeParm(const clang::SubstTemplateTypeParmType&);
   Primitive& enumeratePrimitive(const clang::BuiltinType&);
   Type& enumerateElaboratedType(const clang::ElaboratedType&);
