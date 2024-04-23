@@ -822,17 +822,24 @@ void CodeGen::genClassTreeBuilderInstructions(const Class& c,
   code += std::to_string(numFields);
   code += "> fields{\n";
   index = 0;
+
   for (const auto& m : c.members) {
     ++index;
     if (m.name.starts_with(AddPadding::MemberPrefix))
       continue;
     std::string fullName = c.name() + "::" + m.name;
+    bool isbitField = m.bitsize;
     bool isPrimitive = dynamic_cast<const Primitive*>(&m.type());
-    code += "      inst::Field{sizeof(";
-    code += fullName;
-    code += "), ";
-    code += std::to_string(calculateExclusiveSize(m.type()));
-    code += ",\"";
+
+    if (!isbitField) {
+      code += "      inst::Field{sizeof(";
+      code += fullName;
+      code += "), ";
+      code += std::to_string(calculateExclusiveSize(m.type()));
+    } else {
+      code += "      inst::Field{0, 0";
+    }
+    code += ", \"";
     code += m.inputName;
     code += "\", member_";
     code += std::to_string(index);
