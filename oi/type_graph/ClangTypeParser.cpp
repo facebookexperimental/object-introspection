@@ -335,7 +335,8 @@ void ClangTypeParser::enumerateClassParents(const clang::RecordType& ty,
     if (baseCxxDecl == nullptr)
       continue;
 
-    auto offset = layout.getBaseClassOffset(baseCxxDecl).getQuantity();
+    auto offset =
+        layout.getBaseClassOffset(baseCxxDecl).getQuantity() * CHAR_BIT;
     auto& ptype = enumerateType(*baseType);
     parents.emplace_back(Parent{ptype, static_cast<uint64_t>(offset)});
   }
