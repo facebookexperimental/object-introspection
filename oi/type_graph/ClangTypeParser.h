@@ -22,6 +22,7 @@
 #include "oi/type_graph/TypeGraph.h"
 
 namespace clang {
+class AttributedType;
 class ASTContext;
 class BuiltinType;
 class ConstantArrayType;
@@ -108,6 +109,7 @@ class ClangTypeParser {
   Typedef& enumerateUsing(const clang::UsingType&);
   Type& enumerateUnaryTransformType(const clang::UnaryTransformType&);
   Type& enumerateDecltypeType(const clang::DecltypeType&);
+  Type& enumerateAttributed(const clang::AttributedType&);
 
   Array& enumerateArray(const clang::ConstantArrayType&);
   Enum& enumerateEnum(const clang::EnumType&);

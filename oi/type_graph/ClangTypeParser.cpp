@@ -112,6 +112,8 @@ Type& ClangTypeParser::enumerateType(const clang::Type& ty) {
     case clang::Type::MemberPointer:
       return enumerateMemberPointer(
           llvm::cast<const clang::MemberPointerType>(ty));
+    case clang::Type::Attributed:
+      return enumerateAttributed(llvm::cast<const clang::AttributedType>(ty));
 
     default:
       throw std::logic_error(std::string("unsupported TypeClass `") +
@@ -393,6 +395,10 @@ Type& ClangTypeParser::enumerateMemberPointer(
     const clang::MemberPointerType& ty) {
   // TODO: chase anything not a function pointer (same as regular pointers).
   return makeType<Primitive>(ty, Primitive::Kind::StubbedPointer);
+}
+
+Type& ClangTypeParser::enumerateAttributed(const clang::AttributedType& ty) {
+  return enumerateType(*ty.getEquivalentType());
 }
 
 Type& ClangTypeParser::enumerateSubstTemplateTypeParm(
