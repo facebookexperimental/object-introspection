@@ -333,6 +333,9 @@ void ClangTypeParser::enumerateClassParents(const clang::RecordType& ty,
     if (baseType.isNull())
       continue;
 
+    if (base.isVirtual())
+      continue;
+
     auto* baseCxxDecl = baseType->getAsCXXRecordDecl();
     if (baseCxxDecl == nullptr)
       continue;
