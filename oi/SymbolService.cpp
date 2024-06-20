@@ -22,6 +22,7 @@
 #include <cassert>
 #include <cstring>
 #include <fstream>
+#include <lldb/API/LLDB.h>
 
 #include "oi/DrgnUtils.h"
 #include "oi/OIParser.h"
@@ -106,7 +107,8 @@ static bool isExecutableAddr(
   return it != end(exeAddrs) && addr >= it->first;
 }
 
-SymbolService::SymbolService(pid_t pid) : target{pid} {
+SymbolService::SymbolService(pid_t pid, Backend back)
+    : target{pid}, backend{back} {
   // Update target processes memory map
   LoadExecutableAddressRange(pid, executableAddrs);
   if (!loadModules()) {
@@ -115,8 +117,8 @@ SymbolService::SymbolService(pid_t pid) : target{pid} {
   }
 }
 
-SymbolService::SymbolService(fs::path executablePath)
-    : target{std::move(executablePath)} {
+SymbolService::SymbolService(fs::path executablePath, Backend back)
+    : target{std::move(executablePath)}, backend{back} {
   if (!loadModules()) {
     throw std::runtime_error("Failed to load modules for executable " +
                              executablePath.string());
@@ -130,6 +132,15 @@ SymbolService::~SymbolService() {
 
   if (prog != nullptr) {
     drgn_program_destroy(prog);
+  }
+
+  if (lldbTarget) {
+    lldbDebugger.DeleteTarget(lldbTarget);
+  }
+
+  if (lldbDebugger) {
+    lldb::SBDebugger::Destroy(lldbDebugger);
+    lldb::SBDebugger::Terminate();
   }
 }
 
@@ -432,7 +443,12 @@ std::optional<std::string> SymbolService::locateBuildID() {
 
 struct drgn_program* SymbolService::getDrgnProgram() {
   if (hardDisableDrgn) {
-    LOG(ERROR) << "drgn is disabled, refusing to initialize";
+    LOG(ERROR) << "drgn/LLDB is disabled, refusing to initialize";
+    return nullptr;
+  }
+
+  if (backend != Backend::DRGN) {
+    LOG(ERROR) << "drgn is not the selected backend, refusing to initialize";
     return nullptr;
   }
 
@@ -482,6 +498,53 @@ struct drgn_program* SymbolService::getDrgnProgram() {
   }
 
   return prog;
+}
+
+lldb::SBTarget SymbolService::getLLDBTarget() {
+  if (hardDisableDrgn) {
+    LOG(ERROR) << "drgn/LLDB is disabled, refusing to initialize";
+    return lldb::SBTarget();
+  }
+
+  if (backend != Backend::LLDB) {
+    LOG(ERROR) << "LLDB is not the selected backend, refusing to initialize";
+    return lldb::SBTarget();
+  }
+
+  bool success = false;
+
+  lldb::SBDebugger::Initialize();
+  lldbDebugger = lldb::SBDebugger::Create(false);
+  BOOST_SCOPE_EXIT_ALL(&) {
+    if (!success) {
+      lldb::SBDebugger::Destroy(lldbDebugger);
+      lldb::SBDebugger::Terminate();
+    }
+  };
+
+  switch (target.index()) {
+    case 0: {
+      auto pid = std::get<pid_t>(target);
+      lldbTarget = lldbDebugger.FindTargetWithProcessID(pid);
+      if (!lldbTarget) {
+        LOG(ERROR) << "Failed to find target with PID " << pid;
+        return lldb::SBTarget();
+      }
+      break;
+    }
+    case 1: {
+      auto path = std::get<fs::path>(target);
+      lldbTarget = lldbDebugger.CreateTarget(path.c_str());
+      if (!lldbTarget) {
+        LOG(ERROR) << "Failed to create target from " << path;
+        return lldb::SBTarget();
+      }
+      break;
+    }
+  }
+
+  success = true;
+  return lldbTarget;
 }
 
 /*
@@ -804,7 +867,7 @@ std::string SymbolService::getTypeName(struct drgn_type* type) {
   return drgn_utils::typeToName(type);
 }
 
-std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
+std::optional<RootInfo> SymbolService::getDrgnRootType(const irequest& req) {
   if (req.type == "global") {
     /*
      * This is super simple as all we have to do is locate assign the
@@ -910,6 +973,83 @@ std::optional<RootInfo> SymbolService::getRootType(const irequest& req) {
   }
 
   return RootInfo{paramName, paramType};
+}
+
+std::optional<lldb::SBType> SymbolService::getLLDBRootType(const irequest& req) {
+  auto lldbTarget = getLLDBTarget();
+
+  if (req.type == "global") {
+    /*
+     * This is super simple as all we have to do is locate assign the
+     * type of the provided global variable.
+     */
+    VLOG(1) << "Processing global: " << req.func;
+
+    auto globalDesc = findGlobalDesc(req.func);
+    if (!globalDesc) {
+      return std::nullopt;
+    }
+
+    auto globalVariable = lldbTarget.FindFirstGlobalVariable(req.func.c_str());
+    if (!globalVariable.IsValid()) {
+      LOG(ERROR) << "Failed to lookup global variable '" << req.func << "'";
+      return std::nullopt;
+    }
+
+    return globalVariable.GetType();
+  }
+
+  VLOG(1) << "Passing : " << req.func;
+  auto fd = findFuncDesc(req);
+  if (!fd) {
+    VLOG(1) << "Failed to lookup function " << req.func;
+    return std::nullopt;
+  }
+
+  auto functions = lldbTarget.FindFunctions(req.func.c_str());
+  if (functions.GetSize() != 1) {
+    LOG(ERROR) << "Failed to lookup function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  auto function = functions.GetContextAtIndex(0).GetFunction();
+  if (!function.IsValid()) {
+    LOG(ERROR) << "Failed to lookup function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  if (req.isReturnRetVal()) {
+    VLOG(1) << "Processing return retval";
+    return function.GetType().GetFunctionReturnType();
+  }
+
+  if (req.arg == "this") {
+    VLOG(1) << "Processing this pointer";
+    auto vars = function.GetBlock().GetVariables(lldbTarget, true, true, true);
+    for (uint32_t i = 0; i < vars.GetSize(); ++i) {
+      auto var = vars.GetValueAtIndex(i);
+      if (strcmp(var.GetName(), "this"))
+        return var.GetType();
+    }
+
+    LOG(ERROR) << "This pointer not found in function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  auto argIdx = fd->getArgumentIndex(req.arg);
+  if (!argIdx.has_value()) {
+    LOG(ERROR) << "Failed to lookup argument " << req.arg << " in function '"
+               << req.func << "'";
+    return std::nullopt;
+  }
+
+  auto args = function.GetBlock().GetVariables(lldbTarget, true, false, false);
+  if (!args.IsValid() || args.GetSize() <= argIdx.value()) {
+    LOG(ERROR) << "Failed to lookup arguments in function '" << req.func << "'";
+    return std::nullopt;
+  }
+
+  return args.GetValueAtIndex(*argIdx).GetType();
 }
 
 }  // namespace oi::detail

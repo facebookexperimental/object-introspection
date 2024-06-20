@@ -185,6 +185,8 @@ find_package(Clang REQUIRED CONFIG)
 message(STATUS "Found Clang ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using ClangConfig.cmake in: ${Clang_DIR}")
 
+find_package(LLDB REQUIRED)
+
 ### msgpack
 # msgpack v3.0.0 doesn't define the msgpackc-cxx target, but since the library is header only,
 # we can locate the header dir and add it to our include directories.

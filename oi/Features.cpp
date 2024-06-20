@@ -36,6 +36,8 @@ std::optional<std::string_view> featureHelp(Feature f) {
       return "Generate statistics on padding of structures.";
     case Feature::CaptureThriftIsset:
       return "Capture isset data for Thrift object.";
+    case Feature::LLDB:
+      return "Use LLDB (instead of drgn) to parse the debug info.";
     case Feature::TypeGraph:
       return "Use Type Graph for code generation (CodeGen v2).";
     case Feature::PruneTypeGraph:
@@ -60,6 +62,9 @@ std::optional<std::string_view> featureHelp(Feature f) {
 
 std::span<const Feature> requirements(Feature f) {
   switch (f) {
+    case Feature::LLDB:
+      static constexpr std::array lldb = {Feature::TypeGraph};
+      return lldb;
     case Feature::TreeBuilderV2:
       static constexpr std::array tb2 = {Feature::TypeGraph};
       return tb2;

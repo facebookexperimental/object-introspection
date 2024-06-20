@@ -85,6 +85,7 @@ jobs:
               libmsgpack-dev \
               libzstd-dev \
               llvm-15-dev \
+              liblldb-15-dev \
               ninja-build \
               pkg-config \
               python3-setuptools
@@ -95,7 +96,7 @@ jobs:
       - run:
           name: Build
           command: |
-            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
+            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >> -DLLDB_ROOT=/usr/lib/llvm-15
             cmake --build build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
@@ -133,6 +134,7 @@ jobs:
               libboost-all-dev \
               libgflags-dev \
               llvm-15-dev \
+              liblldb-15-dev \
               libfmt-dev \
               libjemalloc-dev
           environment:

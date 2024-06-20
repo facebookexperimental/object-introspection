@@ -27,6 +27,7 @@
   X(PackStructs, "pack-structs")                \
   X(GenPaddingStats, "gen-padding-stats")       \
   X(CaptureThriftIsset, "capture-thrift-isset") \
+  X(LLDB, "lldb")                               \
   X(TypeGraph, "type-graph")                    \
   X(PruneTypeGraph, "prune-type-graph")         \
   X(Library, "library")                         \
