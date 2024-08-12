@@ -89,9 +89,10 @@ include_directories(SYSTEM "${rocksdb_SOURCE_DIR}/include")
 ### use folly as a header only library. some features won't be supported.
 FetchContent_Declare(
   folly
-  GIT_REPOSITORY https://github.com/JakeHillion/folly.git
-  GIT_TAG        8db54418e3ccdd97619ac8b69bb3702f82bb0f66
+  GIT_REPOSITORY https://github.com/facebook/folly.git
+  GIT_TAG        c5aa5c46291a27f69acc920894d43605ceb43eba
   GIT_PROGRESS   TRUE
+  PATCH_COMMAND  ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/extern/shim-folly-config.h folly/folly-config.h
 )
 FetchContent_Populate(folly)
 
