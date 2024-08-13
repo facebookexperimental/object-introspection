@@ -31,9 +31,9 @@ namespace oi::detail {
 
 class OIScanner : public yyFlexLexer {
  public:
-  OIScanner(std::istream* in) : yyFlexLexer(in){};
+  OIScanner(std::istream* in) : yyFlexLexer(in) {};
 
-  virtual ~OIScanner(){};
+  virtual ~OIScanner() {};
 
   // get rid of override virtual function warning
   using FlexLexer::yylex;

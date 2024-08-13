@@ -18,7 +18,7 @@
 #define _FOLLY_CONFIG_H 1
 
 #ifdef __APPLE__
-#include <TargetConditionals.h> // @manual
+#include <TargetConditionals.h>  // @manual
 #endif
 
 #include <time.h>
@@ -31,7 +31,7 @@
 #else
 #define FOLLY_MOBILE 0
 #endif
-#endif // FOLLY_MOBILE
+#endif  // FOLLY_MOBILE
 
 /* define if the Boost library is available */
 #ifndef FOLLY_HAVE_BOOST
@@ -387,13 +387,13 @@
 #else
 #define FOLLY_LIBRARY_SANITIZE_ADDRESS 0
 #endif
-#else // defined(__has_feature)
+#else  // defined(__has_feature)
 #if __SANITIZE_ADDRESS__
 #define FOLLY_LIBRARY_SANITIZE_ADDRESS 1
 #else
 #define FOLLY_LIBRARY_SANITIZE_ADDRESS 0
 #endif
-#endif // defined(__has_feature)
+#endif  // defined(__has_feature)
 
 // We depend on JEMalloc headers in fbcode, so use them (note that when using
 // sanitizers, `#ifdef` gates in the code will not use JEMalloc headers,

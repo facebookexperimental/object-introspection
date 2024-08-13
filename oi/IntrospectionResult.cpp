@@ -83,8 +83,7 @@ IntrospectionResult::const_iterator::operator++() {
 
             for (const auto& [dy, handler] : ty.processors) {
               auto parsed = exporters::ParsedData::parse(data_, dy);
-              handler(
-                  *next_, [this](auto i) { stack_.emplace(i); }, parsed);
+              handler(*next_, [this](auto i) { stack_.emplace(i); }, parsed);
             }
 
             if (auto new_name = genNameFromData(next_->data)) {

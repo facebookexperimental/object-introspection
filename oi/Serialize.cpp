@@ -57,11 +57,11 @@ using oarchive = boost::archive::text_oarchive;
 template <class Archive>
 void serialize(Archive& ar, PaddingInfo& p, const unsigned int version) {
   verify_version<PaddingInfo>(version);
-  ar& p.structSize;
-  ar& p.paddingSize;
-  ar& p.definition;
-  ar& p.instancesCnt;
-  ar& p.savingSize;
+  ar & p.structSize;
+  ar & p.paddingSize;
+  ar & p.definition;
+  ar & p.instancesCnt;
+  ar & p.savingSize;
 }
 
 INSTANCIATE_SERIALIZE(PaddingInfo)
@@ -71,9 +71,9 @@ void serialize(Archive& ar,
                struct drgn_location_description& location,
                const unsigned int version) {
   verify_version<struct drgn_location_description>(version);
-  ar& location.start;
-  ar& location.end;
-  ar& location.expr_size;
+  ar & location.start;
+  ar & location.end;
+  ar & location.expr_size;
   if (Archive::is_loading::value) {
     // It is important to call `malloc` here instead of allocating with `new`
     // since these structs are usually allocated and deallocated directly by
@@ -91,11 +91,11 @@ void serialize(Archive& ar,
                struct drgn_object_locator& locator,
                const unsigned int version) {
   verify_version<struct drgn_object_locator>(version);
-  ar& locator.module_start;
-  ar& locator.module_end;
-  ar& locator.module_bias;
-  ar& locator.locations_size;
-  ar& locator.frame_base_locations_size;
+  ar & locator.module_start;
+  ar & locator.module_end;
+  ar & locator.module_bias;
+  ar & locator.locations_size;
+  ar & locator.frame_base_locations_size;
   if (Archive::is_loading::value) {
     // It is important to call `malloc` here instead of allocating with `new`
     // since these structs are usually allocated and deallocated directly by
@@ -110,7 +110,7 @@ void serialize(Archive& ar,
                                                    locator.locations_size);
   ar& make_array<struct drgn_location_description>(
       locator.frame_base_locations, locator.frame_base_locations_size);
-  ar& locator.qualified_type;
+  ar & locator.qualified_type;
 }
 
 INSTANCIATE_SERIALIZE(struct drgn_object_locator)
@@ -118,9 +118,9 @@ INSTANCIATE_SERIALIZE(struct drgn_object_locator)
 template <class Archive>
 void serialize(Archive& ar, FuncDesc::Arg& arg, const unsigned int version) {
   verify_version<FuncDesc::Arg>(version);
-  ar& arg.typeName;
-  ar& arg.valid;
-  ar& arg.locator;
+  ar & arg.typeName;
+  ar & arg.valid;
+  ar & arg.locator;
 }
 
 INSTANCIATE_SERIALIZE(FuncDesc::Arg)
@@ -130,8 +130,8 @@ void serialize(Archive& ar,
                FuncDesc::Retval& retval,
                const unsigned int version) {
   verify_version<FuncDesc::Retval>(version);
-  ar& retval.typeName;
-  ar& retval.valid;
+  ar & retval.typeName;
+  ar & retval.valid;
 }
 
 INSTANCIATE_SERIALIZE(FuncDesc::Retval)
@@ -141,8 +141,8 @@ void serialize(Archive& ar,
                FuncDesc::Range& range,
                const unsigned int version) {
   verify_version<FuncDesc::Range>(version);
-  ar& range.start;
-  ar& range.end;
+  ar & range.start;
+  ar & range.end;
 }
 
 INSTANCIATE_SERIALIZE(FuncDesc::Range)
@@ -150,11 +150,11 @@ INSTANCIATE_SERIALIZE(FuncDesc::Range)
 template <class Archive>
 void serialize(Archive& ar, FuncDesc& fd, const unsigned int version) {
   verify_version<FuncDesc>(version);
-  ar& fd.symName;
-  ar& fd.ranges;
-  ar& fd.isMethod;
-  ar& fd.arguments;
-  ar& fd.retval;
+  ar & fd.symName;
+  ar & fd.ranges;
+  ar & fd.isMethod;
+  ar & fd.arguments;
+  ar & fd.retval;
 }
 
 INSTANCIATE_SERIALIZE(FuncDesc)
@@ -162,9 +162,9 @@ INSTANCIATE_SERIALIZE(FuncDesc)
 template <class Archive>
 void serialize(Archive& ar, GlobalDesc& gd, const unsigned int version) {
   verify_version<GlobalDesc>(version);
-  ar& gd.symName;
-  ar& gd.typeName;
-  ar& gd.baseAddr;
+  ar & gd.symName;
+  ar & gd.typeName;
+  ar & gd.baseAddr;
 }
 
 INSTANCIATE_SERIALIZE(GlobalDesc)
@@ -175,7 +175,7 @@ static void serialize_c_string(Archive& ar, char** string) {
   if (Archive::is_saving::value) {
     length = *string ? strlen(*string) : 0;
   }
-  ar& length;
+  ar & length;
   if (Archive::is_loading::value) {
     *string = length ? (char*)malloc(sizeof(char) * (length + 1)) : NULL;
   }
@@ -218,10 +218,10 @@ void serialize(Archive& ar,
   // `.kind` MUST be serialized first, not just because it's declared first,
   // but because all of the `drgn_type_has_*` functions rely on the value of
   // `.kind`
-  ar& type._private.kind;
-  ar& type._private.is_complete;
-  ar& type._private.primitive;
-  ar& type._private.qualifiers;
+  ar & type._private.kind;
+  ar & type._private.is_complete;
+  ar & type._private.primitive;
+  ar & type._private.qualifiers;
   // `.program` is NULL, per the initial `memset`
 
   if (Archive::is_loading::value) {
@@ -247,13 +247,13 @@ void serialize(Archive& ar,
   assert_in_same_union(size, num_enumerators);
   assert_in_same_union(size, is_variadic);
   if (drgn_type_has_size(&type)) {
-    ar& type._private.size;
+    ar & type._private.size;
   } else if (drgn_type_has_length(&type)) {
-    ar& type._private.length;
+    ar & type._private.length;
   } else if (drgn_type_has_enumerators(&type)) {
-    ar& type._private.num_enumerators;
+    ar & type._private.num_enumerators;
   } else if (drgn_type_has_is_variadic(&type)) {
-    ar& type._private.is_variadic;
+    ar & type._private.is_variadic;
   }
 
   // Third union: `is_signed`, `num_members`, `num_paramters`
@@ -265,7 +265,7 @@ void serialize(Archive& ar,
   assert_in_same_union(little_endian, enumerators);
   assert_in_same_union(little_endian, parameters);
   if (drgn_type_has_little_endian(&type)) {
-    ar& type._private.little_endian;
+    ar & type._private.little_endian;
   } else if (drgn_type_has_members(&type)) {
     // Leave `members` set to NULL per the initial `memset`,
     // see "AVOIDING OVERSERIALIZATION" comment above
@@ -282,7 +282,7 @@ void serialize(Archive& ar,
   // "AVOIDING OVERSERIALIZATION" comment above
 
   uintptr_t die_addr = (uintptr_t)type._private.die_addr;
-  ar& die_addr;
+  ar & die_addr;
   type._private.die_addr = (void*)die_addr;
   // `.module` is NULL, per the initial `memset`
   if (Archive::is_saving::value) {
@@ -293,7 +293,7 @@ void serialize(Archive& ar,
           std::numeric_limits<decltype(type._private.oi_size)>::max();
     }
   }
-  ar& type._private.oi_size;
+  ar & type._private.oi_size;
 
   // It's important that `oi_name` is declared here and not inside the
   // if statement so that its data isn't freed when we call
@@ -306,7 +306,7 @@ void serialize(Archive& ar,
   serialize_c_string(ar, const_cast<char**>(&type._private.oi_name));
 
   if (drgn_type_kind(&type) == DRGN_TYPE_ARRAY) {
-    ar& type._private.type;
+    ar & type._private.type;
   }
 #undef assert_in_same_union
 }
@@ -318,10 +318,10 @@ void serialize(Archive& ar,
                struct DrgnClassMemberInfo& m,
                const unsigned int version) {
   verify_version<struct DrgnClassMemberInfo>(version);
-  ar& m.type;
-  ar& m.member_name;
-  ar& m.bit_offset;
-  ar& m.bit_field_size;
+  ar & m.type;
+  ar & m.member_name;
+  ar & m.bit_offset;
+  ar & m.bit_field_size;
 }
 
 INSTANCIATE_SERIALIZE(DrgnClassMemberInfo)
@@ -331,8 +331,8 @@ void serialize(Archive& ar,
                struct drgn_qualified_type& type,
                const unsigned int version) {
   verify_version<struct drgn_qualified_type>(version);
-  ar& type.type;
-  ar& type.qualifiers;
+  ar & type.type;
+  ar & type.qualifiers;
 }
 
 INSTANCIATE_SERIALIZE(struct drgn_qualified_type)
@@ -340,8 +340,8 @@ INSTANCIATE_SERIALIZE(struct drgn_qualified_type)
 template <class Archive>
 void serialize(Archive& ar, RootInfo& rootInfo, const unsigned int version) {
   verify_version<RootInfo>(version);
-  ar& rootInfo.varName;
-  ar& rootInfo.type;
+  ar & rootInfo.varName;
+  ar & rootInfo.type;
 }
 
 INSTANCIATE_SERIALIZE(RootInfo)
@@ -351,14 +351,14 @@ void serialize(Archive& ar,
                struct TypeHierarchy& th,
                const unsigned int version) {
   verify_version<TypeHierarchy>(version);
-  ar& th.classMembersMap;
-  ar& th.containerTypeMap;
-  ar& th.typedefMap;
-  ar& th.sizeMap;
-  ar& th.knownDummyTypeList;
-  ar& th.pointerToTypeMap;
-  ar& th.thriftIssetStructTypes;
-  ar& th.descendantClasses;
+  ar & th.classMembersMap;
+  ar & th.containerTypeMap;
+  ar & th.typedefMap;
+  ar & th.sizeMap;
+  ar & th.knownDummyTypeList;
+  ar & th.pointerToTypeMap;
+  ar & th.thriftIssetStructTypes;
+  ar & th.descendantClasses;
 }
 
 INSTANCIATE_SERIALIZE(struct TypeHierarchy)
