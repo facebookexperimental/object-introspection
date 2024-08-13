@@ -54,7 +54,7 @@ func_iterator::func_iterator(drgn_program* prog) {
   iter.reset(ret, Deleter());
 }
 
-func_iterator::func_iterator(program& prog) : func_iterator(prog.get()){};
+func_iterator::func_iterator(program& prog) : func_iterator(prog.get()) {};
 
 void func_iterator::Deleter::operator()(drgn_func_iterator* _iter) noexcept {
   drgn_func_iterator_destroy(_iter);

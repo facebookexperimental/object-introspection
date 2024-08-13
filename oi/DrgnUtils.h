@@ -41,7 +41,7 @@ class error : public std::exception {
   struct Deleter {
     void operator()(drgn_error* err) noexcept;
   };
-  error(drgn_error* err) : ptr(err){};
+  error(drgn_error* err) : ptr(err) {};
 
   operator bool() const {
     return static_cast<bool>(ptr);
@@ -65,7 +65,7 @@ class program {
   };
 
   program();
-  program(drgn_program* prog) : ptr(prog){};
+  program(drgn_program* prog) : ptr(prog) {};
 
   symbols find_all_symbols();
 
