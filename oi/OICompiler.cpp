@@ -27,7 +27,6 @@
 #include <clang/Lex/PreprocessorOptions.h>
 #include <glog/logging.h>
 #include <llvm/ADT/SmallVector.h>
-#include <llvm/ADT/Triple.h>
 #include <llvm/ADT/Twine.h>
 #include <llvm/Demangle/Demangle.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -37,6 +36,12 @@
 #include <llvm/Support/Memory.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_os_ostream.h>
+
+#if LLVM_VERSION_MAJOR <= 15
+#include <llvm/ADT/Triple.h>
+#else
+#include <llvm/TargetParser/Triple.h>
+#endif
 
 #include <array>
 #include <boost/range/combine.hpp>
@@ -135,6 +140,13 @@ OICompiler::Disassembler::operator()() {
  * allocate memory and prepare the relocation.
  */
 class OIMemoryManager : public RTDyldMemoryManager {
+ private:
+#if LLVM_VERSION_MAJOR <= 15
+  using ReserveAllocationSpaceAlignTy = uint32_t;
+#else
+  using ReserveAllocationSpaceAlignTy = llvm::Align;
+#endif
+
  public:
   struct Slab {
    private:
@@ -244,8 +256,13 @@ class OIMemoryManager : public RTDyldMemoryManager {
   bool needsToReserveAllocationSpace(void) override {
     return true;
   }
-  void reserveAllocationSpace(
-      uintptr_t, uint32_t, uintptr_t, uint32_t, uintptr_t, uint32_t) override;
+
+  void reserveAllocationSpace(uintptr_t,
+                              ReserveAllocationSpaceAlignTy,
+                              uintptr_t,
+                              ReserveAllocationSpaceAlignTy,
+                              uintptr_t,
+                              ReserveAllocationSpaceAlignTy) override;
 
   uint8_t* allocateCodeSection(uintptr_t,
                                unsigned,
@@ -281,12 +298,17 @@ class OIMemoryManager : public RTDyldMemoryManager {
   }
 };
 
-void OIMemoryManager::reserveAllocationSpace(uintptr_t codeSize,
-                                             uint32_t codeAlign,
-                                             uintptr_t roDataSize,
-                                             uint32_t roDataAlign,
-                                             uintptr_t rwDataSize,
-                                             uint32_t rwDataAlign) {
+void OIMemoryManager::reserveAllocationSpace(
+    uintptr_t codeSize,
+    ReserveAllocationSpaceAlignTy codeAlignIn,
+    uintptr_t roDataSize,
+    ReserveAllocationSpaceAlignTy roDataAlignIn,
+    uintptr_t rwDataSize,
+    ReserveAllocationSpaceAlignTy rwDataAlignIn) {
+  llvm::Align codeAlign{codeAlignIn};
+  llvm::Align roDataAlign{roDataAlignIn};
+  llvm::Align rwDataAlign{rwDataAlignIn};
+
   /*
    * It looks like the sizes given to us already take into account the
    * alignment restrictions the different type of sections may have. Aligning
@@ -295,9 +317,10 @@ void OIMemoryManager::reserveAllocationSpace(uintptr_t codeSize,
   uint64_t totalSz = alignTo((codeSize + roDataSize + rwDataSize), 1024);
 
   VLOG(1) << "reserveAllocationSpace: codesize " << codeSize << " codeAlign "
-          << codeAlign << " roDataSize " << roDataSize << " roDataAlign "
-          << roDataAlign << " rwDataSize " << rwDataSize << " rwDataAlign "
-          << rwDataAlign << " (Total Size: " << totalSz << ")";
+          << codeAlign.value() << " roDataSize " << roDataSize
+          << " roDataAlign " << roDataAlign.value() << " rwDataSize "
+          << rwDataSize << " rwDataAlign " << rwDataAlign.value()
+          << " (Total Size: " << totalSz << ")";
 
   Slabs.emplace_back(totalSz, codeSize, roDataSize + rwDataSize + 128);
 
