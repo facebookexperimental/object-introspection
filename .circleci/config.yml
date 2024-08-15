@@ -83,20 +83,26 @@ jobs:
               libgtest-dev \
               libjemalloc-dev \
               libmsgpack-dev \
+              libomp-12-dev \
+              liburing-dev \
               libzstd-dev \
               llvm-15-dev \
               ninja-build \
               pkg-config \
               python3-setuptools
             pip3 install toml
+
+            # Ubuntu 22.04 CMake is too old and we don't have a newer image yet
+            git clone --depth 1 --branch v3.30.2 https://github.com/Kitware/CMake.git /tmp/cmake
+            (cd /tmp/cmake && cmake -B build/ -G Ninja && cmake --build build/)
           environment:
             DEBIAN_FRONTEND: noninteractive
       - checkout
       - run:
           name: Build
           command: |
-            cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
-            cmake --build build/
+            /tmp/cmake/build/bin/cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
+            ninja -C build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
       - persist_to_workspace:
@@ -131,10 +137,12 @@ jobs:
             sudo apt-get install -y \
               clang-15 \
               libboost-all-dev \
-              libgflags-dev \
-              llvm-15-dev \
               libfmt-dev \
-              libjemalloc-dev
+              libgflags-dev \
+              libgoogle-glog-dev \
+              libjemalloc-dev \
+              libomp-12-dev \
+              llvm-15-dev
           environment:
             DEBIAN_FRONTEND: noninteractive
       - run:

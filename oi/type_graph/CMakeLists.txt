@@ -20,12 +20,9 @@ add_library(type_graph
   TypeIdentifier.cpp
   Types.cpp
 )
-add_dependencies(type_graph libdrgn)
 target_link_libraries(type_graph
   container_info
   symbol_service
-
-  "-L${DRGN_PATH}/.libs"
   drgn
 )
 target_include_directories(type_graph SYSTEM PUBLIC ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})

@@ -16,6 +16,7 @@
 
 import argparse
 import getpass
+import os
 import pathlib
 import subprocess
 import typing
@@ -170,7 +171,10 @@ def pull_base_toml() -> typing.Dict:
 
     # Now, we need to replace any placeholders that might be present in the base toml file with the real verisons.
     user = getpass.getuser()
-    pwd = str(repo_path.resolve())
+    if "IN_NIX_SHELL" in os.environ and "src" in os.environ:
+        pwd = os.environ['src']
+    else:
+        pwd = str(repo_path.resolve())
 
     container_list = base.get("types", {}).get("containers")
     if container_list:

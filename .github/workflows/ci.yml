@@ -1,0 +1,54 @@
+name: CI
+on:
+  pull_request:
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4.1.7
+    - uses: cachix/install-nix-action@v27
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: nix fmt
+      run: |-
+        nix --experimental-features 'nix-command flakes' fmt
+        git diff --exit-code
+
+  build-test:
+    runs-on: 16-core-ubuntu
+    strategy:
+      matrix:
+        llvm_version: [15]
+    steps:
+    - uses: actions/checkout@v4.1.7
+    - uses: cachix/install-nix-action@v27
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: build (LLVM ${{ matrix.llvm_version }})
+      # Run the build manually in `nix develop` to keep non-outputs around
+      run: |
+        nix develop .#oid-llvm${{ matrix.llvm_version }} --command cmake -B build -G Ninja -DWITH_FLAKY_TESTS=Off -DFORCE_BOOST_STATIC=Off
+        nix develop .#oid-llvm${{ matrix.llvm_version }} --command ninja -C build
+    - name: test (LLVM ${{ matrix.llvm_version }})
+      env:
+        # disable drgn multithreading as tests are already run in parallel
+        OMP_NUM_THREADS: 1
+      run: |
+        echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+        nix develop .#oid-llvm${{ matrix.llvm_version }} --command ./tools/config_gen.py -c clang++ build/testing.oid.toml
+        nix develop .#oid-llvm${{ matrix.llvm_version }} --command ctest \
+          --test-dir build/test/ \
+          --test-action Test \
+          --parallel \
+          --no-compress-output \
+          --schedule-random \
+          --timeout 90 \
+          --repeat until-pass:3 \
+          --exclude-from-file ../../.github/workflows/tests_failing_under_nix.txt \
+          --output-junit results.xml
+    - name: upload results
+      uses: actions/upload-artifact@v4
+      if: success() || failure()
+      with:
+        name: test-results-${{ matrix.llvm_version }}
+        path: build/test/results.xml
