@@ -32,7 +32,11 @@
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/RTDyldMemoryManager.h>
 #include <llvm/MC/TargetRegistry.h>
+#if LLVM_VERSION_MAJOR >= 16
+#include <llvm/TargetParser/Host.h>
+#else
 #include <llvm/Support/Host.h>
+#endif
 #include <llvm/Support/Memory.h>
 #include <llvm/Support/TargetSelect.h>
 #include <llvm/Support/raw_os_ostream.h>
