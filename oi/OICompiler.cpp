@@ -511,22 +511,29 @@ bool OICompiler::compile(const std::string& code,
    */
   auto compInv = std::make_shared<CompilerInvocation>();
 
-  compInv->getLangOpts()->CPlusPlus = true;
-  compInv->getLangOpts()->CPlusPlus11 = true;
-  compInv->getLangOpts()->CPlusPlus14 = true;
-  compInv->getLangOpts()->CPlusPlus17 = true;
-  compInv->getLangOpts()->CPlusPlus20 = true;
+  LangOptions& langOpts =
+#if LLVM_VERSION_MAJOR < 18
+      *compInv->getLangOpts();
+#else
+      compInv->getLangOpts();
+#endif
+
+  langOpts.CPlusPlus = true;
+  langOpts.CPlusPlus11 = true;
+  langOpts.CPlusPlus14 = true;
+  langOpts.CPlusPlus17 = true;
+  langOpts.CPlusPlus20 = true;
   // Required for various `__GCC_ATOMIC_*` macros to be defined
-  compInv->getLangOpts()->GNUCVersion = 11 * 100 * 100;  // 11.0.0
-  compInv->getLangOpts()->Bool = true;
-  compInv->getLangOpts()->WChar = true;
-  compInv->getLangOpts()->Char8 = true;
-  compInv->getLangOpts()->CXXOperatorNames = true;
-  compInv->getLangOpts()->DoubleSquareBracketAttributes = true;
-  compInv->getLangOpts()->Exceptions = true;
-  compInv->getLangOpts()->CXXExceptions = true;
-  compInv->getLangOpts()->Coroutines = true;
-  compInv->getLangOpts()->AlignedAllocation = true;
+  langOpts.GNUCVersion = 11 * 100 * 100;  // 11.0.0
+  langOpts.Bool = true;
+  langOpts.WChar = true;
+  langOpts.Char8 = true;
+  langOpts.CXXOperatorNames = true;
+  langOpts.DoubleSquareBracketAttributes = true;
+  langOpts.Exceptions = true;
+  langOpts.CXXExceptions = true;
+  langOpts.Coroutines = true;
+  langOpts.AlignedAllocation = true;
 
   compInv->getPreprocessorOpts();
   compInv->getPreprocessorOpts().addRemappedFile(
