@@ -18,7 +18,7 @@ jobs:
     runs-on: 16-core-ubuntu
     strategy:
       matrix:
-        llvm_version: [15]
+        llvm_version: [15, 16]
     steps:
     - uses: actions/checkout@v4.1.7
     - uses: cachix/install-nix-action@v27

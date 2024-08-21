@@ -101,7 +101,7 @@ jobs:
       - run:
           name: Build
           command: |
-            /tmp/cmake/build/bin/cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
+            /tmp/cmake/build/bin/cmake -G Ninja -B build/ -DLLVM_REQUESTED_VERSION=15 -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=<< parameters.warnings_as_errors >>
             ninja -C build/
             # Testing rubbish:
             cp test/ci.oid.toml build/testing.oid.toml
