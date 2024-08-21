@@ -99,9 +99,10 @@
       in
       {
         packages = rec {
-          default = oid-llvm15;
+          default = oid-llvm16;
 
           oid-llvm15 = mkOidPackage pkgs.llvmPackages_15;
+          oid-llvm16 = mkOidPackage pkgs.llvmPackages_16;
         };
 
         apps.default = {
