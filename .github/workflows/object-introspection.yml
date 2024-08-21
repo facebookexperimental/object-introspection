@@ -1,0 +1,199 @@
+name: facebookexperimental/object-introspection
+on:
+  pull_request:
+env:
+  CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4.1.0
+    - uses: cachix/install-nix-action@v25
+      with:
+        github_access_token: ${{ secrets.GITHUB_TOKEN }}
+    - name: Flake check
+      run: nix --experimental-features 'nix-command flakes' flake check
+  build:
+    runs-on: 16-core
+    container:
+      image: ubuntu:22.04
+    strategy:
+      matrix:
+        include:
+          - name: build-gcc
+            cc: /usr/bin/gcc
+            cxx: /usr/bin/g++
+            warnings_as_errors: OFF
+          - name: build-clang
+            cc: /usr/bin/clang-12
+            cxx: /usr/bin/clang++-12
+            warnings_as_errors: ON
+    env:
+      CC: ${{ matrix.cc }}
+      CXX: ${{ matrix.cxx }}
+    steps:
+    - name: Install dependencies
+      run: |-
+        apt-get update
+        apt-get install -y \
+          autopoint \
+          bison \
+          build-essential \
+          clang-12 \
+          clang-15 \
+          cmake \
+          flex \
+          gawk \
+          libboost-all-dev \
+          libbz2-dev \
+          libcap2-bin \
+          libclang-15-dev \
+          libcurl4-gnutls-dev \
+          libdouble-conversion-dev \
+          libdw-dev \
+          libfmt-dev \
+          libgflags-dev \
+          libgmock-dev \
+          libgoogle-glog-dev \
+          libgtest-dev \
+          libjemalloc-dev \
+          libmsgpack-dev \
+          libzstd-dev \
+          llvm-15-dev \
+          ninja-build \
+          pkg-config \
+          python3-setuptools \
+          pip \
+          git
+        pip3 install toml
+      env:
+        DEBIAN_FRONTEND: noninteractive
+    - uses: actions/checkout@v4.1.0
+      with:
+        submodules: recursive
+    - name: Build
+      run: |-
+        git config --global --add safe.directory $GITHUB_WORKSPACE
+        cmake -G Ninja -B build/ -DWITH_FLAKY_TESTS=Off -DCODE_COVERAGE=On -DWARNINGS_AS_ERRORS=${{ matrix.warnings_as_errors }}
+        cmake --build build/
+        # Testing rubbish:
+        cp test/ci.oid.toml build/testing.oid.toml
+    - name: persist-workspace
+      uses: bissolli/gh-action-persist-workspace@v1.0.0
+      with:
+        artifactName: workspace-${{ matrix.name }}
+        action: persist
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    container:
+      image: ubuntu:22.04
+    strategy:
+      matrix:
+        include:
+          - name: build-gcc
+            exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0"
+          - name: build-clang
+            exclude_regex: ".*inheritance_polymorphic.*|.*arrays_member_int0|.*fbstring.*|.*std_string_*|.*multi_arg_tb_.*|.*ignored_member|OilIntegration.fbstring_.*|OilIntegration.capture_keys_string|OilIntegration.capture_keys_multi_level"
+    env:
+      oid_test_args: ''
+      tests_regex: ".*"
+    steps:
+    - name: persist-workspace
+      uses: bissolli/gh-action-persist-workspace@v1.0.0
+      with:
+        artifactName: workspace-${{ matrix.name }}
+        action: retrieve
+    - name: Install dependencies
+      run: |-
+        apt-get update
+        apt-get install -y \
+          clang-15 \
+          libboost-all-dev \
+          libgflags-dev \
+          llvm-15-dev \
+          libfmt-dev \
+          libjemalloc-dev \
+          cmake
+      env:
+        DEBIAN_FRONTEND: noninteractive
+    - name: Test
+      run: |-
+        #echo 0 | tee /proc/sys/kernel/yama/ptrace_scope
+        OID_TEST_ARGS='${{ env.oid_test_args }}' ctest \
+          --test-dir build/test/ \
+          --test-action Test \
+          -j 16 \
+          --tests-regex '${{ env.tests_regex }}' \
+          --exclude-regex '${{ matrix.exclude_regex }}' \
+          --no-compress-output \
+          --output-on-failure \
+          --schedule-random \
+          --timeout 60 \
+          --repeat until-pass:2 \
+          --output-junit results.xml
+      env:
+        OMP_NUM_THREADS: 1
+    - uses: actions/upload-artifact@v4.0.0
+      with:
+        name: test-results-${{ matrix.name }}
+        path: build/test/results.xml
+    - uses: actions/upload-artifact@v4.0.0
+      with:
+        name: test-build-${{ matrix.name }}
+        path: ./build/*
+  coverage:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:jammy
+    needs: test
+    steps:
+    - name: persist-workspace
+      uses: bissolli/gh-action-persist-workspace@v1.0.0
+      with:
+        artifactName: workspace-build-gcc
+        action: retrieve
+    - name: Install dependencies
+      run: |-
+        apt-get update
+        apt-get install -y \
+          build-essential \
+          cpanminus \
+          curl \
+          git \
+          gpg
+        # Install lcov 2.0 - required for the "--filter branch" option.
+        # This improves C++ branch coverage by excluding compiler-generated
+        # branches, which primarily come from exception handling in
+        # standard library functions.
+        cpanm --notest Capture::Tiny DateTime
+        cd /tmp
+        curl -sLO https://github.com/linux-test-project/lcov/releases/download/v2.0/lcov-2.0.tar.gz
+        tar -xf lcov-2.0.tar.gz
+        cd lcov-2.0
+        make install
+        cd $GITHUB_WORKSPACE
+      env:
+        DEBIAN_FRONTEND: noninteractive
+    - name: Code Coverage
+      run: |-
+        lcov --capture --directory . --filter branch --no-external --ignore-errors mismatch --ignore-errors source --rc lcov_branch_coverage=1 --output-file coverage.info
+        # Empirically, extract-then-remove is faster than remove-then-extract
+        lcov --extract coverage.info '/tmp/object-introspection/*' --rc lcov_branch_coverage=1 --output-file coverage.info
+        lcov --remove coverage.info '/tmp/object-introspection/build/*' '/tmp/object-introspection/extern/*'  --rc lcov_branch_coverage=1 --output-file coverage.info
+        lcov --list --rc lcov_branch_coverage=1 coverage.info
+        curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --keyring trustedkeys.gpg --import
+        curl -Os https://uploader.codecov.io/latest/linux/codecov
+        curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
+        curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig
+        gpgv codecov.SHA256SUM.sig codecov.SHA256SUM
+        shasum -a 256 -c codecov.SHA256SUM
+        chmod +x codecov
+        # It appears that codecov wants to scan through all directories
+        # other than "build", looking for files to upload, even if we
+        # specify a file name on the command line.
+        #
+        # "extern" is huge and makes uploading the coverage report take
+        # forever. Delete it for a speedup.
+        rm -rf extern
+        ./codecov -Z -f coverage.info -t $CODECOV_TOKEN
