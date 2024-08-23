@@ -31,6 +31,33 @@ void setProgramCounter(user_regs_struct& regs, uintptr_t pc) {
   regs.rip = pc;
 }
 
+std::optional<uintptr_t> naiveReadArgument(const user_regs_struct& regs,
+                                           uint8_t idx) {
+  /*
+   * This function is based on the information available at
+   * http://6.s081.scripts.mit.edu/sp18/x86-64-architecture-guide.html. I have
+   * no idea under which conditions these registers are selected. We rely on the
+   * fact that OID will safely exit if incorrect, potentially producing some
+   * incorrect data but otherwise leaving the process unharmed.
+   */
+  switch (idx) {
+    case 0:
+      return regs.rdi;
+    case 1:
+      return regs.rsi;
+    case 2:
+      return regs.rdx;
+    case 3:
+      return regs.rcx;
+    case 4:
+      return regs.r8;
+    case 5:
+      return regs.r9;
+    default:
+      return std::nullopt;
+  }
+}
+
 }  // namespace oi::detail::arch
 
 #endif

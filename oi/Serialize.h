@@ -40,7 +40,7 @@
 DEFINE_TYPE_VERSION(PaddingInfo, 120, 3)
 DEFINE_TYPE_VERSION(struct drgn_location_description, 32, 2)
 DEFINE_TYPE_VERSION(struct drgn_object_locator, 72, 2)
-DEFINE_TYPE_VERSION(FuncDesc::Arg, 128, 2)
+DEFINE_TYPE_VERSION(FuncDesc::Arg, 136, 3)
 DEFINE_TYPE_VERSION(FuncDesc::Retval, 56, 2)
 DEFINE_TYPE_VERSION(FuncDesc::Range, 16, 2)
 DEFINE_TYPE_VERSION(FuncDesc, 104, 4)
