@@ -88,8 +88,9 @@ static struct LLVMInitializer {
     llvm::InitializeNativeTargetAsmPrinter();
     llvm::InitializeNativeTargetDisassembler();
 
+    std::string triple = llvm::sys::getProcessTriple();
     disassemblerContext = LLVMCreateDisasm(
-        "x86_64-pc-linux", nullptr, 0, nullptr, symbolLookupCallback);
+        triple.c_str(), nullptr, 0, nullptr, symbolLookupCallback);
     if (!disassemblerContext) {
       throw std::runtime_error("Failed to initialize disassemblerContext");
     }
