@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 
+#include "oi/arch/Arch.h"
+
 extern "C" {
 #include <drgn.h>
 }
@@ -103,7 +105,7 @@ struct FuncDesc {
      * can be found at the given pc (what about if we don't have this
      * location?).
      */
-    virtual std::optional<uintptr_t> findAddress(struct user_regs_struct* regs,
+    virtual std::optional<uintptr_t> findAddress(const user_regs_struct* regs,
                                                  uintptr_t pc) const = 0;
   };
 
@@ -114,16 +116,16 @@ struct FuncDesc {
       drgn_object_locator_deinit(&locator);
     }
 
-    std::optional<uintptr_t> findAddress(struct user_regs_struct* regs,
+    std::optional<uintptr_t> findAddress(const user_regs_struct* regs,
                                          uintptr_t pc) const final;
   };
 
   struct Retval final : virtual TargetObject {
     ~Retval() final = default;
 
-    std::optional<uintptr_t> findAddress(struct user_regs_struct* regs,
+    std::optional<uintptr_t> findAddress(const user_regs_struct* regs,
                                          uintptr_t /* pc */) const final {
-      return regs->rax;
+      return oi::detail::arch::getReturnValueAddress(*regs);
     }
   };
 };

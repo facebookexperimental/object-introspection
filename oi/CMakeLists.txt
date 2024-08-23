@@ -12,6 +12,8 @@ target_link_libraries(drgn_utils
 add_library(symbol_service
   Descs.cpp
   SymbolService.cpp
+  arch/aarch64.cpp
+  arch/x86_64.cpp
 )
 target_link_libraries(symbol_service
   drgn_utils

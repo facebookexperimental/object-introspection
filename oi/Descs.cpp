@@ -38,18 +38,16 @@ std::ostream& operator<<(std::ostream& os, const FuncDesc::Range& r) {
  * location?).
  */
 std::optional<uintptr_t> FuncDesc::Arg::findAddress(
-    struct user_regs_struct* regs, uintptr_t pc) const {
-  auto prevRip = std::exchange(regs->rip, pc);
-  BOOST_SCOPE_EXIT_ALL(&) {
-    regs->rip = prevRip;
-  };
+    const user_regs_struct* regs, uintptr_t pc) const {
+  user_regs_struct modifiedRegs = *regs;
+  oi::detail::arch::setProgramCounter(modifiedRegs, pc);
 
   struct drgn_object object {};
   BOOST_SCOPE_EXIT_ALL(&) {
     drgn_object_deinit(&object);
   };
 
-  if (auto* err = drgn_object_locate(&locator, regs, &object)) {
+  if (auto* err = drgn_object_locate(&locator, &modifiedRegs, &object)) {
     LOG(ERROR) << "Error while finding address of argument: " << err->message;
     drgn_error_destroy(err);
     return std::nullopt;
