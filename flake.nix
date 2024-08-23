@@ -34,7 +34,7 @@
         mkOidPackage =
           llvmPackages:
           with pkgs;
-          pkgs.llvmPackages.stdenv.mkDerivation rec {
+          llvmPackages.stdenv.mkDerivation rec {
             name = "oid";
 
             src = self;
@@ -60,6 +60,7 @@
             buildInputs = [
               llvmPackages.libclang
               llvmPackages.llvm
+              llvmPackages.openmp
 
               boost
               bzip2
@@ -85,8 +86,6 @@
               sqlite
               tomlplusplus
               zstd
-
-              llvmPackages.openmp # should match the stdenv clang version, see: https://github.com/NixOS/nixpkgs/issues/79818
             ];
 
             cmakeFlags = [

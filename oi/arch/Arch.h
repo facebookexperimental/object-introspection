@@ -26,4 +26,7 @@ void setProgramCounter(user_regs_struct& regs, uintptr_t pc);
 
 std::optional<uintptr_t> getReturnValueAddress(const user_regs_struct&);
 
+std::optional<uintptr_t> naiveReadArgument(const user_regs_struct&,
+                                           uint8_t idx);
+
 }  // namespace oi::detail::arch

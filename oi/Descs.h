@@ -110,7 +110,8 @@ struct FuncDesc {
   };
 
   struct Arg final : virtual TargetObject {
-    struct drgn_object_locator locator;
+    uint8_t index;
+    drgn_object_locator locator;
 
     ~Arg() final {
       drgn_object_locator_deinit(&locator);
