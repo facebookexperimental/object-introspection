@@ -108,7 +108,7 @@
           in
           pkgs.mkShell.override { stdenv = llvmPackages.stdenv; } {
             inputsFrom = [ self.packages.${system}."oid-llvm${toString llvmVersion}" ];
-            buildInputs = [ ];
+            buildInputs = with pkgs; [ lcov ];
           };
       in
       {
