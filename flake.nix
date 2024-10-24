@@ -21,6 +21,7 @@
     flake-utils.lib.eachSystem [ flake-utils.lib.system.x86_64-linux ] (
       system:
       let
+        defaultLlvmVersion = 16;
         pkgs = import nixpkgs { inherit system; };
 
         drgnSrc = pkgs.fetchFromGitHub {
@@ -32,14 +33,16 @@
         };
 
         mkOidPackage =
-          llvmPackages:
-          with pkgs;
+          llvmVersion:
+          let
+            llvmPackages = pkgs."llvmPackages_${toString llvmVersion}";
+          in
           llvmPackages.stdenv.mkDerivation rec {
             name = "oid";
 
             src = self;
 
-            nativeBuildInputs = [
+            nativeBuildInputs = with pkgs; [
               autoconf
               automake
               bison
@@ -57,36 +60,38 @@
               glibcLocales
             ];
 
-            buildInputs = [
-              llvmPackages.libclang
-              llvmPackages.llvm
-              llvmPackages.openmp
-
-              boost
-              bzip2
-              curl
-              double-conversion
-              elfutils
-              flex
-              folly
-              folly.fmt
-              gflags
-              glog
-              gtest
-              icu
-              jemalloc
-              libarchive
-              libmicrohttpd
-              liburing
-              libxml2
-              lzma
-              msgpack
-              range-v3
-              rocksdb_8_11
-              sqlite
-              tomlplusplus
-              zstd
-            ];
+            buildInputs =
+              (with llvmPackages; [
+                llvmPackages.libclang
+                llvmPackages.llvm
+                llvmPackages.openmp
+              ])
+              ++ (with pkgs; [
+                boost
+                bzip2
+                curl
+                double-conversion
+                elfutils
+                flex
+                folly
+                folly.fmt
+                gflags
+                glog
+                gtest
+                icu
+                jemalloc
+                libarchive
+                libmicrohttpd
+                liburing
+                libxml2
+                lzma
+                msgpack
+                range-v3
+                rocksdb_8_11
+                sqlite
+                tomlplusplus
+                zstd
+              ]);
 
             cmakeFlags = [
               "-Ddrgn_SOURCE_DIR=${drgnSrc}"
@@ -95,13 +100,29 @@
 
             outputs = [ "out" ];
           };
+
+        mkOidDevShell =
+          llvmVersion:
+          let
+            llvmPackages = pkgs."llvmPackages_${toString llvmVersion}";
+          in
+          pkgs.mkShell.override { stdenv = llvmPackages.stdenv; } {
+            inputsFrom = [ self.packages.${system}."oid-llvm${toString llvmVersion}" ];
+            buildInputs = [ ];
+          };
       in
       {
         packages = rec {
-          default = oid-llvm16;
+          default = self.packages.${system}."oid-llvm${toString defaultLlvmVersion}";
 
-          oid-llvm15 = mkOidPackage pkgs.llvmPackages_15;
-          oid-llvm16 = mkOidPackage pkgs.llvmPackages_16;
+          oid-llvm15 = mkOidPackage 15;
+          oid-llvm16 = mkOidPackage 16;
+        };
+        devShells = rec {
+          default = self.devShells.${system}."oid-llvm${toString defaultLlvmVersion}";
+
+          oid-llvm15 = mkOidDevShell 15;
+          oid-llvm16 = mkOidDevShell 16;
         };
 
         apps.default = {
