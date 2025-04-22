@@ -127,26 +127,34 @@ bool OIDebugger::patchFunctions(void) {
  * Single step an instruction in the target process 'pid' and leave the target
  * thread stopped. Returns the current rip.
  */
-uint64_t OIDebugger::singlestepInst(pid_t pid, struct user_regs_struct& regs) {
+uint64_t OIDebugger::singleStepInst(pid_t pid, struct user_regs_struct& regs) {
   int status = 0;
 
   metrics::Tracing _("single_step_inst");
 
+  errno = 0;
   if (ptrace(PTRACE_SINGLESTEP, pid, 0, 0) == -1) {
-    LOG(ERROR) << "Error in singlestep!";
+    LOG(ERROR) << "singleStepInst: ptrace single error: " << strerror(errno);
     return 0xdeadbeef;
   }
 
-  /* Error check... */
-  waitpid(pid, &status, 0);
+  /*
+   * If the waitpid and ptrace() calls below fail then it's bad news but
+   * let's drive on regardless simply emitting messages as the alternative
+   * provides no better end result.
+   */
+  if (waitpid(pid, &status, 0) == -1) {
+    LOG(ERROR) << "singleStepInst waitpid failed: " << strerror(errno);
+  }
 
   if (!WIFSTOPPED(status)) {
-    LOG(ERROR) << "process not stopped!";
+    LOG(ERROR) << "singleStepInst process not stopped!";
   }
 
   errno = 0;
   if (ptrace(PTRACE_GETREGS, pid, NULL, &regs) < 0) {
-    LOG(ERROR) << "Couldn't read registers: " << strerror(errno);
+    LOG(ERROR) << "singleStepInst: Couldn't read registers: "
+               << strerror(errno);
   }
   VLOG(1) << "rip after singlestep: " << std::hex << regs.rip;
 
@@ -188,7 +196,7 @@ bool OIDebugger::singleStepFunc(pid_t pid, uint64_t real_end) {
     prev = addr;
     VLOG(1) << "singlestepFunc addr: " << std::hex << addr << " real_end "
             << real_end;
-    addr = singlestepInst(pid, regs);
+    addr = singleStepInst(pid, regs);
     dumpRegs("singlestep", pid, &regs);
   } while (addr != 0xdeadbeef && addr != real_end && prev != addr);
 
@@ -560,7 +568,7 @@ bool OIDebugger::replayTrappedInstr(const trapInfo& t,
     LOG(ERROR) << "Execute: Couldn't restore fp registers: " << strerror(errno);
   }
 
-  uintptr_t rip = singlestepInst(pid, regs);
+  uintptr_t rip = singleStepInst(pid, regs);
 
   /*
    * On entry to this function the current threads %rip is pointing straight
@@ -868,10 +876,14 @@ bool OIDebugger::processGlobal(const std::string& varName) {
 
   VLOG(1) << "About to wait for process on syscall entry/exit";
   int status = 0;
-  waitpid(traceePid, &status, 0);
+  if (waitpid(traceePid, &status, 0) == -1) {
+    LOG(ERROR) << "processGlobal waitpid failed: " << strerror(errno);
+    return false;
+  }
 
   if (!WIFSTOPPED(status)) {
-    LOG(ERROR) << "process not stopped!";
+    LOG(ERROR) << "processGlobal process not stopped!";
+    return false;
   }
 
   errno = 0;
@@ -1016,7 +1028,7 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
   siginfo_t info;
 
   auto stopsig = WSTOPSIG(status);
-  VLOG(4) << "Stop sig: " << std::dec << stopsig;
+  VLOG(3) << "Stop sig: " << std::dec << stopsig;
   if (ptrace(PTRACE_GETSIGINFO, newpid, nullptr, &info) < 0) {
     LOG(ERROR) << "PTRACE_GETSIGINFO failed with " << strerror(errno);
   } else {
@@ -1711,7 +1723,9 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
     }
 
     int status = 0;
-    waitpid(traceePid, &status, 0);
+    if (waitpid(traceePid, &status, 0) == -1) {
+      LOG(ERROR) << "syscall execution waitpid failed: " << strerror(errno);
+    }
 
     if (!WIFSTOPPED(status)) {
       LOG(ERROR) << "process not stopped!";
@@ -2621,7 +2635,7 @@ bool OIDebugger::targetAttach() {
         /*
          * As mentioned above, this code is terribly racy and we need a better
          * solution. If the seize operation fails we will carry on and assume
-         * that the thread has exited in between readinf the directory and
+         * that the thread has exited in between reading the directory and
          * here (note: ptrace(2) overloads the ESRCH return but with a seize
          * I think it can only mean one thing).
          */
@@ -2632,6 +2646,70 @@ bool OIDebugger::targetAttach() {
                        PTRACE_O_TRACEVFORK | PTRACE_O_TRACEEXIT) < 0) {
           LOG(ERROR) << "Couldn't seize thread " << pid
                      << " (Reason: " << strerror(errno) << ")";
+
+          /*
+           * An EPERM indicates that the thread can't be traced most
+           * likely owing to:
+           * - insufficient permissions
+           * - it is dying or dead.
+           * - it is already traced.
+           * Being already traced is a problem here. Consider the following
+           * scenario: if a thread exists as a result of a clone from a
+           * previously seized thread it is possible for it to sneak into our
+           * racy directory-iterator approach and we will attempt to seize it.
+           * It will be seized (i.e., parented by us) and stopped in a
+           * signal-delivery-stopped waiting for its tracer (us!) to continue
+           * it. The parent will also be stopped in a PTRACE_EVENT stop.
+           *
+           * Note that the follwing EPRM handling code is slightly noisy in
+           * terms of debug logging. These statements will be removed when
+           * confidence is higher.
+           */
+          if (errno == EPERM && !threadList.empty()) {
+            VLOG(3) << "EPERM encountered in seize. Attempting a waitpid()"
+                    << std::endl;
+
+            int status = 0;
+            int ret = waitpid(pid, &status, WNOHANG);
+
+            if (ret == 0) {
+              /*
+               * A return of 0 from a WNOHANG waitpid() indicates that the
+               * thread exists but has not yet changed state. We'll try a
+               * continue request and add it to the managed thread list if
+               * that succeeds.
+               */
+              VLOG(3) << "EPERM seize waitpid 0 attempting continue";
+              if (contTargetThread(pid)) {
+                threadList.push_back(pid);
+              } else {
+                VLOG(3) << "EPERM seize waitpid 0 continue failed";
+              }
+            } else if (ret > 0) {
+              /*
+               * This is a newly cloned thread so according to the man page
+               * it should be a regular signal-delivery-stop and not a
+               * PTRACE_EVENT stop.
+               */
+              if (WIFSTOPPED(status)) {
+                VLOG(3) << "Process " << pid << " stopped with "
+                        << WIFSTOPPED(status);
+
+                if (!contTargetThread(pid)) {
+                  VLOG(3) << "targetAttach failed to continue EPERM'd thread";
+                } else {
+                  // Success! Let's consider this thread ours to own now.
+                  threadList.push_back(pid);
+                }
+              } else {
+                // The thread must be stopped: this should be impossible.
+                std::cout << "targetAttach EPERM thread not stopped!"
+                          << std::endl;
+              }
+            } else {
+              VLOG(3) << "EPERM seize, waitpid failed. Ignoring thread.";
+            }
+          }
         } else {
           threadList.push_back(pid);
         }
