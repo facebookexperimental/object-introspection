@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <boost/scope_exit.hpp>
 #include <cassert>
+#include <cinttypes>
 #include <cstring>
 #include <fstream>
 
@@ -772,7 +773,7 @@ std::shared_ptr<GlobalDesc> SymbolService::findGlobalDesc(
 
   auto gd = std::make_shared<GlobalDesc>(global, sym->addr);
 
-  struct drgn_object globalObj {};
+  struct drgn_object globalObj{};
   drgn_object_init(&globalObj, drgnProg);
   BOOST_SCOPE_EXIT_ALL(&) {
     drgn_object_deinit(&globalObj);
