@@ -42,7 +42,7 @@ std::optional<uintptr_t> FuncDesc::Arg::findAddress(
   user_regs_struct modifiedRegs = *regs;
   oi::detail::arch::setProgramCounter(modifiedRegs, pc);
 
-  struct drgn_object object {};
+  struct drgn_object object{};
   BOOST_SCOPE_EXIT_ALL(&) {
     drgn_object_deinit(&object);
   };

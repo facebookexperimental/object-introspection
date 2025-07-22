@@ -224,8 +224,8 @@ find_package(LLVM ${LLVM_REQUESTED_VERSION} REQUIRED CONFIG)
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 
-if((${LLVM_VERSION_MAJOR} VERSION_LESS 15) OR (${LLVM_VERSION_MAJOR} VERSION_GREATER 16))
-  message(SEND_ERROR "Object Introspection currently requires an LLVM version between 15 and 16!")
+if((${LLVM_VERSION_MAJOR} VERSION_LESS 16) OR (${LLVM_VERSION_MAJOR} VERSION_GREATER 16))
+  message(SEND_ERROR "Object Introspection currently requires LLVM version 16!")
 endif()
 
 find_package(Clang REQUIRED CONFIG)

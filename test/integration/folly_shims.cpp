@@ -32,10 +32,6 @@ namespace detail {
 void F14LinkCheck<getF14IntrinsicsMode()>::check() noexcept {
 }
 
-#if FOLLY_F14_VECTOR_INTRINSICS_AVAILABLE
-EmptyTagVectorType kEmptyTagVector = {};
-#endif
-
 bool tlsPendingSafeInserts(std::ptrdiff_t /*delta*/) {
   /* Disable extra debugging re-hash by classifying all inserts as safe (return
    * true) */
