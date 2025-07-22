@@ -84,12 +84,12 @@
                 libmicrohttpd
                 liburing
                 libxml2
-                lzma
                 msgpack
                 range-v3
                 rocksdb_8_11
                 sqlite
                 tomlplusplus
+                xz
                 zstd
               ]);
 
@@ -115,13 +115,11 @@
         packages = rec {
           default = self.packages.${system}."oid-llvm${toString defaultLlvmVersion}";
 
-          oid-llvm15 = mkOidPackage 15;
           oid-llvm16 = mkOidPackage 16;
         };
         devShells = rec {
           default = self.devShells.${system}."oid-llvm${toString defaultLlvmVersion}";
 
-          oid-llvm15 = mkOidDevShell 15;
           oid-llvm16 = mkOidDevShell 16;
         };
 

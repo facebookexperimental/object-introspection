@@ -236,8 +236,8 @@ void sigIntHandler(int sigNum) {
 }
 
 void installSigHandlers(void) {
-  struct sigaction nact {};
-  struct sigaction oact {};
+  struct sigaction nact{};
+  struct sigaction oact{};
 
   nact.sa_handler = sigIntHandler;
   sigemptyset(&nact.sa_mask);
