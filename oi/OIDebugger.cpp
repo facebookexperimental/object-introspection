@@ -181,7 +181,7 @@ void OIDebugger::dumpRegs(const char* text,
  */
 bool OIDebugger::singleStepFunc(pid_t pid, uint64_t real_end) {
   uint64_t addr = 0x0;
-  struct user_regs_struct regs {};
+  struct user_regs_struct regs{};
   uint64_t prev = 0;
 
   do {
@@ -816,7 +816,7 @@ OIDebugger::processTrapRet OIDebugger::processJitCodeRet(
 
       if (VLOG_IS_ON(4)) {
         errno = 0;
-        struct user_regs_struct newregs {};
+        struct user_regs_struct newregs{};
         if (ptrace(PTRACE_GETREGS, pid, NULL, &newregs) < 0) {
           LOG(ERROR) << "Execute: Couldn't restore registers: "
                      << strerror(errno);
@@ -875,14 +875,14 @@ bool OIDebugger::processGlobal(const std::string& varName) {
   }
 
   errno = 0;
-  struct user_regs_struct regs {};
+  struct user_regs_struct regs{};
   if (ptrace(PTRACE_GETREGS, traceePid, nullptr, &regs) < 0) {
     LOG(ERROR) << "processGlobal: failed to read registers" << strerror(errno);
     return false;
   }
 
   errno = 0;
-  struct user_fpregs_struct fpregs {};
+  struct user_fpregs_struct fpregs{};
   if (ptrace(PTRACE_GETFPREGS, traceePid, nullptr, &fpregs) < 0) {
     LOG(ERROR) << "processGlobal: Couldn't get fp registers: "
                << strerror(errno);
@@ -1109,7 +1109,7 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
     case SIGSEGV: {
       {
         errno = 0;
-        struct user_regs_struct regs {};
+        struct user_regs_struct regs{};
         if (ptrace(PTRACE_GETREGS, newpid, nullptr, &regs) < 0) {
           LOG(ERROR) << "SIGSEGV handling: failed to read registers"
                      << strerror(errno);
@@ -1175,8 +1175,8 @@ OIDebugger::processTrapRet OIDebugger::processTrap(pid_t pid,
        * entry/return point vectoring. We therefore must be able to match
        * which interrupt this is for and act accordingly.
        */
-      struct user_regs_struct regs {};
-      struct user_fpregs_struct fpregs {};
+      struct user_regs_struct regs{};
+      struct user_fpregs_struct fpregs{};
 
       errno = 0;
       if (ptrace(PTRACE_GETREGS, newpid, nullptr, &regs) < 0) {
@@ -1599,7 +1599,7 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
 
   /* Saving current registers states */
   errno = 0;
-  struct user_regs_struct oldregs {};
+  struct user_regs_struct oldregs{};
   if (ptrace(PTRACE_GETREGS, traceePid, nullptr, &oldregs) < 0) {
     LOG(ERROR) << "syscall: GETREGS failed for process " << traceePid << ": "
                << strerror(errno);
@@ -1607,7 +1607,7 @@ std::optional<typename Sys::RetType> OIDebugger::remoteSyscall(Args... _args) {
   }
 
   errno = 0;
-  struct user_fpregs_struct oldfpregs {};
+  struct user_fpregs_struct oldfpregs{};
   if (ptrace(PTRACE_GETFPREGS, traceePid, nullptr, &oldfpregs) < 0) {
     LOG(ERROR) << "syscall: GETFPREGS failed for process " << traceePid << ": "
                << strerror(errno);
@@ -2485,7 +2485,7 @@ void OIDebugger::restoreState(void) {
         continue;
       }
 
-      struct user_regs_struct regs {};
+      struct user_regs_struct regs{};
 
       /* Find the trapInfo for this tgid */
       if (auto iter{threadTrapState.find(p)};
@@ -2495,7 +2495,7 @@ void OIDebugger::restoreState(void) {
         /* Paranoia really */
         assert(p == iter->first);
 
-        struct user_fpregs_struct fpregs {};
+        struct user_fpregs_struct fpregs{};
 
         if (VLOG_IS_ON(1)) {
           errno = 0;
@@ -2573,7 +2573,7 @@ void OIDebugger::restoreState(void) {
 
       if (VLOG_IS_ON(1)) {
         errno = 0;
-        struct user_regs_struct regs {};
+        struct user_regs_struct regs{};
         if (ptrace(PTRACE_GETREGS, p, NULL, &regs) < 0) {
           LOG(ERROR) << "restoreState unknown sig handling: getregs failed- "
                      << strerror(errno);
@@ -2708,7 +2708,7 @@ bool OIDebugger::stopTarget(void) {
 
   if (VLOG_IS_ON(1)) {
     errno = 0;
-    struct user_regs_struct stopregs {};
+    struct user_regs_struct stopregs{};
     if (ptrace(PTRACE_GETREGS, traceePid, NULL, &stopregs) < 0) {
       LOG(ERROR) << "stopTarget getregs failed for process " << traceePid
                  << " : " << strerror(errno);
