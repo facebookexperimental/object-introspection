@@ -60,7 +60,7 @@ target_compile_definitions(test_type_graph PRIVATE
   TARGET_EXE_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration/integration_test_target"
 )
 target_link_libraries(test_type_graph
-  codegen
+  oicodegen
   container_info
   type_graph
 
@@ -79,7 +79,7 @@ target_compile_definitions(test_clang_type_parser PRIVATE
   BUILD_DIR="${CMAKE_BINARY_DIR}"
 )
 target_link_libraries(test_clang_type_parser
-  codegen
+  oicodegen
   container_info
   type_graph
 
