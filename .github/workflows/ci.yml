@@ -14,6 +14,18 @@ jobs:
         nix --experimental-features 'nix-command flakes' fmt
         git diff --exit-code
 
+  nix-build:
+    name: Test Nix build
+    runs-on: 16-core-ubuntu
+    steps:
+    - uses: actions/checkout@v4.1.7
+    - uses: cachix/install-nix-action@v27
+    - run: |
+        nix flake show --json \
+          | jq -r '.packages."x86_64-linux" | keys[]' \
+          | sed 's/^/.#/' \
+          | xargs nix build
+
   build-test:
     runs-on: 16-core-ubuntu
     strategy:
@@ -52,3 +64,16 @@ jobs:
       with:
         name: test-results-${{ matrix.llvm_version }}
         path: build/test/results.xml
+
+  required-checks:
+    runs-on: ubuntu-latest
+    needs: [
+      lint,
+      nix-build,
+      build-test,
+    ]
+    if: always()
+    env:
+      NEEDS_CONTEXT: ${{ toJSON(needs) }}
+    steps:
+      - run: echo "$NEEDS_CONTEXT" | jq -e 'to_entries | all(.value.result == "success")'
