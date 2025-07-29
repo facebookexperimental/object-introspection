@@ -116,11 +116,13 @@
           default = self.packages.${system}."oid-llvm${toString defaultLlvmVersion}";
 
           oid-llvm16 = mkOidPackage 16;
+          oid-llvm17 = mkOidPackage 17;
         };
         devShells = rec {
           default = self.devShells.${system}."oid-llvm${toString defaultLlvmVersion}";
 
           oid-llvm16 = mkOidDevShell 16;
+          oid-llvm17 = mkOidDevShell 17;
         };
 
         apps.default = {
