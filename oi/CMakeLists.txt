@@ -39,12 +39,12 @@ target_link_libraries(container_info
   toml
 )
 
-add_library(codegen
+add_library(oicodegen
   CodeGen.cpp
   FuncGen.cpp
   OICodeGen.cpp
 )
-target_link_libraries(codegen
+target_link_libraries(oicodegen
   container_info
   resources
   symbol_service

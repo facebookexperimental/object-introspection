@@ -94,8 +94,15 @@ if (${THRIFT_FOUND})
   target_link_libraries(integration_test_target PRIVATE glog::glog)
 endif()
 
-if (DEFINED ENV{CI})
-  gtest_discover_tests(integration_test_runner EXTRA_ARGS "--verbose" "--preserve-on-failure")
+# Set timeout to 300 for LLVM 17 due to performance regression
+if (${LLVM_VERSION_MAJOR} EQUAL 17)
+  set(INTEGRATION_TEST_TIMEOUT 300)
 else()
-  gtest_discover_tests(integration_test_runner)
+  set(INTEGRATION_TEST_TIMEOUT 90)
+endif()
+
+if (DEFINED ENV{CI})
+  gtest_discover_tests(integration_test_runner EXTRA_ARGS "--verbose" "--preserve-on-failure" "--output-on-failure" PROPERTIES TIMEOUT ${INTEGRATION_TEST_TIMEOUT})
+else()
+  gtest_discover_tests(integration_test_runner PROPERTIES TIMEOUT ${INTEGRATION_TEST_TIMEOUT})
 endif()
