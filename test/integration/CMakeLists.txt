@@ -59,6 +59,7 @@ target_link_libraries(integration_test_runner PRIVATE
   Boost::headers
   ${Boost_LIBRARIES}
   toml
+  oicore
 )
 target_compile_definitions(integration_test_runner PRIVATE
   TARGET_EXE_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration_test_target"
