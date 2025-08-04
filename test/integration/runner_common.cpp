@@ -12,6 +12,7 @@
 #include <string>
 #include <utility>
 
+#include "oi/OICompiler.h"
 #include "oi/OIOpts.h"
 #include "oi/support/Toml.h"
 
@@ -22,6 +23,7 @@ namespace bpt = boost::property_tree;
 namespace fs = std::filesystem;
 
 bool run_skipped_tests = false;
+int llvm_version_major = oi::detail::OICompiler::getLLVMVersionMajor();
 
 namespace {
 

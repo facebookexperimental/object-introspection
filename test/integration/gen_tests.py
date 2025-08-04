@@ -415,6 +415,13 @@ def generate_skip(case, specific):
     possibly_skip = ""
     skip_reason = case.get("skip", False)
     specific_skip_reason = case.get(f"{specific}_skip", False)
+
+    # Handle LLVM version constraints
+    min_llvm = case.get("min_llvm_version")
+    max_llvm = case.get("max_llvm_version")
+    skip_llvm = case.get("skip_llvm_version")
+
+    # Check if test should be skipped due to regular skip reasons
     if specific_skip_reason or skip_reason:
         possibly_skip += "  if (!run_skipped_tests) {\n"
         possibly_skip += "    GTEST_SKIP()"
@@ -424,6 +431,32 @@ def generate_skip(case, specific):
             possibly_skip += f' << "{skip_reason}"'
         possibly_skip += ";\n"
         possibly_skip += "  }\n"
+
+    # Check LLVM version constraints
+    if min_llvm is not None:
+        possibly_skip += f"  if (llvm_version_major < {min_llvm}) {{\n"
+        possibly_skip += f'    GTEST_SKIP() << "Requires LLVM {min_llvm} or newer, but running with LLVM " << llvm_version_major;\n'
+        possibly_skip += "  }\n"
+
+    if max_llvm is not None:
+        possibly_skip += f"  if (llvm_version_major > {max_llvm}) {{\n"
+        possibly_skip += f'    GTEST_SKIP() << "Requires LLVM {max_llvm} or older, but running with LLVM " << llvm_version_major;\n'
+        possibly_skip += "  }\n"
+
+    if skip_llvm is not None:
+        if isinstance(skip_llvm, list):
+            for version in skip_llvm:
+                possibly_skip += f"  if (llvm_version_major == {version}) {{\n"
+                possibly_skip += (
+                    f'    GTEST_SKIP() << "Test skipped for LLVM {version}";\n'
+                )
+                possibly_skip += "  }\n"
+        else:
+            possibly_skip += f"  if (llvm_version_major == {skip_llvm}) {{\n"
+            possibly_skip += (
+                f'    GTEST_SKIP() << "Test skipped for LLVM {skip_llvm}";\n'
+            )
+            possibly_skip += "  }\n"
 
     return possibly_skip
 
@@ -448,6 +481,7 @@ def gen_runner(output_runner_name, test_configs):
             "using ::testing::MatchesRegex;\n"
             "\n"
             "extern bool run_skipped_tests;\n"
+            "extern int llvm_version_major;\n"
         )
         for config in test_configs:
             add_tests(f, config)

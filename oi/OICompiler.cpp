@@ -738,4 +738,8 @@ std::optional<OICompiler::RelocResult> OICompiler::applyRelocs(
   return res;
 }
 
+int OICompiler::getLLVMVersionMajor() {
+  return LLVM_VERSION_MAJOR;
+}
+
 }  // namespace oi::detail

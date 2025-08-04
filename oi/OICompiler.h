@@ -183,6 +183,11 @@ class OICompiler {
   static std::optional<std::string> decodeInst(const std::vector<std::byte>&,
                                                uintptr_t);
 
+  /**
+   * @return the major version of LLVM this was compiled with
+   */
+  static int getLLVMVersionMajor();
+
  private:
   std::shared_ptr<SymbolService> symbols;
   Config config;
