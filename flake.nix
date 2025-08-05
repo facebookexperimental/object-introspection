@@ -21,7 +21,7 @@
     flake-utils.lib.eachSystem [ flake-utils.lib.system.x86_64-linux ] (
       system:
       let
-        defaultLlvmVersion = 16;
+        defaultLlvmVersion = 17;
         pkgs = import nixpkgs { inherit system; };
 
         drgnSrc = pkgs.fetchFromGitHub {
@@ -116,11 +116,13 @@
           default = self.packages.${system}."oid-llvm${toString defaultLlvmVersion}";
 
           oid-llvm16 = mkOidPackage 16;
+          oid-llvm17 = mkOidPackage 17;
         };
         devShells = rec {
           default = self.devShells.${system}."oid-llvm${toString defaultLlvmVersion}";
 
           oid-llvm16 = mkOidDevShell 16;
+          oid-llvm17 = mkOidDevShell 17;
         };
 
         apps.default = {
