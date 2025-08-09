@@ -282,6 +282,9 @@ def get_config_strings(case):
 
 
 def add_oid_integration_test(f, config, case_name, case):
+    if "oid_disable" in case:
+        return
+
     probe_type = case.get("type", "entry")
     args = case.get("args", "arg0")
 

@@ -71,7 +71,14 @@
     param_types = ["double"]
     setup = "return 3.14;"
     expect_json = '[{"staticSize":8, "dynamicSize":0, "exclusiveSize":8, "size":8}]'
-  [cases.long_double]
+
+  [cases.oil_long_double]
+    oid_disable = "Split test case for OID"
+    param_types = ["long double"]
+    setup = "return 3.14;"
+    expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "size":16}]'
+  [cases.oid_long_double]
+    skip_llvm_version = 17
     param_types = ["long double"]
     setup = "return 3.14;"
     expect_json = '[{"staticSize":16, "dynamicSize":0, "exclusiveSize":16, "size":16}]'

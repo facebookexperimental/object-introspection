@@ -24,13 +24,13 @@ jobs:
         nix flake show --json \
           | jq -r '.packages."x86_64-linux" | keys[]' \
           | sed 's/^/.#/' \
-          | xargs nix build
+          | xargs nix build --print-build-logs
 
   build-test:
     runs-on: 16-core-ubuntu
     strategy:
       matrix:
-        llvm_version: [16]
+        llvm_version: [16, 17, 18]
     steps:
     - uses: actions/checkout@v4.1.7
     - uses: cachix/install-nix-action@v27
